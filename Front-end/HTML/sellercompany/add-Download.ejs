@@ -1,0 +1,108 @@
+<!-- <%- include('../../includes/sellercompany/head.ejs') %>
+
+    <link rel="stylesheet" href="/sellercompany/add-Download.css">
+    <link rel="stylesheet" href="Front-end\Css\sellercompany\add-Download.css">
+
+    <%- include('../../includes/sellercompany/head-end.ejs') %>
+
+        <body>
+            <%- include('../../includes/sellercompany/navbar-dash.ejs') %>
+                <section class="sidebar-content-container">
+                    <section class="sidebar-container">
+                        <%- include('../../includes/sellercompany/sidebar.ejs') %>
+                    </section>
+
+                    
+
+                    <section class="add-download-form-container">
+                        <h1>Add Downloadable File</h1>
+
+                        <form action="/admin/add-download" method="POST" enctype="multipart/form-data">
+                            <label>Language</label>
+                            <select name="language" id="languageSelect" required>
+                              <option value="EN">English</option>
+                              <option value="ES">Spanish</option>
+                              <option value="GR">Greek</option>
+                            </select>
+                          
+                            <label>File Category</label>
+                            <select name="fileCategory" id="fileCategory" required>
+                              <option value="catalogs">Catalog</option>
+                              <option value="certificates">Certificate</option>
+                              <option value="logo">Logo</option>
+                            </select>
+                          
+                            <div id="productSection">
+                              <label>Product</label>
+                              <select name="productId" id="productSelect">
+                                <% products.forEach(p => { %>
+                                  <option value="<%= p._id %>"><%= p.Language['EN'][0]?.ProductName || 'Unnamed' %></option>
+                                <% }) %>
+                              </select>
+                          
+                              <label>Model</label>
+                              <select name="modelId" id="modelSelect"></select>
+                            </div>
+                          
+                            <label>Select File</label>
+                            <input type="file" name="downloadFiles_EN" required />
+                          
+                            <button type="submit">Upload</button>
+                          </form>
+                          
+                          <script>
+                            const fileCategory = document.getElementById('fileCategory');
+                            const productSection = document.getElementById('productSection');
+                            const productSelect = document.getElementById('productSelect');
+                            const modelSelect = document.getElementById('modelSelect');
+                          
+                            // Toggle visibility based on selected file category
+                            function updateVisibility() {
+                              const value = fileCategory.value;
+                              const hideFields = ['generalCatalogs', 'certificates', 'logo'];
+                              if (hideFields.includes(value)) {
+                                productSection.style.display = 'none';
+                                productSelect.removeAttribute('required');
+                                modelSelect.removeAttribute('required');
+                              } else {
+                                productSection.style.display = 'block';
+                                productSelect.setAttribute('required', true);
+                                modelSelect.setAttribute('required', true);
+                              }
+                            }
+                          
+                            fileCategory.addEventListener('change', updateVisibility);
+                          
+                            // Optional: load models when product is selected (if shown)
+                            productSelect.addEventListener('change', async () => {
+                              const res = await fetch(`/api/models/${productSelect.value}?lang=EN`);
+                              const data = await res.json();
+                              modelSelect.innerHTML = '';
+                              data.models.forEach(model => {
+                                const opt = document.createElement('option');
+                                opt.value = model._id;
+                                opt.textContent = model.ModelName;
+                                modelSelect.appendChild(opt);
+                              });
+                            });
+                          
+                            // Trigger on load
+                            updateVisibility();
+                            productSelect.dispatchEvent(new Event('change'));
+                          </script>
+                          
+                          
+                        
+    
+                    </section>
+
+                </section>
+
+
+
+
+
+                <script src="/assets/Js/nav-bar.js"></script>
+        </body>
+
+        </html> -->

@@ -1,0 +1,489 @@
+<div class="navbarContainer">
+    <div class="navright">
+        <a href="/EN">
+            <img src="/assets/Imgs/logo/DragLab-Logo.png" alt="DragLab Logo">
+        </a>
+    </div>
+
+    <div class="navMidLeft">
+
+        <div class="navMid">
+            <div class="12">
+
+                <ul class="menu">
+                    <li class="dropdown">
+                        <p>
+                            Company <img src="/assets/Imgs/Icons/Down-arrow-blue.png" alt="">
+                        </p>
+                        <ul class="dropdown-menu">
+                            <li><a href="/aboutus">&#8226; About Us</a></li>
+                            <li><a href="#">&#8226; Career</a></li>
+                            <li><a href="/TermCondition">&#8226; Terms & Condition</a></li>
+                            <li><a href="/PrivacyPolicy">&#8226; Privacy Policy</a></li>
+                        </ul>
+                    </li>
+
+                    <li class="dropdown">
+                        <p>
+                            Products <img src="/assets/Imgs/Icons/Down-arrow-blue.png" alt="">
+                        </p>
+                        <ul class="dropdown-menu dropdown-menu-products">
+                            <div class="ProductsDivContainer">
+                                <div class="AllproductContainer">
+                                    <p>Products</p>
+
+                                    <% products.filter(p=> !p.isDraft).forEach(product => {
+
+                                        const productLang = product.Language?.EN?.[0];
+                                        const modelsArray = product.Models
+                                        .filter(model => model.isPublished) // ✅ Only published models
+                                        .map(model => {
+                                        return {
+                                        id: model._id,
+                                        name: model.Language?.EN?.[0]?.ModelName
+                                        };
+                                        });
+
+                                        %>
+                                        <div class="productContainer" onclick="goToProduct('<%= product._id %>')"
+                                            onmouseenter="updateModels('<%= product._id %>')"
+                                            data-id="<%= product._id %>" data-sketch="/<%= product.ProductSketch %>"
+                                            data-models='<%- JSON.stringify(modelsArray) %>'>
+
+                                            <div class="productphotoContainer">
+                                                <img src="/<%= product.ProductSketch %>" width="80.1px" alt="">
+                                            </div>
+
+                                            <div class="productNamImgContainer">
+                                                <div class="productnameContainer">
+                                                    <h2>
+                                                        <%= productLang?.ProductName %>
+                                                    </h2>
+                                                    <p>
+                                                        <%= productLang?.ProductNameDesc %>
+                                                    </p>
+                                                </div>
+                                                <img src="/assets/Imgs/Icons/Arrow.png" alt="arrow">
+                                            </div>
+                                        </div>
+                                        <% }); %>
+
+                                </div>
+
+                                <div class="modelsContainer">
+                                    <div class="imgModelContainer">
+                                        <img src="/assets/Imgs/Icons/models.png" alt="models" width="38.31px">
+                                        <p>models:</p>
+                                    </div>
+                                    <ul>
+                                        <% products.forEach(product=> {
+                                            const productLang = product.Language?.EN?.[0];
+                                            product.Models.forEach(model => {
+                                            const modelLang = model.Language?.EN?.[0];
+                                            %>
+                                            <li>
+                                                <%= productLang?.ProductName %> - <%= modelLang?.ModelName %>
+                                            </li>
+                                            <% })}) %>
+                                    </ul>
+                                </div>
+
+                                <div class="productImgContainer">
+                                    <img src="/assets/Imgs/Icons/products/waterBath.webp" alt="">
+                                </div>
+                            </div>
+                        </ul>
+
+                    </li>
+
+                    <li class="dropdown">
+                        <p>
+                            Support <img src="/assets/Imgs/Icons/Down-arrow-blue.png" alt="">
+                        </p>
+                        <ul class="dropdown-menu">
+                            <li><a href="/support">&#8226; Support</a></li>
+                            <li><a href="/technical-service"> &#8226; Technical Services</a></li>
+                            <li><a href="/WarrantyRegistration">&#8226; Warranty Registration</a></li>
+                            <li><a href="/Downloads">&#8226; Downloads</a></li>
+                        </ul>
+                    </li>
+
+                    <li><a href="/Articles">Articles</a></li>
+                    <li><a href="/Contactus">Contact Us</a></li>
+                </ul>
+            </div>
+        </div>
+        <!-- <select id="languageSwitcher" onchange="changeLanguage(this.value)">
+            <option value="EN">English</option>
+            <option value="ES">Español</option>
+            <option value="GR">Germany</option>
+        </select> -->
+
+
+        <div class="navLeft">
+            <div class="navMidRight">
+                <input type="text" id="search" name="search" placeholder="Search..">
+                <img src="/assets/Imgs/Icons/search.png" alt="search" class="search-icon">
+            </div>
+            <div id="loadingSpinner" style="display:none;">Searching...</div>
+
+        </div>
+
+    </div>
+
+
+    <div class="hamburgerIconcontainer">
+        <img src="/assets/Imgs/Icons/hamburger-menu.png" alt="menu" class="menu-icon" onclick="openNav()" />
+    </div>
+
+
+</div>
+
+</nav>
+
+<!-- ✅ MOBILE NAVIGATION STRUCTURE -->
+<div class="mobile-navbar" id="mobileNavbar">
+    <!-- Main Menu -->
+    <div class="menu-page active" id="mainMenu">
+        <div class="top-bar">
+            <img src="/assets/Imgs/logo/DragLab-Logo.png" class="logo" alt="DragLab Logo" />
+            <!-- <select id="languageSwitcher" onchange="changeLanguage(this.value)">
+                <option value="EN">EN</option>
+                <option value="ES">ES</option>
+                <option value="GR">GR</option>
+            </select> -->
+            <span class="close-menu">&#10005;</span>
+        </div>
+
+        <input type="text" class="mobile-search" placeholder="Search..." />
+
+        <ul class="main-links">
+            <li onclick="goToPage('companyPage')">Company <img src="/assets/Imgs/Icons/Down-arrow-blue.png" alt=""></li>
+            <li onclick="goToPage('productPage')">Products <img src="/assets/Imgs/Icons/Down-arrow-blue.png" alt="">
+            </li>
+            <li onclick="goToPage('supportPage')">Support <img src="/assets/Imgs/Icons/Down-arrow-blue.png" alt=""></li>
+            <li><a href="/Articles">Articles</a></li>
+            <li><a href="/Contactus">Contact Us</a></li>
+        </ul>
+    </div>
+
+    <!-- Company Submenu -->
+    <div class="menu-page" id="companyPage">
+        <div class="top-bar">
+            <span class="back" onclick="goBack('companyPage')"><img src="/assets/Imgs/Icons/backarrow.png"
+                    alt=""></span>
+            <span class="page-title">Company</span>
+            <span class="close-menu">&#10005;</span>
+        </div>
+        <ul>
+            <li><a href="/aboutus">About Us</a></li>
+            <li><a href="#">Career</a></li>
+            <li><a href="/TermCondition">Terms & Condition</a></li>
+            <li><a href="/PrivacyPolicy">Privacy Policy</a></li>
+        </ul>
+    </div>
+
+    <!-- Products Submenu -->
+    <!-- Products Menu (no redirect on click) -->
+    <!-- Products list page -->
+    <div class="menu-page" id="productPage">
+        <div class="top-bar">
+            <span class="back" onclick="goBack('productPage')"><img src="/assets/Imgs/Icons/backarrow.png"
+                    alt=""></span>
+            <span class="page-title">Products</span>
+            <span class="close-menu">&#10005;</span>
+        </div>
+
+        <% products.filter(p=> !p.isDraft).forEach(product => {
+            const productLang = product.Language?.EN?.[0];
+            %>
+            <div class="product-item" onclick="showModels('<%= product._id %>')">
+                <div class="product-photo-container">
+                    <img src="/<%= product.ProductSketch %>" alt="Product Image" width="80px" height="80px" />
+                    <div class="product-info">
+                        <h4>
+                            <%= productLang?.ProductName %>
+                        </h4>
+                        <p>
+                            <%= productLang?.ProductNameDesc %>
+                        </p>
+                    </div>
+                </div>
+
+                <span class="arrow"><img src="/assets/Imgs/Icons/Arrow.png" alt=""></span>
+            </div>
+            <% }) %>
+    </div>
+
+    <!-- ✅ Move this outside the productPage -->
+    <% products.filter(p=> !p.isDraft).forEach(product => {
+        const productLang = product.Language?.EN?.[0];
+        const models = product.Models.filter(m => m.isPublished);
+        %>
+        <div class="menu-page" id="modelMenu_<%= product._id %>">
+            <div class="top-bar">
+                <span class="back" onclick="goBack('modelMenu_<%= product._id %>')"><img
+                        src="/assets/Imgs/Icons/backarrow.png" alt=""></span>
+                <span class="page-title">Models</span>
+                <span class="close-menu">&#10005;</span>
+            </div>
+
+            <div class="model-section">
+                <div class="imgModelContainer">
+                    <img src="/assets/Imgs/Icons/models.png" alt="models" width="30">
+                    <p>Models:</p>
+                </div>
+
+                <ul>
+                    <% models.forEach(model=> {
+                        const modelLang = model.Language?.EN?.[0];
+                        %>
+                        <li onclick="goToModel('<%= product._id %>', '<%= model._id %>')">
+                            <%= productLang?.ProductName %> - <%= modelLang?.ModelName %>
+                        </li>
+                        <% }) %>
+                </ul>
+
+                <img src="/<%= product.ProductSketch %>" class="model-img" alt="Model Image" />
+                <button class="view-product" onclick="goToProduct('<%= product._id %>')">View Product</button>
+            </div>
+        </div>
+        <% }) %>
+
+
+            <!-- Support Submenu -->
+            <div class="menu-page" id="supportPage">
+                <div class="top-bar">
+                    <span class="back" onclick="goBack('supportPage')"><img src="/assets/Imgs/Icons/backarrow.png"
+                            alt=""></span>
+                    <span class="page-title">Support</span>
+                    <span class="close-menu">&#10005;</span>
+                </div>
+                <ul>
+                    <li><a href="/support">Support</a></li>
+                    <li><a href="/technical-service">Technical Services</a></li>
+                    <li><a href="#">Warranty Registration</a></li>
+                    <li><a href="/Downloads">Downloads</a></li>
+                </ul>
+            </div>
+</div>
+
+
+
+
+<script>
+    function goToPage(id) {
+        document.querySelectorAll('.menu-page').forEach(p => p.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    }
+
+    function goBack(currentId) {
+        document.getElementById(currentId).classList.remove('active');
+        document.getElementById('mainMenu').classList.add('active');
+    }
+
+    document.querySelectorAll('.close-menu').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.getElementById('mobileNavbar').style.display = 'none';
+        });
+    });
+
+    // You can toggle this with your hamburger icon
+    function openMobileMenu() {
+        document.getElementById('mobileNavbar').style.display = 'block';
+    }
+</script>
+
+<script>
+    function getCurrentLang() {
+        const path = window.location.pathname;
+        const langMatch = path.match(/\/(EN|ES|GR)/);
+        return langMatch ? langMatch[1] : 'EN';
+    }
+
+    function goToProduct(productId) {
+        const lang = getCurrentLang();
+        window.location.href = `/product/${productId}/${lang}`;
+    }
+
+    function goToModel(productId, modelId) {
+        const lang = getCurrentLang();
+        setTimeout(() => {
+            window.location.href = `/model/${productId}/${modelId}/${lang}`;
+        }, 100);
+    }
+
+
+
+    function updateModels(productId) {
+        const productEl = document.querySelector(`.productContainer[data-id="${productId}"]`);
+        const modelsContainer = document.querySelector(".modelsContainer ul");
+        const imageContainer = document.querySelector(".productImgContainer img");
+
+        if (productEl && modelsContainer && imageContainer) {
+            // Update sketch image
+            const sketch = productEl.getAttribute('data-sketch');
+            imageContainer.src = sketch;
+
+            // Update model list
+            const models = JSON.parse(productEl.getAttribute('data-models'));
+            modelsContainer.innerHTML = "";
+
+            if (models.length === 0) {
+                modelsContainer.innerHTML = "<li>No models available</li>";
+            } else {
+                models.forEach(model => {
+                    const li = document.createElement("li");
+                    li.textContent = model.name;
+                    li.style.cursor = 'pointer';
+                    li.onclick = (e) => {
+                        e.stopPropagation(); // prevent parent click
+                        goToModel(productId, model.id);
+                    };
+                    modelsContainer.appendChild(li);
+                });
+            }
+        }
+    }
+</script>
+
+<script>
+    window.addEventListener("DOMContentLoaded", () => {
+        const firstProduct = document.querySelector(".productContainer");
+        if (firstProduct) {
+            const productId = firstProduct.getAttribute("data-id");
+            updateModels(productId);
+        }
+    });
+</script>
+
+<script>
+    function showModels(productId) {
+        document.querySelectorAll('.menu-page').forEach(p => p.classList.remove('active'));
+        document.getElementById(`modelMenu_${productId}`).classList.add('active');
+    }
+
+
+    // Dynamically update link hrefs on page load
+    window.addEventListener('DOMContentLoaded', () => {
+        const lang = getCurrentLang();
+
+        const langLinks = {
+            '/support': `/support/${lang}`,
+            '/technical-service': `/technical-service/${lang}`,
+            '/WarrantyRegistration': `/WarrantyRegistration/${lang}`,
+            '/TermCondition': `/TermCondition/${lang}`,
+            '/PrivacyPolicy': `/PrivacyPolicy/${lang}`,
+            '/Downloads': `/Downloads/${lang}`,
+            '/aboutus': `/aboutus/${lang}`,
+            '/Articles': `/Articles/${lang}`,
+            '/Contactus': `/Contactus/${lang}`,
+            '/': `/${lang}`,
+            // Add more if needed
+        };
+
+        document.querySelectorAll('a').forEach(link => {
+            const href = link.getAttribute('href');
+            if (langLinks[href]) {
+                link.setAttribute('href', langLinks[href]);
+            }
+        });
+    });
+</script>
+
+
+
+
+
+
+
+<script>
+    function openNav() {
+        document.getElementById("mobileNavbar").style.display = "block";
+    }
+
+    document.querySelectorAll(".close-menu").forEach(btn => {
+        btn.addEventListener("click", () => {
+            document.getElementById("mobileNavbar").style.display = "none";
+            document.querySelectorAll(".menu-page").forEach(page => page.classList.remove("active"));
+            document.getElementById("mainMenu").classList.add("active");
+        });
+    });
+
+    function goToPage(pageId) {
+        document.querySelectorAll(".menu-page").forEach(page => page.classList.remove("active"));
+        document.getElementById(pageId).classList.add("active");
+    }
+
+    function goBack(currentPageId) {
+        document.getElementById(currentPageId).classList.remove("active");
+        document.getElementById("mainMenu").classList.add("active");
+    }
+</script>
+
+
+
+
+<script>
+    function changeLanguage(lang) {
+        const currentPath = window.location.pathname;
+        const updatedPath = currentPath.replace(/\/(EN|ES|GR)/, '/' + lang);
+        if (updatedPath === currentPath) {
+            window.location.href = `/${lang}`;
+        } else {
+            window.location.href = updatedPath;
+        }
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+        const lang = getCurrentLang();
+        document.getElementById("languageSwitcher").value = lang;
+    });
+</script>
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const searchInput = document.getElementById('search');
+        const searchIcon = document.querySelector('.search-icon');
+    
+        searchIcon.addEventListener('click', handleSearch);
+        searchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                handleSearch();
+            }
+        });
+    
+        function handleSearch() {
+            document.getElementById('loadingSpinner').style.display = 'block';
+
+            const query = searchInput.value.trim();
+            if (!query) return;
+    
+            const lang = getCurrentLang(); // already defined earlier in your scripts
+    
+            fetch(`/search?search=${encodeURIComponent(query)}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.products.length === 0 && data.models.length === 0) {
+                        alert('No results found.');
+                        return;
+                    }
+    
+                    if (data.products.length > 0) {
+                        // If matching product found, redirect to the first one
+                        const product = data.products[0];
+                        window.location.href = `/product/${product.id}/${lang}`;
+                    } else if (data.models.length > 0) {
+                        // If matching model found
+                        const model = data.models[0];
+                        window.location.href = `/model/${model.productId}/${model.modelId}/${lang}`;
+                    }
+                })
+                .catch(err => {
+                    console.error('Search failed:', err);
+                });
+        }
+    });
+    </script>
+    

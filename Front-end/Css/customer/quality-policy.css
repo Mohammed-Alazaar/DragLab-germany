@@ -1,0 +1,172 @@
+/* product thumbnail section  */
+.slide {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    height: 80vh;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  
+  .slide img {
+    height: 100%;
+    width: calc(100% - 20px);
+    object-position: center;
+    position: absolute;
+    top: 0;
+    left: 10px;
+    z-index: 00;
+  }
+  
+  .slide-text {
+    display: flex;
+    gap: 1rem;
+    flex-direction: column;
+    z-index: 2;
+    align-items: center;
+    padding: 0 20%;
+    text-align: center;
+  }
+  
+  .slide-text h1 {
+    font-weight: 600;
+    font-size: 60px;
+    line-height: 150%;
+    text-transform: uppercase;
+    color: var(--white-text-Color);
+  }
+  
+  .slide-text p {
+    font-weight: 500;
+    font-size: 35px;
+    line-height: 110%;
+    color: var(--white-text-Color);
+  
+  }
+  
+  
+  @media (max-width: 790px) {
+    .slide {
+      height: 50vh;
+    }
+  
+    .slide-text p {
+      font-size: 18px;
+    }
+  
+    .slide-text h1 {
+      font-weight: 600;
+      font-size: 24px;
+      line-height: 125%;
+      white-space: normal;
+  
+    }
+  
+  
+    .slide img {
+      width: calc(100% - 10px);
+      left: 5px;
+    }
+  }
+  
+
+  /* quality-policy  */
+
+
+/* quality-policy section  */
+
+.quality-policy-container {
+    padding: 50px 20px;
+    max-width: 900px;
+    margin: 0 auto;
+    font-family: 'Poppins', sans-serif;
+    color: #333;
+  }
+  
+  .container-head h1 {
+    font-size: 34px;
+    font-weight: 600;
+    text-align: center;
+    color: #1b1f99;
+    margin-bottom: 40px;
+  }
+  
+  .quality-policy-content p {
+    font-size: 17px;
+    line-height: 1.8;
+    color: #555;
+    margin-bottom: 25px;
+    font-weight: 400;
+  }
+  
+  .quality-policy-content .intro {
+    font-size: 18px;
+    font-weight: 500;
+    text-align: center;
+    color: #444;
+    margin-bottom: 40px;
+  }
+  
+  .quality-policy-content h2 {
+    font-size: 26px;
+    color: #1b1f99;
+    margin-top: 50px;
+    margin-bottom: 20px;
+    font-weight: 600;
+  }
+  
+  .quality-policy-section {
+    margin-bottom: 30px;
+  }
+  
+  .quality-policy-section h3 {
+    font-size: 20px;
+    color: #1b1f99;
+    margin-bottom: 10px;
+  }
+  
+  .quality-policy-list {
+    list-style: none;
+    padding-left: 0;
+  }
+  
+  .quality-policy-list li {
+    font-size: 16px;
+    margin-bottom: 15px;
+    position: relative;
+    padding-left: 25px;
+    color: #555;
+  }
+  
+  .quality-policy-list li::before {
+    content: "✔️";
+    position: absolute;
+    left: 0;
+    top: 0;
+    color: #1b1f99;
+  }
+  
+  @media (max-width: 768px) {
+    .quality-policy-container {
+      padding: 30px 15px;
+    }
+  
+    .container-head h1 {
+      font-size: 30px;
+    }
+  
+    .quality-policy-content h2 {
+      font-size: 24px;
+    }
+  
+    .quality-policy-content h3 {
+      font-size: 20px;
+    }
+  
+    .quality-policy-content p,
+    .quality-policy-list li {
+      font-size: 15px;
+    }
+  }
+  

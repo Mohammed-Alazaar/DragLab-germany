@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <%- include('../includes/customer/head.ejs') %>
+        <title>Forbidden</title>
+</head>
+
+<body>
+    <style>
+        .error-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+    </style>
+
+        <section class="error-page">
+            <div class="error-content">
+                <img src="/assets/Imgs/Icons/403.gif" alt="">
+                <a href="/EN" class="btn btn-primary">Go to Home Page</a>
+            </div>
+        </section>
+
+        <%- include('../includes/customer/footer.ejs') %>
+            <%- include('../includes/customer/script.ejs') %>
+</body>
+
+</html>

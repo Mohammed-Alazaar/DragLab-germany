@@ -1,0 +1,83 @@
+<%- include('../../includes/customer/head.ejs') %>
+
+    <link rel="stylesheet" href="/Css/customer/account.css">
+    <%- include('../../includes/customer/header-end.ejs') %>
+
+
+        <body>
+            <!-- nav-bar -->
+
+                <%- include('../../includes/sellercompany/navbar-dash.ejs') %>
+                
+   
+
+                <section class="Account-Content">
+
+
+                    <ul class="nav nav-pills flex-column">
+                        <li class="nav-item selected">
+                            <a class="nav-link" href="/admin/account" id="profile">Profile</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/changepassword" id="change-password">Password</a>
+
+                        </li>
+                        <!-- <li class="nav-item">
+                            <a class="nav-link" href="/orders" id="email">My Orders</a>
+
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link" href="/add-address" id="address">Address</a>
+                        </li> -->
+
+                    </ul>
+
+                    <div id="line"></div>
+
+
+                    <div class="right-side-panel">
+
+                        <div class="MyProfile">
+                            <h3>My Profile</h3>
+
+                        </div>
+                        <div class="PersonalInforamtion">
+                            <div class="PersonalInforamtion-button">
+                                <p>Personal Information</p>
+                            </div>
+                            <form action="/account" method="post">
+                                <div class="username-container">
+                                    <label for="name">Full name</label>
+                                    <input type="text" name="name" class="username" value="<%= user.name %>">
+                                </div>
+                                <div class="Email-container">
+                                    <label for="email">Email</label>
+                                    <input type="email" name="email" class="email" value="<%= user.email %>">
+                                </div>
+                                <div class="PhoneNumber-container">
+                                    <label for="phone">Phone Number</label>
+                                    <input type="text" name="phoneNumber" class="phone" value="<%= user.phoneNumber %>">
+                                </div>
+                                <div class="sendButton">
+                                    <a href="/admin/Dashboard" id="cancelBtn">cancel</a>
+                                    <button type="submit" id="saveButton">Save</button>
+                                </div>
+                            </form>
+                        </div>
+
+                    </div>
+                </section>
+
+
+
+
+                <%- include('../../includes/customer/footer.ejs') %>
+
+
+        </body>
+        <%- include('../../includes/customer/script.ejs') %>
+
+            <!-- <script src="/assets/Js/account.js"></script> -->
+
+            </html>

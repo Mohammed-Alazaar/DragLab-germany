@@ -1,0 +1,65 @@
+<%- include('../../includes/sellercompany/head.ejs') %>
+
+    <link rel="stylesheet" href="/sellercompany/add-indexSlide.css">
+
+    <%- include('../../includes/sellercompany/head-end.ejs') %>
+
+        <body>
+            <%- include('../../includes/sellercompany/navbar-dash.ejs') %>
+                <section class="sidebar-content-container">
+                    <section class="sidebar-container">
+                        <%- include('../../includes/sellercompany/sidebar.ejs') %>
+                    </section>
+
+
+                    <section class="slideshow-dashboard-container">
+                        <h2>
+                            <%= editing ? 'Edit Slide' : 'Add New Slide' %>
+                        </h2>
+                        <form action="<%= editing ? '/admin/slideshow/edit/' + slide._id : '/admin/slideshow/add' %>"
+                            method="POST" enctype="multipart/form-data">
+
+                            <input type="text" name="title" placeholder="Slide Title" value="<%= slide?.title || '' %>"
+                                required>
+
+                            <textarea name="desc" placeholder="Description" required><%= slide?.desc || '' %></textarea>
+
+                            <% if (editing && slide.image) { %>
+                                <img src="/<%= slide.image %>" width="150">
+                                <% } %>
+
+                                    <label for="language">Slide Language</label>
+                                    <select name="language" required>
+                                        <option value="ALL" <%=slide?.language==='ALL' ? 'selected' : '' %>>All
+                                            Languages</option>
+                                        <option value="EN" <%=slide?.language==='EN' ? 'selected' : '' %>>English
+                                        </option>
+                                        <option value="ES" <%=slide?.language==='ES' ? 'selected' : '' %>>Spanish
+                                        </option>
+                                        <option value="GR" <%=slide?.language==='GR' ? 'selected' : '' %>>Germany</option>
+                                    </select>
+
+                                    <input type="file" name="slideshowImage" <%=editing ? '' : 'required' %>>
+
+                                    <div class="form-buttons">
+                                        <button type="submit">
+                                            <%= editing ? 'Update' : 'Add' %> Slide
+                                        </button>
+                                        <a href="/admin/slideshow" class="cancel-button">Cancel</a>
+                                    </div>
+
+                        </form>
+                    </section>
+
+
+
+                </section>
+
+
+
+
+
+                <script src="/assets/Js/nav-bar.js"></script>
+        </body>
+
+        </html>

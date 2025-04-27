@@ -1,0 +1,68 @@
+/* Container styling to match admin theme */
+.add-download-form-container {
+    padding: 30px;
+    background-color: #fff;
+    border-radius: 12px;
+    margin: auto;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Title style */
+.add-download-form-container h1 {
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 25px;
+    color: #333;
+}
+
+/* Label styles */
+.add-download-form-container label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 500;
+    color: #444;
+    margin-top: 20px;
+}
+
+/* Input and Select fields */
+.add-download-form-container input[type="text"],
+.add-download-form-container select,
+.add-download-form-container input[type="file"] {
+    width: 100%;
+    padding: 10px 15px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 15px;
+    transition: border-color 0.3s;
+    background-color: #fafafa;
+}
+
+.add-download-form-container input:focus,
+.add-download-form-container select:focus {
+    border-color: var(--primary-Color);
+    outline: none;
+}
+
+/* Submit button */
+.add-download-form-container button[type="submit"] {
+    display: inline-block;
+    margin-top: 30px;
+    background-color:var(--primary-Color);
+    color: white;
+    font-weight: 600;
+    border: none;
+    padding: 12px 20px;
+    font-size: 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.add-download-form-container button[type="submit"]:hover {
+    background-color:var(--primary-Color);
+}
+
+#productSection {
+    transition: all 0.3s ease;
+  }
+  

@@ -1,0 +1,34 @@
+<%- include('../../includes/customer/head.ejs') %>
+<link rel="stylesheet" href="/Css/customer/Articles.css">
+
+<body>
+    <%- include('../../includes/customer/navbar.ejs') %>
+
+    <div class="slide">
+        <div class="slide-text">
+            <h1>Articles</h1>
+            <h3>Explore insights, innovations, and expertise in laboratory equipment and technology.</h3>
+        </div>
+        <img src="/assets/Imgs/Icons/products/ArticlesBg.webp" alt="Articles Banner">
+    </div>
+
+    <div class="article-slides-wrapper">
+        <% articles.forEach(article => { %>
+            <div class="article-slide">
+                <a href="/article/<%= article._id %>/<%= lang %>">
+                    <div class="article-card">
+                        <img src="/<%= article.thumbnail %>" alt="<%= article.title %>">
+                        <div class="article-card-information">
+                            <h4><%= article.title %></h4>
+                            <p><%= article.body.replace(/(<([^>]+)>)/gi, "").substring(0, 120) %>...</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        <% }) %>
+    </div>
+
+    <%- include('../../includes/customer/footer.ejs') %>
+</body>
+<%- include('../../includes/customer/script.ejs') %>
+</html>

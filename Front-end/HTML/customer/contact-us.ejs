@@ -1,0 +1,127 @@
+<%- include('../../includes/customer/head.ejs') %>
+
+
+    <link rel="stylesheet" href="/Css/customer/conact-us.css">
+
+
+
+
+
+    <body>
+        <!-- nav-bar -->
+
+        <%- include('../../includes/customer/navbar.ejs') %>
+
+
+            <!-- nav-bar -->
+
+            <!-- contact us thumbnail  -->
+            <div class="slide">
+                <div class="slide-text">
+                    <h1>Contact Us</h1>
+                    <p>Have a question or need help? Reach out! </p>
+                </div>
+                <img src="/assets/Imgs/Icons/products/contactus-BC.png" alt="Photo 1">
+            </div>
+            <!-- contact us thumbnail  -->
+
+            <!-- contact us form  -->
+            <% if (req.query.success) { %>
+                <div class="success-message">✅ Thank you! We have received your message.</div>
+                <!-- Google Ads Conversion Tracking Script -->
+                <script>
+                    gtag('event', 'conversion', {
+                        'send_to': 'AW-754782155/Km5ZCI6_qIQaEMuf9OcC',
+                        'value': 1.0,
+                        'currency': 'USD',
+                        'transaction_id': ''
+                    });
+                </script>
+                <% } else if (req.query.error) { %>
+                    <div class="error-message">❌ Something went wrong. Please try again later.</div>
+                    <% } %>
+
+                        <div class="contact-container">
+
+                            <!-- Contact Form -->
+                            <div class="contact-form">
+                                <h2>Contact Information</h2>
+                                <form action="/submit-contactus" method="POST">
+                                    <div class="row">
+                                        <div class="field">
+                                            <label for="first">First Name</label>
+                                            <input type="text" id="first" name="firstName" placeholder="First Name"
+                                                required />
+                                        </div>
+                                        <div class="field">
+                                            <label for="last">Last Name</label>
+                                            <input type="text" id="last" name="lastName" placeholder="Last Name"
+                                                required />
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="field">
+                                            <label for="subject">Subject</label>
+                                            <input type="text" id="subject" name="subject" placeholder="Subject"
+                                                required />
+                                        </div>
+                                        <div class="field">
+                                            <label for="email">Email</label>
+                                            <input type="email" id="email" name="email" placeholder="Email" required />
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="field" style="flex: 1 1 100%;">
+                                            <label for="message">Message</label>
+                                            <textarea id="message" name="message" placeholder="Write your message.."
+                                                required></textarea>
+                                        </div>
+                                    </div>
+                                    <button type="submit" class="submit-btn">Send Message</button>
+                                </form>
+
+                            </div>
+
+                            <!-- Contact Info -->
+                            <div class="contact-info">
+                                <div class="info-box">
+                                    <!-- Phone -->
+                                    <img src="/assets/Imgs/Icons/products/bxs_phone-call.png" alt="phone number" />
+                                    <span>+1012 3456 789</span>
+                                </div>
+                                <div class="info-box">
+                                    <!-- Email -->
+                                    <img src="/assets/Imgs/Icons/products/email-vector.png" alt="Email Adress">
+                                    <span>demo@draglap.com</span>
+                                </div>
+                                <div class="info-box">
+                                    <!-- Location -->
+                                    <img src="/assets/Imgs/Icons/products/map-Vector.png" alt="our location">
+                                    <span>132 Dartmouth Street Boston,</span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- contact us form  -->
+
+
+
+                        <!-- Map -->
+
+                        <div style="width: 100%; height: 400px;">
+                            <iframe
+                                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1278.7375735863695!2d8.575659556692225!3d50.13354253361766!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x47bd0941bdcfb47d%3A0xda5a70222b134090!2sDragLab%20Technologies%20-%20Nanodrag%20Technology%20GmbH!5e0!3m2!1sen!2sus!4v1743626791829!5m2!1sen!2sus"
+                                width="100%" height="450" style="border:0;" allowfullscreen="" loading="lazy"
+                                referrerpolicy="no-referrer-when-downgrade"></iframe>
+                        </div>
+                        <!-- Map -->
+
+                        <!-- Footer -->
+
+                        <%- include('../../includes/customer/footer.ejs') %>
+
+
+    </body>
+    <%- include('../../includes/customer/script.ejs') %>
+
+
+        </html>

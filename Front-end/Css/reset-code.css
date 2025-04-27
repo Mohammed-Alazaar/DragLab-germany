@@ -1,0 +1,305 @@
+html,
+body,
+div,
+span,
+applet,
+object,
+iframe,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+blockquote,
+pre,
+a,
+abbr,
+acronym,
+address,
+big,
+cite,
+code,
+del,
+dfn,
+em,
+img,
+ins,
+kbd,
+q,
+s,
+samp,
+small,
+strike,
+strong,
+sub,
+sup,
+tt,
+var,
+b,
+u,
+i,
+center,
+dl,
+dt,
+dd,
+ol,
+ul,
+li,
+fieldset,
+form,
+label,
+legend,
+table,
+caption,
+tbody,
+tfoot,
+thead,
+tr,
+th,
+td,
+article,
+aside,
+canvas,
+details,
+embed,
+figure,
+figcaption,
+footer,
+header,
+hgroup,
+menu,
+nav,
+output,
+ruby,
+section,
+summary,
+time,
+mark,
+audio,
+video,
+button {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-size: 100%;
+    vertical-align: baseline;
+}
+
+/* HTML5 display-role reset for older browsers */
+article,
+aside,
+details,
+figcaption,
+figure,
+footer,
+header,
+hgroup,
+menu,
+nav,
+section {
+    display: block;
+}
+
+button:focus {
+    outline: none;
+    /* Remove the outline style */
+
+}
+
+
+button {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+}
+
+body {
+    line-height: 1;
+}
+
+* {
+    font-family: Inter;
+    -webkit-tap-highlight-color: transparent;
+    /* For iOS and some Android devices */
+    tap-highlight-color: transparent;
+}
+
+ol,
+ul {
+    list-style: none;
+}
+
+blockquote,
+q {
+    quotes: none;
+}
+
+blockquote:before,
+blockquote:after,
+q:before,
+q:after {
+    content: '';
+    content: none;
+}
+
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+
+}
+
+a {
+    text-decoration: none;
+    color: var(--black-color);
+}
+
+* {
+    box-sizing: border-box;
+    font-family: 'Abtos', sans-serif;
+
+}
+
+
+li {
+    list-style: none;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+    outline-color: #000000;
+    outline-style: solid;
+    outline-width: 2px;
+}
+
+/*----------------------reset code-----------------*/
+
+
+:root {
+    --shadow: 0px 4px 16px 0px #00000040;
+    --primary-Color: #293C95;
+    --white-text-Color: #FFFFFF;
+}
+
+
+@font-face {
+    font-family: 'Abtos';
+    src: url('Front-end/assets/fonts/Abtos-Thin.ttf') format('truetype');
+    font-weight: 100;
+    /* Extra Thin */
+    font-style: normal;
+}
+
+
+@font-face {
+    font-family: 'Aptos';
+    src: url('Front-end/assets/fonts/Aptos-Light.ttf') format('truetype');
+    font-weight: 300;
+    /* Light */
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Aptos';
+    src: url('Front-end/assets/fonts/Aptos-Light-Italic.ttf') format('truetype');
+    font-weight: 300;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'Aptos';
+    src: url('Front-end/assets/fonts/Aptos-Regular.ttf') format('truetype');
+    font-weight: 400;
+    /* Regular */
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Aptos';
+    src: url('Front-end/assets/fonts/Aptos-Italic.ttf') format('truetype');
+    font-weight: 400;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'Aptos';
+    src: url('Front-end/assets/fonts/Aptos-Medium.ttf') format('truetype');
+    font-weight: 500;
+    /* Medium */
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Aptos';
+    src: url('Front-end/assets/fonts/Aptos-SemiBold.ttf') format('truetype');
+    font-weight: 600;
+    /* SemiBold */
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Aptos';
+    src: url('Front-end/assets/fonts/Aptos-SemiBold-Italic.ttf') format('truetype');
+    font-weight: 600;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'Aptos';
+    src: url('Front-end/assets/fonts/Aptos-Bold.ttf') format('truetype');
+    font-weight: 700;
+    /* Bold */
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Aptos';
+    src: url('Front-end/assets/fonts/Aptos-Bold-Italic.ttf') format('truetype');
+    font-weight: 700;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'Aptos';
+    src: url('Front-end/assets/fonts/Aptos-ExtraBold.ttf') format('truetype');
+    font-weight: 800;
+    /* ExtraBold */
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Aptos';
+    src: url('Front-end/assets/fonts/Aptos-ExtraBold-Italic.ttf') format('truetype');
+    font-weight: 800;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'Aptos';
+    src: url('Front-end/assets/fonts/Aptos-Black.ttf') format('truetype');
+    font-weight: 900;
+    /* Black */
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Aptos';
+    src: url('Front-end/assets/fonts/Aptos-Black-Italic.ttf') format('truetype');
+    font-weight: 900;
+    font-style: italic;
+}
+
+
+
+input:invalid,
+select:invalid,
+textarea:invalid {
+    border: 2px solid red;
+    background-color: #ffe6e6;
+}

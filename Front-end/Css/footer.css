@@ -1,0 +1,138 @@
+.footer {
+    background-color: #f6f7ff;
+    padding: 40px 20px 20px;
+    margin: 20px 0 0 0;
+    color: #000;
+}
+
+.footer-container {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    /* max-width: 1200px; */
+    margin: 0 auto;
+    gap: 30px;
+}
+
+.footer-left {
+    flex: 1 1 135px;
+}
+
+.footer-logo {
+    width: 210px;
+}
+
+.footer-left p {
+    margin: 6px 0;
+    font-size: 17px;
+}
+
+.footer-links {
+    flex: 3 1 600px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 30px;
+}
+
+.footer-column {
+    flex: 1 1 150px;
+}
+
+.footer-column h4 {
+    font-size: 22px;
+    font-weight: bold;
+    color: var(--primary-Color);
+    margin-bottom: 10px;
+}
+
+.footer-column ul {
+    list-style: none;
+    padding: 0;
+}
+
+.footer-column ul li {
+    margin-bottom: 8px;
+}
+
+.footer-column ul li a {
+    color: #000;
+    text-decoration: none;
+    font-size: 17px;
+    line-height: 150%;
+    
+}
+
+.footer-column ul li a:hover {
+    text-decoration: underline;
+}
+
+.footer-bottom {
+    border-top: 1px solid #ccc;
+    margin-top: 30px;
+    padding-top: 20px;
+    text-align: center;
+}
+
+.footer-legal {
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+
+.footer-legal a {
+    color: #000;
+    text-decoration: none;
+}
+
+.footer-legal a:hover {
+    text-decoration: underline;
+}
+
+.footer-social {
+    margin-bottom: 10px;
+}
+
+.footer-social a {
+    margin: 0 5px;
+    font-size: 18px;
+    color: #000;
+}
+
+.footer-social a:hover {
+    color: var(--primary-Color);
+}
+
+.footer-copy {
+    font-size: 14px;
+    color: #666;
+}
+
+/* 📱 Mobile Responsive */
+@media (max-width: 768px) {
+    .footer-container {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .footer-links {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .footer-column {
+        width: 100%;
+    }
+
+    .footer-left {
+        text-align: center;
+    }
+}
+
+.contactusFooter a:hover {
+    color: var(--primary-Color);
+}
+.highlighted {
+    color: var(--primary-Color);
+    font-weight: bold;
+}
+

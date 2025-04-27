@@ -1,0 +1,106 @@
+<%- include('../../includes/sellercompany/head.ejs') %>
+
+    <link rel="stylesheet" href="/sellercompany/addcataloge.css">
+
+
+    <%- include('../../includes/sellercompany/head-end.ejs') %>
+
+        <body>
+            <%- include('../../includes/sellercompany/navbar-dash.ejs') %>
+                <section class="sidebar-content-container">
+                    <section class="sidebar-container">
+                        <%- include('../../includes/sellercompany/sidebar.ejs') %>
+                    </section>
+
+
+
+                    <section class="catalog-container">
+                        <div class="catalog-header">
+                            <h1>Catalog Categories</h1>
+                            <a href="/admin/catalogs/add">+ Add Category</a>
+                        </div>
+                        <div class="catalog-categories-container">
+
+                            <% categories.forEach(cat=> { %>
+                                <div class="catalog-category">
+                                    <h3>
+                                        <%= cat.categoryName %>
+                                    </h3>
+                                    <a href="/admin/catalogs/<%= cat._id %>/upload">Upload File</a>
+                                    <form action="/admin/catalogs/delete/<%= cat._id %>" method="POST">
+                                        <button type="submit">Delete Category</button>
+                                    </form>
+
+                                    <% if (cat.files.length> 0) { %>
+                                        <ul>
+                                            <% cat.files.forEach(file=> { %>
+                                                <li>
+                                                    <div>
+                                                        <strong>
+                                                            <%= file.fileName %>
+                                                        </strong>
+                                                        (<%= file.language %>) - <%= file.fileSize %>
+                                                    </div>
+                                                    <form
+                                                        action="/admin/catalogs/<%= cat._id %>/delete-file/<%= file._id %>"
+                                                        method="POST">
+                                                        <button type="submit">Delete</button>
+                                                    </form>
+                                                </li>
+                                                <% }) %>
+                                        </ul>
+                                        <% } %>
+                                </div>
+                                <% }) %>
+                        </div>
+
+                    </section>
+
+
+                </section>
+                <div id="confirmModal" class="modal-overlay hidden">
+                    <div class="modal-box">
+                      <p id="confirmMessage">Are you sure?</p>
+                      <div class="modal-buttons">
+                        <button id="confirmYes">Yes, Delete</button>
+                        <button id="confirmNo">Cancel</button>
+                      </div>
+                    </div>
+                  </div>
+                  
+
+
+                  <script>
+                    let confirmForm = null;
+                  
+                    document.querySelectorAll('form[action*="delete"]').forEach(form => {
+                      form.addEventListener('submit', function (e) {
+                        e.preventDefault();
+                        confirmForm = form;
+                  
+                        const isCategory = form.action.includes('/delete/');
+                        const isFile = form.action.includes('/delete-file/');
+                        const message = isCategory
+                          ? '⚠️ This will permanently delete the entire category and its files. Are you sure?'
+                          : 'Are you sure you want to delete this file?';
+                  
+                        document.getElementById('confirmMessage').innerText = message;
+                        document.getElementById('confirmModal').classList.remove('hidden');
+                      });
+                    });
+                  
+                    document.getElementById('confirmYes').addEventListener('click', () => {
+                      if (confirmForm) confirmForm.submit();
+                    });
+                  
+                    document.getElementById('confirmNo').addEventListener('click', () => {
+                      document.getElementById('confirmModal').classList.add('hidden');
+                      confirmForm = null;
+                    });
+                  </script>
+                  
+
+                <script src="/assets/Js/nav-bar.js"></script>
+        </body>
+
+        </html>

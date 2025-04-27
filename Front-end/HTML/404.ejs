@@ -1,0 +1,102 @@
+<%- include('../includes/customer/head.ejs') %>
+
+<%- include('../includes/customer/header-end.ejs') %>
+
+
+<body>
+
+      <!-- nav-bar -->
+    
+    
+    <nav class="nav-bar">
+        <a class="nav-bar-logo-side" href="/">
+            <img src="/assets/Imgs/Icons/Logo-with-text.png" alt="logo" width="70px">
+        </a>
+    
+        <div class="nav-bar-search-side">
+            <form id="searchForm" action="/search" method="GET" onsubmit="return false;">
+                <input type="search" id="search" name="search" placeholder="Search..">
+                <button type="submit">
+                    <img src="/assets/Imgs/Icons/search.png" alt="search">
+                </button>
+            </form>
+            <div id="searchResults" class="search-results"></div>
+        </div>
+        
+        <style>
+    
+        </style>
+    
+        <!-- Hamburger Menu Icon -->
+        <div class="hamburger-menu">
+            <button class="openbtn" onclick="toggleNav()">☰</button>
+        </div>
+        <!-- Menu Items to be toggled -->
+        <div class="menu-items">
+            <div class="nav-bar-icons">
+                <% if (isAuthenticated) { %>
+                <a href="/wishlist">
+                    <img src="/assets/Imgs/Icons/like-button.png" alt="like-button" width="35px">
+                </a>
+                <div class="nav-bar-icons-basket">
+                    <a href="/cart">
+                        <img src="/assets/Imgs/Icons/basket.png" alt="basket" width="35px">
+    
+                    </a>
+                </div>
+                <div class="nav-bar-icons-user">
+                    <img id="nav-bar-icons-user-details" src="/assets/Imgs/Icons/user.png" alt="user" width="40px">
+    
+                    <div class="nav-bar-icons-user-normal-screen-size">
+                        <div class="nav-bar-icons-user-normal-screen-size-item">
+                            <a href="/account">My Profile</a>
+                        </div>
+    
+                        <!-- <div class="nav-bar-icons-user-normal-screen-size-item">
+                            <a href="/admin/dashboard">My Dashboard</a>
+                        </div> -->
+    
+                        <div class="nav-bar-icons-user-normal-screen-size-item">
+                            <a href="/orders">My orders</a>
+                        </div>
+                        <div class="nav-bar-icons-user-normal-screen-size-item">
+                            <a href="/add-address">My address</a>
+                        </div>
+                        <div class="nav-bar-icons-user-normal-screen-size-item">
+                            <form action="/logout" method="post">
+                                <button type="submit">Logout</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <% }  %>
+                <% if (!isAuthenticated) { %>
+                    <a id="Login-btn" href="/admin/login">Login</a>
+                <% } %>
+            </div>
+        </div>
+        <% if (isAuthenticated) { %>
+        <div class="sidebar" id="mySidebar">
+            <a href="/account">My Profile</a>
+            <a href="/orders">My orders</a>
+            <a href="/add-address">My address</a>
+            <form action="/logout" method="post">
+                <button type="submit">Logout</button>
+            </form>
+        </div>
+        <% }  %>
+    </nav>
+    
+
+   
+      <!-- nav-bar -->
+
+
+    <h1 style="margin: 10rem 0 0 0 ;">    Nothing to see hereeeeeee</h1>
+
+    <%- include('../includes/customer/footer.ejs') %>
+</body>
+
+<%- include('../includes/customer/script.ejs') %>
+
+</html>

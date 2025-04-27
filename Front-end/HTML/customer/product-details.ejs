@@ -1,0 +1,133 @@
+<%- include('../../includes/customer/head.ejs') %>
+
+
+    <link rel="stylesheet" href="/Css/customer/product-details.css">
+
+
+
+
+
+    <body>
+        <!-- nav-bar -->
+
+        <%- include('../../includes/customer/navbar.ejs') %>
+
+
+            <!-- nav-bar -->
+
+            <!-- Product Details -->
+            <div class="slide">
+                <div class="slide-text">
+                    <!-- <h1>Water Still Series</h1> -->
+                    <div class="slide-text-content">
+                        <h1>
+                            <%= translation.ProductName %> – &nbsp;
+                        </h1>
+                        <h3>
+                            <%= translation.ProductNameDesc %>
+                        </h3>
+                        <p>
+                            <%= translation.ProductDesc %>
+                        </p>
+
+                    </div>
+                    <% if (models && models.length> 0) { %>
+                        <a href="#target-section" class="scroll-button">View Models</a>
+                        <% } %>
+
+                </div>
+                <% if (product.ProductThumbnail) { %>
+                    <img src="/<%= product.ProductThumbnail %>" alt="<%= translation.ProductName %>">
+                    <% } %>
+
+            </div>
+
+
+            <SECtion class="introduction-section">
+                <h2>Introduction</h2>
+                <div class="introduction-container">
+
+
+                    <div class="introduction-text">
+                        <h3>
+                            <%= translation.ProductName %> ?
+                        </h3>
+                        <p>
+                            <%= translation.WhyProductDesc %>
+                        </p>
+                    </div>
+                    <div class="introduction-img">
+                        <% if (product.ProductSketch) { %>
+                            <img src="/<%= product.ProductSketch %>" alt="<%= translation.ProductName %> Sketch">
+                            <% } %>
+                    </div>
+                </div>
+            </SECtion>
+
+
+
+            <div class="features-wrapper">
+                <h2 class="section-title">Features</h2>
+
+                <div class="features-grid">
+                    <% translation.features.forEach((feature, i)=> { %>
+                        <div class="feature-card">
+                            <img class="feature-img"
+                                src="/<%= feature.FeatureImage || product.Language.EN[0].features[i]?.FeatureImage %>"
+                                alt="">
+                            <div class="feature-content">
+                                <h3>
+                                    <%= feature.FeatureName %>
+                                </h3>
+                                <p>
+                                    <%= feature.FeatureDesc %>
+                                </p>
+                            </div>
+                        </div>
+                        <% }) %>
+
+                </div>
+            </div>
+
+
+
+
+
+
+            <% if (models && models.length> 0) { %>
+                <div class="models-container" id="target-section">
+                    <h2>Models</h2>
+
+                    <% models.forEach(model=> { %>
+                        <div class="model-row">
+                            <img src="/<%= model.ModelThumbnail %>" alt="<%= model.Language[lang][0].ModelName %>">
+                            <div class="model-info">
+                                <%= model.Language[lang][0].ModelName %>
+                            </div>
+                            <div class="model-capacity">
+                                <%= model.modelcapacity %>
+                            </div>
+                            <a class="view-btn" href="/model/<%= product._id %>/<%= model._id %>/<%= lang %>">View
+                                Model</a>
+                        </div>
+                        <% }) %>
+                </div>
+                <% } %>
+
+
+
+
+
+
+
+
+                    <!-- Footer -->
+
+                    <%- include('../../includes/customer/footer.ejs') %>
+
+
+    </body>
+    <%- include('../../includes/customer/script.ejs') %>
+
+
+        </html>

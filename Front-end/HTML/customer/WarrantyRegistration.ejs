@@ -1,0 +1,170 @@
+<%- include('../../includes/customer/head.ejs') %>
+
+
+    <link rel="stylesheet" href="/Css/customer/WarrantyRegistration.css">
+
+
+
+
+
+    <body>
+        <!-- nav-bar -->
+
+        <%- include('../../includes/customer/navbar.ejs') %>
+
+
+            <!-- nav-bar -->
+
+            <!-- contact us thumbnail  -->
+            <div class="slide">
+                <div class="slide-text">
+                    <h1>Warranty Registration
+                    </h1>
+                    <p>Quick and reliable solutions to your technical problems.</p>
+                </div>
+                <img src="/assets/Imgs/Icons/products/contactus-BC.png" alt="Photo 1">
+            </div>
+            <!-- contact us thumbnail  -->
+            <!-- Warranty Registration form  -->
+            <section class="warranty-registration-section">
+
+                <h2>Warranty Registration Form</h2>
+                <% if (req.query.success) { %>
+                    <div class="success-message">✅ Your warranty has been successfully registered.</div>
+                    <!-- 🛠 Google Ads Conversion Tracking Script for Warranty Registration -->
+                    <script>
+                        gtag('event', 'conversion', {
+                            'send_to': 'AW-754782155/Km5ZCI6_qIQaEMuf9OcC',
+                            'value': 1.0,
+                            'currency': 'USD',
+                            'transaction_id': ''
+                        });
+                    </script>
+                    <% } else if (req.query.error) { %>
+                        <div class="error-message">❌ Something went wrong. Please try again later.</div>
+                        <% } %>
+
+                            <form action="/submit-warranty" method="POST">
+                                <div class="checkbox-group">
+                                    <input type="checkbox" name="Dataprocessing" required>
+                                    <label id="Dataprocessing" for="Dataprocessing">I agree to the processing of my
+                                        personal data in
+                                        accordance with the <a href="/PrivacyPolicy/EN">Privacy Policy</a> for the
+                                        purpose of handling my Warranty Registration
+                                        request.</label>
+                                </div>
+                                <div class="form-row">
+                                    <div class="two-form-group">
+                                        <div class="form-group">
+                                            <label for="name">Name*</label>
+                                            <input type="text" id="name" name="name" placeholder="Name" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="datePurchased">Date Purchased*</label>
+                                            <input type="date" id="datePurchased" name="datePurchased"
+                                                placeholder="Date Purchased" required>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="email">Email*</label>
+                                        <input type="email" id="email" name="email" placeholder="Email" required>
+                                    </div>
+                                </div>
+
+                                <h3>Technical Question / Failure</h3>
+
+                                <div class="form-row">
+                                    <div class="two-form-group">
+                                        <div class="form-group">
+                                            <label for="deviceCategory">Device category*</label>
+                                            <select id="deviceCategory" name="deviceCategory" required>
+                                                <option value="">Select</option>
+                                                <% products.forEach(product=> { %>
+                                                    <option value="<%= product._id %>">
+                                                        <%= product.Language[lang][0]?.ProductName ||
+                                                            product.Language['EN'][0]?.ProductName %>
+                                                    </option>
+                                                    <% }) %>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="deviceModel">Device Model*</label>
+                                            <select id="deviceModel" name="deviceModel" required>
+                                                <option value="">Select</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="serialNo">Serial No*</label>
+                                        <input type="text" id="serialNo" name="serialNo" placeholder="Serial No"
+                                            required>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="message">Message</label>
+                                        <textarea id="message" name="message" placeholder="Write your message.."
+                                            rows="5"></textarea>
+                                    </div>
+                                </div>
+
+                                <div class="recaptcha">
+                                    <div class="g-recaptcha" data-sitekey="6LdBFQkrAAAAALGPy8986JpxndbqzY1_6kEDxH1s">
+                                    </div>
+                                </div>
+                                <input type="hidden" name="lang" value="<%= lang %>">
+
+
+                                <div class="submit-button">
+                                    <button class="g-recaptcha" data-sitekey="6LeqowkrAAAAABs84-oXHTj8URMhpExplrlZDwUH"
+                                        data-callback='onSubmit' data-action='submit' type="submit">
+                                        Send Message
+                                    </button>
+                                </div>
+                                <div class="recaptcha">
+                                    <div class="g-recaptcha" data-sitekey="6LdBFQkrAAAAALGPy8986JpxndbqzY1_6kEDxH1s">
+                                    </div>
+                                </div>
+                            </form>
+
+            </section>
+            <script>
+                const lang = '<%= lang %>';
+                document.getElementById('deviceCategory').addEventListener('change', async function () {
+                    const productId = this.value;
+                    const modelSelect = document.getElementById('deviceModel');
+                    modelSelect.innerHTML = '<option value="">Select</option>';
+
+                    if (!productId) return;
+
+                    try {
+                        const res = await fetch(`/api/models/${productId}?lang=${lang}`);
+                        const data = await res.json();
+
+                        data.models.forEach(model => {
+                            const option = document.createElement('option');
+                            option.value = model._id;
+                            option.textContent = model.ModelName;
+                            modelSelect.appendChild(option);
+                        });
+                    } catch (err) {
+                        console.error('Error fetching models:', err);
+                    }
+                });
+            </script>
+
+
+
+
+
+            <!-- Footer -->
+
+            <%- include('../../includes/customer/footer.ejs') %>
+
+
+    </body>
+    <%- include('../../includes/customer/script.ejs') %>
+
+
+        </html>

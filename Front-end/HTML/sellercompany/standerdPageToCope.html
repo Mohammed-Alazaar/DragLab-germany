@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/Css/reset-code.css">
+    <link rel="stylesheet" href="/Css/nav-bar.css">
+    <link rel="stylesheet" href="/Css/footer.css">
+    <link rel="stylesheet" href="/Css/sellercompany/stylesheet-sellercompany.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title><%= pageTitle %></title>
+</head>
+
+<body>
+    <!-- nav-bar -->
+    <!--     <nav class="nav-bar">
+        <div class="nav-bar-logo-side">
+            <img src="/assets/Imgs/Icons/Logo-with-text.png" alt="logo" width="70px">
+        </div>
+
+        <div class="nav-bar-search-side">
+            <input type="search" id="search" name="search" placeholder="Search..">
+            <img src="/assets/Imgs/Icons/search.png" alt="search">
+        </div>
+
+        <div class="nav-bar-icons">
+            <img src="/assets/Imgs/Icons/Notification.png" alt="Notification" width="40px">
+            <img src="/assets/Imgs/Icons/like-button.png" alt="like-button" width="40px">
+            <div class="nav-bar-icons-backet">
+                <img src="/assets/Imgs/Icons/basket.png" alt="basket" width="40px">
+                <span class="nav-bar-icons-backet-item-number">0</span>
+            </div>
+            <div class="nav-bar-icons-user">
+                <img src="/assets/Imgs/Icons/user.png" alt="user" width="40px">
+            </div>
+        </div>
+
+    </nav> -->
+
+    <nav class="nav-bar">
+        <div class="nav-bar-logo-side">
+            <img src="/assets/Imgs/Icons/Logo-with-text.png" alt="logo" width="70px">
+        </div>
+
+        <div class="nav-bar-search-side">
+            <input type="search" id="search" name="search" placeholder="Search..">
+            <img src="/assets/Imgs/Icons/search.png" alt="search">
+        </div>
+
+        <!-- Hamburger Menu Icon -->
+        <div class="hamburger-menu">
+            <button class="openbtn" onclick="toggleNav()">☰</button>
+        </div>
+
+        <!-- Menu Items to be toggled -->
+        <div class="menu-items">
+            <div class="nav-bar-icons">
+                <img src="/assets/Imgs/Icons/Notification.png" alt="Notification" width="35px">
+                <img src="/assets/Imgs/Icons/like-button.png" alt="like-button" width="35px">
+                <div class="nav-bar-icons-backet">
+                    <img src="/assets/Imgs/Icons/basket.png" alt="basket" width="35px">
+                    <span class="nav-bar-icons-backet-item-number">0</span>
+                </div>
+                <div class="nav-bar-icons-user">
+                    <img id="nav-bar-icons-user-details" src="/assets/Imgs/Icons/user.png" alt="user"
+                        width="40px">
+
+                    <div class="nav-bar-icons-user-normal-screen-size">
+                        <div class="nav-bar-icons-user-normal-screen-size-item">
+                            <a href="/HTML/Sign-in.ejs">Sign in</a>
+                        </div>
+                        <div class="nav-bar-icons-user-normal-screen-size-item">
+                            <a href="/HTML/Sign-up.ejs">Sign up</a>
+                        </div>
+                        <div class="nav-bar-icons-user-normal-screen-size-item">
+                            <a href="/HTML/Sign-up.ejs">Sign up</a>
+                        </div>
+                        <div class="nav-bar-icons-user-normal-screen-size-item">
+                            <a href="/HTML/Sign-up.ejs">Sign up</a>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="sidebar" id="mySidebar">
+            <a href="#">Home</a>
+            <a href="#">Services</a>
+            <a href="#">About</a>
+            <a href="#">Contact</a>
+        </div>
+
+
+        <!--      <div class="nav-bar-mobile">
+            <div class="nav-bar-mobile-side-bar">
+                <div class="nav-bar-mobile-item">
+                    <a href="/HTML/Sign-in.ejs">Sign in</a>
+                </div>
+                <div class="nav-bar-mobile-item">
+                    <a href="/HTML/Sign-up.ejs">Sign up</a>
+                </div>
+                <div class="nav-bar-mobile-item">
+                    <a href="/HTML/Sign-up.ejs">Sign up</a>
+                </div>
+                <div class="nav-bar-mobile-item">
+                    <a href="/HTML/Sign-up.ejs">Sign up</a>
+                </div>
+            </div>
+        </div> -->
+    </nav>
+
+    <!-- Product Details -->
+
+    <section class="sidebar-content-container">
+        <section class="sidebar-container">
+            <div class="sidebar-side">
+                <a id="selected" href="/HTML/sellercompany/dashboard.ejs"><img
+                        src="/assets/Imgs/Icons/Dashboard-icon.png" width="35px" alt="">Dashboard</a>
+                <a href="/HTML/sellercompany/orders.ejs"><img
+                        src="/assets/Imgs/Icons/order-icon.png" width="35px" alt="">Orders</a>
+                <a href="/HTML/sellercompany/my-products.ejs"><img src="/assets/Imgs/Icons/black-basket.png" width="35px" alt="">Products</a>
+                <a href="/HTML/sellercompany/reviews.ejs"><img
+                        src="/assets/Imgs/Icons/reviews-icon.png" width="35px" alt="">Reviews</a>
+                <a href="#"><img src="/assets/Imgs/Icons/messages-icon.png" width="35px" alt="">Messages</a>
+                <a href="#"><img src="/assets/Imgs/Icons/settings-icon.png" width="35px" alt="">Settings</a>
+            </div>
+        </section>
+        <section class="content-container">
+            <div class="container-head">
+                <h1>Dashboard</h1>
+            </div>
+
+
+
+
+        </section>
+    </section>
+
+
+
+
+
+
+
+
+
+
+
+    <!-- 
+    <section id="footer" class="footer-section">
+        <footer>
+            <section class="top">
+                <div class="fotter-logo-container">
+
+                    <img class="footer-logo" alt="Logo" src="/assets/Imgs/Icons/Logo-with-text.png">
+                    <p>Lorem ipsum dolor sit amet. Quo explicabo quaerat est dicta quasi et quaerat quia est mollitia
+                        dolorum non
+                    </p>
+                </div>
+
+                <ul>
+                    <li>
+                        <h3>Discover</h3>
+                        <a href="#">Before & After</a>
+                        <a href="#">Operations</a>
+                        <a href="#">Operations</a>
+                        <a href="#">Blogs</a>
+                    </li>
+                    <li>
+                        <h3>Explore</h3>
+                        <a href="#">Blogs</a>
+                        <a href="#">About us</a>
+                        <a href="#">About us</a>
+                        <a href="#">Zoom Group</a>
+
+                    </li>
+
+                    <li class="socialmedia">
+                        <h3>Contacts</h3>
+                        <p>support@zoomtourism.com</p>
+                        <div>
+                            <a href="https://www.facebook.com/"><img src="/assets/Imgs/Icons/socialmedia-icons/facebook-icon.png"
+                                    alt="Facebook-icon" width="20px"></a>
+                            <a href="https://www.instagram.com/"><img src="/assets/Imgs/Icons/socialmedia-icons/instagram-icon.png"
+                                    alt="Instagram-icon" width="30px"></a>
+                            <a href="https://www.youtube.com/"><img src="/assets/Imgs/Icons/socialmedia-icons/whatsapp-icon.png"
+                                    alt="WhatsApp-icon" width="30px"></a>
+                        </div>
+                    </li>
+                </ul>
+
+            </section>
+        </footer>
+        <p class="copyrights">© All Rights Reserved. Zoom Medical<a href="PrivacyPolicy.ejs"> Privacy Policy</a><br />
+            website made by <a href="#">Codyle</a></p>
+    </section> -->
+
+</body>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="/assets/Js/nav-bar.js"></script>
+
+</html>

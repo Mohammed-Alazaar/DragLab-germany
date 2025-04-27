@@ -1,0 +1,59 @@
+<%- include('../../includes/sellercompany/head.ejs') %>
+    <link rel="stylesheet" href="/sellercompany/view-technical-request.css">
+
+    <body>
+        <%- include('../../includes/sellercompany/navbar-dash.ejs') %>
+            <section class="sidebar-content-container">
+                <section class="sidebar-container">
+                    <%- include('../../includes/sellercompany/sidebar.ejs') %>
+                </section>
+
+                <section class="requests-content-container ">
+                    <h1>Warranty Registration Details</h1>
+                    <a class="backbtn" href="/admin/warranty-registrations">← Back</a>
+
+                    <div class="detail-box">
+                        <p><strong>Name:</strong>
+                            <%= registration.name %>
+                        </p>
+                        <p><strong>Email:</strong>
+                            <%= registration.email %>
+                        </p>
+                        <p><strong>Date Purchased:</strong>
+                            <%= new Date(registration.datePurchased).toLocaleDateString() %>
+                        </p>
+                        <p><strong>Device Category:</strong>
+                            <%= registration.deviceCategory?.Language?.EN?.[0]?.ProductName || 'N/A' %>
+                        </p>
+                        <p><strong>Device Model:</strong>
+                            <%= modelName %>
+                        </p>
+                        <p><strong>Serial No:</strong>
+                            <%= registration.serialNo %>
+                        </p>
+                        <p><strong>Message:</strong>
+                            <%= registration.message || '-' %>
+                        </p>
+                        <p><strong>Status:</strong>
+                            <%= registration.status %>
+                        </p>
+                    </div>
+
+                    <div class="button-container">
+
+                        <% if (registration.status !=='done' ) { %>
+                            <form action="/admin/warranty-registrations/<%= registration._id %>/done" method="POST"
+                                style="display:inline;">
+                                <button type="submit">✅ Mark as Done</button>
+                            </form>
+                            <% } %>
+
+                                <form action="/admin/warranty-registrations/<%= registration._id %>/pdf" method="GET"
+                                    style="display:inline;">
+                                    <button type="submit">📄 Export PDF</button>
+                                </form>
+                    </div>
+
+                </section>
+            </section>
+    </body>

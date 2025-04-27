@@ -1,0 +1,194 @@
+:root {
+    --shadow: 0px 4px 16px 0px #00000040;
+    --green-Color: #A8D060;
+    --purple-Color: #8860D0;
+    --black-color: #333333;
+    --second-white: #F5F5F7;
+    --second-purole: #C1C8E4;
+}
+
+.Account-Content {
+    background-color: #ffffff;
+    box-shadow: var(--shadow);
+    padding: 2rem;
+    display: flex;
+    margin: 6rem 2rem 2rem 2rem;
+    flex: 1;
+
+}
+
+#line {
+    width: 2px;
+    background-color: #F4F4F4;
+}
+
+.nav-pills {
+    display: flex;
+    flex-direction: column;
+    width: 20%;
+}
+
+.nav-link{
+    padding: 1rem 0 1rem 1rem;
+    display: block;
+}
+
+
+.selected {
+    background-color: #29292978;
+}
+
+.right-side-panel {
+    padding: 0rem 2rem;
+    width: 100%;
+}
+
+.MyProfile {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 0 0 1rem 0;
+}
+
+.MyProfile h3 {
+    font-size: 2rem;
+    font-weight: 600;
+}
+
+
+
+.PersonalInforamtion {
+    background-color: #F4F4F4;
+    margin: 1rem 0 0 0;
+    padding: 1rem;
+}
+
+.PersonalInforamtion-button {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 1rem 0;
+}
+
+
+
+.PersonalInforamtion-button {
+    font-size: 1.5rem;
+}
+
+
+.username-container,
+.Email-container,
+.PhoneNumber-container {
+    display: flex;
+    gap: .3rem;
+    flex-direction: column;
+    align-items: flex-start;
+}
+.Account-Content form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.PersonalInforamtion input {
+    width: 45%;
+    padding: 10px 10px;
+    border: solid var(--primary-Color) 2px;
+    margin: 0.5rem 0;
+} 
+
+.sendButton {
+    display: flex;
+    text-align: center;
+    align-items: center;
+    justify-content: space-around;
+}
+#saveButton {
+    background-color:var(--primary-Color);
+    border: none;
+    color: #F4F4F4;
+    width: 14rem;
+    padding: .7rem 0.5rem;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+
+}
+#saveButton:hover {
+    background: var(--primary-Color);
+    box-shadow: var(--shadow);
+    -webkit-transform: translateY(-1px);
+    transform: translateY(-1px);
+    color: #ffffff;
+}
+
+
+
+#cancelBtn{
+    padding: .7rem 0.5rem;
+    cursor: pointer;
+    border: 2px solid var(--primary-Color);
+    color: var(--black-color);
+    width: 14rem;
+    text-align: center;
+    transition: all 0.3s ease-in-out;
+
+}
+#cancelBtn:hover{
+    background: var(--primary-Color);
+    box-shadow: var(--shadow);
+    -webkit-transform: translateY(-1px);
+    transform: translateY(-1px);
+    color: #ffffff;
+}
+
+#logout{
+    background: #C4942F;
+    padding: 0.5rem 3rem;
+    color: #fff;
+    border: none;
+}
+#logoutForm {
+    display: flex;
+    flex: 1;
+    align-items: flex-end;
+}
+
+@media screen and (max-width: 840px) {
+    .Account-Content{
+        flex-direction: column;
+    }
+    .nav-pills{
+        display: flex;
+        flex-direction: row;
+        width: 100%;
+        justify-content: space-between;
+        overflow-x: auto;
+    }
+    .nav-pills a {
+        padding: 1rem 0.5rem 1rem 0.5rem;
+    }
+    .right-side-panel {
+        padding: 0rem;
+        width: 100%;
+    }
+    .PersonalInforamtion input[type=text] {
+        width: 95%;
+    }
+    #line {
+        width: 100%;
+        background-color: #292929;
+        height: 2px;
+        margin: 0 0 2rem 0;
+    }
+    #logoutForm{
+        display: none;
+    }
+    .nav-item{
+        width: 4rem;
+        margin: 0 1rem 0 1rem;
+    }
+    
+}

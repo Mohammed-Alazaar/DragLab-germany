@@ -1,0 +1,258 @@
+<%- include('../../includes/customer/head.ejs') %>
+
+    <link rel="stylesheet" href="/Css/customer/technical-service.css">
+    <script
+        src="https://www.google.com/recaptcha/enterprise.js?render=6LeqowkrAAAAABs84-oXHTj8URMhpExplrlZDwUH"></script>
+
+
+
+
+
+    <body>
+        <!-- nav-bar -->
+
+        <%- include('../../includes/customer/navbar.ejs') %>
+
+
+            <!-- nav-bar -->
+
+            <!-- contact us thumbnail  -->
+            <div class="slide">
+                <div class="slide-text">
+                    <h1>Technical Support at Your Service.</h1>
+                    <p>Quick and reliable solutions to your technical problems. </p>
+                </div>
+                <img src="/assets/Imgs/Icons/products/contactus-BC.png" alt="Photo 1">
+            </div>
+            <!-- contact us thumbnail  -->
+
+            <!-- Technical service form  -->
+
+            <section class="technical-service-section">
+
+                <h2>Technical Support Form</h2>
+                <% if (req.query.success==='true' ) { %>
+                    <div class="success-message">
+                        ✅ Your technical support request has been submitted successfully.
+                    </div>
+                    <!-- Google Ads Conversion Tracking Script -->
+                    <script>
+                        gtag('event', 'conversion', {
+                            'send_to': 'AW-754782155/Km5ZCI6_qIQaEMuf9OcC',
+                            'value': 1.0,
+                            'currency': 'USD',
+                            'transaction_id': ''
+                        });
+                    </script>
+                    <% } else if (req.query.success==='false' ) { %>
+                        <div class="error-message">
+                            ❌ Something went wrong. Please try again.
+                        </div>
+                        <% } %>
+
+                            <form id="demo-form" method="POST" action="/technical-service" class="form-container">
+
+                                <div class="form-section">
+                                    <h3>User Technical Support</h3>
+
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" name="privacyPolicy" required>
+                                        <label for="privacyPolicy">I agree to the processing of my personal data in
+                                            accordance with
+                                            the Privacy Policy for the purpose of handling my technical support
+                                            request.*</label>
+                                    </div>
+
+                                    <div class="checkbox-group">
+                                        <label>Information info:</label><br>
+
+                                        <label>
+                                            <input type="radio" name="infoType" value="company" required>
+                                            Company
+                                        </label><br>
+
+                                        <label>
+                                            <input type="radio" name="infoType" value="private" required>
+                                            Private Citizen
+                                        </label>
+                                    </div>
+
+
+                                    <div class="form-row">
+                                        <div class="two-form-group">
+                                            <div class="form-group">
+                                                <label>Company</label>
+                                                <input type="text" name="company" placeholder="Company" required>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Department</label>
+                                                <input type="text" name="department" placeholder="Department">
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group checkbox-group">
+                                            <label>Salutation:</label><br>
+
+                                            <label>
+                                                <input type="radio" name="salutation" value="Mrs/Ms" required>
+                                                Mrs/Ms
+                                            </label><br>
+
+                                            <label>
+                                                <input type="radio" name="salutation" value="Mr" required>
+                                                Mr
+                                            </label>
+                                        </div>
+
+
+                                        <div class="three-form-group">
+                                            <div class="form-group">
+                                                <label>First Name</label>
+                                                <input type="text" name="firstName" placeholder="First Name" required>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Last Name</label>
+                                                <input type="text" name="lastName" placeholder="Last Name" required>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Postal/ ZIP code, Town</label>
+                                                <input type="text" name="postalTown"
+                                                    placeholder="Postal/ ZIP code, Town">
+                                            </div>
+                                        </div>
+
+                                        <div class="three-form-group">
+                                            <div class="form-group">
+                                                <label>Street</label>
+                                                <input type="text" name="street" placeholder="Street">
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Country</label>
+                                                <input type="text" name="country" placeholder="Country" required>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Telephone</label>
+                                                <input type="text" name="telephone" placeholder="Telephone">
+                                            </div>
+                                        </div>
+
+                                        <div class="two-form-group">
+                                            <div class="form-group">
+                                                <label>Telefax</label>
+                                                <input type="text" name="telefax" placeholder="Telefax">
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Email</label>
+                                                <input type="email" name="email" placeholder="Email" required>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-section">
+                                    <h3>Technical Question / Failure</h3>
+                                    <div class="form-row">
+                                        <div class="three-form-group">
+                                            <div class="form-group">
+                                                <label>Date of Failure</label>
+                                                <input type="date" name="failureDate" required>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="deviceCategory">Device category*</label>
+                                                <select id="deviceCategory" name="deviceCategory" required>
+                                                    <option value="">Select</option>
+                                                    <% products.forEach(product=> { %>
+                                                        <option value="<%= product._id %>">
+                                                            <%= product.Language[lang][0]?.ProductName ||
+                                                                product.Language['EN'][0]?.ProductName %>
+                                                        </option>
+                                                        <% }) %>
+                                                </select>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="deviceModel">Device Model*</label>
+                                                <select id="deviceModel" name="deviceModel" required>
+                                                    <option value="">Select</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="two-form-group">
+                                            <div class="form-group">
+                                                <label>Serial No</label>
+                                                <input type="text" name="serialNo" placeholder="Serial No" required>
+                                            </div>
+
+                                        </div>
+
+                                        <div class="form-group note-container">
+                                            <label>Note</label>
+                                            <textarea name="note" placeholder="Write your Note..."></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="recaptcha">
+                                    <div class="g-recaptcha" data-sitekey="6LdBFQkrAAAAALGPy8986JpxndbqzY1_6kEDxH1s">
+                                    </div>
+                                </div>
+
+                                <div class="submit-button">
+                                    <button class="g-recaptcha" data-sitekey="6LeqowkrAAAAABs84-oXHTj8URMhpExplrlZDwUH"
+                                        data-callback='onSubmit' data-action='submit' type="submit">
+                                        Send Message
+                                    </button>
+                                </div>
+
+                                <script>
+                                    function onSubmit(token) {
+                                        const form = document.getElementById("demo-form");
+                                        if (form.checkValidity()) {
+                                            form.submit();
+                                        } else {
+                                            // Trigger built-in browser validation UI
+                                            form.reportValidity();
+                                        }
+                                    }
+                                </script>
+
+                            </form>
+
+            </section>
+
+            <!-- Technical service form  -->
+            <script>
+                const lang = '<%= lang %>';
+                document.getElementById('deviceCategory').addEventListener('change', async function () {
+                    const productId = this.value;
+                    const modelSelect = document.getElementById('deviceModel');
+                    modelSelect.innerHTML = '<option value="">Select</option>';
+
+                    if (!productId) return;
+
+                    try {
+                        const res = await fetch(`/api/models/${productId}?lang=${lang}`);
+                        const data = await res.json();
+
+                        data.models.forEach(model => {
+                            const option = document.createElement('option');
+                            option.value = model._id;
+                            option.textContent = model.ModelName;
+                            modelSelect.appendChild(option);
+                        });
+                    } catch (err) {
+                        console.error('Error fetching models:', err);
+                    }
+                });
+            </script>
+
+
+            <!-- Footer -->
+
+            <%- include('../../includes/customer/footer.ejs') %>
+
+
+    </body>
+    <%- include('../../includes/customer/script.ejs') %>
+
+
+        </html>

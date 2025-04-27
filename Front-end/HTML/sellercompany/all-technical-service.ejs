@@ -1,0 +1,74 @@
+<%- include('../../includes/sellercompany/head.ejs') %>
+    <link rel="stylesheet" href="/sellercompany/all-technical-service.css">
+
+    <body>
+        <%- include('../../includes/sellercompany/navbar-dash.ejs') %>
+            <section class="sidebar-content-container">
+                <section class="sidebar-container">
+                    <%- include('../../includes/sellercompany/sidebar.ejs') %>
+                </section>
+
+                <section class="content-container">
+                    <h1>Technical Support Requests</h1>
+                    <% if (requests.length===0) { %>
+                        <p>No requests submitted yet.</p>
+                        <% } else { %>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Name</th>
+                                        <th>Company</th>
+                                        <th>Email</th>
+                                        <th>Device</th>
+                                        <th>Model</th>
+                                        <th>Note</th>
+                                        <th>Status</th> <!-- ✅ Added -->
+                                        <th>Actions</th> 
+                                    </tr>
+                                    <thead>
+
+                                    <tbody>
+                                        <% requests.forEach(req=> { %>
+                                            <tr>
+                                                <td>
+                                                    <%= new Date(req.createdAt).toLocaleDateString() %>
+                                                </td>
+                                                <td>
+                                                    <%= req.salutation %>
+                                                        <%= req.firstName %>
+                                                            <%= req.lastName %>
+                                                </td>
+                                                <td>
+                                                    <%= req.company || '-' %>
+                                                </td>
+                                                <td>
+                                                    <%= req.email %>
+                                                </td>
+                                                <td>
+                                                    <%= req.deviceCategory?.Language?.EN?.[0]?.ProductName || 'N/A' %>
+                                                </td>
+                                                <td>
+                                                    <%= req.modelName %>
+                                                </td>
+                                                <td>
+                                                    <%= req.note || '-' %>
+                                                </td>
+                                                <td>
+                                                    <%= req.status === 'done' ? '✅ Done' : '⏳ Pending' %>
+                                                  </td>
+                                                  
+                                                <td>
+                                                    <a href="/admin/technical-requests/<%= req._id %>"
+                                                        class="btn-view">View</a>
+                                                </td>
+
+                                            </tr>
+                                            <% }) %>
+                                    </tbody>
+                            </table>
+                            <% } %>
+                </section>
+            </section>
+    </body>
+    <%- include('../../includes/sellercompany/footer.ejs') %>

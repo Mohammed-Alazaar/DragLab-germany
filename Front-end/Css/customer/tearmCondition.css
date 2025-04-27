@@ -1,0 +1,126 @@
+/* product thumbnail section  */
+.slide {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    height: 80vh;
+    justify-content: center;
+    align-items: center;
+}
+
+
+.slide img {
+    height: 100%;
+    width: calc(100% - 20px);
+    object-position: center;
+    position: absolute;
+    top: 0;
+    left: 10px;
+    z-index: 00;
+}
+
+.slide-text {
+    display: flex;
+    gap: 1rem;
+    flex-direction: column;
+    z-index: 2;
+    align-items: center;
+    padding: 0 20%;
+    text-align: center;
+}
+
+.slide-text h1 {
+    font-weight: 600;
+    font-size: 60px;
+    line-height: 150%;
+    text-transform: uppercase;
+    color: var(--white-text-Color);
+}
+
+.slide-text p {
+    font-weight: 500;
+    font-size: 35px;
+    line-height: 110%;
+    color: var(--white-text-Color);
+
+}
+
+
+@media (max-width: 790px) {
+    .slide {
+        height: 50vh;
+    }
+
+    .slide-text p {
+        font-size: 18px;
+    }
+
+    .slide-text h1 {
+        font-weight: 600;
+        font-size: 24px;
+        line-height: 125%;
+        white-space: normal;
+
+    }
+
+
+    .slide img {
+        width: calc(100% - 10px);
+        left: 5px;
+    }
+}
+
+
+/* product thumbnail section  */
+.terms-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    line-height: 1.7;
+    color: #2e2e2e;
+    background-color: #ffffff;
+  }
+
+  .terms-title {
+    text-align: center;
+    font-size: 32px;
+    font-weight: 600;
+    margin-bottom: 30px;
+    color: var(--main-text-color, #000);
+  }
+
+  .terms-article h3 {
+    margin-top: 30px;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--primary-color, #005596);
+  }
+
+  .terms-article p {
+    font-size: 16px;
+    margin-top: 10px;
+    text-align: justify;
+    color: #333;
+  }
+
+  .terms-article p strong {
+    font-weight: 600;
+  }
+
+  @media (max-width: 768px) {
+    .terms-container {
+      padding: 20px 10px;
+    }
+
+    .terms-title {
+      font-size: 26px;
+    }
+
+    .terms-article h3 {
+      font-size: 18px;
+    }
+
+    .terms-article p {
+      font-size: 14px;
+    }
+  }

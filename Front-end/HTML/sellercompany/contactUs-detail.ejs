@@ -1,0 +1,57 @@
+<%- include('../../includes/sellercompany/head.ejs') %>
+    <link rel="stylesheet" href="/sellercompany/view-technical-request.css">
+
+    <body>
+        <%- include('../../includes/sellercompany/navbar-dash.ejs') %>
+
+            <section class="sidebar-content-container">
+                <section class="sidebar-container">
+                    <%- include('../../includes/sellercompany/sidebar.ejs') %>
+                </section>
+
+                <section class="content-container">
+                    <div class="requests-content-container">
+                        <h1>Contact Message Details</h1>
+                        <a class="backbtn" href="/admin/contact-messages">← Back</a>
+
+                        <div class="detail-box">
+                            <p><strong>First Name:</strong>
+                                <%= message.firstName %>
+                            </p>
+                            <p><strong>Last Name:</strong>
+                                <%= message.lastName %>
+                            </p>
+                            <p><strong>Email:</strong>
+                                <%= message.email %>
+                            </p>
+                            <p><strong>Subject:</strong>
+                                <%= message.subject %>
+                            </p>
+                            <p><strong>Message:</strong>
+                                <%= message.message %>
+                            </p>
+                            <p><strong>Status:</strong>
+                                <%= message.isDone ? '✅ Done' : '⏳ Pending' %>
+                            </p>
+                            <p><strong>Submitted On:</strong>
+                                <%= message.dateSubmitted.toLocaleDateString() %>
+                            </p>
+                        </div>
+
+                        <div class="button-container">
+                            <% if (!message.isDone) { %>
+                                <form action="/admin/mark-contactus-done" method="POST" style="display:inline;">
+                                    <input type="hidden" name="messageId" value="<%= message._id %>">
+                                    <button type="submit">Mark as Done</button>
+                                </form>
+                                <% } %>
+                                    <a href="/admin/contactus-pdf/<%= message._id %>">📄 Export PDF</a>
+
+                        </div>
+
+                    </div>
+                </section>
+            </section>
+
+            <%- include('../../includes/sellercompany/footer.ejs') %>
+    </body>

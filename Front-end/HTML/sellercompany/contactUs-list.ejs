@@ -1,0 +1,43 @@
+<%- include('../../includes/sellercompany/head.ejs') %>
+<link rel="stylesheet" href="/sellercompany/all-technical-service.css">
+
+<body>
+  <%- include('../../includes/sellercompany/navbar-dash.ejs') %>
+  <section class="sidebar-content-container">
+    <section class="sidebar-container">
+      <%- include('../../includes/sellercompany/sidebar.ejs') %>
+    </section>
+
+    <section class="content-container">
+        <h1>Contact us Messages</h1>
+
+<table>
+    <thead>
+      <tr>
+        <th>First Name</th>
+        <th>Last Name</th>
+        <th>Email</th>
+        <th>Subject</th>
+        <th>Done?</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% messages.forEach(msg => { %>
+        <tr>
+          <td><%= msg.firstName %></td>
+          <td><%= msg.lastName %></td>
+          <td><%= msg.email %></td>
+          <td><%= msg.subject %></td>
+          <td><%= msg.isDone ? '✅ Done' : '⏳ Pending' %></td>
+          <td>
+            <a href="/admin/contact-message/<%= msg._id %>">View</a>
+          </td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+    </section>
+  </section>
+</body>
+<%- include('../../includes/sellercompany/footer.ejs') %>

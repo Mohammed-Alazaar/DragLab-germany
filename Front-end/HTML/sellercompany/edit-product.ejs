@@ -1,0 +1,237 @@
+<%- include('../../includes/sellercompany/head.ejs') %>
+
+    <link rel="stylesheet" href="/sellercompany/addNewProduct.css">
+    <script src="https://cdn.tiny.cloud/1/mtjy6djndp0eitzxztgrpeyb5j51l2d31765itt3gj45jl8c/tinymce/6/tinymce.min.js"
+        referrerpolicy="origin"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script>
+        tinymce.init({
+            selector: '#mytextarea',
+            plugins: 'anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount',
+            toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table | align lineheight | numlist bullist indent outdent | emoticons charmap | removeformat',
+        });
+    </script>
+
+    <%- include('../../includes/sellercompany/head-end.ejs') %>
+
+        <body>
+            <!-- nav-bar -->
+            <%- include('../../includes/sellercompany/navbar-dash.ejs') %>
+                <!-- nav-bar -->
+
+                <!-- Product Details -->
+                <section class="sidebar-content-container">
+                    <section class="sidebar-container">
+                        <!-- sidebar -->
+                        <%- include('../../includes/sellercompany/sidebar.ejs') %>
+                            <!-- sidebar -->
+                    </section>
+                    <section class="content-container">
+                        <div class="container-head">
+                            <h1>
+                                <% if (editing) { %> Edit Product <% } else { %> Add New Product <% } %>
+                            </h1>
+                        </div>
+
+                        <div class="add-new-product-form-container">
+                            <% if (hasError) { %>
+                                <div class="alert alert-danger">
+                                    <strong>Error:</strong>
+                                    <%= errorMessage %>
+                                        <ul>
+                                            <% validationErrors.forEach(function(error) { %>
+                                                <li>
+                                                    <%= error.msg %>
+                                                </li>
+                                                <% }); %>
+                                        </ul>
+                                </div>
+                                <% } %>
+
+
+                                    <form
+                                        action="/admin/<% if (editing) { %>edit-product<% } else { %>add-product<% } %>"
+                                        method="POST" enctype="multipart/form-data" novalidate>
+                                        <input type="hidden" name="productId" value="<%= product._id %>">
+
+                                        <!-- Multilingual Input Fields -->
+                                        <% ['EN', 'ES' , 'GR' ].forEach(lang=> { %>
+                                            <div class="language-section">
+                                                <h3>Language: <%= lang %>
+                                                </h3>
+
+                                                <div class="input-container">
+                                                    <label for="ProductName_<%= lang %>">Product Name (<%= lang %>)</label>
+                                                    <input type="text"
+                                                           id="ProductName_<%= lang %>"
+                                                           name="ProductName_<%= lang %>"
+                                                           class="<%= validationErrors.find(e => e.path === `ProductName_${lang}`) ? 'is-invalid' : '' %>"
+                                                           value="<%= product.Language?.[lang]?.[0]?.ProductName || '' %>"
+                                                           required>
+                                                    <% const err = validationErrors.find(e => e.path === `ProductName_${lang}`); %>
+                                                    <% if (err) { %>
+                                                      <div class="form-error"><%= err.msg %></div>
+                                                    <% } %>
+                                                  </div>
+                                                  
+
+                                                <div class="input-container">
+                                                    <label for="ProductNameDesc_<%= lang %>">Product Short Description (
+                                                        <%= lang %>)
+                                                    </label>
+                                                    <input type="text" id="ProductNameDesc_<%= lang %>"
+                                                        name="ProductNameDesc_<%= lang %>"
+                                                        class="<%= validationErrors.find(e => e.path === `ProductNameDesc_${lang}`) ? 'is-invalid' : '' %>"
+                                                        value="<%= product.Language?.[lang]?.[0]?.ProductNameDesc || '' %>"
+                                                        required>
+                                                </div>
+
+                                                <div class="input-container">
+                                                    <label for="ProductDesc_<%= lang %>">Product Description (<%= lang
+                                                            %>)</label>
+                                                    <textarea id="ProductDesc_<%= lang %>"
+                                                        name="ProductDesc_<%= lang %>"
+                                                        class="<%= validationErrors.find(e => e.path === `ProductDesc_${lang}`) ? 'is-invalid' : '' %>"
+                                                        required><%= product.Language?.[lang]?.[0]?.ProductDesc || '' %></textarea>
+                                                </div>
+
+                                                <div class="input-container">
+                                                    <label for="WhyProductDesc_<%= lang %>">Why Product Description (<%=
+                                                            lang %>)</label>
+                                                    <textarea id="WhyProductDesc_<%= lang %>"
+                                                        name="WhyProductDesc_<%= lang %>"
+                                                        class="<%= validationErrors.find(e => e.path === `WhyProductDesc_${lang}`) ? 'is-invalid' : '' %>"
+                                                        required><%= product.Language?.[lang]?.[0]?.WhyProductDesc || '' %></textarea>
+                                                </div>
+
+                                                <!-- Language-based Feature Input Section -->
+                                                <div class="language-section">
+                                                    <h3>Features (<%= lang %>)</h3>
+                                                    <% const langData = product.Language?.[lang]?.[0]; %>
+                                                    <% for (let i = 0; i < 4; i++) {
+                                                      const feature = langData?.features?.[i] || {};
+                                                    %>
+                                                    
+                                                      <div class="feature-block">
+                                                  
+                                                        <% if (lang === 'EN') { %>
+                                                          <% if (feature.FeatureImage) { %>
+                                                            <img src="/<%= feature.FeatureImage %>" style="max-width: 100px;">
+                                                          <% } %>
+                                                          <input type="hidden" name="OldFeatureImage_<%= lang %>[]" value="<%= feature.FeatureImage || '' %>">
+                                                  
+                                                          <label>Feature Image</label>
+                                                          <input type="file"
+                                                                 name="FeatureImage_<%= lang %>[<%= i %>]"
+                                                                 accept="image/*"
+                                                                 onchange="previewImage(event, this)"
+                                                                 class="<%= validationErrors.find(e => e.path === `FeatureImage_${lang}_${i}`) ? 'is-invalid' : '' %>">
+                                                          <% const imgErr = validationErrors.find(e => e.path === `FeatureImage_${lang}_${i}`); %>
+                                                          <% if (imgErr) { %>
+                                                            <div class="form-error"><%= imgErr.msg %></div>
+                                                          <% } %>
+                                                        <% } else { %>
+                                                          <p style="margin-bottom: 10px; color: #888;">* Image shared from EN language</p>
+                                                          <input type="hidden" name="OldFeatureImage_<%= lang %>[]" value="">
+                                                        <% } %>
+                                                  
+                                                        <label>Feature Name</label>
+                                                        <input type="text"
+                                                               name="FeatureName_<%= lang %>[]"
+                                                               class="<%= validationErrors.find(e => e.path === `FeatureName_${lang}_${i}`) ? 'is-invalid' : '' %>"
+                                                               value="<%= feature.FeatureName || '' %>"
+                                                               required>
+                                                        <% const nameErr = validationErrors.find(e => e.path === `FeatureName_${lang}_${i}`); %>
+                                                        <% if (nameErr) { %>
+                                                          <div class="form-error"><%= nameErr.msg %></div>
+                                                        <% } %>
+                                                  
+                                                        <label>Feature Description</label>
+                                                        <input type="text"
+                                                               name="FeatureDesc_<%= lang %>[]"
+                                                               value="<%= feature.FeatureDesc || '' %>">
+                                                  
+                                                      </div>
+                                                    <% } %>
+                                                  </div>
+                                                  
+
+
+                                            </div>
+                                            <% }); %>
+
+
+
+
+
+                                                <!-- Product Thumbnail -->
+                                                <div class="input-container">
+                                                    <label for="productThumbnail">Product Thumbnail</label>
+                                                    <input type="file" id="productThumbnail" name="productThumbnail"
+                                                        accept="image/*">
+                                                    <% if (product.ProductThumbnail) { %>
+                                                        <img src="/<%= product.ProductThumbnail %>"
+                                                            alt="Product Thumbnail" style="max-width: 150px;">
+                                                        <input type="hidden" name="oldProductThumbnail"
+                                                            value="<%= product.ProductThumbnail %>">
+                                                        <p>Image path: <%= product.ProductThumbnail %>
+                                                        </p>
+
+                                                        <% } %>
+                                                </div>
+
+                                                <!-- Product Sketch -->
+                                                <div class="input-container">
+                                                    <label for="productSketch">Product Sketch</label>
+                                                    <input type="file" id="productSketch" name="productSketch"
+                                                        accept="image/*">
+                                                    <% if (product.ProductSketch) { %>
+                                                        <img src="/<%= product.ProductSketch %>" alt="Product Sketch"
+                                                            style="max-width: 150px;">
+                                                        <input type="hidden" name="oldProductSketch"
+                                                            value="<%= product.ProductSketch %>">
+                                                        <% } %>
+                                                </div>
+
+                                                <!-- Submit Button -->
+                                                <div class="btn-form-container">
+                                                    <% if (!editing) { %>
+
+
+                                                        <button class="btnsaveaddress" type="submit">
+                                                            <% if (editing) { %> Update Product <% } else { %> Add
+                                                                    Product
+                                                                    <% } %>
+                                                        </button>
+                                                        <button type="submit" name="saveType" value="draft"
+                                                            class="btn btn-secondary">💾 Save as Draft</button>
+
+                                                        <% } else { %>
+                                                            <button class="btnsaveaddress" type="submit">
+                                                                <% if (isDraft!==false) { %> Update Product and publish
+                                                                    <% } else { %> Update
+                                                                        Product
+                                                                        <% } %>
+                                                            </button>
+                                                            <% } %>
+
+                                                                <a href="/admin/Myproduct"> Cancel</a>
+                                                </div>
+                                                <!-- <div class="btn-form-container">
+                                                                <a href="/admin/Myproduct" class="btnBack">Cancel</a>
+                                                                <button class="btnsaveaddress" type="submit">
+                                                                    <% if (editing) { %> Update Product <% } else { %>
+                                                                            Add Product
+                                                                            <% } %>
+                                                                </button>
+                                                            </div> -->
+                                    </form>
+                        </div>
+                    </section>
+                </section>
+        </body>
+
+        <script src="/assets/Js/nav-bar.js"></script>
+        <script src="/assets/Js/addNewProduct.js"></script>
+
+        </html>

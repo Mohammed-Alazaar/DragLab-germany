@@ -1,0 +1,67 @@
+<%- include('../../includes/sellercompany/head.ejs') %>
+  <link rel="stylesheet" href="/sellercompany/view-technical-request.css">
+
+  <body>
+    <%- include('../../includes/sellercompany/navbar-dash.ejs') %>
+      <section class="sidebar-content-container">
+        <section class="sidebar-container">
+          <%- include('../../includes/sellercompany/sidebar.ejs') %>
+        </section>
+
+        <section class="requests-content-container">
+          <h1>Technical Request Details</h1>
+          <a class="backbtn" href="/admin/TechnicalRequests">← Back</a>
+
+          <div class="detail-box">
+            <p><strong>Name:</strong>
+              <%= request.salutation %>
+                <%= request.firstName %>
+                  <%= request.lastName %>
+            </p>
+            <p><strong>Company:</strong>
+              <%= request.company || '-' %>
+            </p>
+            <p><strong>Email:</strong>
+              <%= request.email %>
+            </p>
+            <p><strong>Country:</strong>
+              <%= request.country %>
+            </p>
+            <p><strong>Telephone:</strong>
+              <%= request.telephone %>
+            </p>
+            <p><strong>Device:</strong>
+              <%= request.deviceCategory?.Language?.EN?.[0]?.ProductName || 'N/A' %>
+            </p>
+            <p><strong>Device Model:</strong>
+              <%= modelName %>
+            </p>
+            <p><strong>Note:</strong>
+              <%= request.note || '-' %>
+            </p>
+            <p><strong>Status:</strong>
+              <%= request.status || 'pending' %>
+            </p>
+          </div>
+
+
+
+      
+
+              <div class="button-container">
+                <% if (request.status !=='done' ) { %>
+                  <form action="/admin/technical-requests/<%= request._id %>/done" method="POST" style="display:inline;">
+                    <button type="submit" class="btn-done">✅ Mark as Done</button>
+                  </form>
+                  <% } %>
+
+
+
+                <form action="/admin/technical-requests/<%= request._id %>/pdf" method="GET" style="display:inline;">
+                  <button type="submit">📄 Export PDF</button>
+                </form>
+              </div>
+
+        </section>
+      </section>
+  </body>

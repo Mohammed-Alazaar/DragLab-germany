@@ -1,0 +1,98 @@
+.slideshow-dashboard-container {
+    padding: 30px 50px;
+    background-color: #f9f9f9;
+    min-height: 100vh;
+    margin: auto;
+}
+
+.slideshow-dashboard-container h2 {
+    font-size: 32px;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.add-slide-button {
+    display: inline-block;
+    background-color: var(--primary-Color);
+    color: white;
+    padding: 10px 20px;
+    text-decoration: none;
+    margin-bottom: 30px;
+    transition: background-color 0.3s ease;
+}
+
+.add-slide-button:hover {
+    background-color: #0056b3;
+}
+
+.slides-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.slide-card {
+    background-color: #fff;
+    padding: 20px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+    text-align: center;
+}
+
+.slide-card img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    margin-bottom: 15px;
+}
+
+.slide-card h3 {
+    font-size: 20px;
+    margin-bottom: 10px;
+}
+
+.slide-card p {
+    font-size: 16px;
+    color: #666;
+    margin-bottom: 15px;
+}
+
+.slide-actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.edit-button, .delete-button {
+    padding: 8px 12px;
+    border: none;
+    font-weight: bold;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.edit-button {
+    background-color: #17a2b8;
+    color: white;
+}
+
+.edit-button:hover {
+    background-color: #138496;
+}
+
+.delete-button {
+    background-color: #dc3545;
+    color: white;
+}
+
+.delete-button:hover {
+    background-color: #c82333;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .add-slide-button {
+        width: 100%;
+        text-align: center;
+    }
+}

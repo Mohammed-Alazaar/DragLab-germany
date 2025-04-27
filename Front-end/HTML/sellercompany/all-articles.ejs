@@ -1,0 +1,57 @@
+<%- include('../../includes/sellercompany/head.ejs') %>
+    <link rel="stylesheet" href="/sellercompany/all-articles.css">
+
+    <body>
+        <%- include('../../includes/sellercompany/navbar-dash.ejs') %>
+
+        <section class="sidebar-content-container">
+            <section class="sidebar-container">
+                <%- include('../../includes/sellercompany/sidebar.ejs') %>
+            </section>
+
+
+
+
+                <div class="article-dashboard-container">
+                    <h1>Manage Articles</h1>
+                    <a href="/admin/articles/add" class="add-button">+ Add New Article</a>
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Thumbnail</th>
+                                <th>Title</th>
+                                <th>Author</th>
+                                <th>Language</th> <!-- ✅ Add this -->
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% articles.forEach(article=> { %>
+                                <tr>
+                                    <td><img src="/<%= article.thumbnail %>" width="100"></td>
+                                    <td>
+                                        <%= article.title %>
+                                    </td>
+                                    <td>
+                                        <%= article.author %>
+                                    </td>
+                                    <td>
+                                        <%= article.language %>
+                                    </td> <!-- ✅ Display language -->
+                                    <td>
+                                        <a href="/admin/articles/edit/<%= article._id %>">Edit</a> |
+                                        <form action="/admin/articles/delete/<%= article._id %>" method="POST"
+                                            style="display:inline">
+                                            <button type="submit"
+                                                onclick="return confirm('Are you sure?')">Delete</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                <% }) %>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+    </body>
+    <%- include('../../includes/sellercompany/footer.ejs') %>

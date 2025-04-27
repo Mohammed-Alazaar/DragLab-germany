@@ -1,0 +1,404 @@
+<%- include('../../includes/sellercompany/head.ejs') %>
+
+    <link rel="stylesheet" href="/sellercompany/addNewModel.css">
+    <script src="https://cdn.tiny.cloud/1/mtjy6djndp0eitzxztgrpeyb5j51l2d31765itt3gj45jl8c/tinymce/6/tinymce.min.js"
+        referrerpolicy="origin"></script>
+    <script>
+        tinymce.init({
+            selector: '.tinymce-textarea',
+            plugins: 'anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount',
+            toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table | align lineheight | numlist bullist indent outdent | emoticons charmap | removeformat',
+        });
+    </script>
+
+    <%- include('../../includes/sellercompany/head-end.ejs') %>
+
+        <body>
+            <%- include('../../includes/sellercompany/navbar-dash.ejs') %>
+                <section class="sidebar-content-container">
+                    <section class="sidebar-container">
+                        <%- include('../../includes/sellercompany/sidebar.ejs') %>
+                    </section>
+                    <section class="content-container">
+                        <div class="container-head">
+                            <h1>
+                                <% if (editing) { %> Edit Model <% } else { %> Add New Model <% } %>
+                            </h1>
+                        </div>
+
+                        <div class="form-container">
+                            <% if (hasError) { %>
+                                <div class="alert alert-danger">
+                                    <strong>Error:</strong>
+                                    <%= errorMessage %>
+                                        <ul>
+                                            <% validationErrors.forEach(function(error) { %>
+                                                <li>
+                                                    <%= error.msg %>
+                                                </li>
+                                                <% }); %>
+                                        </ul>
+                                </div>
+                                <% } %>
+
+
+                                    <form id="modelForm" onsubmit="return validateModelForm()"
+                                        action="/admin/<%= editing ? ('edit-model/' + productId + '/' + modelId) : ('add-model/' + productId) %>"
+                                        method="POST" enctype="multipart/form-data">
+
+                                        <div class="input-container">
+                                            <label for="overviewThumbnail">Overview Thumbnail</label>
+                                            <input type="file" name="overviewThumbnail" accept="image/*"
+                                                value="<%= model?.overviewThumbnail || '' %>">
+                                            <% if (model?.overviewThumbnail) { %>
+                                                <img src="/<%= model.overviewThumbnail %>" style="max-width: 150px;">
+                                                <input type="hidden" name="oldOverviewThumbnail"
+                                                    value="<%= model.overviewThumbnail %>">
+                                                <% } %>
+                                        </div>
+
+                                        <div class="input-container">
+                                            <label for="modelcapacity">Model Capacity</label>
+                                            <input type="number" name="modelcapacity"
+                                              class="<%= validationErrors.find(e => e.path === 'modelcapacity') ? 'is-invalid' : '' %>"
+                                              value="<%= model?.modelcapacity || '' %>">
+                                            <% const capErr = validationErrors.find(e => e.path === 'modelcapacity'); %>
+                                            <% if (capErr) { %>
+                                              <div class="form-error"><%= capErr.msg %></div>
+                                            <% } %>
+                                          </div>
+                                          
+
+                                        <% ['EN', 'ES' , 'GR' ].forEach(lang=> { %>
+                                            <div class="language-section">
+                                                <h3>Language: <%= lang %>
+                                                </h3>
+                                                <div class="input-container">
+                                                    <label>Model Name</label>
+                                                    <input type="text" name="ModelName_<%= lang %>"
+                                                        class="<%= validationErrors.find(e => e.path === `ModelName_${lang}`) ? 'is-invalid' : '' %>"
+                                                        value="<%= model?.Language?.[lang]?.[0]?.ModelName || '' %>"
+                                                        >
+
+                                                    <% const err=validationErrors.find(e=> e.path ===
+                                                        `ModelName_${lang}`); %>
+                                                        <% if (err) { %>
+                                                            <div class="form-error">
+                                                                <%= err.msg %>
+                                                            </div>
+                                                            <% } %>
+                                                </div>
+                                                <div class="input-container">
+                                                    <label>Short Description</label>
+                                                    <input type="text" name="ModelNameDesc_<%= lang %>"
+                                                        value="<%= model?.Language?.[lang]?.[0]?.ModelNameDesc || '' %>">
+                                                </div>
+                                                <div class="input-container">
+                                                    <label>Description</label>
+                                                    <input type="text" name="ModelDesc_<%= lang %>"
+                                                        value="<%= model?.Language?.[lang]?.[0]?.ModelDesc || '' %>">
+                                                </div>
+                                                <!-- Fixed Overview Inputs -->
+                                                <div class="overview-section">
+                                                    <h4>Overview</h4>
+                                                    <% for (let i=0; i < 4; i++) { %>
+                                                        <div class="overview-item">
+                                                            <input type="text"
+                                                                name="overview[<%= lang %>][<%= i %>][overviewName]"
+                                                                placeholder="Name"
+                                                                value="<%= model?.Language?.[lang]?.[0]?.overview?.[i]?.overviewName || '' %>">
+                                                            <input type="text"
+                                                                name="overview[<%= lang %>][<%= i %>][overviewDesc]"
+                                                                placeholder="Description"
+                                                                value="<%= model?.Language?.[lang]?.[0]?.overview?.[i]?.overviewDesc || '' %>">
+
+                                                            <% if (lang==='EN' ) { %>
+                                                                <% const
+                                                                    imgPath=model?.Language?.[lang]?.[0]?.overview?.[i]?.overviewImage;
+                                                                    %>
+                                                                    <% if (imgPath) { %>
+                                                                        <img src="/<%= imgPath %>"
+                                                                            style="max-width: 100px;">
+                                                                        <input type="hidden"
+                                                                            name="oldOverviewImages_<%= i %>"
+                                                                            value="<%= imgPath %>">
+                                                                        <% } %>
+                                                                            <input type="file"
+                                                                                name="overviewImages_EN[<%= i %>]"
+                                                                                accept="image/*">
+                                                                            <% } %>
+                                                        </div>
+                                                        <% } %>
+                                                </div>
+
+
+                                                <!-- Fixed Industry Inputs -->
+                                                <div class="industry-section">
+                                                    <h4>Industries</h4>
+                                                    <% for (let i=0; i < 3; i++) { %>
+                                                        <div class="industry-item">
+                                                            <input type="text"
+                                                                name="industry[<%= lang %>][<%= i %>][industryName]"
+                                                                placeholder="Industry Name"
+                                                                value="<%= model?.Language?.[lang]?.[0]?.industry?.[i]?.industryName || '' %>">
+
+                                                            <% if (lang==='EN' ) { %>
+                                                                <% const
+                                                                    img=model?.Language?.[lang]?.[0]?.industry?.[i]; %>
+                                                                    <% if (img?.industryImage) { %>
+                                                                        <img src="/<%= img.industryImage %>"
+                                                                            style="max-width: 100px;">
+                                                                        <input type="hidden"
+                                                                            name="oldIndustryImage_<%= i %>"
+                                                                            value="<%= img.industryImage %>">
+                                                                        <% } %>
+                                                                            <% if (img?.industryLogo) { %>
+                                                                                <img src="/<%= img.industryLogo %>"
+                                                                                    style="max-width: 100px;">
+                                                                                <input type="hidden"
+                                                                                    name="oldIndustryLogo_<%= i %>"
+                                                                                    value="<%= img.industryLogo %>">
+                                                                                <% } %>
+
+                                                                                    <input type="file"
+                                                                                        name="industryImages_EN[<%= i %>]"
+                                                                                        accept="image/*">
+                                                                                    <input type="file"
+                                                                                        name="industryLogos_EN[<%= i %>]"
+                                                                                        accept="image/*">
+                                                                                    <% } %>
+                                                        </div>
+                                                        <% } %>
+                                                </div>
+
+                                                <div class="techspec-section">
+                                                    <h4>Technical Specifications</h4>
+                                                    <div id="specs_<%= lang %>_container"></div>
+                                                    <button type="button" onclick="addSpecSection('<%= lang %>')">Add
+                                                        Specification Section</button>
+                                                </div>
+
+                                                <h4>Downloads</h4>
+                                                <div id="download_<%= lang %>_container"></div>
+                                                <button type="button" onclick="addDownloadField('<%= lang %>')">Add
+                                                    Download File</button>
+                                            </div>
+                                            <% }); %>
+
+                                                <!-- Model Thumbnail -->
+                                                <div class="input-container">
+                                                    <label>Model Thumbnail</label>
+                                                    <input type="file" name="ModelThumbnail" accept="image/*" class="<%= validationErrors.find(e => e.path === 'ModelThumbnail') ? 'is-invalid' : '' %>">
+                                                    <% const thumbErr = validationErrors.find(e => e.path === 'ModelThumbnail'); %>
+                                                    <% if (thumbErr) { %>
+                                                      <div class="form-error"><%= thumbErr.msg %></div>
+                                                    <% } %>
+                                                    <% if (model?.ModelThumbnail) { %>
+                                                      <img src="/<%= model.ModelThumbnail %>" style="max-width: 100px;">
+                                                      <input type="hidden" name="oldModelThumbnail" value="<%= model.ModelThumbnail %>">
+                                                    <% } %>
+                                                  </div>
+                                                  
+
+                                                <!-- Model Photos -->
+                                                <div class="input-container">
+                                                    <label>Model Photos</label>
+                                                    <input type="file" name="ModelPhotos" multiple accept="image/*">
+                                                    <% if (model?.ModelPhotos?.length) { %>
+                                                        <% model.ModelPhotos.forEach(photo=> { %>
+                                                            <img src="/<%= photo %>" style="max-width: 100px;">
+                                                            <% }) %>
+                                                                <% } %>
+                                                </div>
+
+                                                <div class="btn-form-container">
+                                                    <a href="/admin/Myproduct" class="btnBack">Cancel</a>
+
+                                                    <% if (editing) { %>
+                                                        <button class="btnsaveaddress" type="submit" name="action"
+                                                            value="publish">Update Model</button>
+                                                        <% } else { %>
+                                                            <button class="btnsaveaddress" type="submit" name="action"
+                                                                value="publish">Add Model</button>
+                                                            <button class="btnsaveaddress" type="submit" name="action"
+                                                                value="draft">Save as Draft</button>
+                                                            <% } %>
+                                                </div>
+
+                                    </form>
+                        </div>
+                    </section>
+                </section>
+
+                <script>
+                    function addSpecSection(lang) {
+                        const container = document.getElementById(`specs_${lang}_container`);
+                        const index = container.children.length;
+                        const div = document.createElement('div');
+                        div.className = 'spec-section';
+                        div.dataset.index = index;
+
+                        div.innerHTML = `
+            <input type="text" name="technicalSpecifications[${lang}][${index}][sectionTitle]" placeholder="Section Title">
+            <div class="rows-container"></div>
+            <button type="button" onclick="addSpecRow(this)">Add Row</button>
+            <button type="button" onclick="this.closest('.spec-section').remove()">Remove Section</button>
+        `;
+                        container.appendChild(div);
+                    }
+
+                    function addSpecRow(button) {
+                        const rowsContainer = button.previousElementSibling;
+                        const parent = button.closest('.spec-section');
+                        const lang = parent.closest('.language-section').querySelector('h3').textContent.split(':')[1].trim();
+                        const sectionIndex = parent.dataset.index;
+                        const index = rowsContainer.children.length;
+
+                        const rowDiv = document.createElement('div');
+                        rowDiv.className = 'row-item';
+                        rowDiv.innerHTML = `
+            <input type="text" name="technicalSpecifications[${lang}][${sectionIndex}][rows][${index}][title]" placeholder="Title">
+            <input type="text" name="technicalSpecifications[${lang}][${sectionIndex}][rows][${index}][value]" placeholder="Value">
+            <button type="button" onclick="this.parentElement.remove()">Remove Row</button>
+        `;
+                        rowsContainer.appendChild(rowDiv);
+                    }
+
+                    function addDownloadField(lang) {
+                        const container = document.getElementById(`download_${lang}_container`);
+                        const div = document.createElement('div');
+                        div.className = 'download-item';
+                        div.innerHTML = `
+            <input type="text" name="downloadFileNames_${lang}[]" placeholder="File Name">
+            <select name="downloadCategories_${lang}[]">
+                <option value="Catalogs">Catalogs</option>
+                <option value="Certificates">Certificates</option>
+                <option value="Logo">Logo</option>
+            </select>
+            <input type="file" name="downloadFiles_${lang}" multiple />
+            <button type="button" onclick="this.parentElement.remove()">Remove</button>
+        `;
+                        container.appendChild(div);
+                    }
+                </script>
+
+               <script>
+  const modelData = <%- JSON.stringify(model?.Language || {}) %>;
+
+  ['EN', 'ES', 'GR'].forEach(lang => {
+    const langData = modelData[lang]?.[0];
+    if (!langData) return;
+
+    // ✅ Technical Specifications
+    const specContainer = document.getElementById(`specs_${lang}_container`);
+    const specs = Array.isArray(langData.technicalSpecifications) ? langData.technicalSpecifications : [];
+
+    if (specs.length === 0) {
+      // Add one empty section if none exists
+      addSpecSection(lang);
+    } else {
+      specs.forEach((section, si) => {
+        const div = document.createElement('div');
+        div.className = 'spec-section';
+        div.dataset.index = si;
+
+        div.innerHTML = `
+          <input type="text" name="technicalSpecifications[${lang}][${si}][sectionTitle]" value="${section.sectionTitle || ''}" placeholder="Section Title">
+          <div class="rows-container">
+            ${(section.rows || []).map((row, ri) => `
+              <div class="row-item">
+                <input type="text" name="technicalSpecifications[${lang}][${si}][rows][${ri}][title]" value="${row.title || ''}" placeholder="Title">
+                <input type="text" name="technicalSpecifications[${lang}][${si}][rows][${ri}][value]" value="${row.value || ''}" placeholder="Value">
+                <button type="button" onclick="this.parentElement.remove()">Remove Row</button>
+              </div>
+            `).join('')}
+          </div>
+          <button type="button" onclick="addSpecRow(this)">Add Row</button>
+          <button type="button" onclick="this.closest('.spec-section').remove()">Remove Section</button>
+        `;
+        specContainer.appendChild(div);
+      });
+    }
+
+    // ✅ Downloads
+    const downloadContainer = document.getElementById(`download_${lang}_container`);
+    const downloads = Array.isArray(langData.downloads) ? langData.downloads : [];
+
+    if (downloads.length === 0) {
+      // Add an empty field
+      addDownloadField(lang);
+    } else {
+      downloads.forEach((file, index) => {
+        const div = document.createElement('div');
+        div.className = 'download-item';
+        div.id = `existing-download-${lang}-${index}`;
+        div.innerHTML = `
+          <div>
+            📝 <strong>${file.fileName || ''}</strong> (${file.fileCategory || ''}) - ${file.fileSize || ''}
+            <a href="/${file.filePath}" target="_blank">Download</a>
+          </div>
+          <input type="hidden" name="existingDownloads_${lang}[]" value='${JSON.stringify(file)}'>
+          <input type="hidden" name="deletedDownloads_${lang}[]" value="${file.filePath}" disabled>
+          <button type="button" onclick="removeExistingDownload('${lang}', ${index})">❌ Delete</button>
+        `;
+        downloadContainer.appendChild(div);
+      });
+    }
+  });
+
+  function removeExistingDownload(lang, index) {
+    const wrapper = document.getElementById(`existing-download-${lang}-${index}`);
+    if (!wrapper) return;
+
+    const keepInput = wrapper.querySelector(`input[name="existingDownloads_${lang}[]"]`);
+    if (keepInput) keepInput.disabled = true;
+
+    const deleteInput = wrapper.querySelector(`input[name="deletedDownloads_${lang}[]"]`);
+    if (deleteInput) deleteInput.disabled = false;
+
+    wrapper.style.display = 'none';
+  }
+</script>
+
+                <!-- <script>
+                    function validateModelForm() {
+                        const form = document.getElementById('modelForm');
+                        const modelCapacity = form.querySelector('[name="modelcapacity"]');
+                        const modelNameEN = form.querySelector('[name="ModelName_EN"]');
+
+                        // Check Model Capacity
+                        if (modelCapacity.value <= 0) {
+                            alert("Model Capacity must be greater than 0.");
+                            modelCapacity.focus();
+                            return false;
+                        }
+
+                        // Check Model Name (EN)
+                        if (modelNameEN.value.trim().length < 3) {
+                            alert("Model Name (EN) must be at least 3 characters.");
+                            modelNameEN.focus();
+                            return false;
+                        }
+
+                        // Optional: Check file size for overviewThumbnail
+                        const overviewThumb = form.querySelector('[name="overviewThumbnail"]');
+                        if (overviewThumb.files.length > 0 && overviewThumb.files[0].size > 2 * 1024 * 1024) {
+                            alert("Overview Thumbnail must be less than 2MB.");
+                            overviewThumb.focus();
+                            return false;
+                        }
+
+                        // You can repeat this pattern for other languages and inputs...
+
+                        return true; // allow form to submit
+                    }
+                </script> -->
+
+
+
+                <script src="/assets/Js/nav-bar.js"></script>
+                <script src="/assets/Js/addNewModel.js"></script>
+                <script src="/assets/Js/model-dynamic-fields.js"></script>
+        </body>
+
+        </html>

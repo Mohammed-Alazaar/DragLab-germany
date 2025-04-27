@@ -1,0 +1,120 @@
+/* product thumbnail section  */
+.slide {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  height: 80vh;
+  justify-content: center;
+  align-items: center;
+}
+
+
+.slide img {
+  height: 100%;
+  width: calc(100% - 20px);
+  object-position: center;
+  position: absolute;
+  top: 0;
+  left: 10px;
+  z-index: 00;
+}
+
+.slide-text {
+  display: flex;
+  gap: 1rem;
+  flex-direction: column;
+  z-index: 2;
+  align-items: center;
+  padding: 0 20%;
+  text-align: center;
+}
+
+.slide-text h1 {
+  font-weight: 600;
+  font-size: 60px;
+  line-height: 150%;
+  text-transform: uppercase;
+  color: var(--white-text-Color);
+}
+
+.slide-text p {
+  font-weight: 500;
+  font-size: 35px;
+  line-height: 110%;
+  color: var(--white-text-Color);
+
+}
+
+
+@media (max-width: 790px) {
+  .slide {
+    height: 50vh;
+  }
+
+  .slide-text p {
+    font-size: 18px;
+  }
+
+  .slide-text h1 {
+    font-weight: 600;
+    font-size: 24px;
+    line-height: 125%;
+    white-space: normal;
+
+  }
+
+
+  .slide img {
+    width: calc(100% - 10px);
+    left: 5px;
+  }
+}
+
+
+/* product thumbnail section  */
+.PrivacyPolicycontainer {
+  max-width: 1000px;
+  margin: auto;
+  background: #fff;
+  padding: 30px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.PrivacyPolicycontainer h1,
+.PrivacyPolicycontainer h2,
+.PrivacyPolicycontainer h3 {
+  color: var(--primary-Color);
+  font-size: 22px;
+
+}
+
+.PrivacyPolicycontainer ul {
+  list-style-type: disc;
+  padding-left: 20px;
+}
+
+.PrivacyPolicycontainer p {
+  margin-bottom: 16px;
+}
+
+.section {
+  margin-top: 30px;
+}
+
+.contact {
+  background-color: #eef2f7;
+  padding: 15px;
+  border-left: 4px solid var(--primary-Color);
+}
+
+
+.PrivacyPolicycontainer {
+  line-height: 1.6;
+  color: #333;
+
+}
+
+.highlighted {
+  color: var(--primary-Color);
+  font-weight: bold;
+}

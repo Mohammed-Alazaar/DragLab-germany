@@ -1,0 +1,46 @@
+<%- include('../../includes/sellercompany/head.ejs') %>
+
+    <link rel="stylesheet" href="/sellercompany/addcataloge.css">
+
+    <%- include('../../includes/sellercompany/head-end.ejs') %>
+
+        <body>
+            <%- include('../../includes/sellercompany/navbar-dash.ejs') %>
+                <section class="sidebar-content-container">
+                    <section class="sidebar-container">
+                        <%- include('../../includes/sellercompany/sidebar.ejs') %>
+                    </section>
+
+
+
+                    <section>
+                        <h1>Upload File to <%= category.categoryName %></h1>
+                        <form action="/admin/catalogs/<%= category._id %>/upload" method="POST" enctype="multipart/form-data">
+                          <label>Language</label>
+                          <select name="language" required>
+                            <option value="EN">English</option>
+                            <option value="ES">Spanish</option>
+                            <option value="GR">Germany</option>
+                          </select>
+                        
+                          <label>File Name</label>
+                          <input type="text" name="fileName" required>
+                        
+                          <label>Select File</label>
+                          <input type="file" name="catalogFile" required>
+                        
+                          <button type="submit">Upload</button>
+                        </form>
+                        
+                    </section>
+
+                </section>
+
+
+
+
+
+                <script src="/assets/Js/nav-bar.js"></script>
+        </body>
+
+        </html>

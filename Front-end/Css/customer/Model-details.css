@@ -1,0 +1,604 @@
+/* product thumbnail section  */
+.slide {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+
+}
+
+.slide::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 10px;
+    width: calc(100% - 20px);
+    height: 100%;
+    background-image: url(/assets/Imgs/Icons/products/blue-blur.webp);
+    background-size: cover;
+    background-position: center;
+    z-index: 2;
+}
+
+.slide img {
+    height: 80vh;
+    width: calc(100% - 20px);
+    object-position: center;
+    position: relative;
+    z-index: 1;
+}
+
+.slide-text {
+    position: absolute;
+    top: 25%;
+    display: flex;
+    gap: 1rem;
+    left: 10%;
+    flex-direction: column;
+    z-index: 3;
+}
+
+.slide-text-content {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    width: 85%;
+}
+
+.slide-text h3,
+.slide-text h1 {
+    font-weight: 600;
+    font-size: 48px;
+    line-height: 150%;
+    text-transform: uppercase;
+    white-space: nowrap;
+    display: inline;
+    color: var(--white-text-Color);
+
+}
+
+.slide-text p {
+    font-weight: 500;
+    font-size: 25px;
+    line-height: 110%;
+    width: 40%;
+    color: var(--white-text-Color);
+
+}
+
+a.scroll-button {
+    width: fit-content;
+    padding: 10px 20px;
+    background: #ffffff;
+    font-size: 18px;
+    color: var(--primary-Color);
+}
+
+@media (max-width: 1600px) {
+
+    .slide-text {
+        gap: 1rem;
+    }
+
+}
+
+@media (max-width: 790px) {
+
+    .slide-text h3,
+    .slide-text h1 {
+        font-weight: 600;
+        font-size: 30px;
+        line-height: 125%;
+        white-space: normal;
+
+    }
+
+
+
+    .slide::before {
+        left: 5px;
+        width: calc(100% - 10px);
+    }
+
+    .slide img {
+        height: 54vh;
+        width: calc(100% - 10px);
+        object-fit: cover;
+    }
+}
+
+
+/* product thumbnail section  */
+
+
+
+/* product features section  */
+
+section.model-overview.section {
+    text-align: center;
+}
+
+.model-overview-container {
+    display: flex;
+    justify-content: center;
+    padding: 0 10px;
+    gap: 10px;
+    align-items: center;
+}
+
+.model-overview-img {
+    width: 50%;
+    height: 46.5rem;
+}
+
+.model-overview-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+
+.feature-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0px;
+    width: 100%;
+    height: 100%;
+    background-image: url(/assets/Imgs/Icons/products/product-features-background.png);
+    background-size: cover;
+    background-position: center;
+    z-index: 2;
+}
+
+
+.features-wrapper {
+    position: relative;
+    text-align: center;
+    width: 50%;
+
+}
+
+.top-mask {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: auto;
+    z-index: 0;
+}
+
+
+
+.section-title {
+    font-size: 28px;
+    font-weight: 600;
+    padding: 10px 0;
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    z-index: 1;
+    position: relative;
+}
+
+.feature-card {
+    position: relative;
+    color: var(--white-text-Color);
+    text-align: center;
+    height: 23rem;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+}
+
+.feature-img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.feature-content {
+    position: relative;
+    z-index: 3;
+    height: 60%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 0 30px 0;
+}
+
+.feature-content h3 {
+    font-size: 48px;
+    font-weight: 500;
+    line-height: 125%
+}
+
+.feature-content p {
+    font-size: 28px;
+    font-weight: 100;
+}
+
+/* Responsive Design */
+@media (max-width: 1300px) {
+    .model-overview-img {
+        display: none;
+    }
+
+    .features-wrapper {
+        width: 100%;
+    }
+
+}
+
+@media (max-width: 1024px) {
+    .features-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+
+
+    .feature-card {
+        min-height: 12rem;
+        height: auto;
+
+    }
+
+    .feature-content {
+        height: 80%;
+    }
+
+    .feature-content h3 {
+        font-size: 32px;
+    }
+
+    .feature-content p {
+        font-size: 18px;
+    }
+}
+
+/* product features section  */
+
+
+/* industries section */
+
+.industries-section {
+    display: flex;
+    padding: 0 10px 0px 10px;
+    flex-direction: column;
+    align-items: center;
+
+}
+
+.industries-section h2,
+.download-centercontainer h2,
+.model-table-section h2 {
+    font-size: 28px;
+    font-weight: 600;
+    padding: 10px 0;
+}
+
+.industries-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 10px;
+    width: 100%;
+}
+
+.industries-section:last-child {
+    margin: 0 !important;
+    /* Only works if you add margin, not with grid gap */
+}
+
+.industry-card {
+    position: relative;
+    overflow: hidden;
+    max-height: 30rem;
+
+}
+
+.industry-img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+}
+
+.overlay {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
+    color: white;
+    text-align: center;
+    padding: 20px 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.overlay .icon {
+    width: 30px;
+    height: 30px;
+
+}
+
+.icon-wrapper {
+    background-color: white;
+    border-radius: 50%;
+    padding: 15px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: 60px;
+    height: 60px;
+    margin: 0 auto 10px auto;
+    /* center horizontally and add spacing */
+}
+
+
+
+
+.overlay h3 {
+    font-size: 24.2px;
+    margin: 0;
+    font-weight: 300;
+}
+
+/* @media (max-width: 1250px) {
+    .industries-container {
+      grid-template-columns: repeat(1, 1fr);
+    }
+  } */
+
+/* @media (max-width: 480px) {
+    .industries-container {
+      grid-template-columns: repeat(1, 1fr);
+    }
+  } */
+
+@media (max-width: 970px) {
+    .industries-container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .industry-card {
+        height: 15rem;
+    }
+
+    .overlay h3 {
+        font-size: 15.2px;
+
+    }
+
+    .industries-container .industry-card:last-child {
+        grid-column: span 2;
+    }
+}
+
+/* industries section */
+
+
+/* model table section */
+
+section.model-table-section {
+    text-align: center;
+    padding: 0 10px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: white;
+}
+
+.table-section-title {
+    background-color: var(--primary-Color);
+    color: white;
+    font-weight: bold;
+    font-size: 1.2em;
+    padding: 10px;
+    text-align: center;
+}
+
+tbody {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin: 10px 0;
+}
+
+tr {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    /* width: 100%; */
+    /* margin: 6px; */
+    background: #ECEDF3;
+    padding: 10px;
+}
+
+td {
+    padding: 10px;
+    vertical-align: top;
+    line-height: 125%;
+}
+
+td.title {
+    font-weight: bold;
+}
+
+@media (max-width: 768px) {
+    tbody {
+        grid-template-columns: repeat(1, 1fr);
+
+    }
+
+    tr {
+        padding: 10px 0;
+    }
+
+    td.title {
+        font-weight: bold;
+        text-align: start;
+        min-width: 150px;
+    }
+
+    td.value {
+
+        text-align: start;
+        width: -webkit-fill-available;
+    }
+}
+
+/* model table section */
+
+
+/* model download center section */
+section.download-centercontainer {
+    text-align: center;
+}
+
+.download-cards-container {
+    display: grid;
+    padding: 0 10px;
+    width: 100%;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    align-content: center;
+    justify-items: center;
+    align-items: center;
+    gap: 10px;
+}
+
+.download-card {
+    background-color: #ECEDF3;
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    min-height: 18rem;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 6rem;
+    width: -webkit-fill-available;
+}
+
+
+
+.download-info {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
+}
+
+.download-title {
+    font-weight: bold;
+    color: #000000;
+    font-size: 30px;
+}
+
+.download-meta {
+    display: flex;
+    gap: 20px;
+    font-size: 0.9em;
+    color: #333;
+}
+
+.download-icon {
+    width: 24px;
+    height: 24px;
+    fill: #1d3b8b;
+    transition: fill 0.3s ease;
+}
+
+.download-link p {
+    font-size: 21px;
+}
+
+.download-icon:hover {
+    fill: #163073;
+}
+
+a.download-link {
+    text-decoration: none;
+    text-decoration: none;
+    padding: .7rem 3rem;
+    display: flex;
+    align-items: center;
+    flex-direction: row;
+    background-color: var(--primary-Color);
+    color: #ffff;
+}
+
+.download-icon {
+    display: none;
+}
+
+.download-meta {
+    display: none;
+}
+
+@media only screen and (min-width:768px) and (max-width: 1000px) {
+    .download-cards-container .download-card:last-child {
+        grid-column: span 2;
+    }
+}
+
+@media (max-width: 768px) {
+    .download-card {
+        max-width: 700px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .download-card {
+        background-color: #eef0f7;
+        padding: 15px 20px;
+        display: flex;
+        min-height: fit-content;
+        justify-content: space-between;
+        gap: 0;
+        width: -webkit-fill-available;
+        flex-direction: row;
+        align-items: center;
+    }
+
+    .download-info {
+        text-align: start;
+    }
+
+    .download-meta {
+        display: flex;
+    }
+
+    .download-link p {
+        display: none;
+    }
+
+    a.download-link {
+        background-color: #00000000;
+        padding: 0;
+    }
+
+    .download-icon {
+        display: block;
+    }
+
+    .download-cards-container .download-card:last-child {
+        grid-column: span 1;
+    }
+
+}
+
+
+/* model download center section */

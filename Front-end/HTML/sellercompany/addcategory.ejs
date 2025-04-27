@@ -1,0 +1,106 @@
+<%- include('../../includes/sellercompany/head.ejs') %>
+
+<link rel="stylesheet" href="/sellercompany/addcategory.css">
+<%- include('../../includes/sellercompany/head-end.ejs') %>
+
+<body>
+    <!-- nav-bar -->
+    <%- include('../../includes/sellercompany/navbar-dash.ejs') %>
+    <!-- nav-bar -->
+
+    <!-- Product Details -->
+    <section class="sidebar-content-container">
+        <section class="sidebar-container">
+            <!-- sidebar -->
+            <%- include('../../includes/sellercompany/sidebar.ejs') %>
+            <!-- sidebar -->
+        </section>
+                    <section class="category content-container">
+                        <form class="add-category" action="/admin/add-Category" method="POST" enctype="multipart/form-data">
+                            <div class="form-group">
+                                <label for="categoryname">categoryname</label>
+                                <input type="text" name="categoryname" id="name" required>
+                            </div>
+                            <div>
+                                <label for="categoryImage">
+                                    <input type="file" name="categoryImage" id="categoryImage" required>
+                                </label>
+                            </div>
+                            <button type="submit" class="btn-primary add-cat-btn">Add</button>
+                        </form>
+                        <div class="exists-category">
+                            <h2>Existing Categories</h2>
+                            <ol>
+                                <% categories.forEach(category=> { %>
+                                    <li>
+                                        <%= category.categoryName %>
+                                        <div class="categories-img">
+                                            <img src="\<%= category.categoryImage %>" alt="" width="100px" height="100px">
+                                        </div>
+                                            <form class="Delete-form" method="POST">
+                                                <!-- Removed the action to prevent direct submission -->
+                                                <input type="hidden" name="categoryId" value="<%= category._id %>">
+                                                <button type="button" class="delete-product"
+                                                    onclick="openModal('<%= category._id %>')">Delete</button>
+                                            </form>
+                                    </li>
+                                    <hr>
+                                    <% }) %>
+                            </ol>
+                        </div>
+                    </section>
+                </section>
+
+                    <!-- Delete Confirmation Modal -->
+                    <div id="deleteModal" class="modal">
+                        <div class="modal-content">
+                            <span class="close-button">&times;</span>
+                            <h2>Are you sure you want to delete this Category?</h2>
+                            <form id="deleteForm" action="/admin/delete-category" method="post">
+                                <input type="hidden" id="deleteProductId" name="categoryId">
+                                <button type="submit" class="confirm-delete">Delete</button>
+                                <button type="button" class="cancel-delete">Cancel</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Modal Control Script -->
+                    <script>
+                        // Get the modal
+                        var modal = document.getElementById("deleteModal");
+
+                        // Get the <span> element that closes the modal
+                        var span = document.getElementsByClassName("close-button")[0];
+
+                        // Get the cancel button
+                        var cancelButton = document.getElementsByClassName("cancel-delete")[0];
+
+                        // Function to open the modal
+                        function openModal(categoryId) {
+                            modal.style.display = "block";
+                            document.getElementById('deleteProductId').value = categoryId;
+                        }
+
+                        // When the user clicks on <span> (x), close the modal
+                        span.onclick = function () {
+                            modal.style.display = "none";
+                        }
+
+                        // When the user clicks on cancel button, close the modal
+                        cancelButton.onclick = function () {
+                            modal.style.display = "none";
+                        }
+
+                        // When the user clicks anywhere outside of the modal, close it
+                        window.onclick = function (event) {
+                            if (event.target == modal) {
+                                modal.style.display = "none";
+                            }
+                        }
+                    </script>
+
+                <%- include('../../includes/customer/footer.ejs') %>
+        </body>
+        <%- include('../../includes/customer/script.ejs') %>
+
+            </html>

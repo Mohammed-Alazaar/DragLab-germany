@@ -1,0 +1,54 @@
+<%- include('../../includes/sellercompany/head.ejs') %>
+
+    <link rel="stylesheet" href="/sellercompany/indexSlide.css">
+
+    <%- include('../../includes/sellercompany/head-end.ejs') %>
+
+        <body>
+            <%- include('../../includes/sellercompany/navbar-dash.ejs') %>
+                <section class="sidebar-content-container">
+                    <section class="sidebar-container">
+                        <%- include('../../includes/sellercompany/sidebar.ejs') %>
+                    </section>
+
+
+                    <section class="slideshow-dashboard-container">
+
+                        <h2>Slideshow Images</h2>
+                        <a href="/admin/addslideshow" class="add-slide-button">+ Add New Slide</a>
+
+                        <div class="slides-grid">
+                            <% slides.forEach(slide=> { %>
+                                <div class="slide-card">
+                                    <img src="/<%= slide.image %>" alt="<%= slide.title %>">
+                                    <h3>
+                                        <%= slide.title %>
+                                    </h3>
+                                    <p><strong>Language:</strong>
+                                        <%= slide.language %>
+                                    </p>
+                                    <div class="slide-actions">
+                                        <a href="/admin/slideshow/edit/<%= slide._id %>" class="edit-button">Edit</a>
+                                        <form action="/admin/slideshow/delete/<%= slide._id %>" method="POST">
+                                            <button type="submit" class="delete-button"
+                                                onclick="return confirm('Are you sure?')">Delete</button>
+                                        </form>
+                                    </div>
+                                </div>
+                                <% }) %>
+                        </div>
+
+                    </section>
+
+
+
+                </section>
+
+
+
+
+
+                <script src="/assets/Js/nav-bar.js"></script>
+        </body>
+
+        </html>

@@ -1,0 +1,210 @@
+<%- include('../../includes/sellercompany/head.ejs') %>
+
+    <link rel="stylesheet" href="/Css/sellercompany/my-products.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <%- include('../../includes/sellercompany/head-end.ejs') %>
+
+        <body>
+            <!-- nav-bar -->
+            <%- include('../../includes/sellercompany/navbar-dash.ejs') %>
+                <!-- nav-bar -->
+
+                <!-- Product Details -->
+                <section class="sidebar-content-container">
+                    <section class="sidebar-container">
+                        <!-- sidebar -->
+                        <%- include('../../includes/sellercompany/sidebar.ejs') %>
+                            <!-- sidebar -->
+                    </section>
+                    <section class="content-container">
+                        <section class="product-side-section">
+                            <div class="product-side-header">
+                                <h2>My Products</h2>
+                                <a id="add-new-product" href="/admin/add-product">&plus; Add New Product</a>
+                            </div>
+
+                            <% if (prods.length> 0) { %>
+                                <div class="products-container">
+                                    <% for (let product of prods) { %>
+                                        <p id="product-name" class="product-name-header">
+                                            <% if (product.Language && product.Language.EN &&
+                                                product.Language.EN[0]) { %>
+                                                <%= product.Language.EN[0].ProductName %>
+                                                    <% } else { %>
+                                                        No Name Available
+                                                        <% } %>
+                                        </p>
+                                        <div class="product-model-group">
+                                          
+                                         
+                                              
+                                            <div class="products-section-product">
+                                                <!-- Product Thumbnail -->
+                                                <div class="products-section-products-photo">
+                                                    <% if (product.ProductThumbnail) { %>
+                                                        <img src="/<%= product.ProductThumbnail %>"
+                                                            alt="Product Thumbnail">
+                                                        <% } else { %>
+                                                            <img src="/assets/Imgs/Icons/default-thumbnail.png"
+                                                                alt="Default Thumbnail">
+                                                            <% } %>
+                                                               
+                                                </div>
+
+                                                <!-- Product Details -->
+                                                <div class="products-section-products-details">
+                                                    <div class="products-section-products-details-name">
+                                                        <p id="product-name">
+                                                            <% if (product.Language && product.Language.EN &&
+                                                                product.Language.EN[0]) { %>
+                                                                <%= product.Language.EN[0].ProductName %>
+                                                                    <% } else { %>
+                                                                        No Name Available
+                                                                        <% } %>
+                                                        </p>
+                                                        <% if (product.isDraft) { %>
+                                                            <span class="draft-badge">Draft</span>
+                                                          <% } %>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Product Controls -->
+                                                <div class="product-controles">
+                                                    <div class="product-controls-buttons">
+                                                        <a href="/admin/edit-product/<%= product._id %>?edit=true"
+                                                            class="edit-product">
+                                                            <img src="/assets/Imgs/Icons/edit.png">Edit
+                                                        </a>
+                                                        <form action="javascript:void(0);"
+                                                            onsubmit="openProductModal('<%= product._id %>')">
+                                                            <button class="delete-product" type="submit">
+                                                                <img src="/assets/Imgs/Icons/delete-icon-red.png"
+                                                                    alt="">Delete
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                    <% if (!product.isDraft) { %>
+
+                                                    <a href="/admin/add-model/<%= product._id %>" class="add-model">Add
+                                                        Model</a>
+                                                        <% } %>
+
+                                                </div>
+                                            </div>
+
+                                            <!-- Models Section -->
+                                            <% if (product.Models && product.Models.length> 0) { %>
+                                                <% for (let model of product.Models) { %>
+                                                    <div class="products-section-product">
+
+                                                        <div class="model-section-model-photo">
+                                                            <% if (model.ModelThumbnail) { %>
+                                                                <img src="/<%= model.ModelThumbnail %>"
+                                                                    alt="Model Thumbnail">
+                                                                <% } else { %>
+                                                                    <img src="/assets/Imgs/Icons/default-thumbnail.png"
+                                                                        alt="Default Thumbnail">
+                                                                    <% } %>
+                                                        </div>
+
+                                                        <div class="model-details">
+                                                            <p id="model-name">
+                                                                <% if (model.Language && model.Language.EN &&
+                                                                    model.Language.EN[0]) { %>
+                                                                    <%= model.Language.EN[0].ModelName %>
+                                                                        <% } else { %>
+                                                                            No Model Name
+                                                                            <% } %>
+                                                            </p>
+                                                        </div>
+                                                        <div class="model-controls">
+                                                            <a href="/admin/edit-model/<%= product._id %>/<%= model._id %>"
+                                                                class="edit-model">
+                                                                <img src="/assets/Imgs/Icons/edit.png">Edit
+                                                            </a>
+                                                            <form action="javascript:void(0);"
+                                                                onsubmit="openModelModal('<%= product._id %>', '<%= model._id %>')">
+                                                                <button class="delete-model" type="submit">
+                                                                    <img src="/assets/Imgs/Icons/delete-icon-red.png"
+                                                                        alt="">Delete
+                                                                </button>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                    <% } %>
+                                                        <% } %>
+                                        </div>
+                                        <% } %>
+                                </div>
+                                <% } else { %>
+                                    <h2>No products found</h2>
+                                    <% } %>
+                        </section>
+                    </section>
+                </section>
+
+                <!-- Delete Product Confirmation Modal -->
+                <div id="deleteProductModal" class="modal">
+                    <div class="modal-content">
+                        <span class="close-button" onclick="closeProductModal()">&times;</span>
+                        <h2>Are you sure you want to delete this product and its related models ?</h2>
+                        <form id="deleteProductForm" action="/admin/delete-product" method="post">
+                            <input type="hidden" id="deleteProductId" name="productId">
+                            <button type="submit" class="confirm-delete">Delete</button>
+                            <button type="button" class="cancel-delete" onclick="closeProductModal()">Cancel</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Delete Model Confirmation Modal -->
+                <div id="deleteModelModal" class="modal">
+                    <div class="modal-content">
+                        <span class="close-button" onclick="closeModelModal()">&times;</span>
+                        <h2>Are you sure you want to delete this model?</h2>
+                        <form id="deleteModelForm" action="/admin/delete-model" method="post">
+                            <input type="hidden" id="deleteModelProductId" name="productId">
+                            <input type="hidden" id="deleteModelId" name="modelId">
+                            <button type="submit" class="confirm-delete">Delete</button>
+                            <button type="button" class="cancel-delete" onclick="closeModelModal()">Cancel</button>
+                        </form>
+                    </div>
+                </div>
+
+                <script>
+                    // Product Modal Functions
+                    function openProductModal(productId) {
+                        document.getElementById('deleteProductModal').style.display = 'block';
+                        document.getElementById('deleteProductId').value = productId;
+                    }
+
+                    function closeProductModal() {
+                        document.getElementById('deleteProductModal').style.display = 'none';
+                    }
+
+                    // Model Modal Functions
+                    function openModelModal(productId, modelId) {
+                        document.getElementById('deleteModelModal').style.display = 'block';
+                        document.getElementById('deleteModelProductId').value = productId;
+                        document.getElementById('deleteModelId').value = modelId;
+                    }
+
+                    function closeModelModal() {
+                        document.getElementById('deleteModelModal').style.display = 'none';
+                    }
+
+                    // Close modals on clicking outside
+                    window.onclick = function (event) {
+                        if (event.target == document.getElementById('deleteProductModal')) {
+                            closeProductModal();
+                        }
+                        if (event.target == document.getElementById('deleteModelModal')) {
+                            closeModelModal();
+                        }
+                    }
+                </script>
+
+                <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+                <script src="/assets/Js/nav-bar.js"></script>
+        </body>
+
+        </html>

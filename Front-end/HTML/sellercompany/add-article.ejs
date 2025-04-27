@@ -1,0 +1,64 @@
+<%- include('../../includes/sellercompany/head.ejs') %>
+    <link rel="stylesheet" href="/sellercompany/add-article.css">
+    <script src="https://cdn.tiny.cloud/1/mtjy6djndp0eitzxztgrpeyb5j51l2d31765itt3gj45jl8c/tinymce/6/tinymce.min.js"
+        referrerpolicy="origin"></script>
+    <script>
+        tinymce.init({
+            selector: '#articleBody',
+            plugins: 'image link media table code lists',
+            toolbar: 'undo redo | bold italic underline | alignleft aligncenter alignright | bullist numlist | image media link | code',
+            height: 500
+        });
+    </script>
+
+    <body>
+        <%- include('../../includes/sellercompany/navbar-dash.ejs') %>
+        <section class="sidebar-content-container">
+            <section class="sidebar-container">
+                <%- include('../../includes/sellercompany/sidebar.ejs') %>
+            </section>
+        
+            
+           
+            <div class="form-container">
+                <h1>
+                    <%= editing ? "Edit Article" : "Add New Article" %>
+                </h1>
+                <form action="<%= editing ? '/admin/articles/edit/' + article._id : '/admin/articles/add' %>"
+                    method="POST" enctype="multipart/form-data">
+
+                    <label for="language">Article Language</label>
+                    <select name="language" required>
+                        <option value="EN" <%=article?.language==='EN' ? 'selected' : '' %>>English</option>
+                        <option value="ES" <%=article?.language==='ES' ? 'selected' : '' %>>Spanish</option>
+                        <option value="GR" <%=article?.language==='GR' ? 'selected' : '' %>>Germany</option>
+                    </select>
+
+                    <label>Title</label>
+                    <input type="text" name="title" value="<%= article?.title || '' %>" required>
+
+                    <label>Author Name</label>
+                    <input type="text" name="author" value="<%= article?.author || '' %>" required>
+
+                    <label>Thumbnail Image</label>
+                    <% if (article?.thumbnail) { %>
+                        <img src="/<%= article.thumbnail %>" width="150" />
+                        <% } %>
+                            <input type="file" name="thumbnail">
+
+                            <label>Body</label>
+                            <textarea id="articleBody" name="body"><%= article?.body || '' %></textarea>
+
+                            
+                            <div class="form-buttons">
+                                <button type="submit">
+                                    <%= editing ? "Update Article" : "Add Article" %>
+                                </button>
+                                <a href="/admin/articles" class="cancel-button">Cancel</a>
+                            </div>
+                            
+                </form>
+            </div>
+        </section>
+    </body>
+    <%- include('../../includes/sellercompany/footer.ejs') %>

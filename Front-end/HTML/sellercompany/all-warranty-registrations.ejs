@@ -1,0 +1,48 @@
+<%- include('../../includes/sellercompany/head.ejs') %>
+<link rel="stylesheet" href="/sellercompany/all-technical-service.css">
+
+<body>
+  <%- include('../../includes/sellercompany/navbar-dash.ejs') %>
+  <section class="sidebar-content-container">
+    <section class="sidebar-container">
+      <%- include('../../includes/sellercompany/sidebar.ejs') %>
+    </section>
+
+    <section class="content-container">
+      <h1>Warranty Registrations</h1>
+      <% if (warranties.length === 0) { %>
+        <p>No warranty registrations found.</p>
+      <% } else { %>
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Category</th>
+              <th>Model</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% warranties.forEach(reg => { %>
+              <tr>
+                <td><%= new Date(reg.createdAt).toLocaleDateString() %></td>
+                <td><%= reg.name %></td>
+                <td><%= reg.email %></td>
+                <td><%= reg.deviceCategory?.Language?.EN?.[0]?.ProductName || 'N/A' %></td>
+                <td><%= reg.modelName %></td>
+                <td><%= reg.status === 'done' ? '✅ Done' : '⏳ Pending' %></td>
+                <td>
+                  <a href="/admin/warranty-registrations/<%= reg._id %>" class="btn-view">View</a>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      <% } %>
+    </section>
+  </section>
+</body>
+<%- include('../../includes/sellercompany/footer.ejs') %>

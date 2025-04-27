@@ -1,0 +1,47 @@
+<%- include('../../includes/customer/head.ejs') %>
+<link rel="stylesheet" href="/Css/customer/article-details.css">
+
+<body>
+    <!-- nav-bar -->
+    <%- include('../../includes/customer/navbar.ejs') %>
+
+    <div class="container">
+        <div class="main-content">
+            <% if (article.thumbnail) { %>
+                <img src="/<%= article.thumbnail %>" alt="<%= article.title %>">
+            <% } %>
+            <h1><%= article.title %></h1>
+            <h2><%= article.author %></h2>
+            <%- article.body %> <!-- This renders TinyMCE rich text content as HTML -->
+        </div>
+
+        <section class="sidebar-container">
+            <h3>Recent Articles</h3>
+        
+            <div class="sidebar">
+                <% if (recentArticles.length > 0) { %>
+                    <% recentArticles.forEach(item => { %>
+                        <a href="/article/<%= item._id %>/<%= lang %>">
+                            <div class="recent-article">
+                                <img src="/<%= item.thumbnail %>" alt="<%= item.title %>">
+                                <h4><%= item.title %></h4>
+                            </div>
+                        </a>
+                        <hr>
+                    <% }) %>
+                <% } else { %>
+                    <p style="color: #666; font-style: italic; padding: 10px;">
+                        No related articles available in this language.
+                    </p>
+                <% } %>
+            </div>
+        </section>
+        
+    </div>
+
+    <!-- Footer -->
+    <%- include('../../includes/customer/footer.ejs') %>
+</body>
+
+<%- include('../../includes/customer/script.ejs') %>
+</html>

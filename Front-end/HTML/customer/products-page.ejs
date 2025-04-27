@@ -1,0 +1,219 @@
+<%- include('../../includes/customer/head.ejs') %>
+    <link rel="stylesheet" href="/Css/customer/products-page.css">
+    <link rel="stylesheet" href="/Css/customer/addtocartbuttoneffect.css">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script>
+        $(document).ready(function() {
+          $.ajaxSetup({
+            cache: false
+          });
+      
+          $('.ajax-add-to-cart-button').click(function(event) {
+            event.preventDefault(); // Prevent the default form submission
+            const button = $(this);
+            const form = button.closest('.ajax-add-to-cart-form');
+            const formData = form.serialize();
+            const imgElement = form.find('#addtocart');
+            const svgElement = form.find('#checkmark');
+      
+            console.log('Serialized form data:', formData);  // Log the serialized form data
+      
+            $.ajax({
+              url: '/cart-ajax',
+              type: 'POST',
+              data: formData,
+              dataType: 'json',
+              success: function(data) {
+                if (data.message === 'Product added to cart') {
+                  // Update the cart item count with animation
+                  const cartItemCountElement = $('.nav-bar-icons-basket-item-number');
+                  if (cartItemCountElement.length) {
+                    cartItemCountElement.addClass('animate');
+                    setTimeout(function() {
+                      cartItemCountElement.removeClass('animate');
+                      cartItemCountElement.text(data.cartItemCount);
+                    }, 300); // Match this timeout with the CSS transition duration
+                  }
+      
+                  // Play the SVG animation and hide the image
+                  imgElement.hide();
+                  svgElement.show();
+                  setTimeout(function() {
+                    svgElement.hide();
+                    imgElement.show();
+                  }, 3000); // Show the SVG for 3 seconds
+      
+                  console.log('Product added to cart');
+                } else {
+                  console.error('Failed to add product to cart:', data.message);
+                }
+              },
+              error: function(err) {
+                console.error('Error:', err);
+                console.error('Response:', err.responseText);
+              }
+            });
+          });
+        });
+      </script>
+      
+    <%- include('../../includes/customer/header-end.ejs') %>
+
+        <body>
+               <!-- nav-bar -->
+               <% if (isAuthenticated && (role === 'admin' || role === 'seller')) { %>
+
+                <%- include('../../includes/sellercompany/navbar.ejs') %>
+
+                    <% } else { %>
+
+                        <%- include('../../includes/customer/navbar.ejs') %>
+                            <% } %>
+
+                <!-- Product Details -->
+
+                <section class="filterandproducts">
+                    <section class="filter-side-section">
+                        <!-- Brand Filter -->
+                        <div class="filter brand-filter">
+                            <h3>Brand</h3>
+                            <select id="brand-select">
+                                <option value="all">All Brands</option>
+                                <% const brands=[...new Set(prods.map(product=> product.Company))]; %>
+                                    <% brands.forEach(brand=> { %>
+                                        <option value="<%= brand %>">
+                                            <%= brand %>
+                                        </option>
+                                        <% }); %>
+                            </select>
+                        </div>
+
+                        <!-- Color Filter -->
+                        <div class="filter color-filter">
+                            <h3>Color</h3>
+                            <select id="color-select">
+                                <option value="all">All Colors</option>
+                                <% const colors=[...new Set(prods.map(product=> product.color))]; %>
+                                    <% colors.forEach(color=> { %>
+                                        <option value="<%= color %>">
+                                            <%= color %>
+                                        </option>
+                                        <% }); %>
+                            </select>
+                        </div>
+
+                        <!-- Category Filter -->
+                        <div class="filter category-filter">
+                            <h3>Category</h3>
+                            <select id="category-select">
+                                <!-- Option with no value -->
+                                <option value="">select</option>
+                                <% categories.forEach(category => { %>
+                                    <option value="<%= category.categoryName %>">
+                                        <%= category.categoryName %>
+                                    </option>
+                                <% }) %>
+                            </select>
+                        </div>
+
+                        <!-- Memory Size Filter -->
+                        <div class="filter memory-filter">
+                            <h3>Memory Size</h3>
+                            <select id="memory-select">
+                                <option value="all">All Sizes</option>
+                                <option value="256">256GB</option>
+                                <option value="512">512GB</option>
+                                <option value="1000">1TB</option>
+                                <option value="2000">2TB</option>
+                                <option value="3000">3TB</option>
+                            </select>
+                        </div>
+
+                        <!-- Price Filter -->
+                        <div class="filter price-filter">
+                            <h3>Price</h3>
+                            <input type="number" id="min-price" placeholder="Min Price">
+                            <input type="number" id="max-price" placeholder="Max Price">
+                            <button id="apply-price-filter">Apply</button>
+                        </div>
+                        <button id="clear-filters">Clear Filters</button>
+                    </section>
+
+                    <section class="product-side-section">
+                        <div class="product-side-header">
+                            <h2>Products</h2>
+                            <div class="sorting-container">
+                                <select id="sort">
+                                    <option value="all">All</option>
+                                    <option value="price-asc">Incremental price</option>
+                                    <option value="price-desc">Price descending</option>
+                                </select>
+                            </div>
+                        </div>
+                        <% if (prods.length> 0) { %>
+                            <div class="products-container">
+                                <% prods.forEach(product => { %>
+                                    <a href="/products/<%= product._id %>">
+                                        <div class="products-section-product" style="<%= product.quantity === 0 ? 'display: none;' : '' %>">
+                                            <div class="products-section-products-photo">
+                                                <img src="/<%= product.productThumbnail %>" alt="<%= product.ProductName %>">
+                                                <% if (isAuthenticated) { %>
+                                                    <form class="like-product-form" data-product-id="<%= product._id %>">
+                                                        <button type="button" class="like-product-button"
+                                                            onclick="event.stopPropagation(); toggleLike(event, '<%= product._id %>')">
+                                                            <img src="/assets/Imgs/Icons/<%= likedItems.includes(product._id.toString()) ? 'like-product-liked.png' : 'like-product-unliked.png' %>"
+                                                                alt="like-button">
+                                                        </button>
+                                                    </form>
+                                                <% } %>
+                                            </div>
+                                            <% const isLowStock = product.quantity <= 5; %>
+                                            <div class="products-section-products-details" style="margin: <%= isLowStock ? '0rem 0 -2rem 0' : '0' %>;">
+                                                <h4>Free Shipping</h4>
+                                                <div class="products-section-products-details-name">
+                                                    <p id="product-name"><%= product.ProductName %></p>
+                                                    <% if (isLowStock) { %>
+                                                    <div class="products-section-products-details-rating" style="display: block; color: red;
+font-size: 20px;">
+                                                        Low Stock order now!
+                                                    </div>
+                                                    <% } %>
+                                                </div>
+                                            </div>
+                                            <div class="products-section-products-price">
+                                                <p id="product-price">
+                                                    <%= parseFloat(product.Productprice).toLocaleString('tr-TR', {
+                                                        minimumFractionDigits: 2, maximumFractionDigits: 2 }) %> TRY
+                                                </p>
+                                                <form class="ajax-add-to-cart-form" action="/cart-ajax" method="post">
+                                                    <button type="submit" class="ajax-add-to-cart-button">
+                                                        <img id="addtocart" src="/assets/Imgs/Icons/add-to-basket.png" alt="add to basket">
+                                                        <svg class="checkmark" id="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52" style="display:none;">
+                                                            <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none" />
+                                                            <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8" />
+                                                        </svg>
+                                                    </button>
+                                                    <input type="hidden" name="productId" value="<%= product._id %>">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </a>
+                                <% }); %>
+                                
+                            </div>
+                            <% } else { %>
+                                <h2>No products found</h2>
+                                <% } %>
+                    </section>
+                </section>
+
+                <%- include('../../includes/customer/footer.ejs') %>
+        </body>
+        <%- include('../../includes/customer/script.ejs') %>
+            <script src="/assets/Js/products-page.js"></script>
+            <script src="/assets/Js/wish-list.js"></script>
+            <script src="/assets/Js/addtocartbuttoneffect.js"></script>
+
+
+            </html>

@@ -1,0 +1,135 @@
+<div class="navbarContainer">
+    <div class="navright">
+        <img src="/assets/Imgs/logo/DragLab-Logo.png" alt="DragLab Logo">
+    </div>
+
+    <div class="navMidLeft">
+
+        <div class="navMid">
+            <div class="12">
+
+              
+            </div>
+        </div>
+
+        <div class="navLeft">
+            <div class="navMidRight">
+                <a href="/admin/logout"> Logout</a>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="hamburgerIconcontainer">
+        <span class="close-menu">✖</span> <!-- Close Button -->
+        <img src="/assets/Imgs/Icons/hamburger-menu.png" alt="menu" class="menu-icon" width="32px" onclick="openNav()">
+    </div>
+
+
+</div>
+
+</nav>
+
+
+<!-- Mobile Navbar Full Structure Based on Screenshots -->
+<div class="mobile-navbar" id="mobileNavbar">
+    <!-- First level - Main Menu -->
+    <div class="menu-page active" id="mainMenu">
+      <div class="top-bar">
+        <img src="/assets/Imgs/logo/DragLab-Logo.png" class="logo" alt="DragLab Logo" />
+        <span class="close-menu">&#10005;</span>
+      </div>
+      <input type="text" class="mobile-search" placeholder="Search..." />
+      <ul class="main-links">
+        <li onclick="goToPage('companyPage')">Company <span>&#9662;</span></li>
+        <li onclick="goToPage('productPage')">Product <span>&#9662;</span></li>
+        <li onclick="goToPage('supportPage')">Support <span>&#9662;</span></li>
+        <li><a href="#">Articles</a></li>
+        <li><a href="#">Contact Us</a></li>
+      </ul>
+    </div>
+  
+    <!-- Second level - Company -->
+    <div class="menu-page" id="companyPage">
+      <div class="top-bar">
+        <span class="back" onclick="goBack('companyPage')">&#8592;</span>
+        <span class="page-title">Company</span>
+        <span class="close-menu">&#10005;</span>
+      </div>
+      <ul>
+        <li><a href="#">About us</a></li>
+        <li><a href="#">Career</a></li>
+        <li><a href="#">Terms & Condition</a></li>
+        <li><a href="#">Privacy Policy</a></li>
+      </ul>
+    </div>
+  
+    <!-- Second level - Product List -->
+    <div class="menu-page" id="productPage">
+      <div class="top-bar">
+        <span class="back" onclick="goBack('productPage')">&#8592;</span>
+        <span class="page-title">Products</span>
+        <span class="close-menu">&#10005;</span>
+      </div>
+      <div class="product-list">
+        <div class="product-item" onclick="goToPage('modelPage')">
+          <img src="/assets/Imgs/Icons/products/waterBath.webp" alt="" />
+          <div class="product-info">
+            <h4>Water Bath</h4>
+            <p>Controlled heating water baths</p>
+          </div>
+          <span class="arrow">&#8250;</span>
+        </div>
+        <!-- Add more product items here -->
+      </div>
+    </div>
+  
+    <!-- Third level - Models -->
+    <div class="menu-page" id="modelPage">
+      <div class="top-bar">
+        <span class="back" onclick="goBack('modelPage')">&#8592;</span>
+        <span class="page-title">Models</span>
+        <span class="close-menu">&#10005;</span>
+      </div>
+      <div class="model-section">
+        <ul>
+          <li>Water Bath - DW 06</li>
+          <li>Water Bath - DW 10</li>
+          <li>Water Bath - DW 15</li>
+          <li>Water Bath - DW 25</li>
+          <li>Water Bath - DW 35</li>
+          <li>Water Bath - DW 50</li>
+        </ul>
+        <button class="view-product">View Product</button>
+        <img src="/assets/Imgs/Icons/products/waterBath.webp" alt="" class="model-img" />
+      </div>
+    </div>
+  </div>
+
+
+<script>
+    function goToPage(id) {
+      document.querySelectorAll('.menu-page').forEach(p => p.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+    }
+  
+    function goBack(currentId) {
+      document.getElementById(currentId).classList.remove('active');
+      document.getElementById('mainMenu').classList.add('active');
+    }
+  
+    document.querySelectorAll('.close-menu').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.getElementById('mobileNavbar').style.display = 'none';
+      });
+    });
+  
+    // You can toggle this with your hamburger icon
+    function openMobileMenu() {
+      document.getElementById('mobileNavbar').style.display = 'block';
+    }
+  </script>
+
+

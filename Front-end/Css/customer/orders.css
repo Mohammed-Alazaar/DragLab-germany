@@ -1,0 +1,80 @@
+:root {
+    --shadow: 0px 4px 16px 0px #00000040;
+    --green-Color: #A8D060;
+    --purple-Color: #8860D0;
+    --black-color: #333333;
+    --second-white: #F5F5F7;
+    --second-purole: #C1C8E4;
+}
+
+
+h1.No-order {
+    width: -webkit-fill-available;
+    text-align: center;
+    font-size: 2rem;
+    margin: 5% 0;
+}
+
+h1.my-orders {
+    font-size: 2rem;
+    margin: 0rem 0 2rem 0;
+}
+
+.orders {
+    list-style: none;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.orders__item h1 {
+    margin: 0;
+    font-size: 1rem;
+}
+
+.orders__item {
+    box-shadow: var(--shadow);
+    padding: 1rem;
+    margin-bottom: 1rem;
+    width: 90%;
+    border-radius: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.orders__products {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.orders__products-item {
+    padding: 0.5rem;
+    border: 1px solid #000000;
+    color: #000000;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 7rem;
+}
+
+.left-side {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+}
+.left-side img {
+    max-height: 6rem;
+}
+.order-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}

@@ -1,0 +1,163 @@
+:root {
+    --shadow: 0px 4px 16px 0px #00000040;
+    --green-Color: #A8D060;
+    --purple-Color: #8860D0;
+    --black-color: #333333;
+    --second-white: #F5F5F7;
+    --second-purole: #C1C8E4;
+}
+
+.left-right-section-container {
+    display: flex;
+    margin: 6rem 0 0 0;
+    justify-content: center;
+    width: 100%;
+    padding: 12px;
+}
+
+section.leftside {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: var(--second-purole);
+    width: 40%;
+    border-radius: 20px 0 0 20px;
+    gap: 2rem;
+    justify-content: center;
+    padding: 1rem 0;
+}
+
+.leftside-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .5rem;
+}
+
+.leftside-content h1 {
+    font-size: 3rem;
+    color: var(--second-white);
+}
+
+.leftside-content p {
+    font-size: 3rem;
+    color: var(--second-white);
+}
+
+
+section.rightside {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background-color: #F2F2FF;
+    align-items: center;
+}
+
+.Signup form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    width: 80%;
+}
+
+.Signup {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+    padding: 1rem;
+}
+
+.Signup h1 {
+    font-size: 2rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: .3rem;
+    font-size: 1.2rem;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    border: 1px solid var(--black-color);
+    padding: .3rem .5rem;
+}
+
+.form-group-checkbox {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+}
+
+.Signup-btn {
+    width: 100%;
+    background-color: var(--primary-Color);
+    color: var(--second-white);
+    border: none;
+    padding: .7rem 0;
+    font-size: 1.2rem;
+    cursor: pointer;
+}
+
+
+.login a {
+    text-decoration: underline;
+    font-size: 1.2rem;
+}
+
+#login-h1 {
+    font-size: 3rem;
+}
+
+.error-message {
+    color: red;
+    font-size: 1.2rem;
+    text-align: center;
+}
+
+.is-invalid {
+    border: 2px solid red !important;
+}
+
+.is-unchecked {
+    color: red !important;
+}
+
+.phoneNumber-code-container {
+    display: flex;
+    gap: 1rem;
+}
+
+.country-code-holder {
+    width: 3rem !important;
+}
+
+/* .sign-up-error-message li{
+    color: red !important;
+    font-size: 1.2rem;
+
+} */
+.sign-up-error-message {
+    color: red !important;
+    font-size: 1.2rem;
+    margin: 0 0 0 2rem;
+}
+
+.Signup li {
+    list-style-type: disc;
+}
+
+.error-message {
+    margin: 0 0 0 1rem;
+}
+
+.image-container img {
+    width: 100%;
+    max-width: 517px;
+    height: auto;
+    padding: 25px;
+}

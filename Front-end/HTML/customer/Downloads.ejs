@@ -1,0 +1,126 @@
+<%- include('../../includes/customer/head.ejs') %>
+
+
+    <link rel="stylesheet" href="/Css/customer/Downloads.css">
+
+
+
+
+
+    <body>
+        <!-- nav-bar -->
+
+        <%- include('../../includes/customer/navbar.ejs') %>
+
+
+            <!-- nav-bar -->
+
+            <!-- Downloads thumbnail  -->
+            <div class="slide">
+                <div class="slide-text">
+                    <h1>Downloads</h1>
+                </div>
+                <img src="/assets/Imgs/Icons/products/contactus-BC.png" alt="Photo 1">
+            </div>
+            <!-- Downloads thumbnail  -->
+
+            <div class="catalog-filter-bar">
+                <button class="filter-button active-category" data-category="all">All</button>
+
+                <% productNames.forEach(name=> { %>
+                    <button class="filter-button" data-category="<%= name.toLowerCase().replace(/\s+/g, '-') %>">
+                        <%= name %>
+                    </button>
+                    <% }) %>
+
+                        <% catalogCategoryNames.forEach(name=> { %>
+                            <button class="filter-button"
+                                data-category="<%= name.toLowerCase().replace(/\s+/g, '-') %>">
+                                <%= name %>
+                            </button>
+                            <% }) %>
+
+            </div>
+
+
+
+            <div class="catalog-section">
+                <div class="catalog-list" id="catalog-grid">
+                    <!-- ✅ Downloads cards -->
+                    <% downloads.forEach(file=> {
+                        const normalizedCategory = (file.fileProductCategory || file.fileCategory ||
+                        '').toLowerCase().replace(/\s+/g, '-');
+                        %>
+                        <div class="catalog-item" data-category="<%= normalizedCategory %>">
+                            <div class="cataloge-info-container">
+                                <div class="catalog-title">
+                                    <%= file.fileName %>
+                                </div>
+                                <div class="catalog-meta">
+                                    <div class="catalog-meta-lang">
+                                        <%= lang %>
+                                    </div>
+                                    <div class="catalog-meta-size">
+                                        <%= file.fileSize %>
+                                    </div>
+                                </div>
+                            </div>
+                            <a class="download-icon" href="/<%= file.filePath %>" download onclick="trackDownload()">
+                                <img src="/assets/Imgs/Icons/products/download-icon.png" alt="Download">
+                            </a>
+
+                        </div>
+                        <% }) %>
+
+                </div>
+
+            </div>
+
+
+            <script>
+                const filterButtons = document.querySelectorAll('.filter-button');
+                const catalogCards = document.querySelectorAll('.catalog-item');
+
+                filterButtons.forEach(button => {
+                    button.addEventListener('click', () => {
+                        filterButtons.forEach(btn => btn.classList.remove('active-category'));
+                        button.classList.add('active-category');
+
+                        const category = button.getAttribute('data-category');
+
+                        catalogCards.forEach(card => {
+                            const cardCategory = card.getAttribute('data-category');
+                            if (category === 'all' || category === 'general') {
+                                card.style.display = '';
+                            } else {
+                                card.style.display = cardCategory === category ? '' : 'none';
+                            }
+                        });
+                    });
+                });
+            </script>
+
+            <script>
+                function trackDownload() {
+                    gtag('event', 'conversion', {
+                        'send_to': 'AW-754782155/Km5ZCI6_qIQaEMuf9OcC',
+                        'value': 1.0,
+                        'currency': 'USD'
+                    });
+                }
+            </script>
+
+
+
+
+
+            <!-- Footer -->
+
+            <%- include('../../includes/customer/footer.ejs') %>
+
+
+    </body>
+    <%- include('../../includes/customer/script.ejs') %>
+
+
+        </html>

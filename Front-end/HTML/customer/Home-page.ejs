@@ -1,0 +1,565 @@
+<%- include('../../includes/customer/head.ejs') %>
+
+    <link rel="stylesheet" href="/Css/customer/Home-page.css">
+    <!-- <script src="/Front-end\assets\Js\home-page.js"></script> -->
+
+
+
+    <%- include('../../includes/customer/header-end.ejs') %>
+
+        <body>
+            <!-- nav-bar -->
+            <!-- nav-bar -->
+
+
+            <%- include('../../includes/customer/navbar.ejs') %>
+                <!-- nav-bar -->
+
+                <!-- slideshow -->
+
+
+
+                <!-- nav-bar -->
+
+                <!-- slideshow -->
+
+                <section id="slideshow">
+                    <% slides.forEach((slide, index)=> { %>
+                        <div class="slide <%= index === 0 ? 'show' : '' %>">
+                            <% if (slide.image) { %>
+                                <img src="/<%= slide.image %>" alt="Slide <%= index + 1 %>">
+                                <% } %>
+                                    <div class="slide-text">
+                                        <h3>
+                                            <%= slide.title %>
+                                        </h3>
+                                        <p>
+                                            <%= slide.desc %>
+                                        </p>
+                                    </div>
+                        </div>
+                        <% }) %>
+
+                            <div class="slideshow-dots">
+                                <% slides.forEach((_, index)=> { %>
+                                    <span class="dot <%= index === 0 ? 'activedot' : '' %>"></span>
+                                    <% }) %>
+                            </div>
+                </section>
+                <!-- slideshow -->
+
+                <script>
+                    document.addEventListener("DOMContentLoaded", function () {
+                        let slideIndex = 0;
+                        const slides = document.querySelectorAll(".slide");
+                        const dots = document.querySelectorAll(".dot");
+
+                        if (slides.length === 0) return;
+
+                        function showSlides() {
+                            // Hide all slides
+                            slides.forEach(slide => {
+                                slide.classList.remove("show");
+                            });
+
+                            // Deactivate all dots
+                            dots.forEach(dot => {
+                                dot.classList.remove("activedot");
+                            });
+
+                            // Show current slide and dot
+                            slides[slideIndex].classList.add("show");
+                            dots[slideIndex].classList.add("activedot");
+
+                            // Move to next index
+                            slideIndex = (slideIndex + 1) % slides.length;
+                        }
+
+                        // Initial show
+                        slides[slideIndex].classList.add("show");
+                        dots[slideIndex].classList.add("activedot");
+
+                        // Start autoplay
+                        setInterval(showSlides, 5000);
+                    });
+                </script>
+
+                <!-- slideshow -->
+
+
+
+
+                <!-- slideshow -->
+                <!-- products slideshow start -->
+
+                <div class="slideshow-container">
+                    <h2>Featured Products</h2>
+                    <div class="slides-wrapper" id="slidesWrapper">
+                        <% products .filter(product=> !product.isDraft)
+                            .forEach(product => {
+                            const translation = product.Language[lang]?.[0] || product.Language['EN']?.[0];
+                            if (!translation) return;
+                            %>
+
+                            <div class="product-slide">
+                                <a href="/product/<%= product._id %>/<%= lang %>" class="product-card-link">
+
+                                    <div class="product-card">
+                                        <div class="product-image-wrapper">
+                                            <img src="/<%= product.ProductThumbnail %>"
+                                                alt="<%= translation.ProductName %>">
+                                            <div class="product-bg-overlay"></div>
+                                        </div>
+
+                                        <div class="product-card-information">
+                                            <h4>
+                                                <%= translation.ProductName %>
+                                            </h4>
+                                            <p>
+                                                <%= translation.ProductDesc %>
+                                            </p>
+                                        </div>
+                                        <button class="article-btn">Buy Now</button>
+                                    </div>
+                                </a>
+                            </div>
+                            <% }) %>
+                    </div>
+
+
+                    <button class="slideshow-btn prev-btn" onclick="moveSlide(-1)"><img
+                            src="/assets/Imgs/Icons/right-products-arrow.png" alt=""></button>
+                    <button class="slideshow-btn next-btn" onclick="moveSlide(1)"><img
+                            src="/assets/Imgs/Icons/left-products-arrow.png" alt=""></button>
+                </div>
+
+                <script>
+                    let currentIndex = 0;
+                  
+                    const slidesWrapper = document.getElementById("slidesWrapper");
+                    const slides = document.querySelectorAll(".product-slide");
+                  
+                    const updateSlidePosition = () => {
+                      const isMobile = window.innerWidth <= 768;
+                      if (!isMobile) {
+                        const slideWidth = slides[0].offsetWidth + 10; // 10 = gap between slides
+                        const offset = currentIndex * slideWidth;
+                        slidesWrapper.style.transform = `translateX(-${offset}px)`;
+                      } else {
+                        slidesWrapper.style.transform = 'none';
+                      }
+                    };
+                  
+                    const moveSlide = (direction) => {
+                      const isMobile = window.innerWidth <= 768;
+                      if (isMobile) return;
+                  
+                      const slidesPerPage = 2;
+                      const maxIndex = Math.max(0, slides.length - slidesPerPage);
+                  
+                      currentIndex += direction;
+                  
+                      if (currentIndex > maxIndex) {
+                        currentIndex = 0; // loop to start
+                      } else if (currentIndex < 0) {
+                        currentIndex = maxIndex; // loop to end
+                      }
+                  
+                      updateSlidePosition();
+                    };
+                  
+                    const handleResize = () => {
+                      updateSlidePosition();
+                    };
+                  
+                    // Initialize
+                    window.addEventListener("resize", handleResize);
+                    window.addEventListener("load", updateSlidePosition);
+                  </script>
+                  
+                  
+
+
+                <!-- products slideshow end -->
+
+
+                <!-- industry section -->
+
+                <section class="industries-section">
+                    <h2>Industries</h2>
+                    <div class="industries-container">
+
+
+                        <div class="industry-card">
+                            <img src="/assets/Imgs/Icons/products/Chemical-industry.webp" alt="Chemical industry" />
+                            <div class="overlay">
+                                <div class="icon-wrapper">
+                                    <img src="/assets/Imgs/Icons/products/Chemical-industry.png" alt="Chemical Icon"
+                                        class="icon" />
+                                </div>
+                                <h3>Chemical industry</h3>
+                            </div>
+                        </div>
+                        <div class="industry-card">
+                            <img src="/assets/Imgs/Icons/products/Food-Beverage-Industry.webp"
+                                alt="Food and Beverage industry" />
+                            <div class="overlay">
+                                <div class="icon-wrapper">
+                                    <img src="/assets/Imgs/Icons/products/Food-Beverage-Industry.png" alt="Food Icon"
+                                        class="icon" />
+                                </div>
+                                <h3>Food and Beverage Industry</h3>
+                            </div>
+                        </div>
+                        <div class="industry-card">
+                            <img src="/assets/Imgs/Icons/products/Biotechnology-Life-Sciences.webp"
+                                alt="Biotech industry" />
+                            <div class="overlay">
+                                <div class="icon-wrapper">
+                                    <img src="/assets/Imgs/Icons/products/Biotechnology-Life-Sciences.png"
+                                        alt="Biotech Icon" class="icon" />
+                                </div>
+                                <h3>Biotechnology and Life Sciences</h3>
+                            </div>
+                        </div>
+                        <div class="industry-card">
+                            <img src="/assets/Imgs/Icons/products/Pharmaceutical-industry.webp"
+                                alt="Pharmaceutical industry" />
+                            <div class="overlay">
+                                <div class="icon-wrapper">
+                                    <img src="/assets/Imgs/Icons/products/Pharmaceutical-industry.png" alt="Pharma Icon"
+                                        class="icon" />
+                                </div>
+                                <h3>Pharmaceutical industry</h3>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+
+                <!-- industry section -->
+
+
+                <!-- article slideshow -->
+
+                <div class="article-slideshow-container" id="articleSlideshow">
+                    <h2>Articles</h2>
+                    <div class="article-slides-wrapper" id="articleSlidesWrapper">
+                        <% articles.forEach(article => { %>
+                            <div class="article-slide">
+                                <a href="/article/<%= article._id %>/<%= lang %>" class="article-card">
+                                    <img src="/<%= article.thumbnail %>" alt="<%= article.title %>">
+                                    <div class="article-card-information">
+                                        <h4><%= article.title %></h4>
+                                        <p><%= article.body.replace(/(<([^>]+)>)/gi, '').slice(0, 100) %>...</p>
+                                    </div>
+                                </a>
+                            </div>
+                        <% }) %>
+                    </div>
+                    
+
+                    <button class="article-slideshow-btn article-prev-btn" onclick="moveArticleSlide(-1)">
+                        <img src="/assets/Imgs/Icons/right-products-arrow.png" alt="Previous">
+                    </button>
+                    <button class="article-slideshow-btn article-next-btn" onclick="moveArticleSlide(1)">
+                        <img src="/assets/Imgs/Icons/left-products-arrow.png" alt="Next">
+                    </button>
+                </div>
+
+                <script>
+                    const articleWrapper = document.getElementById('articleSlidesWrapper');
+                    const articleSlides = document.querySelectorAll('.article-slide');
+                    const total = articleSlides.length;
+                    let articleIndex = 0;
+
+                    function updateArticleSlides() {
+                        const isMobile = window.innerWidth <= 760;
+
+                        articleSlides.forEach((slide, i) => {
+                            slide.classList.remove('featured');
+                            slide.style.flex = isMobile ? '0 0 100%' : '0 0 25%';
+                        });
+
+                        articleSlides[articleIndex].classList.add('featured');
+                        articleSlides[articleIndex].style.flex = isMobile ? '0 0 100%' : '0 0 calc(50% - 5px)';
+
+                        if (isMobile) {
+                            const slideWidth = articleSlides[articleIndex].offsetWidth;
+                            articleWrapper.scrollTo({
+                                left: slideWidth * articleIndex,
+                                behavior: 'smooth'
+                            });
+                        } else {
+                            let offset = 0;
+                            for (let i = 0; i < articleIndex; i++) {
+                                offset += 25;
+                            }
+                            articleWrapper.style.transform = `translateX(-${offset}%)`;
+                        }
+                    }
+
+                    function moveArticleSlide(direction) {
+                        articleIndex += direction;
+
+                        if (articleIndex < 0) {
+                            articleIndex = total - 1;
+                        } else if (articleIndex >= total) {
+                            articleIndex = 0;
+                        }
+
+                        updateArticleSlides();
+                    }
+
+                    updateArticleSlides(); // Initial setup
+
+                    // Auto-play every 5 seconds
+                    setInterval(() => {
+                        moveArticleSlide(1);
+                    }, 5000);
+
+                    // Update layout on resize
+                    window.addEventListener('resize', updateArticleSlides);
+
+                </script>
+
+
+
+                <!-- news section -->
+<!-- 
+                <div class="news-slideshow-container">
+                    <div class="news-slides-wrapper" id="newsSlidesWrapper">
+                        <div class="news-slide featured">
+                            <div class="news-card">News 1</div>
+                        </div>
+                        <div class="news-slide">
+                            <div class="news-card">News 2</div>
+                        </div>
+                        <div class="news-slide">
+                            <div class="news-card">News 3</div>
+                        </div>
+                        <div class="news-slide">
+                            <div class="news-card">News 4</div>
+                        </div>
+                        <div class="news-slide">
+                            <div class="news-card">News 5</div>
+                        </div>
+                        <div class="news-slide">
+                            <div class="news-card">News 5</div>
+                        </div>
+                        <div class="news-slide">
+                            <div class="news-card">News 5</div>
+                        </div>
+                    </div>
+
+                    <button class="news-slideshow-btn news-prev-btn" onclick="slidePrev()">&#10094;</button>
+                    <button class="news-slideshow-btn news-next-btn" onclick="slideNext()">&#10095;</button>
+                </div>
+
+                <script>
+                    const wrapper = document.getElementById('newsSlidesWrapper');
+                    let isMobile = window.innerWidth <= 760;
+
+                    function updateFeatured() {
+                        document.querySelectorAll('.news-slide').forEach(el => {
+                            el.classList.remove('featured');
+                        });
+
+                        const slides = document.querySelectorAll('.news-slide');
+                        if (slides[0]) {
+                            slides[0].classList.add('featured');
+                        }
+                    }
+
+
+                    function slideNext() {
+                        const slides = document.querySelectorAll('.news-slide');
+                        const firstSlide = slides[0];
+                        const secondSlide = slides[1];
+
+                        firstSlide.classList.remove('featured');
+                        secondSlide.classList.add('featured');
+
+                        const shiftPercent = isMobile ? 100 : 25;
+
+                        wrapper.style.transition = 'transform 0.5s ease-in-out';
+                        wrapper.style.transform = `translateX(-${shiftPercent}%)`;
+
+                        setTimeout(() => {
+                            wrapper.style.transition = 'none';
+                            wrapper.appendChild(firstSlide);
+                            wrapper.style.transform = 'translateX(0)';
+                            updateFeatured();
+                        }, 500);
+                    }
+
+                    function slidePrev() {
+                        const slides = document.querySelectorAll('.news-slide');
+                        const lastSlide = slides[slides.length - 1];
+                        const currentFeatured = document.querySelector('.news-slide.featured');
+
+                        wrapper.style.transition = 'none';
+                        wrapper.insertBefore(lastSlide, slides[0]);
+                        const shiftPercent = isMobile ? 100 : 25;
+                        wrapper.style.transform = `translateX(-${shiftPercent}%)`;
+
+                        void wrapper.offsetWidth;
+
+                        if (currentFeatured) currentFeatured.classList.remove('featured');
+                        lastSlide.classList.add('featured');
+
+                        setTimeout(() => {
+                            wrapper.style.transition = 'transform 0.5s ease-in-out';
+                            wrapper.style.transform = 'translateX(0)';
+                        }, 10);
+                    }
+
+                    // Auto-play every 5 seconds
+                    setInterval(slideNext, 5000);
+
+                    // Handle resize changes
+                    window.addEventListener('resize', () => {
+                        isMobile = window.innerWidth <= 760;
+                        updateFeatured();
+                    });
+
+                    updateFeatured();
+                </script> -->
+
+
+
+
+                <!-- news section -->
+
+
+                <!-- about us  -->
+
+                <section class="about-section">
+                    <h2 style="text-align:center; font-size: 2rem; margin-bottom: 30px;">About Us</h2>
+                    <div class="about-container">
+                        <div class="about-image" id="about-img">
+                            <img src="/assets/Imgs/Icons/products/img-vision.png" alt="About Image">
+                        </div>
+                        <div class="about-content">
+                            <div class="about-tabs">
+                                <div class="about-tab active" data-tab="vision"
+                                    data-icon-default="/assets/Imgs/Icons/products/vision.png"
+                                    data-icon-active="/assets/Imgs/Icons/products/vision-active.png">
+                                    <img src="/assets/Imgs/Icons/products/vision-active.png" class="tab-icon"> Our
+                                    Vision
+                                </div>
+                                <div class="about-tab" data-tab="mission"
+                                    data-icon-default="/assets/Imgs/Icons/products/mission.png"
+                                    data-icon-active="/assets/Imgs/Icons/products/mission-active.png">
+                                    <img src="/assets/Imgs/Icons/products/mission.png" class="tab-icon">
+                                    Our Vision
+                                </div>
+                                <div class="about-tab" data-tab="values"
+                                    data-icon-default="/assets/Imgs/Icons/products/values.png"
+                                    data-icon-active="/assets/Imgs/Icons/products/values-active.png">
+                                    <img src="/assets/Imgs/Icons/products/values.png" class="tab-icon">
+                                    Our Vision
+                                </div>
+                            </div>
+                            <div class="about-text" id="about-text">
+                                <div class="title-icon">
+                                    <div class="tab-icon-bg">
+                                        <img src="/assets/Imgs/Icons/products/vision-active.png" class="tab-icon">
+                                    </div>
+                                    <h3>Innovative Excellence</h3>
+                                </div>
+
+                                <h4>Pushing technology with superior design.</h4>
+                                <p>
+                                    We believe that the products and services we provide will enable our
+                                    partners to be a global leader in
+                                    laboratory and medical equipment, known for our innovation, quality,
+                                    and customer-focused approach.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <script>
+                    const tabs = document.querySelectorAll('.about-tab');
+                    const text = document.getElementById('about-text');
+                    const image = document.getElementById('about-img').querySelector('img');
+
+                    const content = {
+                        vision: {
+                            img: "/assets/Imgs/Icons/products/img-vision.png",
+                            icon: "/assets/Imgs/Icons/products/vision-active.png",
+                            title: "Innovative Excellence",
+                            subtitle: "Pushing technology with superior design.",
+                            desc: `We believe that the products and services we provide will enable our partners to be a global leader in
+                                        laboratory and medical equipment, known for our innovation, quality, and customer-focused approach.`
+                        },
+                        mission: {
+                            img: "/assets/Imgs/Icons/products/img-mission.png",
+                            icon: "/assets/Imgs/Icons/products/mission-active.png",
+                            title: "Global Leadership",
+                            subtitle: "Innovation, quality, and customer-driven success.",
+                            desc: `We aim to empower professionals in science and healthcare with advanced, reliable, and user-friendly
+                                        equipment, driving progress and improving outcomes.`
+                        },
+                        values: {
+                            img: "/assets/Imgs/Icons/products/img-values.png",
+                            icon: "/assets/Imgs/Icons/products/values-active.png",
+                            title: "Integrity and Responsibility",
+                            subtitle: "Empowering change through ethical commitment.",
+                            desc: `<b> Innovation:</b> Continuously pushing the boundaries of technology to create cutting-edge solutions. <br>
+                                         <b> Quality:</b> Upholding the highest standards in product design, manufacturing, and performance.`
+                        }
+                    };
+
+                    tabs.forEach(tab => {
+                        tab.addEventListener('click', () => {
+                            const currentActive = document.querySelector('.about-tab.active');
+                            if (currentActive) {
+                                currentActive.classList.remove('active');
+                                const iconDefault = currentActive.getAttribute('data-icon-default');
+                                currentActive.querySelector('img').src = iconDefault;
+                            }
+
+                            tab.classList.add('active');
+                            const iconActive = tab.getAttribute('data-icon-active');
+                            tab.querySelector('img').src = iconActive;
+
+                            const key = tab.getAttribute('data-tab');
+                            const c = content[key];
+
+                            image.src = c.img;
+                            text.innerHTML = `
+                                            <div class="title-icon">
+                                          <div class="tab-icon-bg">
+                                            <img src="${c.icon}" class="tab-icon">
+                                          </div>
+                                          <h3>${c.title}</h3>
+                                          </div>
+                                          <h4>${c.subtitle}</h4>
+                                          <p>${c.desc}</p>
+                                        `;
+                        });
+                    });
+                </script>
+
+                <!-- about us  -->
+
+
+
+
+
+
+                <%- include('../../includes/customer/footer.ejs') %>
+
+
+        </body>
+        <%- include('../../includes/customer/script.ejs') %>
+            <script>
+                function goToProductPage(path) {
+                    window.location.href = path;
+                }
+            </script>
+
+            </html>

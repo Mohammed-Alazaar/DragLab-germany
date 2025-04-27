@@ -1,0 +1,175 @@
+<%- include('../../includes/customer/head.ejs') %>
+
+
+    <link rel="stylesheet" href="/Css/customer/model-details.css">
+
+
+
+
+
+    <body>
+        <!-- nav-bar -->
+
+        <%- include('../../includes/customer/navbar.ejs') %>
+
+
+            <!-- nav-bar -->
+
+            <!-- Product Details -->
+            <div class="slide">
+                <div class="slide-text">
+                    <!-- <h1>Water Still Series</h1> -->
+                    <div class="slide-text-content">
+                        <h1>
+                            <%= pageTitle %> – &nbsp;
+                        </h1>
+                        <h3>
+                            <%= overview?.[0]?.overviewDesc || '' %>
+                        </h3>
+                    </div>
+
+                    <p>High-purity water distillation for small labs. </p>
+                </div>
+                <img src="/<%= modelThumbnail %>" alt="<%= pageTitle %>">
+            </div>
+
+
+
+
+            <section class="model-overview section">
+                <h2 class="section-title">Overview </h2>
+                <div class="model-overview-container">
+
+                    <% if (overview && overview.length) { %>
+
+                        <div class="model-overview-img">
+                            <img src="/<%= overviewThumbnail%>" alt="<%= pageTitle %>">
+                        </div>
+                        <div class="features-wrapper">
+
+                            <div class="features-grid">
+                                <% overview.forEach(o=> { %>
+                                    <div class="feature-card">
+                                        <img class="feature-img" src="/<%= o.overviewImage %>" alt="">
+                                        <div class="feature-content">
+                                            <h3>
+                                                <%= o.overviewName %>
+                                            </h3>
+                                            <p>
+                                                <%= o.overviewDesc %>
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <% }) %>
+                            </div>
+                            <% } %>
+
+                        </div>
+                </div>
+            </section>
+
+            <section class="industries-section">
+                <h2>Industries</h2>
+                <% if (industry && industry.length) { %>
+                    <div class="industries-container">
+                        <% industry.forEach(i=> { %>
+                            <div class="industry-card">
+                                <img class="industry-img" src="/<%= i.industryImage %>" />
+                                <div class="overlay">
+                                    <div class="icon-wrapper">
+                                        <img src="/<%= i.industryLogo %>" class="icon" />
+                                    </div>
+                                    <h3>
+                                        <%= i.industryName %>
+                                    </h3>
+                                </div>
+                            </div>
+                            <% }) %>
+                    </div>
+                    <% } %>
+
+            </section>
+
+            <!-- model table section  -->
+
+            <section class="model-table-section">
+                <h2>Technical Specifications</h2>
+
+                <% if (specs && specs.length) { %>
+                    <% specs.forEach(section=> { %>
+                        <div class="table-section-title">
+                            <%= section.sectionTitle %>
+                        </div>
+                        <table>
+                            <% section.rows.forEach(row=> { %>
+                                <tr>
+                                    <td class="title">
+                                        <%= row.title %>
+                                    </td>
+                                    <td class="value">
+                                        <%= row.value %>
+                                    </td>
+                                </tr>
+                                <% }) %>
+                        </table>
+                        <% }) %>
+                            <% } %>
+
+
+
+
+            </section>
+            <!-- model table section  -->
+
+
+            <!-- model download center section  -->
+
+            <section class="download-centercontainer">
+                <h2>Downloads</h2>
+                <div class="download-cards-container">
+                    <% if (downloads && downloads.length) { %>
+                        <% downloads.forEach(download=> { %>
+                            <div class="download-card">
+                                <div class="download-info">
+                                    <div class="download-title">
+                                        <%= download.fileName %>
+                                    </div>
+                                    <div class="download-meta">
+                                        <div>
+                                            <%= lang %>
+                                        </div>
+
+                                        <div>
+                                            <%= download.fileSize %>
+                                        </div>
+                                    </div>
+                                </div>
+                                <a href="/<%= download.filePath %>" class="download-link" download title="Download">
+                                    <p>Download</p>
+                                    <svg class="download-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                                        <path d="M5 20h14v-2H5v2zm7-18l-5 5h3v6h4v-6h3l-5-5z" />
+                                    </svg>
+                                </a>
+                            </div>
+                            <% }) %>
+                                <% } else { %>
+                                    <p style="padding: 1rem;">No downloads available in this language.</p>
+                                    <% } %>
+                </div>
+            </section>
+
+            <!-- model download center section  -->
+
+
+
+
+            <!-- Footer -->
+
+            <%- include('../../includes/customer/footer.ejs') %>
+
+
+    </body>
+    <%- include('../../includes/customer/script.ejs') %>
+
+
+        </html>
