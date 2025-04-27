@@ -106,7 +106,6 @@ const server = http.createServer(app);
 
 
 
-
 mongoose.connect(MONGODB_URI)
     .then(result => {
         server.listen(process.env.PORT || 3010);
