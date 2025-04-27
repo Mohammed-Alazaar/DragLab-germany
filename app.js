@@ -21,7 +21,7 @@ const User = require('./models/user');
 const app = express();
 
 
-const MONGODB_URI = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@cluster0.yrit4.mongodb.net/test?retryWrites=true&w=majority&ssl=true`;
+const MONGODB_URI = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@cluster0.yrit4.mongodb.net/${process.env.MONGO_DATABASE}?retryWrites=true&w=majority&ssl=true`;
 
 
 const store = new MongoDBStore({
@@ -43,7 +43,7 @@ const accountRoutes = require('./routes/account');
 const accessLogStream = fs.createWriteStream(path.join(__dirname, 'access.log'), { flags: 'a' });
 
 app.use(bodyParser.json({ limit: '10mb' }));
-app.use(bodyParser.urlencoded({ limit: '10mb', extended: true })); 
+app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
 
 app.use(express.static(path.join(__dirname, 'front-end', 'Css'))); // This will make the front-end folder accessible to the public
 app.use(express.static(path.join(__dirname, 'front-end'))); // This will make the front-end folder accessible to the public
@@ -72,14 +72,6 @@ app.use((req, res, next) => {
         });
 });
 
-app.use((error, req, res, next) => {
-    res.status(500).render('500', {
-        pageTitle: 'Error!',
-        path: '/500',
-        isAuthenticated: req.session.isLoggedIn
-    });
-});
-
 
 
 app.use('/admin', adminRoutes);
@@ -92,9 +84,21 @@ app.use((req, res, next) => {
     next();
 });
 
+app.use(errorController.get404);
+app.use((error, req, res, next) => {
+    res.status(500).render('500', {
+        pageTitle: 'Error!',
+        path: '/500',
+        isAuthenticated: req.session.isLoggedIn
+    });
+});
+
+
+
+
 app.use(helmet());
 app.use(compression()); // Compress all routes
-app.use(morgan('combined',{ stream: accessLogStream})); // Log all requests to the console
+app.use(morgan('combined', { stream: accessLogStream })); // Log all requests to the console
 
 
 
@@ -108,10 +112,9 @@ mongoose.connect(
     MONGODB_URI
 )
     .then(result => {
-        app.use(errorController.get404);
 
         app.listen(process.env.PORT || 3010);
-        console.log('server run on port 3010');
+        console.log(`Server running on port ${process.env.PORT || 3010}`);
     }).catch(err => {
         console.log(err);
     });

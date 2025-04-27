@@ -2,6 +2,6 @@
     "env": {
         "MONGO_USER": "mhmdalazr",
         "MONGO_PASSWORD": "SvKVmOXSRO2tqN4J",
-        "MONGO_DEFULT_DB": "test"
+        "MONGO_DATABASE": "test"
     }
 }
