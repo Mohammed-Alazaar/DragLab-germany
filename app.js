@@ -107,16 +107,14 @@ const server = http.createServer(app);
 
 
 
-
-mongoose.connect(
-    MONGODB_URI
-)
+mongoose.connect(MONGODB_URI)
     .then(result => {
-
-        app.listen(process.env.PORT || 3010);
+        server.listen(process.env.PORT || 3010);
         console.log(`Server running on port ${process.env.PORT || 3010}`);
-    }).catch(err => {
-        console.log(err);
+    })
+    .catch(err => {
+        console.error('MongoDB connection error:', err);
+        process.exit(1); // Also exit if MongoDB fails
     });
 
 //     // Enable Mongoose debug mode to log queries
