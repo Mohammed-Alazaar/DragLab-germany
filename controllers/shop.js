@@ -98,7 +98,7 @@ exports.getProducts = (req, res, next) => {
             }
 
             if (!req.user) {
-                res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'customer', 'products-page'), {
+                res.render(path.join(__dirname, '..', 'HTML', 'customer', 'products-page'), {
                     prods: products,
                     categories: categories,
                     cartItemCount: cartItemCount,
@@ -109,7 +109,7 @@ exports.getProducts = (req, res, next) => {
             } else {
                 req.user.populate('likedItems')
                     .then(user => {
-                        res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'customer', 'products-page'), {
+                        res.render(path.join(__dirname, '..', 'HTML', 'customer', 'products-page'), {
                             prods: products,
                             categories: categories, // Pass categories to the view
                             pageTitle: 'Products',
@@ -141,7 +141,7 @@ exports.getProduct = (req, res, next) => {
             }
             if (!req.user) {
                 // If the user is not authenticated, render the page without the role
-                return res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'customer', 'product-details'), {
+                return res.render(path.join(__dirname, '..', 'HTML', 'customer', 'product-details'), {
                     product: product,
                     cartItemCount: cartItemCount,
                     pageTitle: product.ProductName,
@@ -152,7 +152,7 @@ exports.getProduct = (req, res, next) => {
             }
             return req.user.populate('role')
                 .then(user => {
-                    res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'customer', 'product-details'), {
+                    res.render(path.join(__dirname, '..','HTML', 'customer', 'product-details'), {
                         product: product,
                         cartItemCount: cartItemCount,
                         pageTitle: product.ProductName,
@@ -239,7 +239,7 @@ exports.getProductDetails = (req, res, next) => {
                     };
                 });
 
-                res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'customer', 'product-details.ejs'), {
+                res.render(path.join(__dirname, '..','HTML', 'customer', 'product-details.ejs'), {
                     product,
                     lang: selectedLang,
                     translation: product.Language[selectedLang]?.[0] || product.Language['EN'][0],
@@ -273,7 +273,7 @@ exports.getModelDetailsPage = (req, res, next) => {
 
             // ✅ Fetch all products for the navbar
             return Product.find().then(allProducts => {
-                res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'customer', 'model-details'), {
+                res.render(path.join(__dirname, '..', 'HTML', 'customer', 'model-details'), {
                     pageTitle: currentLangData.ModelName || "Model Details",
                     overview: (currentLangData.overview?.length ? currentLangData.overview : englishLangData.overview || []).map((o, i) => {
                         const base = o.toObject ? o.toObject() : o;
@@ -311,7 +311,7 @@ exports.getContactus = (req, res, next) => {
 
     Product.find()
         .then(products => {
-            res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'customer', 'contact-us.ejs'), {
+            res.render(path.join(__dirname, '..', 'HTML', 'customer', 'contact-us.ejs'), {
                 pageTitle: 'Contact Us',
                 path: '/Contact-us',
                 products: products,
@@ -349,7 +349,7 @@ exports.geTechnicalservice = (req, res, next) => {
 
     Product.find()
         .then(products => {
-            res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'customer', 'technical-service.ejs'), {
+            res.render(path.join(__dirname, '..', 'HTML', 'customer', 'technical-service.ejs'), {
                 pageTitle: 'technical service',
                 path: '/technical-service',
                 products: products,
@@ -423,33 +423,16 @@ exports.getSupport = (req, res, next) => {
         });
 
 };
-exports.getaboutus = (req, res, next) => {
-    const lang = req.params.lang || 'EN'; // ✅ Correct: use params
-
-    Product.find()
-        .then(products => {
-            res.render(path.join('customer', 'about-us.ejs'), { // ✅ render using view name only if you set views correctly
-                pageTitle: 'aboutus',
-                path: '/aboutus',
-                products: products,
-                lang
-            });
-        })
-        .catch(err => {
-            console.error(err);
-            res.redirect('/');
-        });
-};
 // exports.getaboutus = (req, res, next) => {
-//     const lang = req.query.lang || 'EN'; // <- 🔄 language detection
+//     const lang = req.params.lang || 'EN'; // ✅ Correct: use params
 
 //     Product.find()
 //         .then(products => {
-//             res.render(path.join(__dirname, '..', 'front-end', 'html', 'customer', 'about-us.ejs'), {
+//             res.render(path.join('customer', 'about-us.ejs'), { // ✅ render using view name only if you set views correctly
 //                 pageTitle: 'aboutus',
 //                 path: '/aboutus',
 //                 products: products,
-//                 lang // <- pass it to EJS
+//                 lang
 //             });
 //         })
 //         .catch(err => {
@@ -457,6 +440,23 @@ exports.getaboutus = (req, res, next) => {
 //             res.redirect('/');
 //         });
 // };
+exports.getaboutus = (req, res, next) => {
+    const lang = req.query.lang || 'EN'; // <- 🔄 language detection
+
+    Product.find()
+        .then(products => {
+            res.render(path.join(__dirname, '..' , 'HTML', 'customer', 'about-us'), {
+                pageTitle: 'aboutus',
+                path: '/aboutus',
+                products: products,
+                lang // <- pass it to EJS
+            });
+        })
+        .catch(err => {
+            console.error(err);
+            res.redirect('/');
+        });
+};
 
 exports.getArticles = async (req, res) => {
     const lang = req.params.lang || 'EN';
@@ -471,7 +471,7 @@ exports.getArticles = async (req, res) => {
 
         const allProducts = await Product.find(); // ✅ Used by navbar
 
-        res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'customer', 'articles'), {
+        res.render(path.join(__dirname, '..',  'HTML', 'customer', 'articles'), {
             articles,
             lang,
             products: allProducts // ✅ Now navbar will work
@@ -498,7 +498,7 @@ exports.getArticleDetails = async (req, res) => {
 
         const allProducts = await Product.find(); // For navbar
 
-        res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'customer', 'article-details'), {
+        res.render(path.join(__dirname, '..',  'HTML', 'customer', 'article-details'), {
             article,
             recentArticles,
             lang,
@@ -573,7 +573,7 @@ exports.getDownloads = async (req, res, next) => {
         const productNames = Array.from(productNamesSet);
         const catalogCategoryNames = Array.from(catalogCategoryNamesSet);
 
-        res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'customer', 'Downloads.ejs'), {
+        res.render(path.join(__dirname, '..',  'HTML', 'customer', 'Downloads'), {
             pageTitle: 'Downloads',
             path: '/Downloads',
             downloads,
@@ -597,7 +597,7 @@ exports.getTearmCondition = (req, res, next) => {
 
     Product.find()
         .then(products => {
-            res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'customer', 'tearmCondition.ejs'), {
+            res.render(path.join(__dirname, '..',  'HTML', 'customer', 'tearmCondition'), {
                 pageTitle: 'Terms and Conditions',
                 path: '/TermCondition',
                 products: products,
@@ -615,7 +615,7 @@ exports.getPrivacyPolicy = (req, res, next) => {
 
     Product.find()
         .then(products => {
-            res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'customer', 'PrivacyPolicy.ejs'), {
+            res.render(path.join(__dirname, '..',  'HTML', 'customer', 'PrivacyPolicy'), {
                 pageTitle: 'Privacy Policy',
                 path: '/PrivacyPolicy',
                 products: products,
@@ -634,7 +634,7 @@ exports.getQualitypolicy = (req, res, next) => {
 
     Product.find()
         .then(products => {
-            res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'customer', 'quality-policy.ejs'), {
+            res.render(path.join(__dirname, '..',  'HTML', 'customer', 'quality-policy'), {
                 pageTitle: 'quality Policy',
                 path: '/quality policy',
                 products: products,
@@ -653,7 +653,7 @@ exports.getWarrantyRegistration = (req, res) => {
 
     Product.find()
         .then(products => {
-            res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'customer', 'WarrantyRegistration.ejs'), {
+            res.render(path.join(__dirname, '..', 'HTML', 'customer', 'WarrantyRegistration.ejs'), {
                 pageTitle: 'Warranty Registration',
                 products,
                 lang,
