@@ -41,7 +41,7 @@ router.post('/delete-model', isAuth, isAdminOrSeller, adminController.postDelete
 
 
 // Add Model => GET
-router.get('/add-model/:productId',isAuth, isAdminOrSeller, adminController.getAddModel);
+router.get('/add-model/:productId', isAuth, isAdminOrSeller, adminController.getAddModel);
 
 // Add Model => POST
 router.post('/add-model/:productId', uploadProductImages,
@@ -96,12 +96,12 @@ router.post('/slideshow/delete/:id', isAuth, isAdminOrSeller, adminController.de
 
 
 // Article Routes
-router.get('/articles', isAuth, isAdminOrSeller,adminController.getAllArticles);
-router.get('/articles/add', isAuth, isAdminOrSeller,adminController.getAddArticle);
-router.post('/articles/add', isAuth, isAdminOrSeller,uploadProductImages, adminController.postAddArticle);
-router.get('/articles/edit/:articleId',isAuth, isAdminOrSeller, adminController.getEditArticle);
-router.post('/articles/edit/:articleId',isAuth, isAdminOrSeller, uploadProductImages, adminController.postEditArticle);
-router.post('/articles/delete/:articleId',isAuth, isAdminOrSeller, adminController.postDeleteArticle);
+router.get('/articles', isAuth, isAdminOrSeller, adminController.getAllArticles);
+router.get('/articles/add', isAuth, isAdminOrSeller, adminController.getAddArticle);
+router.post('/articles/add', isAuth, isAdminOrSeller, uploadProductImages, adminController.postAddArticle);
+router.get('/articles/edit/:articleId', isAuth, isAdminOrSeller, adminController.getEditArticle);
+router.post('/articles/edit/:articleId', isAuth, isAdminOrSeller, uploadProductImages, adminController.postEditArticle);
+router.post('/articles/delete/:articleId', isAuth, isAdminOrSeller, adminController.postDeleteArticle);
 
 
 
@@ -126,16 +126,16 @@ router.get('/technical-requests/:id/pdf', isAuth, isAdminOrSeller, adminControll
 
 
 
-router.get('/warranty-registrations',isAuth, isAdminOrSeller, adminController.getAllWarrantyRegistrations);
-router.get('/warranty-registrations/:id',isAuth, isAdminOrSeller, adminController.getWarrantyRegistrationById);
-router.post('/warranty-registrations/:id/done', isAuth, isAdminOrSeller,adminController.markWarrantyAsDone);
-router.get('/warranty-registrations/:id/pdf',isAuth, isAdminOrSeller, adminController.exportWarrantyToPDF);
+router.get('/warranty-registrations', isAuth, isAdminOrSeller, adminController.getAllWarrantyRegistrations);
+router.get('/warranty-registrations/:id', isAuth, isAdminOrSeller, adminController.getWarrantyRegistrationById);
+router.post('/warranty-registrations/:id/done', isAuth, isAdminOrSeller, adminController.markWarrantyAsDone);
+router.get('/warranty-registrations/:id/pdf', isAuth, isAdminOrSeller, adminController.exportWarrantyToPDF);
 
 
 
-router.get('/contact-messages', isAuth, isAdminOrSeller,adminController.getAllContactUs);
-router.get('/contact-message/:id', isAuth, isAdminOrSeller,adminController.getContactUsDetail);
-router.post('/mark-contactus-done', isAuth, isAdminOrSeller,adminController.postMarkContactUsDone);
-router.get('/contactus-pdf/:id',isAuth, isAdminOrSeller, adminController.exportContactUsToPDF);
+router.get('/contact-messages', isAuth, isAdminOrSeller, adminController.getAllContactUs);
+router.get('/contact-message/:id', isAuth, isAdminOrSeller, adminController.getContactUsDetail);
+router.post('/mark-contactus-done', isAuth, isAdminOrSeller, adminController.postMarkContactUsDone);
+router.get('/contactus-pdf/:id', isAuth, isAdminOrSeller, adminController.exportContactUsToPDF);
 
 module.exports = router;

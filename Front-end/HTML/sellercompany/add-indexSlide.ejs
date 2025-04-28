@@ -1,6 +1,6 @@
 <%- include('../../includes/sellercompany/head.ejs') %>
 
-    <link rel="stylesheet" href="/sellercompany/add-indexSlide.css">
+    <link rel="stylesheet" href="/css/sellercompany/add-indexSlide.css">
 
     <%- include('../../includes/sellercompany/head-end.ejs') %>
 
@@ -36,7 +36,8 @@
                                         </option>
                                         <option value="ES" <%=slide?.language==='ES' ? 'selected' : '' %>>Spanish
                                         </option>
-                                        <option value="GR" <%=slide?.language==='GR' ? 'selected' : '' %>>Germany</option>
+                                        <option value="GR" <%=slide?.language==='GR' ? 'selected' : '' %>>Germany
+                                        </option>
                                     </select>
 
                                     <input type="file" name="slideshowImage" <%=editing ? '' : 'required' %>>
@@ -59,7 +60,7 @@
 
 
 
-                <script src="/assets/Js/nav-bar.js"></script>
+                <script src="/assets/js/nav-bar.js"></script>
         </body>
 
         </html>

@@ -1,7 +1,6 @@
 <%- include('../../includes/customer/head.ejs') %>
 
-    <link rel="stylesheet" href="/front-end/Css/customer/Home-page.css">
-    <!-- <script src="/Front-end\assets\Js\home-page.js"></script> -->
+    <link rel="stylesheet" href="/css/customer/Home-page.css">
 
 
 
@@ -323,113 +322,6 @@
 
                 </script>
 
-
-
-                <!-- news section -->
-<!-- 
-                <div class="news-slideshow-container">
-                    <div class="news-slides-wrapper" id="newsSlidesWrapper">
-                        <div class="news-slide featured">
-                            <div class="news-card">News 1</div>
-                        </div>
-                        <div class="news-slide">
-                            <div class="news-card">News 2</div>
-                        </div>
-                        <div class="news-slide">
-                            <div class="news-card">News 3</div>
-                        </div>
-                        <div class="news-slide">
-                            <div class="news-card">News 4</div>
-                        </div>
-                        <div class="news-slide">
-                            <div class="news-card">News 5</div>
-                        </div>
-                        <div class="news-slide">
-                            <div class="news-card">News 5</div>
-                        </div>
-                        <div class="news-slide">
-                            <div class="news-card">News 5</div>
-                        </div>
-                    </div>
-
-                    <button class="news-slideshow-btn news-prev-btn" onclick="slidePrev()">&#10094;</button>
-                    <button class="news-slideshow-btn news-next-btn" onclick="slideNext()">&#10095;</button>
-                </div>
-
-                <script>
-                    const wrapper = document.getElementById('newsSlidesWrapper');
-                    let isMobile = window.innerWidth <= 760;
-
-                    function updateFeatured() {
-                        document.querySelectorAll('.news-slide').forEach(el => {
-                            el.classList.remove('featured');
-                        });
-
-                        const slides = document.querySelectorAll('.news-slide');
-                        if (slides[0]) {
-                            slides[0].classList.add('featured');
-                        }
-                    }
-
-
-                    function slideNext() {
-                        const slides = document.querySelectorAll('.news-slide');
-                        const firstSlide = slides[0];
-                        const secondSlide = slides[1];
-
-                        firstSlide.classList.remove('featured');
-                        secondSlide.classList.add('featured');
-
-                        const shiftPercent = isMobile ? 100 : 25;
-
-                        wrapper.style.transition = 'transform 0.5s ease-in-out';
-                        wrapper.style.transform = `translateX(-${shiftPercent}%)`;
-
-                        setTimeout(() => {
-                            wrapper.style.transition = 'none';
-                            wrapper.appendChild(firstSlide);
-                            wrapper.style.transform = 'translateX(0)';
-                            updateFeatured();
-                        }, 500);
-                    }
-
-                    function slidePrev() {
-                        const slides = document.querySelectorAll('.news-slide');
-                        const lastSlide = slides[slides.length - 1];
-                        const currentFeatured = document.querySelector('.news-slide.featured');
-
-                        wrapper.style.transition = 'none';
-                        wrapper.insertBefore(lastSlide, slides[0]);
-                        const shiftPercent = isMobile ? 100 : 25;
-                        wrapper.style.transform = `translateX(-${shiftPercent}%)`;
-
-                        void wrapper.offsetWidth;
-
-                        if (currentFeatured) currentFeatured.classList.remove('featured');
-                        lastSlide.classList.add('featured');
-
-                        setTimeout(() => {
-                            wrapper.style.transition = 'transform 0.5s ease-in-out';
-                            wrapper.style.transform = 'translateX(0)';
-                        }, 10);
-                    }
-
-                    // Auto-play every 5 seconds
-                    setInterval(slideNext, 5000);
-
-                    // Handle resize changes
-                    window.addEventListener('resize', () => {
-                        isMobile = window.innerWidth <= 760;
-                        updateFeatured();
-                    });
-
-                    updateFeatured();
-                </script> -->
-
-
-
-
-                <!-- news section -->
 
 
                 <!-- about us  -->

@@ -1,11 +1,4 @@
-:root {
-  --shadow: 0px 4px 16px 0px #00000040;
-  --green-Color: #A8D060;
-  --purple-Color: #8860D0;
-  --black-color: #333333;
-  --second-white: #F5F5F7;
-  --second-purole: #C1C8E4;
-}
+
 
 section.sidebar-content-container {
   display: flex;
@@ -96,7 +89,6 @@ section.content-container {
 .content-container {
   padding: 20px;
   background-color: #f9f9f9;
-  min-height: 100vh;
 }
 
 .container-head h1 {

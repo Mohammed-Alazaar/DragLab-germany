@@ -124,8 +124,9 @@
             <div class="navMidRight">
                 <input type="text" id="search" name="search" placeholder="Search..">
                 <img src="/assets/Imgs/Icons/search.png" alt="search" class="search-icon">
+
             </div>
-            <div id="loadingSpinner" style="display:none;">Searching...</div>
+            <div id="searchResults" class="search-results"></div>
 
         </div>
 
@@ -445,45 +446,63 @@
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const searchInput = document.getElementById('search');
-        const searchIcon = document.querySelector('.search-icon');
+        const resultsContainer = document.getElementById('searchResults');
     
-        searchIcon.addEventListener('click', handleSearch);
-        searchInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                handleSearch();
+        let timeout;
+    
+        searchInput.addEventListener('input', function () {
+            const query = this.value.trim();
+    
+            clearTimeout(timeout);
+    
+            if (query.length < 3) {
+                resultsContainer.innerHTML = '';
+                resultsContainer.style.display = 'none';
+                return;
             }
+    
+            timeout = setTimeout(() => {
+                fetch(`/search?q=${encodeURIComponent(query)}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        resultsContainer.innerHTML = '';
+    
+                        if (data.length === 0) {
+                            resultsContainer.innerHTML = '<div class="no-results">No matches found.</div>';
+                            resultsContainer.style.display = 'block';
+                            return;
+                        }
+    
+                        data.forEach(item => {
+                            const div = document.createElement('div');
+                            div.classList.add('search-item');
+                            div.textContent = `${item.name} (${item.type})`;
+                            div.addEventListener('click', () => {
+                                if (item.type === 'product') {
+                                    window.location.href = `/product/${item.id}`;
+                                } else if (item.type === 'model') {
+                                    window.location.href = `/product/${item.productId}/model/${item.id}`;
+                                } else if (item.type === 'article') {
+                                    window.location.href = `/news/details/${item.id}`;
+                                }
+                            });
+                            resultsContainer.appendChild(div);
+                        });
+    
+                        resultsContainer.style.display = 'block';
+                    })
+                    .catch(err => {
+                        console.error('Error fetching search results:', err);
+                    });
+            }, 300); // Delay to avoid too many calls
         });
     
-        function handleSearch() {
-            document.getElementById('loadingSpinner').style.display = 'block';
-
-            const query = searchInput.value.trim();
-            if (!query) return;
-    
-            const lang = getCurrentLang(); // already defined earlier in your scripts
-    
-            fetch(`/search?search=${encodeURIComponent(query)}`)
-                .then(res => res.json())
-                .then(data => {
-                    if (data.products.length === 0 && data.models.length === 0) {
-                        alert('No results found.');
-                        return;
-                    }
-    
-                    if (data.products.length > 0) {
-                        // If matching product found, redirect to the first one
-                        const product = data.products[0];
-                        window.location.href = `/product/${product.id}/${lang}`;
-                    } else if (data.models.length > 0) {
-                        // If matching model found
-                        const model = data.models[0];
-                        window.location.href = `/model/${model.productId}/${model.modelId}/${lang}`;
-                    }
-                })
-                .catch(err => {
-                    console.error('Search failed:', err);
-                });
-        }
+        // Hide results when clicking outside
+        document.addEventListener('click', function (e) {
+            if (!resultsContainer.contains(e.target) && e.target !== searchInput) {
+                resultsContainer.style.display = 'none';
+            }
+        });
     });
     </script>
     

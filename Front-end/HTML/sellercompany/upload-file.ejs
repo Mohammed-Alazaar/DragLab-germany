@@ -1,6 +1,6 @@
 <%- include('../../includes/sellercompany/head.ejs') %>
 
-    <link rel="stylesheet" href="/sellercompany/addcataloge.css">
+    <link rel="stylesheet" href="/css/sellercompany/addcataloge.css">
 
     <%- include('../../includes/sellercompany/head-end.ejs') %>
 
@@ -13,7 +13,7 @@
 
 
 
-                    <section>
+                    <section class="content-container">
                         <h1>Upload File to <%= category.categoryName %></h1>
                         <form action="/admin/catalogs/<%= category._id %>/upload" method="POST" enctype="multipart/form-data">
                           <label>Language</label>

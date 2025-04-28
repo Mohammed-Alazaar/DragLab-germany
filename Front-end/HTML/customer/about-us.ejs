@@ -1,128 +1,130 @@
 <%- include('../../includes/customer/head.ejs') %>
 
-    <link rel="stylesheet" href="/front-end/Css/customer/about-us.css">
+    <link rel="stylesheet" href="/css/customer/about-us.css">
     <script
         src="https://www.google.com/recaptcha/enterprise.js?render=6LeqowkrAAAAABs84-oXHTj8URMhpExplrlZDwUH"></script>
 
 
+        <%- include('../../includes/customer/header-end.ejs') %>
 
 
 
-    <body>
-        <!-- nav-bar -->
-
-        <%- include('../../includes/customer/navbar.ejs') %>
-
-
+        <body>
             <!-- nav-bar -->
 
-            <!-- contact us thumbnail  -->
-            <div class="slide">
-                <div class="slide-text">
-                    <h1>Technical Support at Your Service.</h1>
-                    <p>Quick and reliable solutions to your technical problems. </p>
-                </div>
-                <img src="/assets/Imgs/Icons/products/contactus-BC.png" alt="Photo 1">
-            </div>
-            <!-- contact us thumbnail  -->
-            <!-- about us section -->
+            <%- include('../../includes/customer/navbar.ejs') %>
 
-            <section class="about-section">
-                <h2 style="text-align:center; font-size: 2rem; margin-bottom: 30px;">About Us</h2>
-                <div class="about-container">
-                    <div class="about-image" id="about-img">
-                        <img src="/assets/Imgs/Icons/products/img-vision.png" alt="About Image">
+
+                <!-- nav-bar -->
+
+                <!-- contact us thumbnail  -->
+                <div class="slide">
+                    <div class="slide-text">
+                        <h1>Technical Support at Your Service.</h1>
+                        <p>Quick and reliable solutions to your technical problems. </p>
                     </div>
-                    <div class="about-content">
-                        <div class="about-tabs">
-                            <div class="about-tab active" data-tab="vision"
-                                data-icon-default="/assets/Imgs/Icons/products/vision.png"
-                                data-icon-active="/assets/Imgs/Icons/products/vision-active.png">
-                                <img src="/assets/Imgs/Icons/products/vision-active.png" class="tab-icon"> Our Vision
-                            </div>
-                            <div class="about-tab" data-tab="mission"
-                                data-icon-default="/assets/Imgs/Icons/products/mission.png"
-                                data-icon-active="/assets/Imgs/Icons/products/mission-active.png">
-                                <img src="/assets/Imgs/Icons/products/mission.png" class="tab-icon">
-                                Our Vision
-                            </div>
-                            <div class="about-tab" data-tab="values"
-                                data-icon-default="/assets/Imgs/Icons/products/values.png"
-                                data-icon-active="/assets/Imgs/Icons/products/values-active.png">
-                                <img src="/assets/Imgs/Icons/products/values.png" class="tab-icon">
-                                Our Vision
-                            </div>
+                    <img src="/assets/Imgs/Icons/products/contactus-BC.png" alt="Photo 1">
+                </div>
+                <!-- contact us thumbnail  -->
+                <!-- about us section -->
+
+                <section class="about-section">
+                    <h2 style="text-align:center; font-size: 2rem; margin-bottom: 30px;">About Us</h2>
+                    <div class="about-container">
+                        <div class="about-image" id="about-img">
+                            <img src="/assets/Imgs/Icons/products/img-vision.png" alt="About Image">
                         </div>
-                        <div class="about-text" id="about-text">
-                            <div class="title-icon">
-                                <div class="tab-icon-bg">
-                                    <img src="/assets/Imgs/Icons/products/vision-active.png" class="tab-icon">
+                        <div class="about-content">
+                            <div class="about-tabs">
+                                <div class="about-tab active" data-tab="vision"
+                                    data-icon-default="/assets/Imgs/Icons/products/vision.png"
+                                    data-icon-active="/assets/Imgs/Icons/products/vision-active.png">
+                                    <img src="/assets/Imgs/Icons/products/vision-active.png" class="tab-icon"> Our
+                                    Vision
                                 </div>
-                                <h3>Innovative Excellence</h3>
+                                <div class="about-tab" data-tab="mission"
+                                    data-icon-default="/assets/Imgs/Icons/products/mission.png"
+                                    data-icon-active="/assets/Imgs/Icons/products/mission-active.png">
+                                    <img src="/assets/Imgs/Icons/products/mission.png" class="tab-icon">
+                                    Our Vision
+                                </div>
+                                <div class="about-tab" data-tab="values"
+                                    data-icon-default="/assets/Imgs/Icons/products/values.png"
+                                    data-icon-active="/assets/Imgs/Icons/products/values-active.png">
+                                    <img src="/assets/Imgs/Icons/products/values.png" class="tab-icon">
+                                    Our Vision
+                                </div>
                             </div>
+                            <div class="about-text" id="about-text">
+                                <div class="title-icon">
+                                    <div class="tab-icon-bg">
+                                        <img src="/assets/Imgs/Icons/products/vision-active.png" class="tab-icon">
+                                    </div>
+                                    <h3>Innovative Excellence</h3>
+                                </div>
 
-                            <h4>Pushing technology with superior design.</h4>
-                            <p>
-                                We believe that the products and services we provide will enable our
-                                partners to be a global leader in
-                                laboratory and medical equipment, known for our innovation, quality,
-                                and customer-focused approach.
-                            </p>
+                                <h4>Pushing technology with superior design.</h4>
+                                <p>
+                                    We believe that the products and services we provide will enable our
+                                    partners to be a global leader in
+                                    laboratory and medical equipment, known for our innovation, quality,
+                                    and customer-focused approach.
+                                </p>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </section>
+                </section>
 
-            <script>
-                const tabs = document.querySelectorAll('.about-tab');
-                const text = document.getElementById('about-text');
-                const image = document.getElementById('about-img').querySelector('img');
+                <script>
+                    const tabs = document.querySelectorAll('.about-tab');
+                    const text = document.getElementById('about-text');
+                    const image = document.getElementById('about-img').querySelector('img');
 
-                const content = {
-                    vision: {
-                        img: "/assets/Imgs/Icons/products/img-vision.png",
-                        icon: "/assets/Imgs/Icons/products/vision-active.png",
-                        title: "Innovative Excellence",
-                        subtitle: "Pushing technology with superior design.",
-                        desc: `We believe that the products and services we provide will enable our partners to be a global leader in
+                    const content = {
+                        vision: {
+                            img: "/assets/Imgs/Icons/products/img-vision.png",
+                            icon: "/assets/Imgs/Icons/products/vision-active.png",
+                            title: "Innovative Excellence",
+                            subtitle: "Pushing technology with superior design.",
+                            desc: `We believe that the products and services we provide will enable our partners to be a global leader in
                     laboratory and medical equipment, known for our innovation, quality, and customer-focused approach.`
-                    },
-                    mission: {
-                        img: "/assets/Imgs/Icons/products/img-mission.png",
-                        icon: "/assets/Imgs/Icons/products/mission-active.png",
-                        title: "Global Leadership",
-                        subtitle: "Innovation, quality, and customer-driven success.",
-                        desc: `We aim to empower professionals in science and healthcare with advanced, reliable, and user-friendly
+                        },
+                        mission: {
+                            img: "/assets/Imgs/Icons/products/img-mission.png",
+                            icon: "/assets/Imgs/Icons/products/mission-active.png",
+                            title: "Global Leadership",
+                            subtitle: "Innovation, quality, and customer-driven success.",
+                            desc: `We aim to empower professionals in science and healthcare with advanced, reliable, and user-friendly
                     equipment, driving progress and improving outcomes.`
-                    },
-                    values: {
-                        img: "/assets/Imgs/Icons/products/img-values.png",
-                        icon: "/assets/Imgs/Icons/products/values-active.png",
-                        title: "Integrity and Responsibility",
-                        subtitle: "Empowering change through ethical commitment.",
-                        desc: `<b> Innovation:</b> Continuously pushing the boundaries of technology to create cutting-edge solutions. <br>
+                        },
+                        values: {
+                            img: "/assets/Imgs/Icons/products/img-values.png",
+                            icon: "/assets/Imgs/Icons/products/values-active.png",
+                            title: "Integrity and Responsibility",
+                            subtitle: "Empowering change through ethical commitment.",
+                            desc: `<b> Innovation:</b> Continuously pushing the boundaries of technology to create cutting-edge solutions. <br>
                      <b> Quality:</b> Upholding the highest standards in product design, manufacturing, and performance.`
-                    }
-                };
-
-                tabs.forEach(tab => {
-                    tab.addEventListener('click', () => {
-                        const currentActive = document.querySelector('.about-tab.active');
-                        if (currentActive) {
-                            currentActive.classList.remove('active');
-                            const iconDefault = currentActive.getAttribute('data-icon-default');
-                            currentActive.querySelector('img').src = iconDefault;
                         }
+                    };
 
-                        tab.classList.add('active');
-                        const iconActive = tab.getAttribute('data-icon-active');
-                        tab.querySelector('img').src = iconActive;
+                    tabs.forEach(tab => {
+                        tab.addEventListener('click', () => {
+                            const currentActive = document.querySelector('.about-tab.active');
+                            if (currentActive) {
+                                currentActive.classList.remove('active');
+                                const iconDefault = currentActive.getAttribute('data-icon-default');
+                                currentActive.querySelector('img').src = iconDefault;
+                            }
 
-                        const key = tab.getAttribute('data-tab');
-                        const c = content[key];
+                            tab.classList.add('active');
+                            const iconActive = tab.getAttribute('data-icon-active');
+                            tab.querySelector('img').src = iconActive;
 
-                        image.src = c.img;
-                        text.innerHTML = `
+                            const key = tab.getAttribute('data-tab');
+                            const c = content[key];
+
+                            image.src = c.img;
+                            text.innerHTML = `
                         <div class="title-icon">
                       <div class="tab-icon-bg">
                         <img src="${c.icon}" class="tab-icon">
@@ -132,99 +134,106 @@
                       <h4>${c.subtitle}</h4>
                       <p>${c.desc}</p>
                     `;
+                        });
                     });
-                });
-            </script>
+                </script>
 
-            <!-- about us section -->
+                <!-- about us section -->
 
-            <section class="features-section">
-                <h2 class="section-title">Features Points</h2>
-                <div class="features-container">
-                    <div class="feature-box">
-                        <img src="/assets/Imgs/Icons/products/innovation.png" alt="Innovation Icon"
-                            class="feature-icon">
-                        <h3 class="feature-title">Innovation of Lab Equipment</h3>
-                        <p class="feature-text">
-                            We leverage advanced technology trends and our professional expertise to develop innovative
-                            laboratory solutions, fulfilling our responsibility as a leading premium provider in the
-                            global market.
-                        </p>
+                <section class="features-section">
+                    <h2 class="section-title">Features Points</h2>
+                    <div class="features-container">
+                        <div class="feature-box">
+                            <img src="/assets/Imgs/Icons/products/innovation.png" alt="Innovation Icon"
+                                class="feature-icon">
+                            <h3 class="feature-title">Innovation of Lab Equipment</h3>
+                            <p class="feature-text">
+                                We leverage advanced technology trends and our professional expertise to develop
+                                innovative
+                                laboratory solutions, fulfilling our responsibility as a leading premium provider in the
+                                global market.
+                            </p>
+                        </div>
+
+                        <div class="feature-box">
+                            <img src="/assets/Imgs/Icons/products/Quality.png" alt="Quality Icon" class="feature-icon">
+                            <h3 class="feature-title">Quality of the Products</h3>
+                            <p class="feature-text">
+                                Quality and reliability are our top priorities. All DragLab products are designed for
+                                durability and efficiency, backed by a strict quality control system to ensure the best
+                                customer experience.
+                            </p>
+                        </div>
+
+                        <div class="feature-box">
+                            <img src="/assets/Imgs/Icons/products/Certification.png" alt="Certification Icon"
+                                class="feature-icon">
+                            <h3 class="feature-title">Certification & Standards</h3>
+                            <p class="feature-text">
+                                We prioritize efficiency and customer convenience, offering high-quality products and
+                                early
+                                support for personalized consultations. Contact us via the form or email for a quick,
+                                custom
+                                quotation from our experts.
+                            </p>
+                        </div>
                     </div>
+                    <div class="features-container2">
+                        <div class="feature-box">
+                            <img src="/assets/Imgs/Icons/products/response.png" alt="Fast and perfect response Icon"
+                                class="feature-icon">
+                            <h3 class="feature-title">Fast and perfect response</h3>
+                            <p class="feature-text">
+                                We prioritize efficiency and customer convenience, offering high-quality products and
+                                early
+                                support for personalized consultations. Contact us via the form or email for a quick,
+                                custom
+                                quotation from our experts.
+                            </p>
+                        </div>
 
-                    <div class="feature-box">
-                        <img src="/assets/Imgs/Icons/products/Quality.png" alt="Quality Icon" class="feature-icon">
-                        <h3 class="feature-title">Quality of the Products</h3>
-                        <p class="feature-text">
-                            Quality and reliability are our top priorities. All DragLab products are designed for
-                            durability and efficiency, backed by a strict quality control system to ensure the best
-                            customer experience.
-                        </p>
+                        <div class="feature-box">
+                            <img src="/assets/Imgs/Icons/products/WarrantyAfterSales.png" alt="Warranty & After Sales"
+                                class="feature-icon">
+                            <h3 class="feature-title">Warranty & After Sales</h3>
+                            <p class="feature-text">
+                                DragLab offers a 24-month standard warranty and ensures 10 years of spare part
+                                availability.
+                                Our quality assurance team inspects every unit before shipment. Submit spare part
+                                requests
+                                via our online form for fast service.
+                            </p>
+                        </div>
+
+                        <div class="feature-box">
+                            <img src="/assets/Imgs/Icons/products/SustainableEnvironment.png"
+                                alt="Sustainable Environment Icon" class="feature-icon">
+                            <h3 class="feature-title">Sustainable Environment</h3>
+                            <p class="feature-text">
+                                DragLab appliances are energy-efficient, eco-friendly, and ISO 14001 certified. Using
+                                recyclable materials like stainless steel, we ensure compliance with international
+                                sustainability standards and a commitment to resource conservation.
+                            </p>
+                        </div>
+                        <div class="feature-box">
+                            <img src="/assets/Imgs/Icons/products/Safety.png" alt="Safety Icon" class="feature-icon">
+                            <h3 class="feature-title">Safety</h3>
+                            <p class="feature-text">
+                                DragLab products meet German and European safety standards, featuring electronic
+                                temperature
+                                monitoring and mechanical temperature limiters for maximum protection of users and
+                                equipment.
+                            </p>
+                        </div>
                     </div>
+                </section>
 
-                    <div class="feature-box">
-                        <img src="/assets/Imgs/Icons/products/Certification.png" alt="Certification Icon"
-                            class="feature-icon">
-                        <h3 class="feature-title">Certification & Standards</h3>
-                        <p class="feature-text">
-                            We prioritize efficiency and customer convenience, offering high-quality products and early
-                            support for personalized consultations. Contact us via the form or email for a quick, custom
-                            quotation from our experts.
-                        </p>
-                    </div>
-                </div>
-                <div class="features-container2">
-                    <div class="feature-box">
-                        <img src="/assets/Imgs/Icons/products/response.png" alt="Fast and perfect response Icon"
-                            class="feature-icon">
-                        <h3 class="feature-title">Fast and perfect response</h3>
-                        <p class="feature-text">
-                            We prioritize efficiency and customer convenience, offering high-quality products and early
-                            support for personalized consultations. Contact us via the form or email for a quick, custom
-                            quotation from our experts.
-                        </p>
-                    </div>
+                <!-- Footer -->
 
-                    <div class="feature-box">
-                        <img src="/assets/Imgs/Icons/products/WarrantyAfterSales.png" alt="Warranty & After Sales"
-                            class="feature-icon">
-                        <h3 class="feature-title">Warranty & After Sales</h3>
-                        <p class="feature-text">
-                            DragLab offers a 24-month standard warranty and ensures 10 years of spare part availability.
-                            Our quality assurance team inspects every unit before shipment. Submit spare part requests
-                            via our online form for fast service.
-                        </p>
-                    </div>
-
-                    <div class="feature-box">
-                        <img src="/assets/Imgs/Icons/products/SustainableEnvironment.png"
-                            alt="Sustainable Environment Icon" class="feature-icon">
-                        <h3 class="feature-title">Sustainable Environment</h3>
-                        <p class="feature-text">
-                            DragLab appliances are energy-efficient, eco-friendly, and ISO 14001 certified. Using
-                            recyclable materials like stainless steel, we ensure compliance with international
-                            sustainability standards and a commitment to resource conservation.
-                        </p>
-                    </div>
-                    <div class="feature-box">
-                        <img src="/assets/Imgs/Icons/products/Safety.png" alt="Safety Icon" class="feature-icon">
-                        <h3 class="feature-title">Safety</h3>
-                        <p class="feature-text">
-                            DragLab products meet German and European safety standards, featuring electronic temperature
-                            monitoring and mechanical temperature limiters for maximum protection of users and
-                            equipment.
-                        </p>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Footer -->
-
-            <%- include('../../includes/customer/footer.ejs') %>
+                <%- include('../../includes/customer/footer.ejs') %>
 
 
-    </body>
-    <%- include('../../includes/customer/script.ejs') %>
+        </body>
 
 
-        </html>
+            </html>

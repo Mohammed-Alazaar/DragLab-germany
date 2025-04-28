@@ -32,7 +32,7 @@ const store = new MongoDBStore({
 
 app.set('view engine', 'ejs');
 
-app.set('views', path.join(__dirname, 'front-end', 'HTML'));
+app.set('views', path.join(__dirname, 'front-end', 'html'));
 
 const adminRoutes = require('./routes/admin');
 const shopRoutes = require('./routes/shop');
@@ -43,7 +43,6 @@ const accessLogStream = fs.createWriteStream(path.join(__dirname, 'access.log'),
 app.use(bodyParser.json({ limit: '10mb' }));
 app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
 
-app.use(express.static(path.join(__dirname, 'front-end', 'Css'))); // This will make the front-end folder accessible to the public
 app.use(express.static(path.join(__dirname, 'front-end'))); // This will make the front-end folder accessible to the public
 app.use(session({ secret: ' my secret', resave: false, saveUninitialized: false, store: store }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -71,6 +70,9 @@ app.use((req, res, next) => {
 });
 
 
+app.use(compression()); // Compress all routes
+app.use(morgan('combined', { stream: accessLogStream })); // Log all requests to the console
+
 
 app.use('/admin', adminRoutes);
 app.use(shopRoutes);
@@ -93,10 +95,6 @@ app.use((error, req, res, next) => {
 
 
 
-
-app.use(helmet());
-app.use(compression()); // Compress all routes
-app.use(morgan('combined', { stream: accessLogStream })); // Log all requests to the console
 
 
 

@@ -30,18 +30,18 @@ exports.getHomePage = (req, res, next) => {
             ]
         }).sort({ createdAt: -1 }).limit(10) // limit to 10 latest
     ])
-    .then(([products, slides, articles]) => {
-        res.render('customer/Home-page', {
-            pageTitle: 'Home',
-            path: '/',
-            products,
-            slides,
-            articles, // ✅ include here
-            categories: [],
-            lang
-        });
-    })
-    .catch(err => next(err));
+        .then(([products, slides, articles]) => {
+            res.render('customer/Home-page', {
+                pageTitle: 'Home',
+                path: '/',
+                products,
+                slides,
+                articles, // ✅ include here
+                categories: [],
+                lang
+            });
+        })
+        .catch(err => next(err));
 };
 
 
@@ -168,51 +168,57 @@ exports.getProduct = (req, res, next) => {
 };
 
 
+exports.search = async (req, res) => {
+    const query = req.query.q;
+    if (!query || query.length < 3) {
+        return res.json([]); // Return empty if less than 3 letters
+    }
 
-exports.getSearchResults = (req, res, next) => {
-    const searchQuery = req.query.search;
+    try {
+        const productResults = await Product.find({
+            name: { $regex: query, $options: 'i' },
+            isDraft: false
+        }).limit(5); // Limit results for performance
 
-    Product.find({ isDraft: { $ne: true } })
-        .then(products => {
-            const matchedProducts = [];
-            const matchedModels = [];
-
-            products.forEach(product => {
-                const productLang = product.Language?.EN?.[0];
-
-                // Search Product Name
-                if (productLang?.ProductName?.toLowerCase().includes(searchQuery.toLowerCase())) {
-                    matchedProducts.push({
-                        id: product._id,
-                        name: productLang.ProductName,
-                        type: 'product'
+        // Search inside product models too
+        const modelResults = [];
+        productResults.forEach(product => {
+            product.Models.forEach(model => {
+                if (model.modelname.toLowerCase().includes(query.toLowerCase())) {
+                    modelResults.push({
+                        type: 'model',
+                        name: model.modelname,
+                        id: model._id,
+                        productId: product._id
                     });
                 }
-
-                // Search Model Names
-                product.Models.forEach(model => {
-                    if (!model.isPublished) return;
-                    const modelLang = model.Language?.EN?.[0];
-                    if (modelLang?.ModelName?.toLowerCase().includes(searchQuery.toLowerCase())) {
-                        matchedModels.push({
-                            productId: product._id,
-                            modelId: model._id,
-                            name: modelLang.ModelName,
-                            productName: productLang.ProductName,
-                            type: 'model'
-                        });
-                    }
-                });
             });
-
-            res.status(200).json({ products: matchedProducts, models: matchedModels });
-        })
-        .catch(err => {
-            console.error(err);
-            res.status(500).json({ message: 'Failed to perform search' });
         });
-};
 
+        const articleResults = await Article.find({
+            title: { $regex: query, $options: 'i' }
+        }).limit(5);
+
+        const results = [
+            ...productResults.map(product => ({
+                type: 'product',
+                name: product.name,
+                id: product._id
+            })),
+            ...modelResults,
+            ...articleResults.map(article => ({
+                type: 'article',
+                name: article.title,
+                id: article._id
+            }))
+        ];
+
+        res.json(results);
+    } catch (err) {
+        console.error('Search error:', err);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
 
 exports.getProductDetails = (req, res, next) => {
     const { productId, lang } = req.params;
@@ -220,33 +226,33 @@ exports.getProductDetails = (req, res, next) => {
     const selectedLang = supportedLangs.includes(lang) ? lang : 'EN';
 
     Product.findById(productId)
-    .then(product => {
-        if (!product) return res.redirect(`/${selectedLang}`);
+        .then(product => {
+            if (!product) return res.redirect(`/${selectedLang}`);
 
-        // 🔄 Fetch all products for navbar
-        return Product.find().then(allProducts => {
-            const publishedProducts = allProducts.map(prod => {
-                const publishedModels = prod.Models.filter(model => model.isPublished);
-                return {
-                    ...prod.toObject(), // flatten mongoose document
-                    Models: publishedModels
-                };
-            });
+            // 🔄 Fetch all products for navbar
+            return Product.find().then(allProducts => {
+                const publishedProducts = allProducts.map(prod => {
+                    const publishedModels = prod.Models.filter(model => model.isPublished);
+                    return {
+                        ...prod.toObject(), // flatten mongoose document
+                        Models: publishedModels
+                    };
+                });
 
-            res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'customer', 'product-details.ejs'), {
-                product,
-                lang: selectedLang,
-                translation: product.Language[selectedLang]?.[0] || product.Language['EN'][0],
-                models: product.Models.filter(m => m.isPublished),
-                products: publishedProducts, // use publishedProducts here
-                req // ✅ Don't forget to pass req if you use req.query.success/error inside the page
+                res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'customer', 'product-details.ejs'), {
+                    product,
+                    lang: selectedLang,
+                    translation: product.Language[selectedLang]?.[0] || product.Language['EN'][0],
+                    models: product.Models.filter(m => m.isPublished),
+                    products: publishedProducts, // use publishedProducts here
+                    req // ✅ Don't forget to pass req if you use req.query.success/error inside the page
+                });
             });
+        })
+        .catch(err => {
+            console.error(err);
+            res.redirect('/');
         });
-    })
-    .catch(err => {
-        console.error(err);
-        res.redirect('/');
-    });
 };
 
 
@@ -258,7 +264,7 @@ exports.getModelDetailsPage = (req, res, next) => {
             if (!product) return res.redirect('/');
             const model = product.Models.id(modelId);
             if (!model || model.isPublished === false) return res.redirect('/');
-            
+
 
             const currentLangData = model.Language[lang]?.[0];
             const englishLangData = model.Language['EN']?.[0];
@@ -322,22 +328,22 @@ exports.getContactus = (req, res, next) => {
 
 exports.postContactUs = async (req, res, next) => {
     try {
-      const { firstName, lastName, subject, email, message,lang  } = req.body;
-  
-      await new ContactUs({
-        firstName,
-        lastName,
-        subject,
-        email,
-        message
-      }).save();
-  
-      res.redirect(`/Contactus/EN?&success=true`);
+        const { firstName, lastName, subject, email, message, lang } = req.body;
+
+        await new ContactUs({
+            firstName,
+            lastName,
+            subject,
+            email,
+            message
+        }).save();
+
+        res.redirect(`/Contactus/EN?&success=true`);
     } catch (err) {
-      console.error(err);
-      res.redirect(`/Contactus/EN?&success=true`);
+        console.error(err);
+        res.redirect(`/Contactus/EN?&success=true`);
     }
-  };
+};
 exports.geTechnicalservice = (req, res, next) => {
     const lang = req.query.lang || 'EN'; // <- 🔄 language detection
 
@@ -360,42 +366,42 @@ exports.geTechnicalservice = (req, res, next) => {
 };
 
 exports.postTechnicalService = async (req, res) => {
-  try {
-    const {
-      infoType, company, department, salutation, firstName, lastName,
-      postalTown, street, country, telephone, telefax, email,
-      failureDate, deviceCategory, deviceModel, serialNo, note
-    } = req.body;
+    try {
+        const {
+            infoType, company, department, salutation, firstName, lastName,
+            postalTown, street, country, telephone, telefax, email,
+            failureDate, deviceCategory, deviceModel, serialNo, note
+        } = req.body;
 
-    const lang = req.query.lang || 'EN'; // ✅ Define lang before using
+        const lang = req.query.lang || 'EN'; // ✅ Define lang before using
 
-    await TechnicalService.create({
-      infoType,
-      company,
-      department,
-      salutation,
-      firstName,
-      lastName,
-      postalTown,
-      street,
-      country,
-      telephone,
-      telefax,
-      email,
-      failureDate,
-      deviceCategory,
-      deviceModel,
-      serialNo,
-      note,
-      lang: req.query.lang || 'EN'
-    });
+        await TechnicalService.create({
+            infoType,
+            company,
+            department,
+            salutation,
+            firstName,
+            lastName,
+            postalTown,
+            street,
+            country,
+            telephone,
+            telefax,
+            email,
+            failureDate,
+            deviceCategory,
+            deviceModel,
+            serialNo,
+            note,
+            lang: req.query.lang || 'EN'
+        });
 
-    // ✅ Redirect with a success flag in query string
-    res.redirect(`/technical-service/${lang}?success=true`);
-  } catch (error) {
-    console.error('Error saving technical service request:', error);
-    res.redirect(`/technical-service/${lang}?error=true`);
-  }
+        // ✅ Redirect with a success flag in query string
+        res.redirect(`/technical-service/${lang}?success=true`);
+    } catch (error) {
+        console.error('Error saving technical service request:', error);
+        res.redirect(`/technical-service/${lang}?error=true`);
+    }
 };
 
 exports.getSupport = (req, res, next) => {
@@ -403,7 +409,7 @@ exports.getSupport = (req, res, next) => {
 
     Product.find()
         .then(products => {
-            res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'customer', 'support.ejs'), {
+            res.render(path.join(__dirname, '..', 'front-end', 'html', 'customer', 'support.ejs'), {
                 pageTitle: 'support',
                 path: '/support',
                 products: products,
@@ -418,16 +424,15 @@ exports.getSupport = (req, res, next) => {
 
 };
 exports.getaboutus = (req, res, next) => {
-    const lang = req.query.lang || 'EN'; // <- 🔄 language detection
+    const lang = req.params.lang || 'EN'; // ✅ Correct: use params
 
     Product.find()
         .then(products => {
-            res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'customer', 'about-us.ejs'), {
+            res.render(path.join('customer', 'about-us.ejs'), { // ✅ render using view name only if you set views correctly
                 pageTitle: 'aboutus',
                 path: '/aboutus',
                 products: products,
-                categories: [], // Pass an empty array for categories if not needed
-                lang // <- pass it to EJS
+                lang
             });
         })
         .catch(err => {
@@ -435,6 +440,23 @@ exports.getaboutus = (req, res, next) => {
             res.redirect('/');
         });
 };
+// exports.getaboutus = (req, res, next) => {
+//     const lang = req.query.lang || 'EN'; // <- 🔄 language detection
+
+//     Product.find()
+//         .then(products => {
+//             res.render(path.join(__dirname, '..', 'front-end', 'html', 'customer', 'about-us.ejs'), {
+//                 pageTitle: 'aboutus',
+//                 path: '/aboutus',
+//                 products: products,
+//                 lang // <- pass it to EJS
+//             });
+//         })
+//         .catch(err => {
+//             console.error(err);
+//             res.redirect('/');
+//         });
+// };
 
 exports.getArticles = async (req, res) => {
     const lang = req.params.lang || 'EN';
@@ -503,30 +525,30 @@ exports.getDownloads = async (req, res, next) => {
         for (const product of products) {
             const productLang = product.Language?.[lang]?.[0] || product.Language?.EN?.[0];
             if (!productLang) continue;
-          
+
             const productName = productLang.ProductName || 'Unnamed Product';
             productNamesSet.add(productName); // ✅ always add it here
-          
+
             for (const model of product.Models) {
-              const modelLang = model.Language?.[lang]?.[0] || model.Language?.EN?.[0];
-              if (!modelLang || !Array.isArray(modelLang.downloads)) continue;
-          
-              for (const file of modelLang.downloads) {
-                downloads.push({
-                  fileName: file.fileName,
-                  filePath: file.filePath,
-                  fileSize: file.fileSize,
-                  fileCategory: file.fileCategory?.toLowerCase(),
-                  fileProductCategory: file.fileProductCategory?.toLowerCase(),
-                  productName,
-                  modelName: modelLang.ModelName || 'Unnamed Model',
-                  lang,
-                  type: 'model'
-                });
-              }
+                const modelLang = model.Language?.[lang]?.[0] || model.Language?.EN?.[0];
+                if (!modelLang || !Array.isArray(modelLang.downloads)) continue;
+
+                for (const file of modelLang.downloads) {
+                    downloads.push({
+                        fileName: file.fileName,
+                        filePath: file.filePath,
+                        fileSize: file.fileSize,
+                        fileCategory: file.fileCategory?.toLowerCase(),
+                        fileProductCategory: file.fileProductCategory?.toLowerCase(),
+                        productName,
+                        modelName: modelLang.ModelName || 'Unnamed Model',
+                        lang,
+                        type: 'model'
+                    });
+                }
             }
-          }
-          
+        }
+
 
         // 🧩 2. Add CatalogCategory uploaded files
         for (const category of catalogCategories) {
@@ -566,7 +588,7 @@ exports.getDownloads = async (req, res, next) => {
     }
 };
 
-  
+
 
 
 
@@ -628,39 +650,39 @@ exports.getQualitypolicy = (req, res, next) => {
 
 exports.getWarrantyRegistration = (req, res) => {
     const lang = req.params.lang || 'EN';
-    
-    Product.find()
-      .then(products => {
-        res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'customer', 'WarrantyRegistration.ejs'), {
-          pageTitle: 'Warranty Registration',
-          products,
-          lang,
-          req // 👈 pass full request to access query params in EJS
-        });
-      })
-      .catch(err => {
-        console.error(err);
-        res.redirect('/');
-      });
-  };
-  
-  
 
-  exports.postWarrantyRegistration = async (req, res) => {
+    Product.find()
+        .then(products => {
+            res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'customer', 'WarrantyRegistration.ejs'), {
+                pageTitle: 'Warranty Registration',
+                products,
+                lang,
+                req // 👈 pass full request to access query params in EJS
+            });
+        })
+        .catch(err => {
+            console.error(err);
+            res.redirect('/');
+        });
+};
+
+
+
+exports.postWarrantyRegistration = async (req, res) => {
     try {
-      const {
-        name, email, datePurchased,
-        deviceCategory, deviceModel, serialNo, message,lang
-      } = req.body;
-  
-      await new WarrantyRegistration({
-        name, email, datePurchased,
-        deviceCategory, deviceModel, serialNo, message,lang: req.body.lang
-      }).save();
-  
-      res.redirect(`/WarrantyRegistration/${lang}?success=true`);
+        const {
+            name, email, datePurchased,
+            deviceCategory, deviceModel, serialNo, message, lang
+        } = req.body;
+
+        await new WarrantyRegistration({
+            name, email, datePurchased,
+            deviceCategory, deviceModel, serialNo, message, lang: req.body.lang
+        }).save();
+
+        res.redirect(`/WarrantyRegistration/${lang}?success=true`);
     } catch (err) {
-      console.error(err);
-      res.redirect(`/WarrantyRegistration/${lang}?error=true`);
+        console.error(err);
+        res.redirect(`/WarrantyRegistration/${lang}?error=true`);
     }
-  };
+};

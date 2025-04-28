@@ -1,6 +1,7 @@
 <%- include('../../includes/sellercompany/head.ejs') %>
 
-    <link rel="stylesheet" href="/sellercompany/addNewModel.css">
+    <link rel="stylesheet" href="/css/sellercompany/addNewModel.css">
+
     <script src="https://cdn.tiny.cloud/1/mtjy6djndp0eitzxztgrpeyb5j51l2d31765itt3gj45jl8c/tinymce/6/tinymce.min.js"
         referrerpolicy="origin"></script>
     <script>
@@ -60,14 +61,16 @@
                                         <div class="input-container">
                                             <label for="modelcapacity">Model Capacity</label>
                                             <input type="number" name="modelcapacity"
-                                              class="<%= validationErrors.find(e => e.path === 'modelcapacity') ? 'is-invalid' : '' %>"
-                                              value="<%= model?.modelcapacity || '' %>">
-                                            <% const capErr = validationErrors.find(e => e.path === 'modelcapacity'); %>
-                                            <% if (capErr) { %>
-                                              <div class="form-error"><%= capErr.msg %></div>
-                                            <% } %>
-                                          </div>
-                                          
+                                                class="<%= validationErrors.find(e => e.path === 'modelcapacity') ? 'is-invalid' : '' %>"
+                                                value="<%= model?.modelcapacity || '' %>">
+                                            <% const capErr=validationErrors.find(e=> e.path === 'modelcapacity'); %>
+                                                <% if (capErr) { %>
+                                                    <div class="form-error">
+                                                        <%= capErr.msg %>
+                                                    </div>
+                                                    <% } %>
+                                        </div>
+
 
                                         <% ['EN', 'ES' , 'GR' ].forEach(lang=> { %>
                                             <div class="language-section">
@@ -77,8 +80,7 @@
                                                     <label>Model Name</label>
                                                     <input type="text" name="ModelName_<%= lang %>"
                                                         class="<%= validationErrors.find(e => e.path === `ModelName_${lang}`) ? 'is-invalid' : '' %>"
-                                                        value="<%= model?.Language?.[lang]?.[0]?.ModelName || '' %>"
-                                                        >
+                                                        value="<%= model?.Language?.[lang]?.[0]?.ModelName || '' %>">
 
                                                     <% const err=validationErrors.find(e=> e.path ===
                                                         `ModelName_${lang}`); %>
@@ -188,17 +190,23 @@
                                                 <!-- Model Thumbnail -->
                                                 <div class="input-container">
                                                     <label>Model Thumbnail</label>
-                                                    <input type="file" name="ModelThumbnail" accept="image/*" class="<%= validationErrors.find(e => e.path === 'ModelThumbnail') ? 'is-invalid' : '' %>">
-                                                    <% const thumbErr = validationErrors.find(e => e.path === 'ModelThumbnail'); %>
-                                                    <% if (thumbErr) { %>
-                                                      <div class="form-error"><%= thumbErr.msg %></div>
-                                                    <% } %>
-                                                    <% if (model?.ModelThumbnail) { %>
-                                                      <img src="/<%= model.ModelThumbnail %>" style="max-width: 100px;">
-                                                      <input type="hidden" name="oldModelThumbnail" value="<%= model.ModelThumbnail %>">
-                                                    <% } %>
-                                                  </div>
-                                                  
+                                                    <input type="file" name="ModelThumbnail" accept="image/*"
+                                                        class="<%= validationErrors.find(e => e.path === 'ModelThumbnail') ? 'is-invalid' : '' %>">
+                                                    <% const thumbErr=validationErrors.find(e=> e.path ===
+                                                        'ModelThumbnail'); %>
+                                                        <% if (thumbErr) { %>
+                                                            <div class="form-error">
+                                                                <%= thumbErr.msg %>
+                                                            </div>
+                                                            <% } %>
+                                                                <% if (model?.ModelThumbnail) { %>
+                                                                    <img src="/<%= model.ModelThumbnail %>"
+                                                                        style="max-width: 100px;">
+                                                                    <input type="hidden" name="oldModelThumbnail"
+                                                                        value="<%= model.ModelThumbnail %>">
+                                                                    <% } %>
+                                                </div>
+
 
                                                 <!-- Model Photos -->
                                                 <div class="input-container">
@@ -282,27 +290,27 @@
                     }
                 </script>
 
-               <script>
-  const modelData = <%- JSON.stringify(model?.Language || {}) %>;
+                <script>
+                    const modelData = <% - JSON.stringify(model?.Language || {}) %>;
 
-  ['EN', 'ES', 'GR'].forEach(lang => {
-    const langData = modelData[lang]?.[0];
-    if (!langData) return;
+                    ['EN', 'ES', 'GR'].forEach(lang => {
+                        const langData = modelData[lang]?.[0];
+                        if (!langData) return;
 
-    // ✅ Technical Specifications
-    const specContainer = document.getElementById(`specs_${lang}_container`);
-    const specs = Array.isArray(langData.technicalSpecifications) ? langData.technicalSpecifications : [];
+                        // ✅ Technical Specifications
+                        const specContainer = document.getElementById(`specs_${lang}_container`);
+                        const specs = Array.isArray(langData.technicalSpecifications) ? langData.technicalSpecifications : [];
 
-    if (specs.length === 0) {
-      // Add one empty section if none exists
-      addSpecSection(lang);
-    } else {
-      specs.forEach((section, si) => {
-        const div = document.createElement('div');
-        div.className = 'spec-section';
-        div.dataset.index = si;
+                        if (specs.length === 0) {
+                            // Add one empty section if none exists
+                            addSpecSection(lang);
+                        } else {
+                            specs.forEach((section, si) => {
+                                const div = document.createElement('div');
+                                div.className = 'spec-section';
+                                div.dataset.index = si;
 
-        div.innerHTML = `
+                                div.innerHTML = `
           <input type="text" name="technicalSpecifications[${lang}][${si}][sectionTitle]" value="${section.sectionTitle || ''}" placeholder="Section Title">
           <div class="rows-container">
             ${(section.rows || []).map((row, ri) => `
@@ -316,23 +324,23 @@
           <button type="button" onclick="addSpecRow(this)">Add Row</button>
           <button type="button" onclick="this.closest('.spec-section').remove()">Remove Section</button>
         `;
-        specContainer.appendChild(div);
-      });
-    }
+                                specContainer.appendChild(div);
+                            });
+                        }
 
-    // ✅ Downloads
-    const downloadContainer = document.getElementById(`download_${lang}_container`);
-    const downloads = Array.isArray(langData.downloads) ? langData.downloads : [];
+                        // ✅ Downloads
+                        const downloadContainer = document.getElementById(`download_${lang}_container`);
+                        const downloads = Array.isArray(langData.downloads) ? langData.downloads : [];
 
-    if (downloads.length === 0) {
-      // Add an empty field
-      addDownloadField(lang);
-    } else {
-      downloads.forEach((file, index) => {
-        const div = document.createElement('div');
-        div.className = 'download-item';
-        div.id = `existing-download-${lang}-${index}`;
-        div.innerHTML = `
+                        if (downloads.length === 0) {
+                            // Add an empty field
+                            addDownloadField(lang);
+                        } else {
+                            downloads.forEach((file, index) => {
+                                const div = document.createElement('div');
+                                div.className = 'download-item';
+                                div.id = `existing-download-${lang}-${index}`;
+                                div.innerHTML = `
           <div>
             📝 <strong>${file.fileName || ''}</strong> (${file.fileCategory || ''}) - ${file.fileSize || ''}
             <a href="/${file.filePath}" target="_blank">Download</a>
@@ -341,64 +349,28 @@
           <input type="hidden" name="deletedDownloads_${lang}[]" value="${file.filePath}" disabled>
           <button type="button" onclick="removeExistingDownload('${lang}', ${index})">❌ Delete</button>
         `;
-        downloadContainer.appendChild(div);
-      });
-    }
-  });
-
-  function removeExistingDownload(lang, index) {
-    const wrapper = document.getElementById(`existing-download-${lang}-${index}`);
-    if (!wrapper) return;
-
-    const keepInput = wrapper.querySelector(`input[name="existingDownloads_${lang}[]"]`);
-    if (keepInput) keepInput.disabled = true;
-
-    const deleteInput = wrapper.querySelector(`input[name="deletedDownloads_${lang}[]"]`);
-    if (deleteInput) deleteInput.disabled = false;
-
-    wrapper.style.display = 'none';
-  }
-</script>
-
-                <!-- <script>
-                    function validateModelForm() {
-                        const form = document.getElementById('modelForm');
-                        const modelCapacity = form.querySelector('[name="modelcapacity"]');
-                        const modelNameEN = form.querySelector('[name="ModelName_EN"]');
-
-                        // Check Model Capacity
-                        if (modelCapacity.value <= 0) {
-                            alert("Model Capacity must be greater than 0.");
-                            modelCapacity.focus();
-                            return false;
+                                downloadContainer.appendChild(div);
+                            });
                         }
+                    });
 
-                        // Check Model Name (EN)
-                        if (modelNameEN.value.trim().length < 3) {
-                            alert("Model Name (EN) must be at least 3 characters.");
-                            modelNameEN.focus();
-                            return false;
-                        }
+                    function removeExistingDownload(lang, index) {
+                        const wrapper = document.getElementById(`existing-download-${lang}-${index}`);
+                        if (!wrapper) return;
 
-                        // Optional: Check file size for overviewThumbnail
-                        const overviewThumb = form.querySelector('[name="overviewThumbnail"]');
-                        if (overviewThumb.files.length > 0 && overviewThumb.files[0].size > 2 * 1024 * 1024) {
-                            alert("Overview Thumbnail must be less than 2MB.");
-                            overviewThumb.focus();
-                            return false;
-                        }
+                        const keepInput = wrapper.querySelector(`input[name="existingDownloads_${lang}[]"]`);
+                        if (keepInput) keepInput.disabled = true;
 
-                        // You can repeat this pattern for other languages and inputs...
+                        const deleteInput = wrapper.querySelector(`input[name="deletedDownloads_${lang}[]"]`);
+                        if (deleteInput) deleteInput.disabled = false;
 
-                        return true; // allow form to submit
+                        wrapper.style.display = 'none';
                     }
-                </script> -->
+                </script>
 
 
 
-                <script src="/assets/Js/nav-bar.js"></script>
-                <script src="/assets/Js/addNewModel.js"></script>
-                <script src="/assets/Js/model-dynamic-fields.js"></script>
+
         </body>
 
         </html>

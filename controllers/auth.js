@@ -21,7 +21,7 @@ exports.getLogin = ((req, res, next) => {
     } else {
         message = null;
     }
-    res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'auth', 'login'), {
+    res.render(path.join(__dirname, '..', 'front-end', 'html', 'auth', 'login'), {
         path: '/login',
         pageTitle: 'Login',
         isAuthenticated: false,

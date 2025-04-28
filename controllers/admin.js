@@ -18,26 +18,60 @@ const fs = require('fs');
 
 
 exports.getAddProduct = (req, res, next) => {
-  Category.find()
-    .then(categories => {
-      res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'sellercompany', 'edit-product'), {
-        pageTitle: 'Add Product',
-        path: '/admin/add-product',
-        editing: false,
-        hasError: true,
-        categories: categories,
-        product: {}, // Empty product object for the form
-        validationErrors: [],
-        errorMessage: null,
-        isAuthenticated: req.session.isLoggedIn,
-        languages: ['EN', 'ES', 'GR'] // Add supported languages
-      });
-    })
-    .catch(err => {
-      console.error(err);
-      res.redirect('/admin/add-product');
-    });
+    res.render('sellercompany/edit-product', {
+
+    pageTitle: 'Add Product',
+    path: '/admin/add-product',
+    editing: false,
+    hasError: false,
+    product: { 
+      Language: {
+        EN: [{
+          ProductName: '',
+          ProductNameDesc: '',
+          ProductDesc: '',
+          WhyProductDesc: '',
+          features: [
+            { FeatureImage: '', FeatureName: '', FeatureDesc: '' },
+            { FeatureImage: '', FeatureName: '', FeatureDesc: '' },
+            { FeatureImage: '', FeatureName: '', FeatureDesc: '' },
+            { FeatureImage: '', FeatureName: '', FeatureDesc: '' }
+          ]
+        }],
+        ES: [{
+          ProductName: '',
+          ProductNameDesc: '',
+          ProductDesc: '',
+          WhyProductDesc: '',
+          features: [
+            { FeatureName: '', FeatureDesc: '' },
+            { FeatureName: '', FeatureDesc: '' },
+            { FeatureName: '', FeatureDesc: '' },
+            { FeatureName: '', FeatureDesc: '' }
+          ]
+        }],
+        GR: [{
+          ProductName: '',
+          ProductNameDesc: '',
+          ProductDesc: '',
+          WhyProductDesc: '',
+          features: [
+            { FeatureName: '', FeatureDesc: '' },
+            { FeatureName: '', FeatureDesc: '' },
+            { FeatureName: '', FeatureDesc: '' },
+            { FeatureName: '', FeatureDesc: '' }
+          ]
+        }]
+      }
+    },
+    validationErrors: [],
+    errorMessage: null,
+    isAuthenticated: req.session.isLoggedIn,
+    languages: ['EN', 'ES', 'GR'],
+    isDraft: false // because it's new
+  });
 };
+
 exports.postAddProduct = (req, res, next) => {
   const productThumbnail = req.files['productThumbnail']?.[0]?.path.replace(/\\/g, '/') || req.body.oldProductThumbnail || '';
   const productSketch = req.files['productSketch']?.[0]?.path.replace(/\\/g, '/') || req.body.oldProductSketch || '';
@@ -243,32 +277,26 @@ exports.getEditProduct = (req, res, next) => {
       if (!product) {
         return res.redirect('/');
       }
-      // Fetch categories before rendering the template
-      Category.find()
-        .then(categories => {
-          res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'sellercompany', 'edit-product.ejs'), {
-            pageTitle: 'Edit Product',
-            path: '/admin/edit-product',
-            editing: editMode,
-            product: product,
-            categories: categories, // Pass categories to the template
-            hasError: false,
-            validationErrors: [],
-            errorMessage: null,
-            isAuthenticated: req.session.isLoggedIn,
-            isDraft: product.isDraft,
-          });
-        })
-        .catch(err => {
-          console.log(err);
-          res.redirect('/');
-        });
+      
+      res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'sellercompany', 'edit-product.ejs'), {
+        pageTitle: 'Edit Product',
+        path: '/admin/edit-product',
+        editing: editMode,
+        product: product,
+        hasError: false,
+        validationErrors: [],
+        errorMessage: null,
+        isAuthenticated: req.session.isLoggedIn,
+        isDraft: product.isDraft
+        // ❌ no categories anymore
+      });
     })
     .catch(err => {
       console.log(err);
       res.redirect('/');
     });
 };
+
 
 exports.postEditProduct = (req, res, next) => {
   const productId = req.body.productId;
@@ -1239,7 +1267,7 @@ exports.getDashboard = async (req, res, next) => {
 
 
 
-    res.render(sellercompany/dashboard, {
+    res.render('sellercompany/dashboard', {
       pageTitle: 'Dashboard',
       products: products,
       path: '/admin/Dashboard',
@@ -1256,7 +1284,8 @@ exports.getDashboard = async (req, res, next) => {
 
 exports.getAllCategories = async (req, res) => {
   const categories = await CatalogCategory.find();
-  res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'sellercompany', 'Catalog-categories'), {
+  res.render('sellercompany/Catalog-categories', {
+
     pageTitle: 'Catalog Categories',
     categories,
     path: '/admin/catalogs',
