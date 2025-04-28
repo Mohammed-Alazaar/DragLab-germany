@@ -32,7 +32,7 @@ const store = new MongoDBStore({
 
 app.set('view engine', 'ejs');
 
-app.set('views', path.join(__dirname, 'Front-end', 'HTML'));
+app.set('views', path.join(__dirname, 'front-end', 'HTML'));
 
 const adminRoutes = require('./routes/admin');
 const shopRoutes = require('./routes/shop');

@@ -20,7 +20,7 @@ const fs = require('fs');
 exports.getAddProduct = (req, res, next) => {
   Category.find()
     .then(categories => {
-      res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'sellercompany', 'edit-product.ejs'), {
+      res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'sellercompany', 'edit-product'), {
         pageTitle: 'Add Product',
         path: '/admin/add-product',
         editing: false,
@@ -1239,7 +1239,7 @@ exports.getDashboard = async (req, res, next) => {
 
 
 
-    res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'sellercompany', 'dashboard'), {
+    res.render(sellercompany/dashboard, {
       pageTitle: 'Dashboard',
       products: products,
       path: '/admin/Dashboard',

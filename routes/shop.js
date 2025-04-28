@@ -7,7 +7,6 @@ const WarrantyRegistration = require('../models/warrantyRegistration'); // Add a
 const Product = require('../models/product');
 
 //shop/getting home page => GET
-router.get('/', shopController.getHomePage);
 router.get('/:lang', shopController.getHomePage);
 //shop/getting all products => GET
 router.get('/Products', shopController.getProducts);
