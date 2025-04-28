@@ -11,7 +11,7 @@
   "author": "Mohammed alazaar",
   "license": "ISC",
   "engines": {
-    "node": "20.x"
+    "node": "20.10.0"
   },
   "dependencies": {
     "@babylonjs/core": "^7.6.1",
