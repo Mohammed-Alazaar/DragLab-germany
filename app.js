@@ -21,8 +21,7 @@ const User = require('./models/user');
 const app = express();
 
 
-const MONGODB_URI = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@cluster0.yrit4.mongodb.net/${process.env.MONGO_DATABASE}?retryWrites=true&w=majority&tls=true`;
-
+const MONGODB_URI = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@cluster0.yrit4.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 const store = new MongoDBStore({
     uri: MONGODB_URI,
