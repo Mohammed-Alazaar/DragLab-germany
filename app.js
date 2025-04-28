@@ -30,7 +30,6 @@ const store = new MongoDBStore({
 
 
 
-
 app.set('view engine', 'ejs');
 
 app.set('views', 'front-end/HTML'); // This is the default setting, so you don't actually need to specify this line
