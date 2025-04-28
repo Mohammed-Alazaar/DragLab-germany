@@ -40,16 +40,21 @@ const authRoutes = require('./routes/auth');
 const accountRoutes = require('./routes/account');
 const accessLogStream = fs.createWriteStream(path.join(__dirname, 'access.log'), { flags: 'a' });
 
+app.use(helmet()); // Secure HTTP headers
 app.use(bodyParser.json({ limit: '10mb' }));
 app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
 
 app.use(express.static(path.join(__dirname, 'front-end'))); // This will make the front-end folder accessible to the public
-app.use(session({ secret: ' my secret', resave: false, saveUninitialized: false, store: store }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use(session({ secret: ' my secret', resave: false, saveUninitialized: false, store: store }));
 
 app.use(flash());
 
-
+app.use((req, res, next) => {
+    res.locals.isAuthenticated = req.session.isLoggedIn;
+    res.locals.user = req.session.user;
+    next();
+});
 
 app.use((req, res, next) => {
     if (!req.session.user) {
@@ -69,7 +74,7 @@ app.use((req, res, next) => {
         });
 });
 
-
+// Log and compress
 app.use(compression()); // Compress all routes
 app.use(morgan('combined', { stream: accessLogStream })); // Log all requests to the console
 
@@ -78,11 +83,7 @@ app.use('/admin', adminRoutes);
 app.use(shopRoutes);
 app.use(authRoutes);
 app.use(accountRoutes);
-app.use((req, res, next) => {
-    res.locals.isAuthenticated = req.session.isLoggedIn;
-    res.locals.user = req.session.user;
-    next();
-});
+
 
 app.use(errorController.get404);
 app.use((error, req, res, next) => {

@@ -409,7 +409,7 @@ exports.getSupport = (req, res, next) => {
 
     Product.find()
         .then(products => {
-            res.render(path.join(__dirname, '..', 'front-end', 'html', 'customer', 'support.ejs'), {
+                res.render('customer/support', {
                 pageTitle: 'support',
                 path: '/support',
                 products: products,
