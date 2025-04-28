@@ -31,7 +31,7 @@ exports.getHomePage = (req, res, next) => {
         }).sort({ createdAt: -1 }).limit(10) // limit to 10 latest
     ])
     .then(([products, slides, articles]) => {
-        res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'customer', 'Home-page'), {
+        res.render('customer/Home-page', {
             pageTitle: 'Home',
             path: '/',
             products,
