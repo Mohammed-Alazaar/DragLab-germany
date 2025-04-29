@@ -193,7 +193,7 @@ exports.postAddProduct = (req, res, next) => {
       }
     });
 
-    return res.status(422).render(path.join(__dirname, '..', 'front-end', 'HTML', 'sellercompany', 'edit-product'), {
+    return res.status(422).render('sellercompany/edit-product', {
       pageTitle: 'Add Product',
       path: '/admin/add-product',
       editing: false,
@@ -251,7 +251,7 @@ exports.getMyproduct = (req, res, next) => {
     // .populate('userId', 'name')
 
     .then(products => {
-      res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'sellercompany', 'my-products'), {
+      res.render('sellercompany/my-products', {
         pageTitle: 'My Product',
         path: '/admin/Myproduct',
         prods: products,
@@ -278,7 +278,7 @@ exports.getEditProduct = (req, res, next) => {
         return res.redirect('/');
       }
       
-      res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'sellercompany', 'edit-product.ejs'), {
+      res.render('sellercompany/edit-product', {
         pageTitle: 'Edit Product',
         path: '/admin/edit-product',
         editing: editMode,
@@ -409,7 +409,7 @@ exports.postEditProduct = (req, res, next) => {
   });
 
   if (validationErrors.length > 0) {
-    return res.status(422).render(path.join(__dirname, '..', 'front-end', 'HTML', 'sellercompany', 'edit-product.ejs'), {
+    return res.status(422).render('sellercompany/edit-product', {
       pageTitle: 'Edit Product',
       path: '/admin/edit-product',
       editing: true,
@@ -527,7 +527,7 @@ exports.getAddModel = (req, res, next) => {
   const productId = req.params.productId;
   Product.findById(productId).then(product => {
     if (!product) return res.redirect('/admin/Myproduct');
-    res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'sellercompany', 'add-model'), {
+    res.render('sellercompany/add-model', {
       pageTitle: 'Add Model',
       path: '/admin/add-model',
       product,
@@ -548,7 +548,7 @@ exports.getEditModel = (req, res, next) => {
     if (!product) return res.redirect('/admin/Myproduct');
     const model = product.Models.id(modelId);
     if (!model) return res.redirect('/admin/Myproduct');
-    res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'sellercompany', 'add-model'), {
+    res.render('sellercompany/add-model', {
       pageTitle: 'Edit Model',
       path: '/admin/edit-model',
       product,
@@ -720,7 +720,7 @@ exports.postAddModel = (req, res, next) => {
           Language: languageData
         };
 
-        return res.status(422).render(path.join(__dirname, '..', 'front-end', 'HTML', 'sellercompany', 'add-model'), {
+        return res.status(422).render('sellercompany/add-model', {
           pageTitle: 'Add Model',
           path: '/admin/add-model',
           product,
@@ -935,7 +935,7 @@ exports.postEditModel = (req, res, next) => {
 
 
       if (!isDraft && validationErrors.length > 0) {
-        res.status(422).render(path.join(__dirname, '..', 'front-end', 'HTML', 'sellercompany', 'add-model'), {
+        res.status(422).render('sellercompany/add-model', {
           pageTitle: 'Edit Model',
           path: '/admin/edit-model',
           product,
@@ -985,7 +985,7 @@ exports.getAllSlides = (req, res) => {
   Slideshow.find()
     .then(slides => {
 
-      res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'sellercompany', 'indexSlide'), {
+      res.render('sellercompany/indexSlide', {
         path: '/admin/slideshow',
         slides,
         pageTitle: 'Slideshow',
@@ -1000,7 +1000,7 @@ exports.getAllSlides = (req, res) => {
 };
 
 exports.getAddSlideForm = (req, res) => {
-  res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'sellercompany', 'add-indexSlide'), {
+  res.render('sellercompany/add-indexSlide', {
 
     path: '/admin/addslideshow',
     pageTitle: 'Slideshow',
@@ -1038,7 +1038,7 @@ exports.postAddSlide = (req, res) => {
 exports.getEditSlideForm = (req, res) => {
   Slideshow.findById(req.params.id)
     .then(slide => {
-      res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'sellercompany', 'add-indexSlide'), {
+      res.render('sellercompany/add-indexSlide', {
 
         slide,
         pageTitle: 'Edit slide',
@@ -1088,7 +1088,7 @@ exports.deleteSlide = (req, res) => {
 exports.getAllArticles = (req, res) => {
   Article.find()
     .then(articles => {
-      res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'sellercompany', 'all-articles'), {
+      res.render('sellercompany/all-articles', {
         path: '/admin/articles',
         pageTitle: 'Articles',
         articles,
@@ -1100,7 +1100,7 @@ exports.getAllArticles = (req, res) => {
 
 // GET: Add Article Form
 exports.getAddArticle = (req, res) => {
-  res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'sellercompany', 'add-article'), {
+  res.render('sellercompany/add-article', {
     path: '/admin/add-article',
     pageTitle: 'Add Article',
     editing: false,
@@ -1133,7 +1133,7 @@ exports.getEditArticle = (req, res) => {
     .then(article => {
       if (!article) return res.redirect('/admin/articles');
 
-      res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'sellercompany', 'add-article'), {
+      res.render('sellercompany/add-article', {
         article,
         pageTitle: 'Edit Article',
         path: '/admin/edit-article',
@@ -1295,7 +1295,7 @@ exports.getAllCategories = async (req, res) => {
 };
 
 exports.getAddCategoryForm = (req, res) => {
-  res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'sellercompany', 'add-category'), {
+  res.render('sellercompany/add-category', {
     pageTitle: 'Add Catalog Category',
     path: '/admin/catalogs/add',
     isAuthenticated: req.session.isLoggedIn,
@@ -1324,7 +1324,7 @@ exports.postAddCategory = async (req, res) => {
 
 exports.getUploadForm = async (req, res) => {
   const category = await CatalogCategory.findById(req.params.categoryId);
-  res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'sellercompany', 'upload-file'), {
+  res.render('sellercompany/upload-file', {
 
     pageTitle: 'Upload File',
     category,
@@ -1413,7 +1413,7 @@ exports.getAllTechnicalRequests = async (req, res) => {
       };
     }));
 
-    res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'sellercompany', 'all-technical-service'), {
+    res.render('sellercompany/all-technical-service', {
       pageTitle: 'Technical Support Requests',
       path: '/admin/TechnicalRequests',
       requests: requestsWithModelNames,
@@ -1439,7 +1439,7 @@ exports.getTechnicalRequestById = async (req, res) => {
       modelName = model?.Language?.EN?.[0]?.ModelName || 'None';
     }
 
-    res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'sellercompany', 'view-technical-request'), {
+    res.render('sellercompany/view-technical-request', {
       pageTitle: 'Technical Request Details',
       path: '/admin/technical-requests',
       request,
@@ -1589,7 +1589,7 @@ exports.getAllWarrantyRegistrations = async (req, res) => {
       };
     }));
 
-    res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'sellercompany', 'all-warranty-registrations'), {
+    res.render('sellercompany/all-warranty-registrations', {
       warranties: withModelNames,
       pageTitle: 'Warranty Registrations',
       path: '/admin/warranty-registrations',
@@ -1608,7 +1608,7 @@ exports.getWarrantyRegistrationById = async (req, res) => {
     const product = await Product.findById(reg.deviceCategory);
     const model = product?.Models?.id(reg.deviceModel);
 
-    res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'sellercompany', 'view-warranty-registration'), {
+    res.render('sellercompany/view-warranty-registration', {
       registration: reg,
       modelName: model?.Language?.EN?.[0]?.ModelName || 'None',
       isAuthenticated: req.session.isLoggedIn,
@@ -1702,7 +1702,7 @@ exports.getAllContactUs = (req, res, next) => {
   ContactUs.find()
     .sort({ dateSubmitted: -1 })
     .then(messages => {
-      res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'sellercompany', 'contactUs-list'), {
+      res.render('sellercompany/contactUs-list', {
         pageTitle: 'Contact Messages',
         path: '/admin/contactUs-list',
         isAuthenticated: req.session.isLoggedIn,
@@ -1721,7 +1721,7 @@ exports.getContactUsDetail = (req, res, next) => {
   ContactUs.findById(messageId)
     .then(message => {
       if (!message) return res.redirect('/admin/contact-messages');
-      res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'sellercompany', 'contactUs-detail'), {
+      res.render('sellercompany/contactUs-detail', {
         pageTitle: 'Contact Message Detail',
         path: '/admin/contactUs-detail',
         isAuthenticated: req.session.isLoggedIn,

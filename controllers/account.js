@@ -5,7 +5,7 @@ exports.getaccount = (req, res, next) => {
     try {
         const user = req.user; // directly get the user
 
-        res.render(path.join(__dirname, '..', 'front-end', 'html', 'customer', 'account'), {
+        res.render('customer/account', {
             path: '/account',
             pageTitle: 'Your Account',
             user: user,

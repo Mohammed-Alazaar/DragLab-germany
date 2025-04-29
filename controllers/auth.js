@@ -21,7 +21,7 @@ exports.getLogin = ((req, res, next) => {
     } else {
         message = null;
     }
-    res.render(path.join(__dirname, '..', 'front-end', 'html', 'auth', 'login'), {
+    res.render('auth/login', {
         path: '/login',
         pageTitle: 'Login',
         isAuthenticated: false,
@@ -41,7 +41,7 @@ exports.postLogin = (req, res, next) => {
     const password = req.body.password;
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        return res.status(422).render(path.join(__dirname, '..', 'front-end', 'HTML', 'auth', 'login'), {
+        return res.status(422).render('auth/login', {
             path: '/admin/login',
             pageTitle: 'Login',
             isAuthenticated: false,
@@ -56,7 +56,7 @@ exports.postLogin = (req, res, next) => {
     User.findOne({ email: email })
         .then(user => {
             if (!user) {
-                return res.status(422).render(path.join(__dirname, '..', 'front-end', 'HTML', 'auth', 'login'), {
+                return res.status(422).render('auth/login', {
                     path: '/admin/login',
                     pageTitle: 'Login',
                     isAuthenticated: false,
@@ -85,7 +85,7 @@ exports.postLogin = (req, res, next) => {
                             }
                         });
                     }
-                    return res.status(422).render(path.join(__dirname, '..', 'front-end', 'HTML', 'auth', 'login'), {
+                    return res.status(422).render('auth/login', {
                         path: '/admin/login',
                         pageTitle: 'Login',
                         isAuthenticated: false,
@@ -147,7 +147,7 @@ exports.getAdduser = ((req, res, next) => {
     } else {
         message = null;
     }
-    res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'sellercompany', 'adduser'), {
+    res.render('sellercompany/adduser', {
         path: '/admin/adduser',
         pageTitle: 'add user',
         isAuthenticated: true,
@@ -176,7 +176,7 @@ exports.postSignup = (req, res, next) => {
 
     if (!errors.isEmpty()) {
         const errorMessage = '<ul class="sign-up-error-message">' + errors.array().map(error => `<li>${error.msg}</li>`).join('') + '</ul>';
-        return res.status(422).render(path.join(__dirname, '..', 'front-end', 'HTML', 'sellercompany', 'adduser'), {
+        return res.status(422).render('sellercompany/adduser', {
             path: '/signup',
             pageTitle: 'adduser',
             isAuthenticated: false,
