@@ -98,6 +98,15 @@
   .slide-text p {
     width: 60%;
   }
+
+  .slide img {
+    object-fit: cover;
+  }
+
+  #slideshow {
+    height: 60vh;
+  }
+
 }
 
 @media (max-width: 790px) {
@@ -196,7 +205,7 @@
   font-weight: 600;
   color: var(--white-text-Color);
   width: -webkit-fill-available;
-  
+
   overflow: hidden;
   text-overflow: ellipsis;
 }

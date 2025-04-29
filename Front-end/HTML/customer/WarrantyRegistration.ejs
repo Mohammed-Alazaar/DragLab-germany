@@ -33,14 +33,7 @@
                 <% if (req.query.success) { %>
                     <div class="success-message">✅ Your warranty has been successfully registered.</div>
                     <!-- 🛠 Google Ads Conversion Tracking Script for Warranty Registration -->
-                    <script>
-                        gtag('event', 'conversion', {
-                            'send_to': 'AW-754782155/Km5ZCI6_qIQaEMuf9OcC',
-                            'value': 1.0,
-                            'currency': 'USD',
-                            'transaction_id': ''
-                        });
-                    </script>
+              
                     <% } else if (req.query.error) { %>
                         <div class="error-message">❌ Something went wrong. Please try again later.</div>
                         <% } %>
