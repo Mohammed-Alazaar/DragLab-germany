@@ -41,23 +41,26 @@ ul {
     gap: 2rem;
 }
 
+.sidebar-content-container {
+    width: 100%;
+}
 
-
-
-
-
+.catalog-container {
+    width: 100%;
+}
 
 .catalog-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
+    margin: 20px;
+    width: 100%;
 }
 
 .catalog-header h1 {
     font-size: 26px;
     font-weight: 600;
-    color: #333;
+    color: var(--primary-Color);
 }
 
 .catalog-header a {
@@ -67,6 +70,7 @@ ul {
     text-decoration: none;
     font-weight: bold;
     transition: ease-in-out 0.3s;
+    margin: 0 10rem 0 0;
 }
 
 .catalog-header a:hover {

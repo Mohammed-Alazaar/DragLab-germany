@@ -11,22 +11,7 @@
         </div>
 
         <div class="footer-links">
-            <!-- <div class="footer-column">
-                <h4>Products</h4>
-                <ul>
-                    <% if (typeof products !== 'undefined' && products.length > 0) { %>
-                        <% products.slice(0, 3).forEach(product => { %>
-                            <li>
-                                <a href="/product/<%= product._id %>/<%= lang %>">
-                                    <%= product.Language[lang]?.[0]?.ProductName || product.Language['EN'][0]?.ProductName %>
-                                </a>
-                            </li>
-                        <% }) %>
-                    <% } else { %>
-                        <li>No products available</li>
-                    <% } %>
-                </ul>
-            </div> -->
+    
 
 
             <div class="footer-column">
@@ -53,8 +38,8 @@
                 <h4>Support</h4>
                 <ul>
                     <li><a href="/technical-service/EN">Technical Service</a></li>
+                    <li><a href="/Contactus/EN">Contact us</a></li>
                     <li><a href="/Downloads/EN">Download Center</a></li>
-                    <li><a href="/Qualitypolicy/EN">Quality Policy</a></li>
 
                     <!-- <li><a href="#">FAQs</a></li>
                     <li><a href="#">Quality Assurance Process</a></li> -->
@@ -70,7 +55,7 @@
                     <li><span class="highlighted">Fax :</span> +49 6196 400910</li>
 
                     <li>
-                        <span class="highlighted">Email:</span> <a href="mailto:info@drag-lab.de">webmaster@drag-lab.de</a>
+                        <span class="highlighted">Email:</span> <a href="mailto:info@drag-lab.de">info@drag-lab.de</a>
                     </li>
                 </ul>
             </div>

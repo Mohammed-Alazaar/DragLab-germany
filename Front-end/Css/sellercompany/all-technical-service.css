@@ -21,3 +21,9 @@ th {
 tr:nth-child(even) {
     background-color: #fafafa;
 }
+
+.content-container h1 {
+    color: var(--primary-Color);
+    font-size: 28px;
+    margin-bottom: 20px;
+}

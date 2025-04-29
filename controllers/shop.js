@@ -273,7 +273,7 @@ exports.getModelDetailsPage = (req, res, next) => {
 
             // ✅ Fetch all products for the navbar
             return Product.find().then(allProducts => {
-                res.render('customer/model-details', {
+                res.render('customer/Model-details', {
                     pageTitle: currentLangData.ModelName || "Model Details",
                     overview: (currentLangData.overview?.length ? currentLangData.overview : englishLangData.overview || []).map((o, i) => {
                         const base = o.toObject ? o.toObject() : o;
@@ -471,7 +471,7 @@ exports.getArticles = async (req, res) => {
 
         const allProducts = await Product.find(); // ✅ Used by navbar
 
-        res.render('customer/articles', {
+        res.render('customer/Articles', {
             articles,
             lang,
             products: allProducts // ✅ Now navbar will work

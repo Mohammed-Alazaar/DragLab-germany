@@ -210,11 +210,12 @@ exports.postSignup = (req, res, next) => {
     })
     
     .then(() => {
-        if (role === 'admin' || role === 'seller') {
+        if (role === 'admin' || role === 'subAdmin') {
             res.redirect('/admin/dashboard');
         } else {
             res.redirect('/admin/adduser');
         }
+        console.log('User created successfully!');
     })
     .catch(err => {
         console.log(err);
