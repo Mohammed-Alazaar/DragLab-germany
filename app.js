@@ -7,7 +7,6 @@ const mongoose = require('mongoose');
 const session = require('express-session');
 const MongoDBStore = require('connect-mongodb-session')(session);
 const flash = require('connect-flash');
-const helmet = require('helmet');
 const compression = require('compression');
 const morgan = require('morgan');
 const fs = require('fs');
@@ -41,11 +40,12 @@ const authRoutes = require('./routes/auth');
 const accountRoutes = require('./routes/account');
 const accessLogStream = fs.createWriteStream(path.join(__dirname, 'access.log'), { flags: 'a' });
 
-app.use(helmet()); // Secure HTTP headers
 app.use(bodyParser.json({ limit: '10mb' }));
 app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
 
-app.use(express.static(path.join(__dirname, 'front-end'))); // This will make the front-end folder accessible to the public
+app.use('/assets', express.static(path.join(__dirname, 'Front-end', 'assets')));
+app.use('/css', express.static(path.join(__dirname, 'Front-end', 'Css')));
+app.use('/includes', express.static(path.join(__dirname, 'Front-end', 'includes')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(session({ secret: ' my secret', resave: false, saveUninitialized: false, store: store }));
 
