@@ -3,7 +3,7 @@
 
     <link rel="stylesheet" href="/css/customer/WarrantyRegistration.css">
     <script
-    src="https://www.google.com/recaptcha/enterprise.js?render=6LdBFQkrAAAAALGPy8986JpxndbqzY1_6kEDxH1s"></script>
+        src="https://www.google.com/recaptcha/enterprise.js?render=6LdBFQkrAAAAALGPy8986JpxndbqzY1_6kEDxH1s"></script>
 
 
 
@@ -33,7 +33,7 @@
                 <% if (req.query.success) { %>
                     <div class="success-message">✅ Your warranty has been successfully registered.</div>
                     <!-- 🛠 Google Ads Conversion Tracking Script for Warranty Registration -->
-              
+
                     <% } else if (req.query.error) { %>
                         <div class="error-message">❌ Something went wrong. Please try again later.</div>
                         <% } %>
@@ -104,7 +104,10 @@
                                 </div>
 
                                 <input type="hidden" name="lang" value="<%= lang %>">
-
+                                <div class="recaptcha">
+                                    <div class="g-recaptcha" data-sitekey="6LdBFQkrAAAAALGPy8986JpxndbqzY1_6kEDxH1s">
+                                    </div>
+                                </div>
 
                                 <div class="submit-button">
                                     <button class="g-recaptcha" data-sitekey="6LdBFQkrAAAAALGPy8986JpxndbqzY1_6kEDxH1s"
@@ -112,10 +115,7 @@
                                         Send Message
                                     </button>
                                 </div>
-                                <div class="recaptcha">
-                                    <div class="g-recaptcha" data-sitekey="6LdBFQkrAAAAALGPy8986JpxndbqzY1_6kEDxH1s">
-                                    </div>
-                                </div>
+
                             </form>
 
             </section>
