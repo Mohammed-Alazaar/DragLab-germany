@@ -409,7 +409,7 @@ exports.getSupport = (req, res, next) => {
 
     Product.find()
         .then(products => {
-                res.render('customer/support', {
+                res.render('customer/Support', {
                 pageTitle: 'support',
                 path: '/support',
                 products: products,
@@ -686,3 +686,4 @@ exports.postWarrantyRegistration = async (req, res) => {
         res.redirect(`/WarrantyRegistration/${lang}?error=true`);
     }
 };
+
