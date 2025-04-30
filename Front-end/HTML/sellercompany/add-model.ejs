@@ -291,7 +291,8 @@
                 </script>
 
                 <script>
-                    const modelData = <% - JSON.stringify(model?.Language || {}) %>;
+                        const modelData = <%- JSON.stringify(model?.Language || {}) %>;
+
 
                     ['EN', 'ES', 'GR'].forEach(lang => {
                         const langData = modelData[lang]?.[0];
