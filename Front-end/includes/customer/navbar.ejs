@@ -478,12 +478,14 @@
                             div.classList.add('search-item');
                             div.textContent = `${item.name} (${item.type})`;
                             div.addEventListener('click', () => {
+                                const lang = getCurrentLang();
+
                                 if (item.type === 'product') {
-                                    window.location.href = `/product/${item.id}`;
+                                    window.location.href = `/product/${item.id}/${lang}`;
                                 } else if (item.type === 'model') {
-                                    window.location.href = `/product/${item.productId}/model/${item.id}`;
+                                    window.location.href = `/model/${item.productId}/${item.id}/${lang}`;
                                 } else if (item.type === 'article') {
-                                    window.location.href = `/news/details/${item.id}`;
+                                    window.location.href = `/article/${item.id}/${lang}`;
                                 }
                             });
                             resultsContainer.appendChild(div);

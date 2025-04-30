@@ -38,7 +38,7 @@
                         <div class="error-message">❌ Something went wrong. Please try again later.</div>
                         <% } %>
 
-                            <form action="/submit-warranty" method="POST">
+                            <form id="warranty-form" action="/submit-warranty" method="POST">
                                 <div class="checkbox-group">
                                     <input type="checkbox" name="Dataprocessing" required>
                                     <label id="Dataprocessing" for="Dataprocessing">I agree to the processing of my
@@ -104,6 +104,7 @@
                                 </div>
 
                                 <input type="hidden" name="lang" value="<%= lang %>">
+                                
                                 <div class="recaptcha">
                                     <div class="g-recaptcha" data-sitekey="6LdBFQkrAAAAALGPy8986JpxndbqzY1_6kEDxH1s">
                                     </div>
@@ -115,6 +116,17 @@
                                         Send Message
                                     </button>
                                 </div>
+                                <script>
+                                    function onSubmit(token) {
+                                        const form = document.getElementById("warranty-form");
+                                        if (form.checkValidity()) {
+                                            form.submit();
+                                        } else {
+                                            // Trigger built-in browser validation UI
+                                            form.reportValidity();
+                                        }
+                                    }
+                                </script>
 
                             </form>
 

@@ -6,8 +6,6 @@ const isAuth = require('../middleware/is-auth');
 const WarrantyRegistration = require('../models/warrantyRegistration'); // Add at the top
 const Product = require('../models/product');
 
-//shop/getting home page => GET
-router.get('/:lang', shopController.getHomePage);
 //shop/getting all products => GET
 router.get('/Products', shopController.getProducts);
 //shop/getting product details by product id => GET
@@ -62,5 +60,7 @@ router.get('/api/models/:productId', async (req, res) => {
 
 
 
+//shop/getting home page => GET
+router.get('/:lang', shopController.getHomePage);
 
 module.exports = router;

@@ -301,6 +301,9 @@ select#languageSwitcher {
     margin: 10px;
 }
 
+.navLeft {
+    position: relative;
+}
 
 @media only screen and (min-width: 1024px) and (max-width: 1335px) {
 
@@ -590,7 +593,7 @@ select#languageSwitcher {
     }
 }
 
-.navMidRight a{
+.navMidRight a {
     text-decoration: none;
     color: #f2f2fe;
     font-size: 24px;

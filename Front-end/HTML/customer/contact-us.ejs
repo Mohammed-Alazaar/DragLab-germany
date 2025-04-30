@@ -46,7 +46,7 @@
                             <!-- Contact Form -->
                             <div class="contact-form">
                                 <h2>Contact Information</h2>
-                                <form action="/submit-contactus" method="POST">
+                                <form id="contactus-form" action="/submit-contactus" method="POST">
                                     <div class="row">
                                         <div class="field">
                                             <label for="first">First Name</label>
@@ -77,12 +77,27 @@
                                                 required></textarea>
                                         </div>
                                     </div>
+                                    <div class="recaptcha">
+                                        <div class="g-recaptcha" data-sitekey="6LdBFQkrAAAAALGPy8986JpxndbqzY1_6kEDxH1s">
+                                        </div>
+                                    </div>
                                     <div class="submit-button">
                                         <button class="g-recaptcha submit-btn" data-sitekey="6LdBFQkrAAAAALGPy8986JpxndbqzY1_6kEDxH1s"
                                             data-callback='onSubmit' data-action='submit' type="submit">
                                             Send Message
                                         </button>
                                     </div>
+                                    <script>
+                                        function onSubmit(token) {
+                                            const form = document.getElementById("contactus-form");
+                                            if (form.checkValidity()) {
+                                                form.submit();
+                                            } else {
+                                                // Trigger built-in browser validation UI
+                                                form.reportValidity();
+                                            }
+                                        }
+                                    </script>
                                 </form>
 
                             </div>

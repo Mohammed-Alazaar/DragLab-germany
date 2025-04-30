@@ -171,23 +171,36 @@ exports.getProduct = (req, res, next) => {
 exports.search = async (req, res) => {
     const query = req.query.q;
     if (!query || query.length < 3) {
-        return res.json([]); // Return empty if less than 3 letters
+        return res.json([]);
     }
 
     try {
-        const productResults = await Product.find({
-            name: { $regex: query, $options: 'i' },
-            isDraft: false
-        }).limit(5); // Limit results for performance
+        // Get all non-draft products (we'll filter names manually)
+        const allProducts = await Product.find({ isDraft: false });
 
-        // Search inside product models too
+        const productResults = [];
         const modelResults = [];
-        productResults.forEach(product => {
-            product.Models.forEach(model => {
-                if (model.modelname.toLowerCase().includes(query.toLowerCase())) {
+
+        allProducts.forEach(product => {
+            const productLang = product.Language?.EN?.[0];
+
+            if (productLang?.ProductName?.toLowerCase().includes(query.toLowerCase())) {
+                productResults.push({
+                    type: 'product',
+                    name: productLang.ProductName,
+                    id: product._id
+                });
+            }
+
+            // Search through models
+            product.Models?.forEach(model => {
+                if (!model.isPublished) return;
+
+                const modelLang = model.Language?.EN?.[0];
+                if (modelLang?.ModelName?.toLowerCase().includes(query.toLowerCase())) {
                     modelResults.push({
                         type: 'model',
-                        name: model.modelname,
+                        name: modelLang.ModelName,
                         id: model._id,
                         productId: product._id
                     });
@@ -195,16 +208,14 @@ exports.search = async (req, res) => {
             });
         });
 
+        // Search articles (EN only)
         const articleResults = await Article.find({
+            language: 'EN',
             title: { $regex: query, $options: 'i' }
         }).limit(5);
 
         const results = [
-            ...productResults.map(product => ({
-                type: 'product',
-                name: product.name,
-                id: product._id
-            })),
+            ...productResults,
             ...modelResults,
             ...articleResults.map(article => ({
                 type: 'article',
@@ -219,6 +230,8 @@ exports.search = async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 };
+
+
 
 exports.getProductDetails = (req, res, next) => {
     const { productId, lang } = req.params;
