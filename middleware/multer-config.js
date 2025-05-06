@@ -139,10 +139,11 @@ async function compressImages(req, res, next) {
 
     try {
         const fieldGroups = [
-
+            'productThumbnail', 
             'ModelThumbnail',
             'ModelPhotos',
             'overviewThumbnail',
+            'productSketch',
             // Newly added multilingual model fields
             'overviewImages_EN',
             'overviewImages_ES',
@@ -157,8 +158,12 @@ async function compressImages(req, res, next) {
         languages.forEach(lang => {
             for (let i = 0; i < 4; i++) {
                 fieldGroups.push(`FeatureImage_${lang}[${i}]`);
+                fieldGroups.push(`overviewImages_${lang}[${i}]`);
+                fieldGroups.push(`industryImages_${lang}[${i}]`);
+                fieldGroups.push(`industryLogos_${lang}[${i}]`);
             }
         });
+        
 
 
         for (const field of fieldGroups) {
