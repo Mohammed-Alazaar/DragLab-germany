@@ -17,7 +17,6 @@
                         </p>
                         <ul class="dropdown-menu">
                             <li><a href="/aboutus">&#8226; About Us</a></li>
-                            <li><a href="#">&#8226; Career</a></li>
                             <li><a href="/TermCondition">&#8226; Terms & Condition</a></li>
                             <li><a href="/PrivacyPolicy">&#8226; Privacy Policy</a></li>
                         </ul>
@@ -155,8 +154,11 @@
             </select> -->
             <span class="close-menu">&#10005;</span>
         </div>
+<div class="mobile-search-container">
 
-        <input type="text" class="mobile-search" placeholder="Search..." />
+    <input type="text" id="mobileSearch" class="mobile-search" placeholder="Search..." />
+    <div id="searchResults" class="search-results"></div>
+</div>
 
         <ul class="main-links">
             <li onclick="goToPage('companyPage')">Company <img src="/assets/Imgs/Icons/Down-arrow-blue.png" alt=""></li>
@@ -178,7 +180,6 @@
         </div>
         <ul>
             <li><a href="/aboutus">About Us</a></li>
-            <li><a href="#">Career</a></li>
             <li><a href="/TermCondition">Terms & Condition</a></li>
             <li><a href="/PrivacyPolicy">Privacy Policy</a></li>
         </ul>
@@ -506,5 +507,66 @@
             }
         });
     });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const mobileSearchInput = document.getElementById('mobileSearch');
+            const mobileResultsContainer = mobileSearchInput.nextElementSibling; // gets the .search-results div
+    
+            let timeout;
+    
+            mobileSearchInput.addEventListener('input', function () {
+                const query = this.value.trim();
+                clearTimeout(timeout);
+    
+                if (query.length < 3) {
+                    mobileResultsContainer.innerHTML = '';
+                    mobileResultsContainer.style.display = 'none';
+                    return;
+                }
+    
+                timeout = setTimeout(() => {
+                    fetch(`/search?q=${encodeURIComponent(query)}`)
+                        .then(res => res.json())
+                        .then(data => {
+                            mobileResultsContainer.innerHTML = '';
+    
+                            if (data.length === 0) {
+                                mobileResultsContainer.innerHTML = '<div class="no-results">No matches found.</div>';
+                                mobileResultsContainer.style.display = 'block';
+                                return;
+                            }
+    
+                            data.forEach(item => {
+                                const div = document.createElement('div');
+                                div.classList.add('search-item');
+                                div.textContent = `${item.name} (${item.type})`;
+                                div.addEventListener('click', () => {
+                                    const lang = getCurrentLang();
+                                    if (item.type === 'product') {
+                                        window.location.href = `/product/${item.id}/${lang}`;
+                                    } else if (item.type === 'model') {
+                                        window.location.href = `/model/${item.productId}/${item.id}/${lang}`;
+                                    } else if (item.type === 'article') {
+                                        window.location.href = `/article/${item.id}/${lang}`;
+                                    }
+                                });
+                                mobileResultsContainer.appendChild(div);
+                            });
+    
+                            mobileResultsContainer.style.display = 'block';
+                        })
+                        .catch(err => {
+                            console.error('Error fetching mobile search results:', err);
+                        });
+                }, 300);
+            });
+    
+            document.addEventListener('click', function (e) {
+                if (!mobileResultsContainer.contains(e.target) && e.target !== mobileSearchInput) {
+                    mobileResultsContainer.style.display = 'none';
+                }
+            });
+        });
     </script>
     

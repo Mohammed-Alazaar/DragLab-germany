@@ -456,12 +456,16 @@ select#languageSwitcher {
         font-size: 24px;
     }
 
+    .mobile-search-container {
+        position: relative;
+    }
+
     .mobile-search {
         width: 100%;
         padding: 0.75rem;
         background: #dee3eb;
         border: none;
-        margin: 1rem 0;
+        margin: 1rem 0 0 0;
     }
 
     .main-links li,
