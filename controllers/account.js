@@ -29,7 +29,7 @@ exports.postaccount = (req, res, next) => {
 
     User.findByIdAndUpdate(userId, { $set: updatedUser }, { new: true, upsert: true })
         .then(result => {
-            res.redirect('/account'); // Redirect to a profile or confirmation page
+            res.redirect('/admin/account'); // Redirect to a profile or confirmation page
         })
         .catch(err => console.log(err));
 };

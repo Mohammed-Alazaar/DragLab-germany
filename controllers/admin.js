@@ -452,8 +452,14 @@ exports.postEditProduct = (req, res, next) => {
 
 
 
-
-
+// 🔒 Safe file deletion helper
+function safeUnlink(relativePath) {
+  if (!relativePath) return;
+  const fullPath = path.join('public', relativePath);
+  if (fs.existsSync(fullPath) && fs.lstatSync(fullPath).isFile()) {
+    fs.unlinkSync(fullPath);
+  }
+}
 
 exports.postDeleteModel = async (req, res, next) => {
   const { productId, modelId } = req.body;
@@ -467,18 +473,12 @@ exports.postDeleteModel = async (req, res, next) => {
 
     // 🧹 1. Delete static fields
     ['ModelThumbnail', 'overviewThumbnail'].forEach(field => {
-      if (model[field]) {
-        const fullPath = path.join('public', model[field]);
-        if (fs.existsSync(fullPath)) fs.unlinkSync(fullPath);
-      }
+      safeUnlink(model[field]);
     });
 
     // 🧹 2. Delete ModelPhotos
     if (Array.isArray(model.ModelPhotos)) {
-      model.ModelPhotos.forEach(photo => {
-        const fullPath = path.join('public', photo);
-        if (fs.existsSync(fullPath)) fs.unlinkSync(fullPath);
-      });
+      model.ModelPhotos.forEach(photo => safeUnlink(photo));
     }
 
     // 🧹 3. Delete multilingual files
@@ -488,23 +488,15 @@ exports.postDeleteModel = async (req, res, next) => {
       if (!langData) return;
 
       // Delete downloads
-      langData.downloads?.forEach(file => {
-        const filePath = path.join('public', file.filePath);
-        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-      });
+      langData.downloads?.forEach(file => safeUnlink(file.filePath));
 
       // Delete overview images
-      langData.overview?.forEach(o => {
-        const filePath = path.join('public', o.overviewImage || '');
-        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-      });
+      langData.overview?.forEach(o => safeUnlink(o.overviewImage));
 
       // Delete industry images and logos
       langData.industry?.forEach(i => {
-        [i.industryImage, i.industryLogo].forEach(img => {
-          const filePath = path.join('public', img || '');
-          if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-        });
+        safeUnlink(i.industryImage);
+        safeUnlink(i.industryLogo);
       });
     });
 

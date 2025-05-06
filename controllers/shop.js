@@ -41,7 +41,12 @@ exports.getHomePage = (req, res, next) => {
                 lang
             });
         })
-        .catch(err => next(err));
+        .catch(err => {
+            console.error(err);
+            res.redirect('/EN'); 
+        });
+
+
 };
 
 
@@ -125,6 +130,7 @@ exports.getProducts = (req, res, next) => {
         .catch(err => {
             console.log(err);
             next(err);
+                res.redirect('/EN'); 
         });
 };
 
@@ -163,7 +169,8 @@ exports.getProduct = (req, res, next) => {
                 });
         })
         .catch(err => {
-            console.log(err);
+            console.error(err);
+            res.redirect('/EN'); 
         });
 };
 
@@ -264,7 +271,7 @@ exports.getProductDetails = (req, res, next) => {
         })
         .catch(err => {
             console.error(err);
-            res.redirect('/');
+            res.redirect('/EN'); 
         });
 };
 
@@ -315,7 +322,10 @@ exports.getModelDetailsPage = (req, res, next) => {
                 });
             });
         })
-        .catch(err => next(err));
+        .catch(err => {
+            console.error(err);
+            res.redirect('/EN'); 
+        });
 };
 
 
@@ -335,7 +345,7 @@ exports.getContactus = (req, res, next) => {
         })
         .catch(err => {
             console.error(err);
-            res.redirect('/');
+            res.redirect('/EN'); 
         });
 };
 
@@ -368,12 +378,12 @@ exports.geTechnicalservice = (req, res, next) => {
                 products: products,
                 categories: [], // Pass an empty array for categories if not needed
                 lang, // <- pass it to EJS
-                req // 👈 pass full request to access query params in EJS
+                req //  pass full request to access query params in EJS
             });
         })
         .catch(err => {
             console.error(err);
-            res.redirect('/');
+            res.redirect('/EN'); 
         });
 
 };
@@ -432,27 +442,11 @@ exports.getSupport = (req, res, next) => {
         })
         .catch(err => {
             console.error(err);
-            res.redirect('/');
+            res.redirect('/EN'); 
         });
 
 };
-// exports.getaboutus = (req, res, next) => {
-//     const lang = req.params.lang || 'EN'; // ✅ Correct: use params
 
-//     Product.find()
-//         .then(products => {
-//             res.render(path.join('customer', 'about-us.ejs'), { // ✅ render using view name only if you set views correctly
-//                 pageTitle: 'aboutus',
-//                 path: '/aboutus',
-//                 products: products,
-//                 lang
-//             });
-//         })
-//         .catch(err => {
-//             console.error(err);
-//             res.redirect('/');
-//         });
-// };
 exports.getaboutus = (req, res, next) => {
     const lang = req.query.lang || 'EN'; // <- 🔄 language detection
 
@@ -467,7 +461,7 @@ exports.getaboutus = (req, res, next) => {
         })
         .catch(err => {
             console.error(err);
-            res.redirect('/');
+            res.redirect('/EN'); 
         });
 };
 
@@ -491,7 +485,7 @@ exports.getArticles = async (req, res) => {
         });
     } catch (err) {
         console.error(err);
-        res.redirect('/');
+        res.redirect('/EN');
     }
 };
 
@@ -519,7 +513,7 @@ exports.getArticleDetails = async (req, res) => {
         });
     } catch (err) {
         console.error(err);
-        res.redirect('/');
+        res.redirect('/EN');
     }
 };
 
@@ -597,7 +591,7 @@ exports.getDownloads = async (req, res, next) => {
         });
     } catch (err) {
         console.error('Error loading downloads:', err);
-        res.redirect('/');
+        res.redirect('/EN');
     }
 };
 
@@ -619,7 +613,7 @@ exports.getTearmCondition = (req, res, next) => {
         })
         .catch(err => {
             console.error(err);
-            res.redirect('/');
+            res.redirect('/EN'); 
         });
 
 };
@@ -637,7 +631,7 @@ exports.getPrivacyPolicy = (req, res, next) => {
         })
         .catch(err => {
             console.error(err);
-            res.redirect('/');
+            res.redirect('/EN'); 
         });
 
 };
@@ -656,7 +650,7 @@ exports.getQualitypolicy = (req, res, next) => {
         })
         .catch(err => {
             console.error(err);
-            res.redirect('/');
+            res.redirect('/EN'); 
         });
 
 };
@@ -675,7 +669,7 @@ exports.getWarrantyRegistration = (req, res) => {
         })
         .catch(err => {
             console.error(err);
-            res.redirect('/');
+            res.redirect('/EN'); 
         });
 };
 
