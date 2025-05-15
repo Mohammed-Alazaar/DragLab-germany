@@ -1,5 +1,4 @@
 const multer = require('multer');
-const sharp = require('sharp');
 const sanitize = require('sanitize-filename');
 const cheerio = require('cheerio');
 const cloudinary = require('../util/cloudinaryConfig');
