@@ -17,7 +17,7 @@
             <div class="article-slide">
                 <a href="/article/<%= article._id %>/<%= lang %>">
                     <div class="article-card">
-                        <img src="/<%= article.thumbnail %>" alt="<%= article.title %>">
+                        <img src="<%=article.thumbnail %>" alt="<%= article.title %>">
                         <div class="article-card-information">
                             <h4><%= article.title %></h4>
                             <p><%= article.body.replace(/(<([^>]+)>)/gi, "").substring(0, 120) %>...</p>

@@ -285,7 +285,7 @@ exports.getModelDetailsPage = (req, res, next) => {
             const model = product.Models.id(modelId);
             if (!model || model.isPublished === false) return res.redirect('/');
 
-
+            // Get current language data
             const currentLangData = model.Language[lang]?.[0];
             const englishLangData = model.Language['EN']?.[0];
 
@@ -295,6 +295,11 @@ exports.getModelDetailsPage = (req, res, next) => {
             return Product.find().then(allProducts => {
                 res.render('customer/Model-details', {
                     pageTitle: currentLangData.ModelName || "Model Details",
+                    ModelName: currentLangData.ModelName || englishLangData.ModelName || "No Name",
+                    ModelNameDesc: currentLangData.ModelNameDesc || englishLangData.ModelNameDesc || "No Description",
+                    ModelDesc: currentLangData.ModelDesc || englishLangData.ModelDesc || "No Details",
+
+                    // ✅ Map overview data
                     overview: (currentLangData.overview?.length ? currentLangData.overview : englishLangData.overview || []).map((o, i) => {
                         const base = o.toObject ? o.toObject() : o;
                         return {
@@ -303,6 +308,7 @@ exports.getModelDetailsPage = (req, res, next) => {
                         };
                     }),
 
+                    // ✅ Map industry data
                     industry: (currentLangData.industry?.length ? currentLangData.industry : englishLangData.industry || []).map((ind, i) => {
                         const base = ind.toObject ? ind.toObject() : ind;
                         return {
@@ -312,6 +318,7 @@ exports.getModelDetailsPage = (req, res, next) => {
                         };
                     }),
 
+                    // ✅ Pass technical specs, downloads, and images
                     specs: currentLangData.technicalSpecifications,
                     downloads: currentLangData.downloads || [],
                     modelThumbnail: model.ModelThumbnail,
@@ -327,6 +334,7 @@ exports.getModelDetailsPage = (req, res, next) => {
             res.redirect('/EN'); 
         });
 };
+
 
 
 exports.getContactus = (req, res, next) => {
@@ -524,76 +532,94 @@ exports.getDownloads = async (req, res, next) => {
         const products = await Product.find({});
         const catalogCategories = await CatalogCategory.find({});
 
+        if (!products || products.length === 0) {
+            console.error("No products found in the database.");
+        }
+
+        if (!catalogCategories || catalogCategories.length === 0) {
+            console.error("No catalog categories found in the database.");
+        }
+
         const downloads = [];
         const productNamesSet = new Set();
         const catalogCategoryNamesSet = new Set();
 
-        // 🧩 1. Add Model-based downloads
+        // ✅ Model-based Downloads
         for (const product of products) {
             const productLang = product.Language?.[lang]?.[0] || product.Language?.EN?.[0];
             if (!productLang) continue;
 
             const productName = productLang.ProductName || 'Unnamed Product';
-            productNamesSet.add(productName); // ✅ always add it here
+            productNamesSet.add(productName);
 
             for (const model of product.Models) {
                 const modelLang = model.Language?.[lang]?.[0] || model.Language?.EN?.[0];
                 if (!modelLang || !Array.isArray(modelLang.downloads)) continue;
 
                 for (const file of modelLang.downloads) {
+                    if (!file.filePath) continue;
+                    
                     downloads.push({
                         fileName: file.fileName,
                         filePath: file.filePath,
                         fileSize: file.fileSize,
-                        fileCategory: file.fileCategory?.toLowerCase(),
-                        fileProductCategory: file.fileProductCategory?.toLowerCase(),
+                        fileCategory: (file.fileCategory || 'general').toLowerCase().replace(/\s+/g, '-'),
+                        fileProductCategory: (file.fileProductCategory || productName).toLowerCase().replace(/\s+/g, '-'),
                         productName,
                         modelName: modelLang.ModelName || 'Unnamed Model',
                         lang,
                         type: 'model'
                     });
+
+                    productNamesSet.add((file.fileProductCategory || productName).toLowerCase().replace(/\s+/g, '-'));
                 }
             }
         }
 
-
-        // 🧩 2. Add CatalogCategory uploaded files
+        // ✅ Add CatalogCategory uploaded files
         for (const category of catalogCategories) {
+            if (!Array.isArray(category.files)) continue;
+
             for (const file of category.files) {
-                if (file.language !== lang) continue; // ✅ skip if not same language
+                if (file.language !== lang) continue;
+                if (!file.filePath) continue;
 
                 downloads.push({
                     fileName: file.fileName,
                     filePath: file.filePath,
                     fileSize: file.fileSize,
-                    fileCategory: category.categoryKey.toLowerCase(), // filter key
+                    fileCategory: category.categoryKey.toLowerCase().replace(/\s+/g, '-'),
+                    fileProductCategory: category.categoryName.toLowerCase().replace(/\s+/g, '-'),
                     productName: category.categoryName,
-                    modelName: '-', // no model name
+                    modelName: '-',
                     lang,
                     type: 'catalog'
                 });
 
-                catalogCategoryNamesSet.add(category.categoryName); // ✅ include for filter
+                catalogCategoryNamesSet.add(category.categoryName.toLowerCase().replace(/\s+/g, '-'));
             }
         }
 
         const productNames = Array.from(productNamesSet);
         const catalogCategoryNames = Array.from(catalogCategoryNamesSet);
 
+        // ✅ Render safely with fallback if empty
         res.render('customer/Downloads', {
             pageTitle: 'Downloads',
             path: '/Downloads',
             downloads,
-            productNames,
-            catalogCategoryNames,
+            productNames: productNames.length ? productNames : ["No Products Available"],
+            catalogCategoryNames: catalogCategoryNames.length ? catalogCategoryNames : ["No Categories Available"],
             lang,
-            products // ✅ include for navbar if needed
+            products
         });
     } catch (err) {
-        console.error('Error loading downloads:', err);
-        res.redirect('/EN');
+        console.error('Error loading downloads:', err.message);
+        console.error(err.stack); // Log the stack trace
+        return res.status(500).render('500', { errorMessage: err.message });
     }
 };
+
 
 
 

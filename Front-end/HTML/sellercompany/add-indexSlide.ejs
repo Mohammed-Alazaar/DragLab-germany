@@ -25,7 +25,7 @@
                             <textarea name="desc" placeholder="Description" required><%= slide?.desc || '' %></textarea>
 
                             <% if (editing && slide.image) { %>
-                                <img src="/<%= slide.image %>" width="150">
+                                <img src="<%=slide.image %>" width="150">
                                 <% } %>
 
                                     <label for="language">Slide Language</label>

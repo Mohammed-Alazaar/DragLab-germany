@@ -21,16 +21,18 @@
                     <!-- <h1>Water Still Series</h1> -->
                     <div class="slide-text-content">
                         <h1>
-                            <%= pageTitle %> – &nbsp;
+                            <%= ModelName %> – &nbsp;
                         </h1>
                         <h3>
-                            <%= overview?.[0]?.overviewDesc || '' %>
+                            <%= ModelNameDesc %>
                         </h3>
                     </div>
 
-                    <p>High-purity water distillation for small labs. </p>
+                    <p>
+                        <%= ModelDesc %>
+                    </p>
                 </div>
-                <img src="/<%= modelThumbnail %>" alt="<%= pageTitle %>">
+                <img src="<%=modelThumbnail %>" alt="<%= pageTitle %>">
             </div>
 
 
@@ -43,14 +45,14 @@
                     <% if (overview && overview.length) { %>
 
                         <div class="model-overview-img">
-                            <img src="/<%= overviewThumbnail%>" alt="<%= pageTitle %>">
+                            <img src="<%=overviewThumbnail%>" alt="<%= pageTitle %>">
                         </div>
                         <div class="features-wrapper">
 
                             <div class="features-grid">
                                 <% overview.forEach(o=> { %>
                                     <div class="feature-card">
-                                        <img class="feature-img" src="/<%= o.overviewImage %>" alt="">
+                                        <img class="feature-img" src="<%= o.overviewImage %>" alt="">
                                         <div class="feature-content">
                                             <h3>
                                                 <%= o.overviewName %>
@@ -74,10 +76,10 @@
                     <div class="industries-container">
                         <% industry.forEach(i=> { %>
                             <div class="industry-card">
-                                <img class="industry-img" src="/<%= i.industryImage %>" />
+                                <img class="industry-img" src="<%= i.industryImage %>" />
                                 <div class="overlay">
                                     <div class="icon-wrapper">
-                                        <img src="/<%= i.industryLogo %>" class="icon" />
+                                        <img src="<%=i.industryLogo %>" class="icon" />
                                     </div>
                                     <h3>
                                         <%= i.industryName %>
@@ -136,7 +138,7 @@
                                     </div>
                                     <div class="download-meta">
                                         <div>
-                                            <%= lang %>
+                                            <%= download.fileCategory || 'General' %>
                                         </div>
 
                                         <div>
@@ -144,7 +146,8 @@
                                         </div>
                                     </div>
                                 </div>
-                                <a href="/<%= download.filePath %>" class="download-link" download title="Download">
+                                <a href="<%= download.filePath %>" target="_blank" class="download-link" download="true"
+                                    title="Download">
                                     <p>Download</p>
                                     <svg class="download-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                                         <path d="M5 20h14v-2H5v2zm7-18l-5 5h3v6h4v-6h3l-5-5z" />
@@ -157,6 +160,7 @@
                                     <% } %>
                 </div>
             </section>
+
 
             <!-- model download center section  -->
 

@@ -24,57 +24,64 @@
             </div>
             <!-- Downloads thumbnail  -->
 
-            <div class="catalog-filter-bar">
-                <button class="filter-button active-category" data-category="all">All</button>
+          <div class="catalog-filter-bar">
+    <button class="filter-button active-category" data-category="all">All</button>
 
-                <% productNames.forEach(name=> { %>
-                    <button class="filter-button" data-category="<%= name.toLowerCase().replace(/\s+/g, '-') %>">
-                        <%= name %>
-                    </button>
-                    <% }) %>
+    <% if (productNames && productNames.length > 0) { %>
+        <% productNames.forEach(name => { %>
+            <button class="filter-button" data-category="<%= name.toLowerCase().replace(/\s+/g, '-') %>">
+                <%= name %>
+            </button>
+        <% }) %>
+    <% } else { %>
+        <p>No Products Available</p>
+    <% } %>
 
-                        <% catalogCategoryNames.forEach(name=> { %>
-                            <button class="filter-button"
-                                data-category="<%= name.toLowerCase().replace(/\s+/g, '-') %>">
-                                <%= name %>
-                            </button>
-                            <% }) %>
+    <% if (catalogCategoryNames && catalogCategoryNames.length > 0) { %>
+        <% catalogCategoryNames.forEach(name => { %>
+            <button class="filter-button" data-category="<%= name.toLowerCase().replace(/\s+/g, '-') %>">
+                <%= name %>
+            </button>
+        <% }) %>
+    <% } else { %>
+        <p>No Categories Available</p>
+    <% } %>
+</div>
 
-            </div>
 
 
 
-            <div class="catalog-section">
-                <div class="catalog-list" id="catalog-grid">
-                    <!-- ✅ Downloads cards -->
-                    <% downloads.forEach(file=> {
-                        const normalizedCategory = (file.fileProductCategory || file.fileCategory ||
-                        '').toLowerCase().replace(/\s+/g, '-');
-                        %>
-                        <div class="catalog-item" data-category="<%= normalizedCategory %>">
-                            <div class="cataloge-info-container">
-                                <div class="catalog-title">
-                                    <%= file.fileName %>
-                                </div>
-                                <div class="catalog-meta">
-                                    <div class="catalog-meta-lang">
-                                        <%= lang %>
-                                    </div>
-                                    <div class="catalog-meta-size">
-                                        <%= file.fileSize %>
-                                    </div>
-                                </div>
-                            </div>
-                            <a class="download-icon" href="/<%= file.filePath %>" download onclick="trackDownload()">
-                                <img src="/assets/Imgs/Icons/products/download-icon.png" alt="Download">
-                            </a>
-
+        <div class="catalog-section">
+    <div class="catalog-list" id="catalog-grid">
+        <!-- ✅ Downloads cards -->
+        <% downloads.forEach(file => {
+            const normalizedCategory = (file.fileProductCategory || file.fileCategory || '').toLowerCase().replace(/\s+/g, '-');
+        %>
+            <div class="catalog-item" data-category="<%= normalizedCategory %>">
+                <div class="cataloge-info-container">
+                    <div class="catalog-title">
+                        <%= file.fileName %>
+                    </div>
+                    <div class="catalog-meta">
+                        <div class="catalog-meta-lang">
+                            <%= lang %>
                         </div>
-                        <% }) %>
-
+                        <div class="catalog-meta-size">
+                            <%= file.fileSize %>
+                        </div>
+                    </div>
                 </div>
-
+                <a class="download-icon" 
+                   href="<%= file.filePath.includes('cloudinary.com') ? file.filePath.replace('/upload/', '/upload/fl_attachment/') : file.filePath %>" 
+                   download 
+                   onclick="trackDownload()">
+                   <img src="/assets/Imgs/Icons/products/download-icon.png" alt="Download">
+                </a>
             </div>
+        <% }) %>
+    </div>
+</div>
+
 
 
             <script>

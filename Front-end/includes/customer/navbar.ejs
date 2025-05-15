@@ -50,7 +50,7 @@
                                             data-models='<%- JSON.stringify(modelsArray) %>'>
 
                                             <div class="productphotoContainer">
-                                                <img src="/<%= product.ProductSketch %>" width="80.1px" alt="">
+                                                <img src="<%=product.ProductSketch %>" width="80.1px" alt="">
                                             </div>
 
                                             <div class="productNamImgContainer">
@@ -201,7 +201,7 @@
             %>
             <div class="product-item" onclick="showModels('<%= product._id %>')">
                 <div class="product-photo-container">
-                    <img src="/<%= product.ProductSketch %>" alt="Product Image" width="80px" height="80px" />
+                    <img src="<%=product.ProductSketch %>" alt="Product Image" width="80px" height="80px" />
                     <div class="product-info">
                         <h4>
                             <%= productLang?.ProductName %>
@@ -246,7 +246,7 @@
                         <% }) %>
                 </ul>
 
-                <img src="/<%= product.ProductSketch %>" class="model-img" alt="Model Image" />
+                <img src="<%=product.ProductSketch %>" class="model-img" alt="Model Image" />
                 <button class="view-product" onclick="goToProduct('<%= product._id %>')">View Product</button>
             </div>
         </div>

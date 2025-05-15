@@ -7,6 +7,8 @@ const WarrantyRegistration = require('../models/warrantyRegistration');
 const ContactUs = require('../models/contactUs');
 const Article = require('../models/articles');
 const PDFDocument = require('pdfkit');
+const cloudinary = require('../util/cloudinaryConfig'); // ✅ Import Cloudinary
+const sanitize = require('sanitize-filename');
 
 const exp = require('constants');
 const express = require('express');
@@ -14,17 +16,18 @@ const bodyParser = require('body-parser');
 const { validationResult } = require('express-validator');
 const fs = require('fs');
 
+const languages = ['EN', 'ES', 'GR'];
 
 
 
 exports.getAddProduct = (req, res, next) => {
-    res.render('sellercompany/edit-product', {
+  res.render('sellercompany/edit-product', {
 
     pageTitle: 'Add Product',
     path: '/admin/add-product',
     editing: false,
     hasError: false,
-    product: { 
+    product: {
       Language: {
         EN: [{
           ProductName: '',
@@ -72,177 +75,163 @@ exports.getAddProduct = (req, res, next) => {
   });
 };
 
-exports.postAddProduct = (req, res, next) => {
-  const productThumbnail = req.files['productThumbnail']?.[0]?.path.replace(/\\/g, '/') || req.body.oldProductThumbnail || '';
-  const productSketch = req.files['productSketch']?.[0]?.path.replace(/\\/g, '/') || req.body.oldProductSketch || '';
 
-  const languages = ['EN', 'ES', 'GR'];
-  const languageData = {};
-  const validationErrors = [];
-  const isDraft = req.body.saveType === 'draft';
-  if (!isDraft) {
-    if (!productThumbnail) {
-      validationErrors.push({
-        path: `ProductThumbnail`,
-        msg: `Product Thumbnail is required.`
-      });
-    }
-    if (!productSketch) {
-      validationErrors.push({
-        path: `ProductSketch`,
-        msg: `Product Sketch is required.`
-      });
-    }
-  }
+exports.postAddProduct = async (req, res, next) => {
+  try {
+    // Extracting files from multer
+    console.log('✅ Multer Files:', req.files);
 
-  languages.forEach(lang => {
-    const validateThisLanguage = (lang === 'EN'); // ✅ Only validate EN
+    const productThumbnail = req.files['productThumbnail']?.[0]?.cloudinaryUrl || req.body.oldProductThumbnail || '';
+    const productSketch = req.files['productSketch']?.[0]?.cloudinaryUrl || req.body.oldProductSketch || '';
 
-    const productName = req.body[`ProductName_${lang}`];
-    const productNameDesc = req.body[`ProductNameDesc_${lang}`];
-    const productDesc = req.body[`ProductDesc_${lang}`];
-    const whyProductDesc = req.body[`WhyProductDesc_${lang}`];
-
-    const names = req.body[`FeatureName_${lang}`] || [];
-    const descs = req.body[`FeatureDesc_${lang}`] || [];
-    const oldImages = req.body[`OldFeatureImage_${lang}`] || [];
-
-    const features = [];
-
-    for (let i = 0; i < 4; i++) {
-      const featureName = names[i]?.trim() || '';
-      const featureDesc = descs[i]?.trim() || '';
-
-      let imagePath = '';
-      const file = req.files?.[`FeatureImage_${lang}[${i}]`]?.[0];
-
-      if (file) {
-        imagePath = file.path.replace(/\\/g, '/');
-      } else if (lang !== 'EN') {
-        const enImage = req.files?.[`FeatureImage_EN[${i}]`]?.[0];
-        if (enImage) {
-          imagePath = enImage.path.replace(/\\/g, '/');
-        }
-      }
-
-      if (!imagePath && oldImages[i]) {
-        imagePath = oldImages[i];
-      }
-
-      if (!isDraft && validateThisLanguage) {
-        if (!featureName) {
-          validationErrors.push({
-            path: `FeatureName_${lang}_${i}`,
-            msg: `Feature Name ${i + 1} (${lang}) is required.`
-          });
-        }
-        if (!imagePath) {
-          validationErrors.push({
-            path: `FeatureImage_${lang}_${i}`,
-            msg: `Feature Image ${i + 1} (${lang}) is required.`
-          });
-        }
-      }
-
-      features.push({
-        FeatureName: featureName,
-        FeatureDesc: featureDesc,
-        FeatureImage: imagePath
-      });
-    }
-
-    if (!isDraft && validateThisLanguage) {
-      if (!productName) {
-        validationErrors.push({ path: `ProductName_${lang}`, msg: `Product Name (${lang}) is required.` });
-      }
-      if (!productNameDesc) {
-        validationErrors.push({ path: `ProductNameDesc_${lang}`, msg: `Short Description (${lang}) is required.` });
-      }
-      if (!productDesc) {
-        validationErrors.push({ path: `ProductDesc_${lang}`, msg: `Product Description (${lang}) is required.` });
-      }
-      if (!whyProductDesc) {
-        validationErrors.push({ path: `WhyProductDesc_${lang}`, msg: `Why Product Description (${lang}) is required.` });
-      }
-    }
-
-    languageData[lang] = [{
-      ProductName: productName,
-      ProductNameDesc: productNameDesc,
-      ProductDesc: productDesc,
-      WhyProductDesc: whyProductDesc,
-      features: features
-    }];
-  });
+    console.log('✅ Thumbnail Path:', productThumbnail);
+    console.log('✅ Sketch Path:', productSketch);
 
 
 
+    console.log('🖼️ Product Thumbnail Path:', productThumbnail);
+    console.log('🖼️ Product Sketch Path:', productSketch);
 
-  if (validationErrors.length > 0) {
-    // Ensure feature images are preserved when there's an error
-    languages.forEach(lang => {
-      const oldImages = req.body[`OldFeatureImage_${lang}`];
+    const languages = ['EN', 'ES', 'GR'];
+    const languageData = {};
+    const validationErrors = [];
+    const isDraft = req.body.saveType === 'draft';
 
-      if (oldImages) {
-        const arr = Array.isArray(oldImages) ? oldImages : [oldImages];
-        arr.forEach((imgPath, i) => {
-          if (!languageData[lang][0].features[i].FeatureImage) {
-            languageData[lang][0].features[i].FeatureImage = imgPath;
-          }
+    // Step 1: Check if required images are missing
+    if (!isDraft) {
+      if (!productThumbnail) {
+        validationErrors.push({
+          path: 'ProductThumbnail',
+          msg: 'Product Thumbnail is required.'
         });
       }
-    });
-
-    return res.status(422).render('sellercompany/edit-product', {
-      pageTitle: 'Add Product',
-      path: '/admin/add-product',
-      editing: false,
-      hasError: true,
-      errorMessage: 'Please fix the highlighted errors.',
-      validationErrors,
-      isAuthenticated: req.session.isLoggedIn,
-      product: {
-        ProductThumbnail: productThumbnail,
-        ProductSketch: productSketch,
-        Language: languageData
+      if (!productSketch) {
+        validationErrors.push({
+          path: 'ProductSketch',
+          msg: 'Product Sketch is required.'
+        });
       }
+    }
+
+    // Step 2: Loop through each language and handle features
+    languages.forEach(lang => {
+      console.log(`➡️ Processing language: ${lang}`);
+
+      const validateThisLanguage = (lang === 'EN');
+
+      const productName = req.body[`ProductName_${lang}`];
+      const productNameDesc = req.body[`ProductNameDesc_${lang}`];
+      const productDesc = req.body[`ProductDesc_${lang}`];
+      const whyProductDesc = req.body[`WhyProductDesc_${lang}`];
+
+      const names = req.body[`FeatureName_${lang}`] || [];
+      const descs = req.body[`FeatureDesc_${lang}`] || [];
+      const oldImages = req.body[`OldFeatureImage_${lang}`] || [];
+      const features = [];
+
+      for (let i = 0; i < 4; i++) {
+        const featureName = names[i]?.trim() || '';
+        const featureDesc = descs[i]?.trim() || '';
+
+        let imagePath = '';
+        const file = req.files?.[`FeatureImage_${lang}[${i}]`]?.[0];
+
+        if (file) {
+          // Ensure we are getting the correct URL
+          imagePath = file.cloudinaryUrl;
+          if (!imagePath) {
+            console.error(`❌ Cloudinary URL not found for FeatureImage_${lang}[${i}]`);
+          } else {
+            console.log(`✅ Feature Image found for ${lang} at index ${i}:`, imagePath);
+          }
+        } else if (lang !== 'EN') {
+          const enImage = req.files?.[`FeatureImage_EN[${i}]`]?.[0];
+          if (enImage) {
+            imagePath = enImage.cloudinaryUrl;
+            console.log(`✅ Using EN version for ${lang} at index ${i}`);
+          }
+        }
+
+        if (!imagePath && oldImages[i]) {
+          imagePath = oldImages[i];
+        }
+
+        if (!isDraft && validateThisLanguage) {
+          if (!featureName) {
+            validationErrors.push({
+              path: `FeatureName_${lang}_${i}`,
+              msg: `Feature Name ${i + 1} (${lang}) is required.`
+            });
+          }
+          if (!imagePath) {
+            validationErrors.push({
+              path: `FeatureImage_${lang}_${i}`,
+              msg: `Feature Image ${i + 1} (${lang}) is required.`
+            });
+          }
+        }
+
+        features.push({
+          FeatureName: featureName,
+          FeatureDesc: featureDesc,
+          FeatureImage: imagePath
+        });
+      }
+
+
+
+
+      languageData[lang] = [{
+        ProductName: productName,
+        ProductNameDesc: productNameDesc,
+        ProductDesc: productDesc,
+        WhyProductDesc: whyProductDesc,
+        features: features
+      }];
     });
-  }
 
+    // Step 3: Handle validation errors
+    if (validationErrors.length > 0) {
+      console.log('❌ Validation Errors Detected:', validationErrors);
 
-
-  const Product = require('../models/product');
-  const product = new Product({
-    ProductThumbnail: productThumbnail,
-    ProductSketch: productSketch,
-    Language: languageData,
-    isDraft: isDraft // ✅ save it to DB
-
-  });
-
-  if (isDraft) {
-    product.validate().then(() => {
-      return product.save({ validateBeforeSave: false }); // ⛳️ bypass required fields for draft
-    }).then(() => {
-      console.log('Draft saved without validation');
-      res.redirect('/admin/Myproduct');
-    }).catch(err => {
-      console.error('Draft save error:', err);
-      next(err);
-    });
-  } else {
-    product.save()
-      .then(() => {
-        console.log('Product Added');
-        res.redirect('/admin/Myproduct');
-      })
-      .catch(err => {
-        console.error('Error saving product:', err);
-        next(err);
+      return res.status(422).render(path.join(__dirname, '..', 'front-end', 'HTML', 'sellercompany', 'edit-product'), {
+        pageTitle: 'Add Product',
+        path: '/admin/add-product',
+        editing: false,
+        hasError: true,
+        errorMessage: 'Please fix the highlighted errors.',
+        validationErrors,
+        isAuthenticated: req.session.isLoggedIn,
+        product: {
+          ProductThumbnail: productThumbnail,
+          ProductSketch: productSketch,
+          Language: languageData
+        }
       });
-  }
+    }
 
+    // Step 4: Save to the database
+    const Product = require('../models/product');
+    const product = new Product({
+      ProductThumbnail: productThumbnail,
+      ProductSketch: productSketch,
+      Language: languageData,
+      isDraft: isDraft
+    });
+
+    console.log("🔥 Attempting to save product to database...");
+    await product.save();
+    console.log("✅ Product successfully added!");
+    res.redirect('/admin/Myproduct');
+
+  } catch (err) {
+    console.error('🔥 Internal Server Error:', err.message);
+    console.error(err.stack);
+    res.status(500).send(`🔥 Internal Server Error: ${err.message}`);
+  }
 };
+
+
 
 
 exports.getMyproduct = (req, res, next) => {
@@ -277,7 +266,7 @@ exports.getEditProduct = (req, res, next) => {
       if (!product) {
         return res.redirect('/');
       }
-      
+
       res.render('sellercompany/edit-product', {
         pageTitle: 'Edit Product',
         path: '/admin/edit-product',
@@ -297,7 +286,6 @@ exports.getEditProduct = (req, res, next) => {
     });
 };
 
-
 exports.postEditProduct = (req, res, next) => {
   const productId = req.body.productId;
   const languages = ['EN', 'ES', 'GR'];
@@ -305,13 +293,24 @@ exports.postEditProduct = (req, res, next) => {
   const validationErrors = [];
 
   // ✅ Assign only once at the top
-  const updatedProductThumbnail = req.files['productThumbnail']
-    ? req.files['productThumbnail'][0].path.replace(/\\/g, '/')
-    : req.body.oldProductThumbnail;
+  const updatedProductThumbnail = req.files['productThumbnail']?.[0]?.cloudinaryUrl || req.body.oldProductThumbnail;
+  const updatedProductSketch = req.files['productSketch']?.[0]?.cloudinaryUrl || req.body.oldProductSketch;
 
-  const updatedProductSketch = req.files['productSketch']
-    ? req.files['productSketch'][0].path.replace(/\\/g, '/')
-    : req.body.oldProductSketch;
+
+  if (!updatedProductThumbnail && req.body.oldProductThumbnail) {
+    console.log("🗑️ Deleting old thumbnail from Cloudinary...");
+    // You can add logic to delete the old image from Cloudinary if you want
+  }
+  if (!updatedProductSketch && req.body.oldProductSketch) {
+    console.log("🗑️ Deleting old sketch from Cloudinary...");
+    // You can add logic to delete the old image from Cloudinary if you want
+  }
+
+
+  // Debugging logs to verify
+  console.log("✅ Updated Product Thumbnail Path:", updatedProductThumbnail);
+  console.log("✅ Updated Product Sketch Path:", updatedProductSketch);
+
 
   // 🔸 Global thumbnail/sketch validation
   if (!updatedProductThumbnail) {
@@ -328,7 +327,7 @@ exports.postEditProduct = (req, res, next) => {
   }
 
   languages.forEach(lang => {
-    const validateThisLanguage = (lang === 'EN'); // ✅ Only validate EN
+    const validateThisLanguage = (lang === 'EN');
 
     const productName = req.body[`ProductName_${lang}`];
     const productNameDesc = req.body[`ProductNameDesc_${lang}`];
@@ -363,11 +362,12 @@ exports.postEditProduct = (req, res, next) => {
       const file = req.files?.[`FeatureImage_${lang}[${i}]`]?.[0];
 
       if (file) {
-        imagePath = file.path.replace(/\\/g, '/');
+        // ✅ Use Cloudinary URL
+        imagePath = file.cloudinaryUrl;
       } else if (lang !== 'EN') {
         const enFile = req.files?.[`FeatureImage_EN[${i}]`]?.[0];
         if (enFile) {
-          imagePath = enFile.path.replace(/\\/g, '/');
+          imagePath = enFile.cloudinaryUrl;
         } else if (Array.isArray(oldImages)) {
           imagePath = oldImages[i] || '';
         } else {
@@ -438,14 +438,17 @@ exports.postEditProduct = (req, res, next) => {
       return product.save();
     })
     .then(() => {
-      console.log('Product Updated');
+      console.log('✅ Product Updated');
       res.redirect('/admin/Myproduct');
     })
     .catch(err => {
-      console.error('Error updating product:', err);
+      console.error('🔥 Error updating product:', err.message);
+      console.error(err.stack);
       if (!res.headersSent) next(err);
     });
 };
+
+
 
 
 
@@ -515,11 +518,12 @@ exports.postDeleteModel = async (req, res, next) => {
 
 
 
+
 exports.getAddModel = (req, res, next) => {
   const productId = req.params.productId;
   Product.findById(productId).then(product => {
     if (!product) return res.redirect('/admin/Myproduct');
-    res.render('sellercompany/add-model', {
+    res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'sellercompany', 'add-model'), {
       pageTitle: 'Add Model',
       path: '/admin/add-model',
       product,
@@ -540,7 +544,7 @@ exports.getEditModel = (req, res, next) => {
     if (!product) return res.redirect('/admin/Myproduct');
     const model = product.Models.id(modelId);
     if (!model) return res.redirect('/admin/Myproduct');
-    res.render('sellercompany/add-model', {
+    res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'sellercompany', 'add-model'), {
       pageTitle: 'Edit Model',
       path: '/admin/edit-model',
       product,
@@ -556,191 +560,170 @@ exports.getEditModel = (req, res, next) => {
   }).catch(err => next(err));
 };
 
-exports.postAddModel = (req, res, next) => {
+// Controller for adding a model
+
+const uploadToCloudinary = async (file, folder) => {
+  const originalName = sanitize(file.originalname).slice(0, 50);
+
+  return new Promise((resolve, reject) => {
+    cloudinary.uploader.upload_stream(
+      {
+        resource_type: 'image',
+        folder: `draglab/models/${folder}`,
+        public_id: originalName,
+      },
+      (error, result) => {
+        if (error) {
+          console.error(`❌ Cloudinary upload error for ${originalName}:`, error.message);
+          reject(error);
+        } else {
+          console.log(`✅ Successfully uploaded ${file.fieldname} to Cloudinary: ${result.secure_url}`);
+          resolve(result.secure_url);
+        }
+      }
+    ).end(file.buffer);
+  });
+};
+
+exports.postAddModel = async (req, res) => {
   const productId = req.params.productId;
   const languages = ['EN', 'ES', 'GR'];
   const languageData = {};
   const isDraft = req.body.action === 'draft';
-  const validationErrors = [];
 
-  Product.findById(productId)
-    .then(product => {
-      if (!product) return res.redirect('/admin/Myproduct');
+  try {
+    // ✅ Cloudinary paths for images
+    const ModelThumbnail = req.files?.ModelThumbnail?.[0]
+      ? await uploadToCloudinary(req.files.ModelThumbnail[0], 'thumbnails')
+      : '';
 
-      if (!isDraft) {
-        if (!req.body.modelcapacity) {
-          validationErrors.push({ path: 'modelcapacity', msg: 'Model Capacity is required.' });
-        }
+    const ModelPhotos = req.files?.ModelPhotos
+      ? await Promise.all(req.files.ModelPhotos.map(file => uploadToCloudinary(file, 'photos')))
+      : [];
 
-        if (!req.files?.ModelThumbnail?.[0] && !req.body.oldModelThumbnail) {
-          validationErrors.push({ path: 'ModelThumbnail', msg: 'Model Thumbnail is required.' });
-        }
+    const overviewThumbnail = req.files?.overviewThumbnail?.[0]
+      ? await uploadToCloudinary(req.files.overviewThumbnail[0], 'overview')
+      : '';
 
-        if (!req.files?.overviewThumbnail?.[0] && !req.body.oldOverviewThumbnail) {
-          validationErrors.push({ path: 'overviewThumbnail', msg: 'Overview Thumbnail is required.' });
-        }
+    for (const lang of languages) {
+      const overviewData = [];
+      const industryData = [];
+      const downloads = [];
+      const technicalSpecifications = [];
+      console.log('📝 Full Form Data:', req.body);
+
+      // ✅ Overview
+      // ✅ Overview
+      for (let i = 0; i < 4; i++) {
+        // 📝 Fetching the data properly from form body
+        const overviewName = req.body.overview[lang]?.[i]?.overviewName || '';
+        const overviewDesc = req.body.overview[lang]?.[i]?.overviewDesc || '';
+
+        console.log(`📌 Overview Name: ${overviewName}, Description: ${overviewDesc}`);
+
+        const overviewImage = req.files[`overviewImages_${lang}[${i}]`]?.[0]
+          ? await uploadToCloudinary(req.files[`overviewImages_${lang}[${i}]`][0], `overview/${lang}`)
+          : '';
+
+        overviewData.push({
+          overviewName,
+          overviewDesc,
+          overviewImage
+        });
       }
 
-      languages.forEach(lang => {
-        const modelName = req.body[`ModelName_${lang}`];
-        const shortDesc = req.body[`ModelNameDesc_${lang}`];
-        const desc = req.body[`ModelDesc_${lang}`];
 
-        const validateThisLanguage = (lang === 'EN'); // ✅ only validate English
+      // ✅ Industry
+      for (let i = 0; i < 3; i++) {
+        // 📝 Correctly fetching data from form body
+        const industryName = req.body.industry[lang]?.[i]?.industryName || '';
 
-        if (!isDraft && validateThisLanguage && !modelName) {
-          validationErrors.push({ path: `ModelName_${lang}`, msg: `${lang} Model Name is required.` });
-        }
-        if (!isDraft && validateThisLanguage && !shortDesc) {
-          validationErrors.push({ path: `ModelNameDesc_${lang}`, msg: `${lang} Short Description is required.` });
-        }
-        if (!isDraft && validateThisLanguage && !desc) {
-          validationErrors.push({ path: `ModelDesc_${lang}`, msg: `${lang} Description is required.` });
-        }
+        console.log(`📌 Industry Name: ${industryName}`);
 
-        const overviewData = [];
-        const industryData = [];
+        const industryImage = req.files[`industryImages_${lang}[${i}]`]?.[0]
+          ? await uploadToCloudinary(req.files[`industryImages_${lang}[${i}]`][0], `industry/${lang}`)
+          : '';
 
-        for (let i = 0; i < 4; i++) {
-          const name = req.body.overview?.[lang]?.[i]?.overviewName;
-          const description = req.body.overview?.[lang]?.[i]?.overviewDesc;
+        const industryLogo = req.files[`industryLogos_${lang}[${i}]`]?.[0]
+          ? await uploadToCloudinary(req.files[`industryLogos_${lang}[${i}]`][0], `industry/${lang}`)
+          : '';
 
-          if (!isDraft && validateThisLanguage && (!name || !description)) {
-            validationErrors.push({ path: `overview_${lang}_${i}`, msg: `${lang} Overview ${i + 1} is incomplete.` });
-          }
-
-          overviewData.push({
-            overviewName: name || '',
-            overviewDesc: description || '',
-            overviewImage: lang === 'EN'
-              ? (req.files?.[`overviewImages_${lang}[${i}]`]?.[0]?.path?.replace(/\\/g, '/') || req.body[`oldOverviewImages_${i}`])
-              : undefined
-          });
-        }
-
-        for (let i = 0; i < 3; i++) {
-          const industryName = req.body.industry?.[lang]?.[i]?.industryName;
-
-          if (!isDraft && validateThisLanguage && !industryName) {
-            validationErrors.push({ path: `industry_${lang}_${i}`, msg: `${lang} Industry ${i + 1} name is required.` });
-          }
-
-          industryData.push({
-            industryName: industryName || '',
-            industryImage: lang === 'EN'
-              ? (req.files?.[`industryImages_${lang}[${i}]`]?.[0]?.path?.replace(/\\/g, '/') || req.body[`oldIndustryImage_${i}`])
-              : undefined,
-            industryLogo: lang === 'EN'
-              ? (req.files?.[`industryLogos_${lang}[${i}]`]?.[0]?.path?.replace(/\\/g, '/') || req.body[`oldIndustryLogo_${i}`])
-              : undefined
-          });
-        }
-
-        const specRaw = req.body.technicalSpecifications?.[lang] || {};
-        const specSections = Object.keys(specRaw).map(sectionKey => {
-          const section = specRaw[sectionKey];
-          const rows = section.rows ? Object.keys(section.rows).map(rowKey => section.rows[rowKey]) : [];
-
-          if (!isDraft && validateThisLanguage && !section.sectionTitle) {
-            validationErrors.push({ path: `techspec_section_${lang}_${sectionKey}`, msg: `${lang} Tech section title is required.` });
-          }
-          if (!isDraft && validateThisLanguage && !rows.length) {
-            validationErrors.push({ path: `techspec_rows_${lang}_${sectionKey}`, msg: `${lang} Tech section must have at least one row.` });
-          }
-
-          return {
-            sectionTitle: section.sectionTitle,
-            rows: rows
-          };
+        industryData.push({
+          industryName,
+          industryImage,
+          industryLogo
         });
+      }
 
-        const downloads = [];
-        const uploadedFiles = req.files[`downloadFiles_${lang}`];
+
+
+      // ✅ Technical Specifications
+      if (req.body.technicalSpecifications && req.body.technicalSpecifications[lang]) {
+        req.body.technicalSpecifications[lang].forEach((section, index) => {
+          const sectionTitle = section.sectionTitle;
+          const rows = section.rows.map(row => ({
+            title: row.title,
+            value: row.value
+          }));
+
+          technicalSpecifications.push({
+            sectionTitle,
+            rows
+          });
+        });
+      }
+
+      // ✅ Downloads
+      // ✅ Downloads
+      if (req.files[`downloadFiles_${lang}`]) {
         const fileNames = req.body[`downloadFileNames_${lang}`] || [];
         const categories = req.body[`downloadCategories_${lang}`] || [];
 
-        if (uploadedFiles) {
-          const fileArray = Array.isArray(uploadedFiles) ? uploadedFiles : [uploadedFiles];
-          const namesArray = Array.isArray(fileNames) ? fileNames : [fileNames];
-          const categoriesArray = Array.isArray(categories) ? categories : [categories];
+        for (let i = 0; i < req.files[`downloadFiles_${lang}`].length; i++) {
+          const file = req.files[`downloadFiles_${lang}`][i];
+          const filePath = await uploadToCloudinary(file, `downloads/${lang}`);
 
-          fileArray.forEach((file, i) => {
-            const sizeInMB = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
-            downloads.push({
-              fileName: namesArray[i],
-              filePath: file.path.replace(/\\/g, '/'),
-              fileSize: sizeInMB,
-              fileCategory: categoriesArray[i],
-              fileProductCategory: product?.Language?.EN?.[0]?.ProductName || 'Unknown'
-            });
+          downloads.push({
+            fileName: fileNames[i] || file.originalname,  // ✅ Use the custom name if available
+            filePath,
+            fileSize: `${(file.size / (1024 * 1024)).toFixed(2)} MB`,
+            fileCategory: categories[i] || 'Uncategorized', // ✅ Use the category if available
           });
         }
-
-        const existingDownloadsRaw = req.body[`existingDownloads_${lang}`];
-        const existingDownloads = [];
-        if (existingDownloadsRaw) {
-          const arr = Array.isArray(existingDownloadsRaw) ? existingDownloadsRaw : [existingDownloadsRaw];
-          arr.forEach(d => {
-            try {
-              existingDownloads.push(JSON.parse(d));
-            } catch (_) { }
-          });
-        }
-
-        if (!isDraft && validateThisLanguage && downloads.length + existingDownloads.length === 0) {
-          validationErrors.push({ path: `downloads_${lang}`, msg: `${lang} Downloads required.` });
-        }
-
-        languageData[lang] = [{
-          ModelName: modelName,
-          ModelNameDesc: shortDesc,
-          ModelDesc: desc,
-          overview: overviewData,
-          industry: industryData,
-          technicalSpecifications: specSections,
-          downloads: [...existingDownloads, ...downloads]
-        }];
-      });
-
-
-      if (!isDraft && validationErrors.length > 0) {
-        const reshapedModel = {
-          ModelThumbnail: req.files?.ModelThumbnail?.[0]?.path || req.body.oldModelThumbnail,
-          ModelPhotos: req.files?.ModelPhotos?.map(f => f.path) || [],
-          overviewThumbnail: req.files?.overviewThumbnail?.[0]?.path || req.body.oldOverviewThumbnail,
-          modelcapacity: req.body.modelcapacity,
-          Language: languageData
-        };
-
-        return res.status(422).render('sellercompany/add-model', {
-          pageTitle: 'Add Model',
-          path: '/admin/add-model',
-          product,
-          model: reshapedModel,
-          editing: false,
-          productId,
-          validationErrors,
-          hasError: true,
-          isAuthenticated: req.session.isLoggedIn,
-          errorMessage: 'Please fill in all required fields.'
-        });
       }
 
-      const model = {
-        ModelThumbnail: req.files?.ModelThumbnail?.[0]?.path || req.body.oldModelThumbnail,
-        ModelPhotos: req.files?.ModelPhotos?.map(f => f.path) || [],
-        overviewThumbnail: req.files?.overviewThumbnail?.[0]?.path || req.body.oldOverviewThumbnail,
-        modelcapacity: req.body.modelcapacity,
-        Language: languageData,
-        isPublished: !isDraft
-      };
 
-      product.Models.push(model);
-      return product.save().then(() => {
-        return res.redirect('/admin/Myproduct'); // ✅ wrapped inside
-      });
+      languageData[lang] = [{
+        ModelName: req.body[`ModelName_${lang}`],
+        ModelNameDesc: req.body[`ModelNameDesc_${lang}`],
+        ModelDesc: req.body[`ModelDesc_${lang}`],
+        overview: overviewData,
+        industry: industryData,
+        technicalSpecifications,
+        downloads
+      }];
+    }
 
-    })
+    // ✅ Final model structure
+    const model = {
+      ModelThumbnail,
+      ModelPhotos,
+      overviewThumbnail,
+      Language: languageData,
+      isPublished: !isDraft
+    };
+
+    // ✅ Push to the product in MongoDB
+    await Product.findByIdAndUpdate(productId, {
+      $push: { Models: model }
+    });
+
+    console.log('✅ Model successfully added!');
+    res.redirect('/admin/Myproduct');
+  } catch (err) {
+    console.error('🔥 Error adding model:', err.message);
+    res.redirect('/admin/Myproduct');
+  }
 };
 
 
@@ -748,226 +731,118 @@ exports.postAddModel = (req, res, next) => {
 
 
 
-exports.postEditModel = (req, res, next) => {
+
+
+
+// Controller for editing a model
+
+
+// Controller for editing a model
+// Controller for editing a model
+// Controller for editing a model
+// Controller for editing a model
+// Controller for editing a model
+exports.postEditModel = async (req, res) => {
   const { productId, modelId } = req.params;
   const languages = ['EN', 'ES', 'GR'];
-  const languageData = {};
-  const isDraft = req.body.action === 'draft';
-  const validationErrors = [];
 
-  Product.findById(productId)
-    .then(product => {
-      if (!product) return res.redirect('/admin/Myproduct');
+  try {
+    const product = await Product.findById(productId);
+    if (!product) return res.redirect('/admin/Myproduct');
 
-      const model = product.Models.id(modelId);
-      if (!model) return res.redirect('/admin/Myproduct');
+    const model = product.Models.id(modelId);
+    if (!model) return res.redirect('/admin/Myproduct');
 
-      // Validate shared fields
-      if (!isDraft) {
-        if (!req.body.modelcapacity) {
-          validationErrors.push({ path: 'modelcapacity', msg: 'Model Capacity is required.' });
-        }
-
-        if (!req.files?.ModelThumbnail?.[0] && !req.body.oldModelThumbnail && !model.ModelThumbnail) {
-          validationErrors.push({ path: 'ModelThumbnail', msg: 'Model Thumbnail is required.' });
-        }
-
-        if (!req.files?.overviewThumbnail?.[0] && !req.body.oldOverviewThumbnail && !model.overviewThumbnail) {
-          validationErrors.push({ path: 'overviewThumbnail', msg: 'Overview Thumbnail is required.' });
-        }
+    // ✅ Helper function to upload to Cloudinary
+    const uploadToCloudinary = async (file, folder) => {
+      if (!file || !file.path) {
+        console.log(`⚠️ Skipping Cloudinary upload for missing file.`);
+        return null; // 🛑 Avoid upload if file is undefined
       }
-
-      languages.forEach(lang => {
-        const existingLangData = model.Language?.[lang]?.[0] || {};
-        const validateThisLanguage = (lang === 'EN'); // ✅ only validate English
-
-        const modelName = req.body[`ModelName_${lang}`];
-        const shortDesc = req.body[`ModelNameDesc_${lang}`];
-        const desc = req.body[`ModelDesc_${lang}`];
-
-        if (!isDraft && validateThisLanguage && !modelName) {
-          validationErrors.push({ path: `ModelName_${lang}`, msg: `${lang} Model Name is required.` });
-        }
-        if (!isDraft && validateThisLanguage && !shortDesc) {
-          validationErrors.push({ path: `ModelNameDesc_${lang}`, msg: `${lang} Short Description is required.` });
-        }
-        if (!isDraft && validateThisLanguage && !desc) {
-          validationErrors.push({ path: `ModelDesc_${lang}`, msg: `${lang} Description is required.` });
-        }
-
-        const overviewData = [];
-        const industryData = [];
-
-        for (let i = 0; i < 4; i++) {
-          const name = req.body.overview?.[lang]?.[i]?.overviewName;
-          const desc = req.body.overview?.[lang]?.[i]?.overviewDesc;
-          let img = existingLangData.overview?.[i]?.overviewImage;
-
-          if (lang === 'EN') {
-            img = req.files?.[`overviewImages_${lang}[${i}]`]?.[0]?.path?.replace(/\\/g, '/') || img;
-            if (!isDraft && validateThisLanguage && !img) {
-              validationErrors.push({ path: `overviewImage_${lang}_${i}`, msg: `Overview image ${i + 1} (${lang}) is required.` });
-            }
-          }
-
-          if (!isDraft && validateThisLanguage && (!name || !desc)) {
-            validationErrors.push({ path: `overview_${lang}_${i}`, msg: `Overview ${i + 1} (${lang}) is incomplete.` });
-          }
-
-          overviewData.push({
-            overviewName: name || '',
-            overviewDesc: desc || '',
-            overviewImage: lang === 'EN' ? img : undefined
-          });
-        }
-
-        for (let i = 0; i < 3; i++) {
-          const name = req.body.industry?.[lang]?.[i]?.industryName;
-          let img = existingLangData.industry?.[i]?.industryImage;
-          let logo = existingLangData.industry?.[i]?.industryLogo;
-
-          if (lang === 'EN') {
-            img = req.files?.[`industryImages_${lang}[${i}]`]?.[0]?.path?.replace(/\\/g, '/') || img;
-            logo = req.files?.[`industryLogos_${lang}[${i}]`]?.[0]?.path?.replace(/\\/g, '/') || logo;
-            if (!isDraft && validateThisLanguage && (!img || !logo)) {
-              validationErrors.push({ path: `industryImage_${lang}_${i}`, msg: `Industry image/logo ${i + 1} (${lang}) is required.` });
-            }
-          }
-
-          if (!isDraft && validateThisLanguage && !name) {
-            validationErrors.push({ path: `industryName_${lang}_${i}`, msg: `Industry name ${i + 1} (${lang}) is required.` });
-          }
-
-          industryData.push({
-            industryName: name || '',
-            industryImage: lang === 'EN' ? img : undefined,
-            industryLogo: lang === 'EN' ? logo : undefined
-          });
-        }
-
-        const specSections = [];
-        const specs = req.body.technicalSpecifications?.[lang];
-
-        if (specs) {
-          for (const [sectionIndex, section] of Object.entries(specs)) {
-            const rows = [];
-
-            if (section.rows) {
-              for (const row of Object.values(section.rows)) {
-                rows.push({
-                  title: row.title,
-                  value: row.value
-                });
-              }
-            }
-
-            if (!isDraft && validateThisLanguage && !section.sectionTitle) {
-              validationErrors.push({ path: `techspec_section_${lang}_${sectionIndex}`, msg: `${lang} Spec section title is required.` });
-            }
-            if (!isDraft && validateThisLanguage && !rows.length) {
-              validationErrors.push({ path: `techspec_rows_${lang}_${sectionIndex}`, msg: `${lang} Spec section must have at least one row.` });
-            }
-
-            specSections.push({
-              sectionTitle: section.sectionTitle,
-              rows
-            });
-          }
-        }
-
-        let downloads = [];
-        let existingDownloads = [];
-        const existingRaw = req.body[`existingDownloads_${lang}`];
-        if (existingRaw) {
-          const rawArr = Array.isArray(existingRaw) ? existingRaw : [existingRaw];
-          existingDownloads = rawArr.map(r => JSON.parse(r));
-        }
-
-        const deleted = req.body[`deletedDownloads_${lang}`] || [];
-        const deletedPaths = Array.isArray(deleted) ? deleted : [deleted];
-        existingDownloads = existingDownloads.filter(d => !deletedPaths.includes(d.filePath));
-
-        deletedPaths.forEach(p => {
-          try {
-            fs.unlinkSync(p);
-          } catch (err) {
-            console.error('Delete failed:', err);
-          }
+      try {
+        const result = await cloudinary.uploader.upload(file.path, {
+          folder: folder,
+          resource_type: file.mimetype.includes('image') ? 'image' : 'raw',
         });
-
-        const uploaded = req.files[`downloadFiles_${lang}`] || [];
-        const fileNames = req.body[`downloadFileNames_${lang}`] || [];
-        const categories = req.body[`downloadCategories_${lang}`] || [];
-
-        uploaded.forEach((file, i) => {
-          downloads.push({
-            fileName: fileNames[i],
-            filePath: file.path.replace(/\\/g, '/'),
-            fileSize: (file.size / (1024 * 1024)).toFixed(2) + ' MB',
-            fileCategory: categories[i],
-            fileProductCategory: product?.Language?.EN?.[0]?.ProductName || 'Unknown'
-          });
-        });
-
-        const allDownloads = [...existingDownloads, ...downloads];
-        if (!isDraft && validateThisLanguage && allDownloads.length === 0) {
-          validationErrors.push({ path: `downloads_${lang}`, msg: `${lang} Downloads required.` });
-        }
-
-        languageData[lang] = [{
-          ModelName: modelName,
-          ModelNameDesc: shortDesc,
-          ModelDesc: desc,
-          overview: overviewData,
-          industry: industryData,
-          technicalSpecifications: specSections,
-          downloads: allDownloads
-        }];
-      });
-
-
-      if (!isDraft && validationErrors.length > 0) {
-        res.status(422).render('sellercompany/add-model', {
-          pageTitle: 'Edit Model',
-          path: '/admin/edit-model',
-          product,
-          modelId,
-          productId,
-          model: {
-            ...model.toObject(),
-            modelcapacity: req.body.modelcapacity,
-            Language: languageData,
-            overviewThumbnail: req.body.oldOverviewThumbnail,
-            ModelThumbnail: req.body.oldModelThumbnail,
-            ModelPhotos: model.ModelPhotos
-          },
-          validationErrors,
-          hasError: true,
-          editing: true,
-          isAuthenticated: req.session.isLoggedIn,
-          errorMessage: 'Please fix the errors before saving.'
-        });
-
-        return Promise.reject('Validation Failed'); // ✅ stop chain
+        console.log(`✅ Successfully uploaded to Cloudinary: ${result.secure_url}`);
+        return result.secure_url;
+      } catch (error) {
+        console.error('Cloudinary upload error:', error.message);
+        return null;
       }
+    };
+
+    // ✅ Update main images (if they exist)
+    model.ModelThumbnail = req.files?.ModelThumbnail?.[0]
+      ? await uploadToCloudinary(req.files.ModelThumbnail[0], `DragLab/products/${productId}`)
+      : model.ModelThumbnail || req.body.oldModelThumbnail;
+
+    model.ModelPhotos = req.files?.ModelPhotos
+      ? await Promise.all(req.files.ModelPhotos.map(file => uploadToCloudinary(file, `DragLab/products/${productId}`)))
+      : model.ModelPhotos;
+
+    model.overviewThumbnail = req.files?.overviewThumbnail?.[0]
+      ? await uploadToCloudinary(req.files.overviewThumbnail[0], `DragLab/products/${productId}`)
+      : model.overviewThumbnail || req.body.oldOverviewThumbnail;
+
+    model.modelcapacity = req.body.modelcapacity || model.modelcapacity;
+
+    // ✅ Loop through languages and process images
+for (const lang of languages) {
+  const overviewData = [];
+  
+  // 📝 Fetch all the files for this language
+  const newFiles = req.files[`overviewImages_${lang}`] || [];
+
+  for (let i = 0; i < 4; i++) {
+    console.log(`🗂️ Looking for: overviewImages_${lang}[${i}]`);
+
+    // 🔄 Try to get the file from the array
+    const newFile = newFiles[i];
+
+    // 🔄 Fetch old file path correctly now:
+    const oldFile = req.body[`oldOverviewImages_${lang}_${i}`];
+    const modelFile = model.Language[lang][0].overview[i]?.overviewImage;
+
+    console.log(`🔍 New File Detected:`, newFile);
+    console.log(`🔍 Old File Detected:`, oldFile);
+    console.log(`🔍 Model File Detected:`, modelFile);
+
+    // 🔄 Corrected logic:
+    const overviewImage = newFile 
+      ? await uploadToCloudinary(newFile, `DragLab/products/${productId}`)
+      : oldFile || modelFile || '';
+
+    console.log(`📌 Final Overview Image Path [${lang}] [${i}]:`, overviewImage);
+
+    overviewData.push({
+      overviewName: req.body.overview[lang]?.[i]?.overviewName || model.Language[lang][0].overview[i]?.overviewName,
+      overviewDesc: req.body.overview[lang]?.[i]?.overviewDesc || model.Language[lang][0].overview[i]?.overviewDesc,
+      overviewImage
+    });
+  }
+
+  // 🔄 Update the language object with new overview data
+  model.Language[lang] = [{
+    ModelName: req.body[`ModelName_${lang}`],
+    ModelNameDesc: req.body[`ModelNameDesc_${lang}`],
+    ModelDesc: req.body[`ModelDesc_${lang}`],
+    overview: overviewData,
+  }];
+}
 
 
-      // Save
-      model.ModelThumbnail = req.files?.ModelThumbnail?.[0]?.path || req.body.oldModelThumbnail;
-      model.ModelPhotos = req.files?.ModelPhotos?.map(f => f.path) || model.ModelPhotos;
-      model.overviewThumbnail = req.files?.overviewThumbnail?.[0]?.path || model.overviewThumbnail;
-      model.modelcapacity = req.body.modelcapacity;
-      model.Language = languageData;
-      model.isPublished = !isDraft;
 
-      return product.save();
 
-    })
-    .then(() => res.redirect('/admin/Myproduct'))
-    .catch(err => next(err));
+
+    await product.save();
+    console.log('✅ Model successfully updated!');
+    res.redirect('/admin/Myproduct');
+  } catch (err) {
+    console.error('Error updating model:', err.message);
+    res.redirect('/admin/Myproduct');
+  }
 };
-
-
 
 
 
@@ -1009,22 +884,51 @@ exports.getAddSlideForm = (req, res) => {
 
 };
 
-exports.postAddSlide = (req, res) => {
-  const { title, desc, language } = req.body;
-  const image = req.files?.slideshowImage?.[0]?.path;
+exports.postAddSlide = async (req, res) => {
+  try {
+    const { title, desc, language } = req.body;
+    
+    console.log('📝 Received form data:', req.body);
+    console.log('🗂️ Files received:', req.files);
 
-  const newSlide = new Slideshow({ title, desc, image, language });
+    if (!req.files) {
+      console.error("❌ No files found in request.");
+      return res.status(400).send('No files uploaded');
+    }
 
-  newSlide.save()
-    .then(() => {
-      console.log('Slide added successfully!');
-      res.redirect('/admin/slideshow');
-    })
-    .catch(err => {
-      console.error('Error adding slide:', err);
-    });
+    // 📝 Fetch the image file from Multer
+    const file = req.files.slideshowImage?.[0];
 
+    if (!file) {
+      console.error("❌ slideshowImage not found in req.files");
+      console.log('🗂️ Files structure:', req.files);
+      return res.status(400).send('Image is required');
+    }
+
+    console.log("🌐 Uploading image to Cloudinary...");
+    const image = await uploadToCloudinary(file, 'slideshow');
+
+    if (!image) {
+      console.error("❌ Failed to upload image to Cloudinary.");
+      return res.status(500).send('Failed to upload image');
+    }
+
+    console.log("✅ Image Path from Cloudinary:", image);
+
+    // ✅ Save to database
+    const newSlide = new Slideshow({ title, desc, image, language });
+
+    await newSlide.save();
+    console.log('✅ Slide added successfully!');
+    res.redirect('/admin/slideshow');
+  } catch (err) {
+    console.error('🔥 Error adding slide:', err.message);
+    console.error(err.stack); // <-- This will give you the stack trace of the error
+    res.status(500).send('Internal Server Error');
+  }
 };
+
+
 
 
 exports.getEditSlideForm = (req, res) => {
@@ -1044,30 +948,106 @@ exports.getEditSlideForm = (req, res) => {
     })
     .catch(err => console.log(err));
 };
-
-exports.postEditSlide = (req, res) => {
+exports.postEditSlide = async (req, res) => {
   const { title, desc, language } = req.body;
-  const image = req.files?.slideshowImage?.[0]?.path;
+  const image = req.files?.slideshowImage?.[0]?.cloudinaryUrl;
 
+  try {
+    // ✅ Fetch the slide from the database
+    const slide = await Slideshow.findById(req.params.id);
 
+    if (!slide) {
+      console.error('❌ Slide not found!');
+      return res.status(404).send('Slide not found');
+    }
 
-  Slideshow.findById(req.params.id)
-    .then(slide => {
-      slide.title = title;
-      slide.desc = desc;
-      slide.language = language;
-      if (image) slide.image = image;
-      return slide.save();
-    })
-    .then(() => res.redirect('/admin/slideshow'))
-    .catch(err => console.log(err));
+    // ✅ Update text fields
+    slide.title = title;
+    slide.desc = desc;
+    slide.language = language;
+
+    console.log("📝 Form Data Received:", req.body);
+    console.log("🗂️ Files Received:", req.files);
+
+    // ✅ If there is a new image file in the form
+    if (req.files?.slideshowImage?.[0]) {
+      console.log("🌐 Uploading new image to Cloudinary...");
+      const newImageUrl = await uploadToCloudinary(req.files.slideshowImage[0], 'slideshow');
+
+      if (newImageUrl) {
+        console.log("✅ New Image URL:", newImageUrl);
+
+        // ✅ Delete old image from Cloudinary if it exists
+        if (slide.image) {
+          // Extract the **publicId** correctly
+          const publicId = slide.image
+            .split('/draglab/models/slideshow/')[1] // Extract after the folder path
+            .split('.')[0];                        // Remove the extension
+
+          console.log("🗑️ Deleting old image from Cloudinary:", publicId);
+
+          try {
+            const result = await cloudinary.uploader.destroy(`draglab/models/slideshow/${publicId}`);
+            console.log('✅ Old image deleted from Cloudinary:', result);
+          } catch (err) {
+            console.error('❌ Failed to delete old image from Cloudinary:', err.message);
+          }
+        }
+
+        // ✅ Replace with the new image
+        slide.image = newImageUrl;
+      } else {
+        console.error("❌ Failed to upload new image to Cloudinary.");
+      }
+    } else {
+      console.log("⚠️ No new image provided for upload.");
+    }
+
+    // ✅ Mark the slide as modified
+    slide.markModified('image');
+    slide.markModified('title');
+    slide.markModified('desc');
+    slide.markModified('language');
+
+    // ✅ Save the changes
+    const updatedSlide = await slide.save();
+    console.log('✅ Slide updated successfully:', updatedSlide);
+
+    res.redirect('/admin/slideshow');
+  } catch (err) {
+    console.error('❌ Error updating slide:', err.message);
+    res.status(500).send('Internal Server Error');
+  }
 };
 
 
+
+
 exports.deleteSlide = (req, res) => {
-  Slideshow.findByIdAndDelete(req.params.id)
-    .then(() => res.redirect('/admin/slideshow'))
-    .catch(err => console.log(err));
+  Slideshow.findById(req.params.id)
+    .then(async (slide) => {
+      if (slide.image) {
+        // ✅ Extract the publicId more dynamically
+        const publicId = slide.image.split('/').pop().split('.')[0]; // Get only the last segment before `.webp`
+
+        try {
+          const result = await cloudinary.uploader.destroy(`draglab/slideshow/${publicId}`);
+          console.log('✅ Image deleted from Cloudinary:', result);
+        } catch (err) {
+          console.error('❌ Failed to delete image from Cloudinary:', err.message);
+        }
+      }
+
+      return Slideshow.findByIdAndDelete(req.params.id);
+    })
+    .then(() => {
+      console.log('✅ Slide deleted successfully!');
+      res.redirect('/admin/slideshow');
+    })
+    .catch(err => {
+      console.error('❌ Error deleting slide:', err.message);
+      res.status(500).send('Internal Server Error');
+    });
 };
 
 
@@ -1105,9 +1085,36 @@ exports.getAddArticle = (req, res) => {
 };
 
 // POST: Add New Article
-exports.postAddArticle = (req, res) => {
+exports.postAddArticle = async (req, res) => {
   const { title, author, body, language } = req.body;
-  const thumbnail = req.files?.thumbnail?.[0]?.path;
+  const file = req.files?.thumbnail?.[0];
+  let thumbnail = '';
+
+  // ✅ Upload to Cloudinary if file exists
+  if (file) {
+    try {
+      const result = await new Promise((resolve, reject) => {
+        cloudinary.uploader.upload_stream(
+          {
+            resource_type: 'image',
+            folder: 'draglab/articles',
+            public_id: file.originalname.split('.')[0],
+            format: 'webp',
+          },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result.secure_url);
+          }
+        ).end(file.buffer);
+      });
+
+      thumbnail = result;
+      console.log('Cloudinary URL:', thumbnail);
+    } catch (err) {
+      console.error('Cloudinary upload error:', err.message);
+      return res.status(500).send('Failed to upload thumbnail');
+    }
+  }
 
   const newArticle = new Article({ title, author, body, language, thumbnail });
 
@@ -1140,19 +1147,54 @@ exports.getEditArticle = (req, res) => {
 };
 
 // POST: Edit Article
-exports.postEditArticle = (req, res) => {
+exports.postEditArticle = async (req, res) => {
   const { title, author, body, language } = req.body;
-  const thumbnail = req.files?.thumbnail?.[0]?.path;
+  const file = req.files?.thumbnail?.[0];
 
   Article.findById(req.params.articleId)
-    .then(article => {
+    .then(async (article) => {
       if (!article) return res.redirect('/admin/articles');
 
       article.title = title;
       article.author = author;
       article.body = body;
       article.language = language;
-      if (thumbnail) article.thumbnail = thumbnail;
+
+      if (file) {
+        // ✅ Delete the old thumbnail from Cloudinary
+        if (article.thumbnail) {
+          const publicId = article.thumbnail.split('/draglab/articles/')[1].replace('.webp', '');
+          try {
+            const result = await cloudinary.uploader.destroy(`draglab/articles/${publicId}`);
+            console.log('Old thumbnail deleted from Cloudinary:', result);
+          } catch (err) {
+            console.error('Failed to delete old image:', err.message);
+          }
+        }
+
+        // ✅ Upload new thumbnail to Cloudinary
+        try {
+          const result = await new Promise((resolve, reject) => {
+            cloudinary.uploader.upload_stream(
+              {
+                resource_type: 'image',
+                folder: 'draglab/articles',
+                public_id: file.originalname.split('.')[0],
+                format: 'webp',
+              },
+              (error, result) => {
+                if (error) reject(error);
+                else resolve(result.secure_url);
+              }
+            ).end(file.buffer);
+          });
+
+          article.thumbnail = result;
+        } catch (err) {
+          console.error('Cloudinary upload error:', err.message);
+          return res.status(500).send('Failed to upload new thumbnail');
+        }
+      }
 
       return article.save();
     })
@@ -1163,15 +1205,31 @@ exports.postEditArticle = (req, res) => {
     .catch(err => console.log(err));
 };
 
+
 // POST: Delete Article
 exports.postDeleteArticle = (req, res) => {
-  Article.findByIdAndDelete(req.params.articleId)
+  Article.findById(req.params.articleId)
+    .then(async (article) => {
+      if (article.thumbnail) {
+        const publicId = article.thumbnail.split('/draglab/articles/')[1].replace('.webp', '');
+
+        try {
+          const result = await cloudinary.uploader.destroy(`draglab/articles/${publicId}`);
+          console.log('Thumbnail deleted from Cloudinary:', result);
+        } catch (err) {
+          console.error('Failed to delete image from Cloudinary:', err.message);
+        }
+      }
+
+      return Article.findByIdAndDelete(req.params.articleId);
+    })
     .then(() => {
       console.log('Article deleted');
       res.redirect('/admin/articles');
     })
     .catch(err => console.log(err));
 };
+
 
 
 
@@ -1337,15 +1395,42 @@ exports.postUploadFile = async (req, res) => {
 
     const fileSizeMB = `${(file.size / (1024 * 1024)).toFixed(1)} MB`;
 
+    // ✅ Check if Category exists before uploading
     const category = await CatalogCategory.findById(req.params.categoryId);
     if (!category) {
       console.error('⚠️ Category not found.');
-      return res.redirect('/admin/catalogs?error=nocat');
+      return res.status(404).send('Category not found.');
     }
 
+    // ✅ Upload to Cloudinary as a raw file (PDF/DOCX)
+    const sanitizedFilename = sanitize(file.originalname);
+    let fileUrl = '';
+    try {
+      const result = await new Promise((resolve, reject) => {
+        cloudinary.uploader.upload_stream(
+          {
+            resource_type: 'raw',
+            folder: 'draglab/catalogs',
+            public_id: `${Date.now()}-${sanitizedFilename}`
+          },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result.secure_url);
+          }
+        ).end(file.buffer);
+      });
+
+      fileUrl = result;
+      console.log('Uploaded to Cloudinary:', fileUrl);
+    } catch (err) {
+      console.error('Cloudinary upload error:', err.message);
+      return res.redirect('/admin/catalogs?error=upload');
+    }
+
+    // ✅ Save to Category
     category.files.push({
       fileName: req.body.fileName,
-      filePath: file.path.replace('public/', ''),
+      filePath: fileUrl,
       fileSize: fileSizeMB,
       language: req.body.language
     });
@@ -1360,28 +1445,51 @@ exports.postUploadFile = async (req, res) => {
 
 exports.deleteCategory = async (req, res) => {
   const category = await CatalogCategory.findById(req.params.categoryId);
-  // Delete all files physically
+
   for (const file of category.files) {
-    const fullPath = path.join('public', file.filePath);
-    if (fs.existsSync(fullPath)) fs.unlinkSync(fullPath);
+    const publicId = file.filePath.split('/draglab/catalogs/')[1].replace(/\.[^/.]+$/, '');
+
+    try {
+      const result = await cloudinary.uploader.destroy(`draglab/catalogs/${publicId}`, {
+        resource_type: 'raw'
+      });
+      console.log('File deleted from Cloudinary:', result);
+    } catch (err) {
+      console.error(`Failed to delete ${file.fileName} from Cloudinary:`, err.message);
+    }
   }
+
   await CatalogCategory.findByIdAndDelete(req.params.categoryId);
   res.redirect('/admin/catalogs');
 };
+
 
 exports.deleteFile = async (req, res) => {
   const { categoryId, fileId } = req.params;
   const category = await CatalogCategory.findById(categoryId);
 
   const file = category.files.id(fileId);
-  const fullPath = path.join('public', file.filePath);
-  if (fs.existsSync(fullPath)) fs.unlinkSync(fullPath);
+
+  // ✅ Extract the public ID from the Cloudinary URL
+  if (file && file.filePath) {
+    const publicId = file.filePath.split('/draglab/catalogs/')[1].replace(/\.[^/.]+$/, '');
+
+    try {
+      const result = await cloudinary.uploader.destroy(`draglab/catalogs/${publicId}`, {
+        resource_type: 'raw'
+      });
+      console.log('File deleted from Cloudinary:', result);
+    } catch (err) {
+      console.error('Failed to delete file from Cloudinary:', err.message);
+    }
+  }
 
   category.files.id(fileId).deleteOne();
   await category.save();
 
   res.redirect('/admin/catalogs');
 };
+
 
 
 exports.getAllTechnicalRequests = async (req, res) => {

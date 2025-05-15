@@ -116,7 +116,7 @@
                                                   
                                                         <% if (lang === 'EN') { %>
                                                           <% if (feature.FeatureImage) { %>
-                                                            <img src="/<%= feature.FeatureImage %>" style="max-width: 100px;">
+                                                            <img src="<%=feature.FeatureImage %>" style="max-width: 100px;">
                                                           <% } %>
                                                           <input type="hidden" name="OldFeatureImage_<%= lang %>[]" value="<%= feature.FeatureImage || '' %>">
                                                   
@@ -170,7 +170,7 @@
                                                     <input type="file" id="productThumbnail" name="productThumbnail"
                                                         accept="image/*">
                                                     <% if (product.ProductThumbnail) { %>
-                                                        <img src="/<%= product.ProductThumbnail %>"
+                                                        <img src="<%=product.ProductThumbnail %>"
                                                             alt="Product Thumbnail" style="max-width: 150px;">
                                                         <input type="hidden" name="oldProductThumbnail"
                                                             value="<%= product.ProductThumbnail %>">
@@ -186,7 +186,7 @@
                                                     <input type="file" id="productSketch" name="productSketch"
                                                         accept="image/*">
                                                     <% if (product.ProductSketch) { %>
-                                                        <img src="/<%= product.ProductSketch %>" alt="Product Sketch"
+                                                        <img src="<%=product.ProductSketch %>" alt="Product Sketch"
                                                             style="max-width: 150px;">
                                                         <input type="hidden" name="oldProductSketch"
                                                             value="<%= product.ProductSketch %>">

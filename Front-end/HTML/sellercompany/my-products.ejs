@@ -41,7 +41,7 @@
                                                 <!-- Product Thumbnail -->
                                                 <div class="products-section-products-photo">
                                                     <% if (product.ProductThumbnail) { %>
-                                                        <img src="/<%= product.ProductThumbnail %>"
+                                                        <img src="<%=product.ProductThumbnail %>"
                                                             alt="Product Thumbnail">
                                                         <% } else { %>
                                                             <img src="/assets/Imgs/Icons/default-thumbnail.png"
@@ -98,7 +98,7 @@
 
                                                         <div class="model-section-model-photo">
                                                             <% if (model.ModelThumbnail) { %>
-                                                                <img src="/<%= model.ModelThumbnail %>"
+                                                                <img src="<%=model.ModelThumbnail %>"
                                                                     alt="Model Thumbnail">
                                                                 <% } else { %>
                                                                     <img src="/assets/Imgs/Icons/default-thumbnail.png"

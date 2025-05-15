@@ -37,7 +37,7 @@
 
                 </div>
                 <% if (product.ProductThumbnail) { %>
-                    <img src="/<%= product.ProductThumbnail %>" alt="<%= translation.ProductName %>">
+                    <img src="<%=product.ProductThumbnail %>" alt="<%= translation.ProductName %>">
                     <% } %>
 
             </div>
@@ -58,7 +58,7 @@
                     </div>
                     <div class="introduction-img">
                         <% if (product.ProductSketch) { %>
-                            <img src="/<%= product.ProductSketch %>" alt="<%= translation.ProductName %>">
+                            <img src="<%=product.ProductSketch %>" alt="<%= translation.ProductName %>">
                             <% } %>
                     </div>
                 </div>
@@ -73,7 +73,7 @@
                     <% translation.features.forEach((feature, i)=> { %>
                         <div class="feature-card">
                             <img class="feature-img"
-                                src="/<%= feature.FeatureImage || product.Language.EN[0].features[i]?.FeatureImage %>"
+                                src="<%= feature.FeatureImage || product.Language.EN[0].features[i]?.FeatureImage %>"
                                 alt="">
                             <div class="feature-content">
                                 <h3>
@@ -100,7 +100,7 @@
 
                     <% models.forEach(model=> { %>
                         <div class="model-row">
-                            <img src="/<%= model.ModelThumbnail %>" alt="<%= model.Language[lang][0].ModelName %>">
+                            <img src="<%=model.ModelThumbnail %>" alt="<%= model.Language[lang][0].ModelName %>">
                             <div class="model-info">
                                 <%= model.Language[lang][0].ModelName %>
                             </div>
