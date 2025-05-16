@@ -193,8 +193,7 @@ exports.postAddProduct = async (req, res, next) => {
     // Step 3: Handle validation errors
     if (validationErrors.length > 0) {
       console.log('❌ Validation Errors Detected:', validationErrors);
-
-      return res.status(422).render(path.join(__dirname, '..', 'front-end', 'HTML', 'sellercompany', 'edit-product'), {
+      return res.status(422).render('sellercompany/edit-product', {
         pageTitle: 'Add Product',
         path: '/admin/add-product',
         editing: false,
@@ -523,7 +522,7 @@ exports.getAddModel = (req, res, next) => {
   const productId = req.params.productId;
   Product.findById(productId).then(product => {
     if (!product) return res.redirect('/admin/Myproduct');
-    res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'sellercompany', 'add-model'), {
+    res.render('sellercompany/add-model', {
       pageTitle: 'Add Model',
       path: '/admin/add-model',
       product,
@@ -544,7 +543,7 @@ exports.getEditModel = (req, res, next) => {
     if (!product) return res.redirect('/admin/Myproduct');
     const model = product.Models.id(modelId);
     if (!model) return res.redirect('/admin/Myproduct');
-    res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'sellercompany', 'add-model'), {
+    res.render('sellercompany/add-model', {
       pageTitle: 'Edit Model',
       path: '/admin/edit-model',
       product,
@@ -788,48 +787,48 @@ exports.postEditModel = async (req, res) => {
     model.modelcapacity = req.body.modelcapacity || model.modelcapacity;
 
     // ✅ Loop through languages and process images
-for (const lang of languages) {
-  const overviewData = [];
-  
-  // 📝 Fetch all the files for this language
-  const newFiles = req.files[`overviewImages_${lang}`] || [];
+    for (const lang of languages) {
+      const overviewData = [];
 
-  for (let i = 0; i < 4; i++) {
-    console.log(`🗂️ Looking for: overviewImages_${lang}[${i}]`);
+      // 📝 Fetch all the files for this language
+      const newFiles = req.files[`overviewImages_${lang}`] || [];
 
-    // 🔄 Try to get the file from the array
-    const newFile = newFiles[i];
+      for (let i = 0; i < 4; i++) {
+        console.log(`🗂️ Looking for: overviewImages_${lang}[${i}]`);
 
-    // 🔄 Fetch old file path correctly now:
-    const oldFile = req.body[`oldOverviewImages_${lang}_${i}`];
-    const modelFile = model.Language[lang][0].overview[i]?.overviewImage;
+        // 🔄 Try to get the file from the array
+        const newFile = newFiles[i];
 
-    console.log(`🔍 New File Detected:`, newFile);
-    console.log(`🔍 Old File Detected:`, oldFile);
-    console.log(`🔍 Model File Detected:`, modelFile);
+        // 🔄 Fetch old file path correctly now:
+        const oldFile = req.body[`oldOverviewImages_${lang}_${i}`];
+        const modelFile = model.Language[lang][0].overview[i]?.overviewImage;
 
-    // 🔄 Corrected logic:
-    const overviewImage = newFile 
-      ? await uploadToCloudinary(newFile, `DragLab/products/${productId}`)
-      : oldFile || modelFile || '';
+        console.log(`🔍 New File Detected:`, newFile);
+        console.log(`🔍 Old File Detected:`, oldFile);
+        console.log(`🔍 Model File Detected:`, modelFile);
 
-    console.log(`📌 Final Overview Image Path [${lang}] [${i}]:`, overviewImage);
+        // 🔄 Corrected logic:
+        const overviewImage = newFile
+          ? await uploadToCloudinary(newFile, `DragLab/products/${productId}`)
+          : oldFile || modelFile || '';
 
-    overviewData.push({
-      overviewName: req.body.overview[lang]?.[i]?.overviewName || model.Language[lang][0].overview[i]?.overviewName,
-      overviewDesc: req.body.overview[lang]?.[i]?.overviewDesc || model.Language[lang][0].overview[i]?.overviewDesc,
-      overviewImage
-    });
-  }
+        console.log(`📌 Final Overview Image Path [${lang}] [${i}]:`, overviewImage);
 
-  // 🔄 Update the language object with new overview data
-  model.Language[lang] = [{
-    ModelName: req.body[`ModelName_${lang}`],
-    ModelNameDesc: req.body[`ModelNameDesc_${lang}`],
-    ModelDesc: req.body[`ModelDesc_${lang}`],
-    overview: overviewData,
-  }];
-}
+        overviewData.push({
+          overviewName: req.body.overview[lang]?.[i]?.overviewName || model.Language[lang][0].overview[i]?.overviewName,
+          overviewDesc: req.body.overview[lang]?.[i]?.overviewDesc || model.Language[lang][0].overview[i]?.overviewDesc,
+          overviewImage
+        });
+      }
+
+      // 🔄 Update the language object with new overview data
+      model.Language[lang] = [{
+        ModelName: req.body[`ModelName_${lang}`],
+        ModelNameDesc: req.body[`ModelNameDesc_${lang}`],
+        ModelDesc: req.body[`ModelDesc_${lang}`],
+        overview: overviewData,
+      }];
+    }
 
 
 
@@ -887,7 +886,7 @@ exports.getAddSlideForm = (req, res) => {
 exports.postAddSlide = async (req, res) => {
   try {
     const { title, desc, language } = req.body;
-    
+
     console.log('📝 Received form data:', req.body);
     console.log('🗂️ Files received:', req.files);
 
