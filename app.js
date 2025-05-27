@@ -31,7 +31,7 @@ const store = new MongoDBStore({
 
 app.set('view engine', 'ejs');
 
-app.set('views', path.join(__dirname, 'Front-end', 'HTML'));
+app.set('views', path.join(__dirname, 'front-end', 'HTML'));
 
 
 const adminRoutes = require('./routes/admin');
@@ -43,9 +43,9 @@ const accessLogStream = fs.createWriteStream(path.join(__dirname, 'access.log'),
 app.use(bodyParser.json({ limit: '10mb' }));
 app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
 
-app.use('/assets', express.static(path.join(__dirname, 'Front-end', 'assets')));
-app.use('/css', express.static(path.join(__dirname, 'Front-end', 'Css')));
-app.use('/includes', express.static(path.join(__dirname, 'Front-end', 'includes')));
+app.use('/assets', express.static(path.join(__dirname, 'front-end', 'assets')));
+app.use('/css', express.static(path.join(__dirname, 'front-end', 'css')));
+app.use('/includes', express.static(path.join(__dirname, 'front-end', 'includes')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(session({ secret: ' my secret', resave: false, saveUninitialized: false, store: store }));
 
