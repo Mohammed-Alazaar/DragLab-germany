@@ -40,8 +40,8 @@ const authRoutes = require('./routes/auth');
 const accountRoutes = require('./routes/account');
 const accessLogStream = fs.createWriteStream(path.join(__dirname, 'access.log'), { flags: 'a' });
 
-app.use(bodyParser.json({ limit: '10mb' }));
-app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
+app.use(bodyParser.json({ limit: '1000mb' }));
+app.use(bodyParser.urlencoded({ limit: '1000mb', extended: true }));
 
 app.use('/assets', express.static(path.join(__dirname, 'Front-end', 'assets')));
 app.use('/css', express.static(path.join(__dirname, 'Front-end', 'Css')));

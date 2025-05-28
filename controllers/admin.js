@@ -704,18 +704,25 @@ exports.postAddModel = async (req, res) => {
     }
 
     // ✅ Final model structure
-    const model = {
+    // Create a new subdocument using the schema path
+    const product = await Product.findById(productId);
+    if (!product) {
+      console.error('❌ Product not found');
+      return res.redirect('/admin/Myproduct');
+    }
+
+    const newModel = product.Models.create({
       ModelThumbnail,
       ModelPhotos,
       overviewThumbnail,
+      modelcapacity: req.body.modelcapacity,
       Language: languageData,
-      isPublished: !isDraft
-    };
+      isPublished: !isDraft,
+    });
 
     // ✅ Push to the product in MongoDB
-    await Product.findByIdAndUpdate(productId, {
-      $push: { Models: model }
-    });
+    product.Models.push(newModel);
+    await product.save();
 
     console.log('✅ Model successfully added!');
     res.redirect('/admin/Myproduct');
@@ -752,29 +759,34 @@ exports.postEditModel = async (req, res) => {
     const model = product.Models.id(modelId);
     if (!model) return res.redirect('/admin/Myproduct');
 
-    // ✅ Helper function to upload to Cloudinary
-    const uploadToCloudinary = async (file, folder) => {
-      if (!file || !file.path) {
-        console.log(`⚠️ Skipping Cloudinary upload for missing file.`);
-        return null; // 🛑 Avoid upload if file is undefined
-      }
-      try {
-        const result = await cloudinary.uploader.upload(file.path, {
-          folder: folder,
-          resource_type: file.mimetype.includes('image') ? 'image' : 'raw',
-        });
-        console.log(`✅ Successfully uploaded to Cloudinary: ${result.secure_url}`);
-        return result.secure_url;
-      } catch (error) {
-        console.error('Cloudinary upload error:', error.message);
-        return null;
-      }
-    };
+   const uploadToCloudinary = async (file, folder, resourceType = 'image') => {
+  if (!file || !file.buffer) {
+    console.log(`⚠️ Skipping Cloudinary upload for missing file.`);
+    return null;
+  }
 
-    // ✅ Update main images (if they exist)
+  const result = await new Promise((resolve, reject) => {
+    cloudinary.uploader.upload_stream(
+      {
+        resource_type: resourceType,
+        folder,
+        use_filename: true,
+        unique_filename: false
+      },
+      (error, result) => {
+        if (error) reject(error);
+        else resolve(result);
+      }
+    ).end(file.buffer);
+  });
+
+  return result.secure_url;
+};
+
+
     model.ModelThumbnail = req.files?.ModelThumbnail?.[0]
       ? await uploadToCloudinary(req.files.ModelThumbnail[0], `DragLab/products/${productId}`)
-      : model.ModelThumbnail || req.body.oldModelThumbnail;
+      : model.ModelThumbnail;
 
     model.ModelPhotos = req.files?.ModelPhotos
       ? await Promise.all(req.files.ModelPhotos.map(file => uploadToCloudinary(file, `DragLab/products/${productId}`)))
@@ -782,57 +794,109 @@ exports.postEditModel = async (req, res) => {
 
     model.overviewThumbnail = req.files?.overviewThumbnail?.[0]
       ? await uploadToCloudinary(req.files.overviewThumbnail[0], `DragLab/products/${productId}`)
-      : model.overviewThumbnail || req.body.oldOverviewThumbnail;
+      : model.overviewThumbnail;
 
     model.modelcapacity = req.body.modelcapacity || model.modelcapacity;
 
-    // ✅ Loop through languages and process images
     for (const lang of languages) {
       const overviewData = [];
+      const industryData = [];
+      const downloads = [];
+      const technicalSpecifications = [];
 
-      // 📝 Fetch all the files for this language
-      const newFiles = req.files[`overviewImages_${lang}`] || [];
-
+      // === Overview ===
       for (let i = 0; i < 4; i++) {
-        console.log(`🗂️ Looking for: overviewImages_${lang}[${i}]`);
+        const newFile = req.files[`overviewImages_${lang}[${i}]`]?.[0];
+        const oldImage = req.body[`oldOverviewImages_${lang}_${i}`] || model.Language[lang][0]?.overview?.[i]?.overviewImage || '';
 
-        // 🔄 Try to get the file from the array
-        const newFile = newFiles[i];
-
-        // 🔄 Fetch old file path correctly now:
-        const oldFile = req.body[`oldOverviewImages_${lang}_${i}`];
-        const modelFile = model.Language[lang][0].overview[i]?.overviewImage;
-
-        console.log(`🔍 New File Detected:`, newFile);
-        console.log(`🔍 Old File Detected:`, oldFile);
-        console.log(`🔍 Model File Detected:`, modelFile);
-
-        // 🔄 Corrected logic:
         const overviewImage = newFile
-          ? await uploadToCloudinary(newFile, `DragLab/products/${productId}`)
-          : oldFile || modelFile || '';
-
-        console.log(`📌 Final Overview Image Path [${lang}] [${i}]:`, overviewImage);
+          ? await uploadToCloudinary(newFile, `draglab/models/overview/${lang}`)
+          : oldImage;
 
         overviewData.push({
-          overviewName: req.body.overview[lang]?.[i]?.overviewName || model.Language[lang][0].overview[i]?.overviewName,
-          overviewDesc: req.body.overview[lang]?.[i]?.overviewDesc || model.Language[lang][0].overview[i]?.overviewDesc,
+          overviewName: req.body.overview?.[lang]?.[i]?.overviewName || model.Language[lang][0]?.overview?.[i]?.overviewName || '',
+          overviewDesc: req.body.overview?.[lang]?.[i]?.overviewDesc || model.Language[lang][0]?.overview?.[i]?.overviewDesc || '',
           overviewImage
         });
       }
 
-      // 🔄 Update the language object with new overview data
+      // === Industry ===
+      for (let i = 0; i < 3; i++) {
+        const imageFile = req.files[`industryImages_${lang}[${i}]`]?.[0];
+        const logoFile = req.files[`industryLogos_${lang}[${i}]`]?.[0];
+
+        const industryImage = imageFile
+          ? await uploadToCloudinary(imageFile, `draglab/models/industry/${lang}`)
+          : model.Language[lang][0]?.industry?.[i]?.industryImage || '';
+
+        const industryLogo = logoFile
+          ? await uploadToCloudinary(logoFile, `draglab/models/industry/${lang}`)
+          : model.Language[lang][0]?.industry?.[i]?.industryLogo || '';
+
+        industryData.push({
+          industryName: req.body.industry?.[lang]?.[i]?.industryName || model.Language[lang][0]?.industry?.[i]?.industryName || '',
+          industryImage,
+          industryLogo
+        });
+      }
+
+      // === Technical Specifications ===
+if (req.body.technicalSpecifications && req.body.technicalSpecifications[lang]) {
+  const langSpecs = req.body.technicalSpecifications[lang];
+
+  if (Array.isArray(langSpecs)) {
+    langSpecs.forEach((section) => {
+      const rows = Array.isArray(section.rows)
+        ? section.rows.map(row => ({
+            title: row.title || '',
+            value: row.value || ''
+          }))
+        : [];
+
+      technicalSpecifications.push({
+        sectionTitle: section.sectionTitle || '',
+        rows
+      });
+    });
+  } else {
+    console.warn(`⚠️ Expected technicalSpecifications[${lang}] to be an array.`);
+  }
+}
+
+
+
+      // === Downloads ===
+      if (req.files[`downloadFiles_${lang}`]) {
+        const fileNames = req.body[`downloadFileNames_${lang}`] || [];
+        const categories = req.body[`downloadCategories_${lang}`] || [];
+
+        for (let i = 0; i < req.files[`downloadFiles_${lang}`].length; i++) {
+          const file = req.files[`downloadFiles_${lang}`][i];
+          const filePath = await uploadToCloudinary(file, `draglab/models/downloads/${lang}`);
+
+          downloads.push({
+            fileName: fileNames[i] || file.originalname,
+            filePath,
+            fileSize: `${(file.size / (1024 * 1024)).toFixed(2)} MB`,
+            fileCategory: categories[i] || 'Uncategorized',
+            fileProductCategory: '' // Add this if needed
+          });
+        }
+      } else {
+        downloads.push(...(model.Language[lang][0]?.downloads || []));
+      }
+
+      // === Update Model Language ===
       model.Language[lang] = [{
-        ModelName: req.body[`ModelName_${lang}`],
-        ModelNameDesc: req.body[`ModelNameDesc_${lang}`],
-        ModelDesc: req.body[`ModelDesc_${lang}`],
+        ModelName: req.body[`ModelName_${lang}`] || model.Language[lang][0]?.ModelName || '',
+        ModelNameDesc: req.body[`ModelNameDesc_${lang}`] || model.Language[lang][0]?.ModelNameDesc || '',
+        ModelDesc: req.body[`ModelDesc_${lang}`] || model.Language[lang][0]?.ModelDesc || '',
         overview: overviewData,
+        industry: industryData,
+        technicalSpecifications,
+        downloads
       }];
     }
-
-
-
-
 
     await product.save();
     console.log('✅ Model successfully updated!');
@@ -842,6 +906,7 @@ exports.postEditModel = async (req, res) => {
     res.redirect('/admin/Myproduct');
   }
 };
+
 
 
 
