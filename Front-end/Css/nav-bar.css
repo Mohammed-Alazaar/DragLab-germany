@@ -1,18 +1,17 @@
 .navbarContainer {
     display: flex;
-    justify-content: space-around;
+    justify-content: space-between;
     align-items: center;
-    padding: 10px 2%;
+    padding: 12px 2%;
     background-color: #F2F2FF;
 }
 
 .navright {
-    width: 50%;
     flex-shrink: 1.2;
 }
 
 .navright img {
-    width: 218px;
+    width: 190px;
 }
 
 .menu {
@@ -56,7 +55,7 @@
 .dropdown p,
 .menu a {
     font-weight: 600;
-    font-size: 24px;
+    font-size: 23px;
     text-wrap-mode: nowrap;
     color: var(--primary-Color);
     display: flex;
@@ -265,7 +264,8 @@
 
 #search {
     width: 289px;
-    padding: 17px 4px 17px 44px;
+    padding: 10px 4px 17px 44px;
+
     border: none;
     font-size: 16px;
     background-color: #DEE3EB;

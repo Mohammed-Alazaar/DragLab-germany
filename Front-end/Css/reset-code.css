@@ -307,31 +307,3 @@ textarea:invalid {
     max-width: 100%;
     position: fixed;
 }
-
-a#open_preferences_center {
-    position: fixed;
-    left: 1%;
-    bottom: 3%;
-    z-index: 99;
-    width: 100px;
-    height: 100px;
-    background: var(--primary-Color);
-    padding: 10px;
-    border-radius: 65px;
-    text-align: center;
-    align-content: center;
-    color: #ffffff;
-    font-size: 15px;
-}
-
-a#open_preferences_center:hover {
-    background: #000000;
-    color: #ffffff;
-    text-decoration: none;
-    cursor: pointer;
-    transition: all 0.3s ease-in-out;
-    transform: scale(1.1);
-    box-shadow: 0px 4px 16px 0px #00000040;
-    -webkit-box-shadow: 0px 4px 16px 0px #00000040;
-
-}

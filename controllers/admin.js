@@ -562,7 +562,18 @@ exports.getEditModel = (req, res, next) => {
 // Controller for adding a model
 
 const uploadToCloudinary = async (file, folder) => {
-  const originalName = sanitize(file.originalname).slice(0, 50);
+  if (!file || !file.buffer) {
+    console.warn(`⚠️ No file provided for upload.`);
+    return null;
+  }
+
+  // 🧼 Sanitize filename for Cloudinary public_id
+  const originalName = sanitize(file.originalname)
+    .replace(/\s+/g, '-')        // Replace spaces with dashes
+    .replace(/&/g, 'and')        // Replace ampersands
+    .replace(/[^\w\-]/g, '')     // Remove any non-word characters
+    .replace(/\.[^/.]+$/, '')    // Remove file extension
+    .slice(0, 50);               // Limit length to avoid Cloudinary path issues
 
   return new Promise((resolve, reject) => {
     cloudinary.uploader.upload_stream(
@@ -570,6 +581,8 @@ const uploadToCloudinary = async (file, folder) => {
         resource_type: 'image',
         folder: `draglab/models/${folder}`,
         public_id: originalName,
+        use_filename: true,
+        unique_filename: false,
       },
       (error, result) => {
         if (error) {
@@ -734,19 +747,6 @@ exports.postAddModel = async (req, res) => {
 
 
 
-
-
-
-
-
-
-// Controller for editing a model
-
-
-// Controller for editing a model
-// Controller for editing a model
-// Controller for editing a model
-// Controller for editing a model
 // Controller for editing a model
 exports.postEditModel = async (req, res) => {
   const { productId, modelId } = req.params;

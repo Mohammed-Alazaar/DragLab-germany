@@ -26,7 +26,7 @@
                     <% slides.forEach((slide, index)=> { %>
                         <div class="slide <%= index === 0 ? 'show' : '' %>">
                             <% if (slide.image) { %>
-                                <img src="<%=slide.image %>" alt="Slide <%= index + 1 %>">
+                                <img loading="lazy" loading="lazy" src="<%=slide.image %>" alt="Slide <%= index + 1 %>">
                                 <% } %>
                                     <div class="slide-text">
                                         <h3>
@@ -105,7 +105,7 @@
 
                                     <div class="product-card">
                                         <div class="product-image-wrapper">
-                                            <img src="<%=product.ProductThumbnail %>"
+                                            <img loading="lazy" loading="lazy" src="<%=product.ProductThumbnail %>"
                                                 alt="<%= translation.ProductName %>">
                                             <div class="product-bg-overlay"></div>
                                         </div>
@@ -118,7 +118,7 @@
                                                 <%= translation.ProductDesc %>
                                             </p>
                                         </div>
-                                        <button class="article-btn">Buy Now</button>
+                                        <button class="article-btn">View Details</button>
                                     </div>
                                 </a>
                             </div>
@@ -134,49 +134,49 @@
 
                 <script>
                     let currentIndex = 0;
-                  
+
                     const slidesWrapper = document.getElementById("slidesWrapper");
                     const slides = document.querySelectorAll(".product-slide");
-                  
+
                     const updateSlidePosition = () => {
-                      const isMobile = window.innerWidth <= 768;
-                      if (!isMobile) {
-                        const slideWidth = slides[0].offsetWidth + 10; // 10 = gap between slides
-                        const offset = currentIndex * slideWidth;
-                        slidesWrapper.style.transform = `translateX(-${offset}px)`;
-                      } else {
-                        slidesWrapper.style.transform = 'none';
-                      }
+                        const isMobile = window.innerWidth <= 768;
+                        if (!isMobile) {
+                            const slideWidth = slides[0].offsetWidth + 10; // 10 = gap between slides
+                            const offset = currentIndex * slideWidth;
+                            slidesWrapper.style.transform = `translateX(-${offset}px)`;
+                        } else {
+                            slidesWrapper.style.transform = 'none';
+                        }
                     };
-                  
+
                     const moveSlide = (direction) => {
-                      const isMobile = window.innerWidth <= 768;
-                      if (isMobile) return;
-                  
-                      const slidesPerPage = 2;
-                      const maxIndex = Math.max(0, slides.length - slidesPerPage);
-                  
-                      currentIndex += direction;
-                  
-                      if (currentIndex > maxIndex) {
-                        currentIndex = 0; // loop to start
-                      } else if (currentIndex < 0) {
-                        currentIndex = maxIndex; // loop to end
-                      }
-                  
-                      updateSlidePosition();
+                        const isMobile = window.innerWidth <= 768;
+                        if (isMobile) return;
+
+                        const slidesPerPage = 2;
+                        const maxIndex = Math.max(0, slides.length - slidesPerPage);
+
+                        currentIndex += direction;
+
+                        if (currentIndex > maxIndex) {
+                            currentIndex = 0; // loop to start
+                        } else if (currentIndex < 0) {
+                            currentIndex = maxIndex; // loop to end
+                        }
+
+                        updateSlidePosition();
                     };
-                  
+
                     const handleResize = () => {
-                      updateSlidePosition();
+                        updateSlidePosition();
                     };
-                  
+
                     // Initialize
                     window.addEventListener("resize", handleResize);
                     window.addEventListener("load", updateSlidePosition);
-                  </script>
-                  
-                  
+                </script>
+
+
 
 
                 <!-- products slideshow end -->
@@ -190,44 +190,46 @@
 
 
                         <div class="industry-card">
-                            <img src="/assets/Imgs/Icons/products/Chemical-industry.webp" alt="Chemical industry" />
+                            <img loading="lazy" src="/assets/Imgs/Icons/products/Chemical-industry.webp"
+                                alt="Chemical industry" />
                             <div class="overlay">
                                 <div class="icon-wrapper">
-                                    <img src="/assets/Imgs/Icons/products/Chemical-industry.png" alt="Chemical Icon"
-                                        class="icon" />
+                                    <img loading="lazy" src="/assets/Imgs/Icons/products/Chemical-industry.png"
+                                        alt="Chemical industry Icon" class="icon" />
                                 </div>
                                 <h3>Chemical industry</h3>
                             </div>
                         </div>
                         <div class="industry-card">
-                            <img src="/assets/Imgs/Icons/products/Food-Beverage-Industry.webp"
+                            <img loading="lazy" src="/assets/Imgs/Icons/products/FoodandBeverageIndustry.webp"
                                 alt="Food and Beverage industry" />
                             <div class="overlay">
                                 <div class="icon-wrapper">
-                                    <img src="/assets/Imgs/Icons/products/Food-Beverage-Industry.png" alt="Food Icon"
-                                        class="icon" />
+                                    <img loading="lazy" src="/assets/Imgs/Icons/products/Food-Beverage-Industry.png"
+                                        alt="Food and Beverage Industry Icon" class="icon" />
                                 </div>
                                 <h3>Food and Beverage Industry</h3>
                             </div>
                         </div>
                         <div class="industry-card">
-                            <img src="/assets/Imgs/Icons/products/Biotechnology-Life-Sciences.webp"
+                            <img loading="lazy" src="/assets/Imgs/Icons/products/BiotechnologyandLifeSciences.webp"
                                 alt="Biotech industry" />
                             <div class="overlay">
                                 <div class="icon-wrapper">
-                                    <img src="/assets/Imgs/Icons/products/Biotechnology-Life-Sciences.png"
-                                        alt="Biotech Icon" class="icon" />
+                                    <img loading="lazy"
+                                        src="/assets/Imgs/Icons/products/Biotechnology-Life-Sciences.png"
+                                        alt="Biotechnology and Life Sciences Icon" class="icon" />
                                 </div>
                                 <h3>Biotechnology and Life Sciences</h3>
                             </div>
                         </div>
                         <div class="industry-card">
-                            <img src="/assets/Imgs/Icons/products/Pharmaceutical-industry.webp"
+                            <img loading="lazy" src="/assets/Imgs/Icons/products/pharmaceutical.webp"
                                 alt="Pharmaceutical industry" />
                             <div class="overlay">
                                 <div class="icon-wrapper">
-                                    <img src="/assets/Imgs/Icons/products/Pharmaceutical-industry.png" alt="Pharma Icon"
-                                        class="icon" />
+                                    <img loading="lazy" src="/assets/Imgs/Icons/products/Pharmaceutical-industry.png"
+                                        alt="Pharmaceutical industry" class="icon" />
                                 </div>
                                 <h3>Pharmaceutical industry</h3>
                             </div>
@@ -244,25 +246,29 @@
                 <div class="article-slideshow-container" id="articleSlideshow">
                     <h2>Articles</h2>
                     <div class="article-slides-wrapper" id="articleSlidesWrapper">
-                        <% articles.forEach(article => { %>
+                        <% articles.forEach(article=> { %>
                             <div class="article-slide">
                                 <a href="/article/<%= article._id %>/<%= lang %>" class="article-card">
-                                    <img src="<%=article.thumbnail %>" alt="<%= article.title %>">
+                                    <img loading="lazy" src="<%=article.thumbnail %>" alt="<%= article.title %>">
                                     <div class="article-card-information">
-                                        <h4><%= article.title %></h4>
-                                        <p><%= article.body.replace(/(<([^>]+)>)/gi, '').slice(0, 100) %>...</p>
+                                        <h4>
+                                            <%= article.title %>
+                                        </h4>
+                                        <p>
+                                            <%= article.body.replace(/(<([^>]+)>)/gi, '').slice(0, 100) %>...
+                                        </p>
                                     </div>
                                 </a>
                             </div>
-                        <% }) %>
+                            <% }) %>
                     </div>
-                    
+
 
                     <button class="article-slideshow-btn article-prev-btn" onclick="moveArticleSlide(-1)">
-                        <img src="/assets/Imgs/Icons/right-products-arrow.png" alt="Previous">
+                        <img loading="lazy" src="/assets/Imgs/Icons/right-products-arrow.png" alt="Previous">
                     </button>
                     <button class="article-slideshow-btn article-next-btn" onclick="moveArticleSlide(1)">
-                        <img src="/assets/Imgs/Icons/left-products-arrow.png" alt="Next">
+                        <img loading="lazy" src="/assets/Imgs/Icons/left-products-arrow.png" alt="Next">
                     </button>
                 </div>
 
@@ -330,33 +336,35 @@
                     <h2 style="text-align:center; font-size: 2rem; margin-bottom: 30px;">About Us</h2>
                     <div class="about-container">
                         <div class="about-image" id="about-img">
-                            <img src="/assets/Imgs/Icons/products/img-vision.png" alt="About Image">
+                            <img loading="lazy" src="/assets/Imgs/Icons/products/img-vision.png" alt="About Image">
                         </div>
                         <div class="about-content">
                             <div class="about-tabs">
                                 <div class="about-tab active" data-tab="vision"
                                     data-icon-default="/assets/Imgs/Icons/products/vision.png"
                                     data-icon-active="/assets/Imgs/Icons/products/vision-active.png">
-                                    <img src="/assets/Imgs/Icons/products/vision-active.png" class="tab-icon"> Our
+                                    <img loading="lazy" src="/assets/Imgs/Icons/products/vision-active.png"
+                                        class="tab-icon"> Our
                                     Vision
                                 </div>
                                 <div class="about-tab" data-tab="mission"
                                     data-icon-default="/assets/Imgs/Icons/products/mission.png"
                                     data-icon-active="/assets/Imgs/Icons/products/mission-active.png">
-                                    <img src="/assets/Imgs/Icons/products/mission.png" class="tab-icon">
+                                    <img loading="lazy" src="/assets/Imgs/Icons/products/mission.png" class="tab-icon">
                                     Our Mission
                                 </div>
                                 <div class="about-tab" data-tab="values"
                                     data-icon-default="/assets/Imgs/Icons/products/values.png"
                                     data-icon-active="/assets/Imgs/Icons/products/values-active.png">
-                                    <img src="/assets/Imgs/Icons/products/values.png" class="tab-icon">
+                                    <img loading="lazy" src="/assets/Imgs/Icons/products/values.png" class="tab-icon">
                                     Our Values
                                 </div>
                             </div>
                             <div class="about-text" id="about-text">
                                 <div class="title-icon">
                                     <div class="tab-icon-bg">
-                                        <img src="/assets/Imgs/Icons/products/vision-active.png" class="tab-icon">
+                                        <img loading="lazy" src="/assets/Imgs/Icons/products/vision-active.png"
+                                            class="tab-icon">
                                     </div>
                                     <h3>Innovative Excellence</h3>
                                 </div>
@@ -425,7 +433,7 @@
                             text.innerHTML = `
                                             <div class="title-icon">
                                           <div class="tab-icon-bg">
-                                            <img src="${c.icon}" class="tab-icon">
+                                            <img loading="lazy"src="${c.icon}" class="tab-icon">
                                           </div>
                                           <h3>${c.title}</h3>
                                           </div>

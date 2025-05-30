@@ -85,6 +85,7 @@
 
 }
 
+
 @media (max-width: 1600px) {
 
   .slide-text {
@@ -103,21 +104,24 @@
     object-fit: cover;
   }
 
+}
+
+@media (max-width: 1450px) {
+
   #slideshow {
     height: 60vh;
   }
-
 }
 
 @media (max-width: 790px) {
   .slide-text h3 {
-    font-size: 40px;
+    font-size: 32px;
     line-height: 125%;
     width: 80%;
   }
 
   .slide-text p {
-    font-size: 20px;
+    font-size: 16px;
     line-height: 125%;
     width: 80%;
   }
