@@ -560,6 +560,7 @@ exports.getEditModel = (req, res, next) => {
 };
 
 // Controller for adding a model
+const { v4: uuidv4 } = require('uuid');
 
 const uploadToCloudinary = async (file, folder) => {
   if (!file || !file.buffer) {
@@ -567,35 +568,36 @@ const uploadToCloudinary = async (file, folder) => {
     return null;
   }
 
-  // 🧼 Sanitize filename for Cloudinary public_id
-  const originalName = sanitize(file.originalname)
-    .replace(/\s+/g, '-')        // Replace spaces with dashes
-    .replace(/&/g, 'and')        // Replace ampersands
-    .replace(/[^\w\-]/g, '')     // Remove any non-word characters
-    .replace(/\.[^/.]+$/, '')    // Remove file extension
-    .slice(0, 50);               // Limit length to avoid Cloudinary path issues
+  const ext = path.extname(file.originalname); // e.g., '.jpg'
+  const baseName = sanitize(path.basename(file.originalname, ext))
+    .replace(/\s+/g, '-')
+    .replace(/[^\w\-]/g, '')
+    .slice(0, 40);
+
+  const uniqueId = `${baseName}-${Date.now()}-${uuidv4()}`;
 
   return new Promise((resolve, reject) => {
     cloudinary.uploader.upload_stream(
       {
         resource_type: 'image',
-        folder: `draglab/models/${folder}`,
-        public_id: originalName,
-        use_filename: true,
-        unique_filename: false,
+        folder: folder,
+        public_id: uniqueId,
+        use_filename: false,
+        unique_filename: false
       },
       (error, result) => {
         if (error) {
-          console.error(`❌ Cloudinary upload error for ${originalName}:`, error.message);
+          console.error(`❌ Cloudinary upload error for ${uniqueId}:`, error.message);
           reject(error);
         } else {
-          console.log(`✅ Successfully uploaded ${file.fieldname} to Cloudinary: ${result.secure_url}`);
+          console.log(`✅ Uploaded ${uniqueId}: ${result.secure_url}`);
           resolve(result.secure_url);
         }
       }
     ).end(file.buffer);
   });
 };
+
 
 exports.postAddModel = async (req, res) => {
   const productId = req.params.productId;
@@ -759,18 +761,31 @@ exports.postEditModel = async (req, res) => {
     const model = product.Models.id(modelId);
     if (!model) return res.redirect('/admin/Myproduct');
 
-   const uploadToCloudinary = async (file, folder, resourceType = 'image') => {
+const path = require('path');
+const sanitize = require('sanitize-filename');
+const { v4: uuidv4 } = require('uuid');
+
+const uploadToCloudinary = async (file, folder, resourceType = 'image') => {
   if (!file || !file.buffer) {
     console.log(`⚠️ Skipping Cloudinary upload for missing file.`);
     return null;
   }
+
+  const ext = path.extname(file.originalname);
+  const baseName = sanitize(path.basename(file.originalname, ext))
+    .replace(/\s+/g, '-')
+    .replace(/[^\w\-]/g, '')
+    .slice(0, 40);
+
+  const uniqueId = `${baseName}-${Date.now()}-${uuidv4()}`;
 
   const result = await new Promise((resolve, reject) => {
     cloudinary.uploader.upload_stream(
       {
         resource_type: resourceType,
         folder,
-        use_filename: true,
+        public_id: uniqueId,
+        use_filename: false,
         unique_filename: false
       },
       (error, result) => {
@@ -782,6 +797,7 @@ exports.postEditModel = async (req, res) => {
 
   return result.secure_url;
 };
+
 
 
     model.ModelThumbnail = req.files?.ModelThumbnail?.[0]

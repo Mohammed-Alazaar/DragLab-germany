@@ -1,3 +1,7 @@
+.no-reset * {
+    all: revert;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -5,21 +9,12 @@
     line-height: normal;
 }
 
-.main-content li {
-    list-style: auto;
-}
-
-.main-content p,
-.main-content h2,
-.main-content ul,
-.main-content li,
-.main-content h3,
-{
-line-height: 1.5;
+.main-content {
+    line-height: 1.5;
 }
 
 td {
-    border: 1px solid #72777F;
+    border-style: solid !important;
 }
 
 .main-content a {

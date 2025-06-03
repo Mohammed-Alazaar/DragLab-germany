@@ -538,8 +538,8 @@
   background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
 }
 
-.article-card-information p {
-  width: 90%;
+.article-card-information h4 {
+  font-size: 34px;
 }
 
 .product-card button {
