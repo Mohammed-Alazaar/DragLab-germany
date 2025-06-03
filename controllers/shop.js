@@ -43,7 +43,7 @@ exports.getHomePage = (req, res, next) => {
         })
         .catch(err => {
             console.error(err);
-            res.redirect('/EN'); 
+            res.redirect('/EN');
         });
 
 
@@ -130,7 +130,7 @@ exports.getProducts = (req, res, next) => {
         .catch(err => {
             console.log(err);
             next(err);
-                res.redirect('/EN'); 
+            res.redirect('/EN');
         });
 };
 
@@ -170,7 +170,7 @@ exports.getProduct = (req, res, next) => {
         })
         .catch(err => {
             console.error(err);
-            res.redirect('/EN'); 
+            res.redirect('/EN');
         });
 };
 
@@ -271,7 +271,7 @@ exports.getProductDetails = (req, res, next) => {
         })
         .catch(err => {
             console.error(err);
-            res.redirect('/EN'); 
+            res.redirect('/EN');
         });
 };
 
@@ -293,13 +293,13 @@ exports.getModelDetailsPage = (req, res, next) => {
 
             // ✅ Fetch all products for the navbar
             return Product.find().then(allProducts => {
+                const productLangData = product.Language[lang]?.[0] || product.Language['EN']?.[0];
+
                 res.render('customer/Model-details', {
                     pageTitle: currentLangData.ModelName || "Model Details",
                     ModelName: currentLangData.ModelName || englishLangData.ModelName || "No Name",
                     ModelNameDesc: currentLangData.ModelNameDesc || englishLangData.ModelNameDesc || "No Description",
                     ModelDesc: currentLangData.ModelDesc || englishLangData.ModelDesc || "No Details",
-
-                    // ✅ Map overview data
                     overview: (currentLangData.overview?.length ? currentLangData.overview : englishLangData.overview || []).map((o, i) => {
                         const base = o.toObject ? o.toObject() : o;
                         return {
@@ -307,8 +307,6 @@ exports.getModelDetailsPage = (req, res, next) => {
                             overviewImage: englishLangData?.overview?.[i]?.overviewImage || ''
                         };
                     }),
-
-                    // ✅ Map industry data
                     industry: (currentLangData.industry?.length ? currentLangData.industry : englishLangData.industry || []).map((ind, i) => {
                         const base = ind.toObject ? ind.toObject() : ind;
                         return {
@@ -317,21 +315,22 @@ exports.getModelDetailsPage = (req, res, next) => {
                             industryLogo: englishLangData?.industry?.[i]?.industryLogo || ''
                         };
                     }),
-
-                    // ✅ Pass technical specs, downloads, and images
                     specs: currentLangData.technicalSpecifications,
                     downloads: currentLangData.downloads || [],
                     modelThumbnail: model.ModelThumbnail,
                     overviewThumbnail: model.overviewThumbnail,
                     modelPhotos: model.ModelPhotos,
                     lang: lang,
-                    products: allProducts // ✅ Pass this to EJS for the navbar
+                    products: allProducts,
+                    productId,
+                    modelId,
+                    productName: productLangData?.ProductName || "Unknown Product" // ✅ Add this line
                 });
             });
         })
         .catch(err => {
             console.error(err);
-            res.redirect('/EN'); 
+            res.redirect('/EN');
         });
 };
 
@@ -353,7 +352,7 @@ exports.getContactus = (req, res, next) => {
         })
         .catch(err => {
             console.error(err);
-            res.redirect('/EN'); 
+            res.redirect('/EN');
         });
 };
 
@@ -391,7 +390,7 @@ exports.geTechnicalservice = (req, res, next) => {
         })
         .catch(err => {
             console.error(err);
-            res.redirect('/EN'); 
+            res.redirect('/EN');
         });
 
 };
@@ -440,7 +439,7 @@ exports.getSupport = (req, res, next) => {
 
     Product.find()
         .then(products => {
-                res.render('customer/Support', {
+            res.render('customer/Support', {
                 pageTitle: 'support',
                 path: '/support',
                 products: products,
@@ -450,7 +449,7 @@ exports.getSupport = (req, res, next) => {
         })
         .catch(err => {
             console.error(err);
-            res.redirect('/EN'); 
+            res.redirect('/EN');
         });
 
 };
@@ -469,7 +468,7 @@ exports.getaboutus = (req, res, next) => {
         })
         .catch(err => {
             console.error(err);
-            res.redirect('/EN'); 
+            res.redirect('/EN');
         });
 };
 
@@ -558,7 +557,7 @@ exports.getDownloads = async (req, res, next) => {
 
                 for (const file of modelLang.downloads) {
                     if (!file.filePath) continue;
-                    
+
                     downloads.push({
                         fileName: file.fileName,
                         filePath: file.filePath,
@@ -639,7 +638,7 @@ exports.getTearmCondition = (req, res, next) => {
         })
         .catch(err => {
             console.error(err);
-            res.redirect('/EN'); 
+            res.redirect('/EN');
         });
 
 };
@@ -657,7 +656,7 @@ exports.getPrivacyPolicy = (req, res, next) => {
         })
         .catch(err => {
             console.error(err);
-            res.redirect('/EN'); 
+            res.redirect('/EN');
         });
 
 };
@@ -676,7 +675,7 @@ exports.getQualitypolicy = (req, res, next) => {
         })
         .catch(err => {
             console.error(err);
-            res.redirect('/EN'); 
+            res.redirect('/EN');
         });
 
 };
@@ -695,7 +694,7 @@ exports.getWarrantyRegistration = (req, res) => {
         })
         .catch(err => {
             console.error(err);
-            res.redirect('/EN'); 
+            res.redirect('/EN');
         });
 };
 

@@ -1,8 +1,80 @@
 <%- include('../../includes/customer/head.ejs') %>
 
+<%
+  const canonicalUrl = `https://www.draglab.com/product/${productId}/model/${modelId}/${lang}`;
+  const cleanDesc = ModelDesc?.replace(/(<([^>]+)>)/gi, '').slice(0, 160) || '';
+  const fullImageUrl = modelThumbnail?.startsWith('http')
+    ? modelThumbnail
+    : modelThumbnail
+    ? `https://www.draglab.com${modelThumbnail}`
+    : 'https://www.draglab.com/assets/Imgs/logo/logo.png';
+%>
 
-    <link rel="stylesheet" href="/css/customer/Model-details.css">
+<link rel="stylesheet" href="/css/customer/Model-details.css">
+<title><%= ModelName %> | DragLab</title>
+<meta name="description" content="<%= cleanDesc %>">
+<link rel="canonical" href="<%= canonicalUrl %>">
+<meta name="robots" content="index, follow">
 
+<!-- ✅ Structured Data: Product -->
+<script type="application/ld+json">
+<%= JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Product",
+  "name": ModelName,
+  "description": ModelDesc,
+  "image": fullImageUrl,
+  "brand": {
+    "@type": "Organization",
+    "name": "DragLab"
+  },
+  "category": "Laboratory Equipment",
+  "releaseDate": new Date().toISOString(),
+  "isAccessibleForFree": true,
+  "offers": {
+    "@type": "Offer",
+    "priceCurrency": "USD",
+    "availability": "https://schema.org/InStock",
+    "price": "0.00"
+  }
+}) %>
+</script>
+
+<!-- ✅ Structured Data: ProductModel Variant -->
+<script type="application/ld+json">
+<%= JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "ProductModel",
+  "name": ModelName,
+  "description": ModelDesc,
+  "isVariantOf": {
+    "@type": "Product",
+    "name": productName
+  }
+}) %>
+</script>
+
+<!-- ✅ Structured Data: Breadcrumb -->
+<script type="application/ld+json">
+<%= JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://www.draglab.com" },
+    { "@type": "ListItem", "position": 2, "name": "Products", "item": "https://www.draglab.com/products" },
+    { "@type": "ListItem", "position": 3, "name": ModelName, "item": canonicalUrl }
+  ]
+}) %>
+</script>
+
+<!-- ✅ OpenGraph & Twitter Cards -->
+<meta property="og:title" content="<%= ModelName %> | DragLab">
+<meta property="og:description" content="<%= cleanDesc %>">
+<meta property="og:image" content="<%= fullImageUrl %>">
+<meta property="og:url" content="<%= canonicalUrl %>">
+<meta name="twitter:card" content="summary_large_image">
+
+</head>
 
 
 

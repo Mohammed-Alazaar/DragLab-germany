@@ -3,7 +3,145 @@
 
     <link rel="stylesheet" href="/css/customer/product-details.css">
 
+<%- include('../../includes/customer/head.ejs') %>
 
+<%
+  const productName = translation?.ProductName || product.Language.EN[0]?.ProductName || 'Product';
+  const productDesc = translation?.ProductDesc || product.Language.EN[0]?.ProductDesc || '';
+  const cleanDesc = productDesc.replace(/(<([^>]+)>)/gi, '').slice(0, 160);
+  const thumbnail = product.ProductThumbnail?.startsWith('http') 
+    ? product.ProductThumbnail 
+    : product.ProductThumbnail 
+      ? `https://www.draglab.com${product.ProductThumbnail}` 
+      : 'https://www.draglab.com/assets/Imgs/logo/logo.png';
+  const canonicalUrl = `https://www.draglab.com/product/${product._id}/${lang}`;
+%>
+
+<title><%= productName %> | DragLab</title>
+<meta name="description" content="<%= cleanDesc %>">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="<%= canonicalUrl %>">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:title" content="<%= productName %> | DragLab">
+<meta property="og:description" content="<%= cleanDesc %>">
+<meta property="og:image" content="<%= thumbnail %>">
+<meta property="og:url" content="<%= canonicalUrl %>">
+<meta name="twitter:card" content="summary_large_image">
+
+<!-- Structured Data: Product -->
+<script type="application/ld+json">
+<%= JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Product",
+  "name": productName,
+  "description": cleanDesc,
+  "image": thumbnail,
+  "brand": {
+    "@type": "Organization",
+    "name": "DragLab"
+  },
+  "category": "Laboratory Equipment",
+  "releaseDate": new Date(product.createdAt).toISOString(),
+  "isAccessibleForFree": true,
+  "offers": {
+    "@type": "Offer",
+    "priceCurrency": "USD",
+    "price": "0.00",
+    "availability": "https://schema.org/InStock"
+  }
+}) %>
+</script>
+
+<!-- Structured Data: Breadcrumb -->
+<script type="application/ld+json">
+<%= JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": "https://www.draglab.com"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Products",
+      "item": "https://www.draglab.com/products"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": productName,
+      "item": canonicalUrl
+    }
+  ]
+}) %>
+</script>
+<link rel="stylesheet" href="/css/customer/product-details.css">
+<title><%= translation.ProductName %> | DragLab</title>
+
+<%
+  const cleanProductDesc = translation.ProductDesc?.replace(/(<([^>]+)>)/gi, '').slice(0, 160) || '';
+  const fullProductImage = product.ProductThumbnail?.startsWith('http')
+    ? product.ProductThumbnail
+    : product.ProductThumbnail
+      ? `https://www.draglab.com${product.ProductThumbnail}`
+      : 'https://www.draglab.com/assets/Imgs/logo/logo.png';
+  const canonicalProductUrl = `https://www.draglab.com/product/${product._id}/${lang}`;
+%>
+
+<meta name="description" content="<%= cleanProductDesc %>">
+<link rel="canonical" href="<%= canonicalProductUrl %>">
+<meta name="robots" content="index, follow">
+
+<!-- 🔹 Open Graph -->
+<meta property="og:title" content="<%= translation.ProductName %> | DragLab">
+<meta property="og:description" content="<%= cleanProductDesc %>">
+<meta property="og:image" content="<%= fullProductImage %>">
+<meta property="og:url" content="<%= canonicalProductUrl %>">
+<meta name="twitter:card" content="summary_large_image">
+
+<!-- 🔹 Structured Data: Product -->
+<script type="application/ld+json">
+<%= JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Product",
+  "name": translation.ProductName,
+  "description": cleanProductDesc,
+  "image": fullProductImage,
+  "brand": {
+    "@type": "Organization",
+    "name": "DragLab"
+  },
+  "category": "Laboratory Equipment",
+  "releaseDate": new Date(product.createdAt).toISOString(),
+  "isAccessibleForFree": true,
+  "offers": {
+    "@type": "Offer",
+    "priceCurrency": "USD",
+    "availability": "https://schema.org/InStock",
+    "price": "0.00"
+  }
+}) %>
+</script>
+
+<!-- 🔹 Structured Data: Breadcrumb -->
+<script type="application/ld+json">
+<%= JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://www.draglab.com" },
+    { "@type": "ListItem", "position": 2, "name": "Products", "item": "https://www.draglab.com/products" },
+    { "@type": "ListItem", "position": 3, "name": translation.ProductName, "item": canonicalProductUrl }
+  ]
+}) %>
+</script>
+
+</head>
 
 
 
@@ -111,6 +249,34 @@
                                 Model</a>
                         </div>
                         <% }) %>
+                        <% models.forEach(model => { 
+  const modelLang = model.Language[lang]?.[0] || model.Language['EN']?.[0];
+  const modelName = modelLang?.ModelName || 'Unnamed Model';
+  const modelDesc = modelLang?.ModelDesc?.replace(/(<([^>]+)>)/gi, '').slice(0, 160) || '';
+  const modelImage = model.ModelPhotos?.[0]?.startsWith('http') 
+    ? model.ModelPhotos[0] 
+    : model.ModelPhotos[0] 
+      ? `https://www.draglab.com${model.ModelPhotos[0]}` 
+      : thumbnail;
+  const modelUrl = `https://www.draglab.com/model/${product._id}/${model._id}/${lang}`;
+%>
+<script type="application/ld+json">
+<%= JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "ProductModel",
+  "name": modelName,
+  "description": modelDesc,
+  "image": modelImage,
+  "isVariantOf": {
+    "@type": "Product",
+    "name": productName,
+    "url": canonicalUrl
+  },
+  "url": modelUrl
+}) %>
+</script>
+<% }) %>
+
                 </div>
                 <% } %>
 
