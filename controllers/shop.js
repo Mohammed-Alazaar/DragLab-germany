@@ -241,11 +241,11 @@ exports.search = async (req, res) => {
 
 
 exports.getProductDetails = (req, res, next) => {
-    const { productId, lang } = req.params;
+    const { productSlug, lang } = req.params;
     const supportedLangs = ['EN', 'ES', 'GR'];
     const selectedLang = supportedLangs.includes(lang) ? lang : 'EN';
 
-    Product.findById(productId)
+    Product.findOne({ slug: productSlug })
         .then(product => {
             if (!product) return res.redirect(`/${selectedLang}`);
 
@@ -277,12 +277,12 @@ exports.getProductDetails = (req, res, next) => {
 
 
 exports.getModelDetailsPage = (req, res, next) => {
-    const { productId, modelId, lang } = req.params;
+    const { productSlug, modelSlug, lang } = req.params;
 
-    Product.findById(productId)
+    Product.findOne({ slug: productSlug })
         .then(product => {
             if (!product) return res.redirect('/');
-            const model = product.Models.id(modelId);
+            const model = product.Models.find(m => m.slug === modelSlug);
             if (!model || model.isPublished === false) return res.redirect('/');
 
             // Get current language data
@@ -322,8 +322,8 @@ exports.getModelDetailsPage = (req, res, next) => {
                     modelPhotos: model.ModelPhotos,
                     lang: lang,
                     products: allProducts,
-                    productId,
-                    modelId,
+                    productSlug,
+                    modelSlug,
                     productName: productLangData?.ProductName || "Unknown Product" // ✅ Add this line
                 });
             });

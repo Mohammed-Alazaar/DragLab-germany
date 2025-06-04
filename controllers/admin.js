@@ -15,6 +15,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const { validationResult } = require('express-validator');
 const fs = require('fs');
+const slugify = require('slugify');
 
 const languages = ['EN', 'ES', 'GR'];
 
@@ -190,6 +191,8 @@ exports.postAddProduct = async (req, res, next) => {
       }];
     });
 
+    const productSlug = slugify(languageData['EN'][0].ProductName || '', { lower: true, strict: true });
+
     // Step 3: Handle validation errors
     if (validationErrors.length > 0) {
       console.log('❌ Validation Errors Detected:', validationErrors);
@@ -215,6 +218,7 @@ exports.postAddProduct = async (req, res, next) => {
       ProductThumbnail: productThumbnail,
       ProductSketch: productSketch,
       Language: languageData,
+      slug: productSlug,
       isDraft: isDraft
     });
 
@@ -407,6 +411,8 @@ exports.postEditProduct = (req, res, next) => {
     }];
   });
 
+  const productSlug = slugify(languageData['EN'][0].ProductName || '', { lower: true, strict: true });
+
   if (validationErrors.length > 0) {
     return res.status(422).render('sellercompany/edit-product', {
       pageTitle: 'Edit Product',
@@ -433,6 +439,7 @@ exports.postEditProduct = (req, res, next) => {
       product.Language = languageData;
       product.ProductThumbnail = updatedProductThumbnail;
       product.ProductSketch = updatedProductSketch;
+      product.slug = productSlug;
       product.isDraft = false;
       return product.save();
     })
@@ -718,6 +725,8 @@ exports.postAddModel = async (req, res) => {
       }];
     }
 
+    const modelSlug = slugify(languageData['EN'][0].ModelName || '', { lower: true, strict: true });
+
     // ✅ Final model structure
     // Create a new subdocument using the schema path
     const product = await Product.findById(productId);
@@ -732,6 +741,7 @@ exports.postAddModel = async (req, res) => {
       overviewThumbnail,
       modelcapacity: req.body.modelcapacity,
       Language: languageData,
+      slug: modelSlug,
       isPublished: !isDraft,
     });
 
@@ -913,6 +923,9 @@ if (req.body.technicalSpecifications && req.body.technicalSpecifications[lang]) 
         downloads
       }];
     }
+
+    const modelSlug = slugify(model.Language['EN'][0].ModelName || '', { lower: true, strict: true });
+    model.slug = modelSlug;
 
     await product.save();
     console.log('✅ Model successfully updated!');
