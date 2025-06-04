@@ -37,15 +37,15 @@
                                         .filter(model => model.isPublished) // ✅ Only published models
                                         .map(model => {
                                         return {
-                                        id: model._id,
+                                        id: model.slug,
                                         name: model.Language?.EN?.[0]?.ModelName
                                         };
                                         });
 
                                         %>
-                                        <div class="productContainer" onclick="goToProduct('<%= product._id %>')"
-                                            onmouseenter="updateModels('<%= product._id %>')"
-                                            data-id="<%= product._id %>" data-sketch="<%= product.ProductSketch %>"
+                                        <div class="productContainer" onclick="goToProduct('<%= product.slug %>')"
+                                            onmouseenter="updateModels('<%= product.slug %>')"
+                                            data-id="<%= product.slug %>" data-sketch="<%= product.ProductSketch %>"
                                             data-models='<%- JSON.stringify(modelsArray) %>'>
 
                                             <div class="productphotoContainer">
@@ -197,7 +197,7 @@
         <% products.filter(p=> !p.isDraft).forEach(product => {
             const productLang = product.Language?.EN?.[0];
             %>
-            <div class="product-item" onclick="showModels('<%= product._id %>')">
+            <div class="product-item" onclick="showModels('<%= product.slug %>')">
                 <div class="product-photo-container">
                     <img src="<%=product.ProductSketch %>" alt="Product Image" width="80px" height="80px" />
                     <div class="product-info">
@@ -220,9 +220,9 @@
         const productLang = product.Language?.EN?.[0];
         const models = product.Models.filter(m => m.isPublished);
         %>
-        <div class="menu-page" id="modelMenu_<%= product._id %>">
+        <div class="menu-page" id="modelMenu_<%= product.slug %>">
             <div class="top-bar">
-                <span class="back" onclick="goBack('modelMenu_<%= product._id %>')"><img
+                <span class="back" onclick="goBack('modelMenu_<%= product.slug %>')"><img
                         src="/assets/Imgs/Icons/backarrow.png" alt=""></span>
                 <span class="page-title">Models</span>
                 <span class="close-menu">&#10005;</span>
@@ -238,14 +238,14 @@
                     <% models.forEach(model=> {
                         const modelLang = model.Language?.EN?.[0];
                         %>
-                        <li onclick="goToModel('<%= product._id %>', '<%= model._id %>')">
+                        <li onclick="goToModel('<%= product.slug %>', '<%= model.slug %>')">
                             <%= productLang?.ProductName %> - <%= modelLang?.ModelName %>
                         </li>
                         <% }) %>
                 </ul>
 
                 <img src="<%=product.ProductSketch %>" class="model-img" alt="Model Image" />
-                <button class="view-product" onclick="goToProduct('<%= product._id %>')">View Product</button>
+                <button class="view-product" onclick="goToProduct('<%= product.slug %>')">View Product</button>
             </div>
         </div>
         <% }) %>
@@ -301,22 +301,22 @@
         return langMatch ? langMatch[1] : 'EN';
     }
 
-    function goToProduct(productId) {
+    function goToProduct(productSlug) {
         const lang = getCurrentLang();
-        window.location.href = `/product/${productId}/${lang}`;
+        window.location.href = `/product/${productSlug}/${lang}`;
     }
 
-    function goToModel(productId, modelId) {
+    function goToModel(productSlug, modelSlug) {
         const lang = getCurrentLang();
         setTimeout(() => {
-            window.location.href = `/model/${productId}/${modelId}/${lang}`;
+            window.location.href = `/model/${productSlug}/${modelSlug}/${lang}`;
         }, 100);
     }
 
 
 
-    function updateModels(productId) {
-        const productEl = document.querySelector(`.productContainer[data-id="${productId}"]`);
+    function updateModels(productSlug) {
+        const productEl = document.querySelector(`.productContainer[data-id="${productSlug}"]`);
         const modelsContainer = document.querySelector(".modelsContainer ul");
         const imageContainer = document.querySelector(".productImgContainer img");
 
@@ -338,7 +338,7 @@
                     li.style.cursor = 'pointer';
                     li.onclick = (e) => {
                         e.stopPropagation(); // prevent parent click
-                        goToModel(productId, model.id);
+                        goToModel(productSlug, model.id);
                     };
                     modelsContainer.appendChild(li);
                 });
@@ -351,16 +351,16 @@
     window.addEventListener("DOMContentLoaded", () => {
         const firstProduct = document.querySelector(".productContainer");
         if (firstProduct) {
-            const productId = firstProduct.getAttribute("data-id");
-            updateModels(productId);
+            const productSlug = firstProduct.getAttribute("data-id");
+            updateModels(productSlug);
         }
     });
 </script>
 
 <script>
-    function showModels(productId) {
+    function showModels(productSlug) {
         document.querySelectorAll('.menu-page').forEach(p => p.classList.remove('active'));
-        document.getElementById(`modelMenu_${productId}`).classList.add('active');
+        document.getElementById(`modelMenu_${productSlug}`).classList.add('active');
     }
 
 

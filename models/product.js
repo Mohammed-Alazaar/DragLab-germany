@@ -6,6 +6,7 @@ const ModelsSchema = new Schema({
     ModelPhotos: [{ type: String }],
     overviewThumbnail: { type: String },
     modelcapacity: { type: String },
+    slug: { type: String, unique: true },
     Language: {
         EN: [{
             ModelName: { type: String },
@@ -97,6 +98,7 @@ const ModelsSchema = new Schema({
 const productSchema = new Schema({
     ProductThumbnail: { type: String },
     ProductSketch: { type: String },
+    slug: { type: String, unique: true },
     Language: {
         EN: [{
             features: [{

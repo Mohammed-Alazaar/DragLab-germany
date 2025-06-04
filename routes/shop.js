@@ -16,8 +16,8 @@ router.get('/Products/:productId', shopController.getProduct);
 router.get('/search', shopController.search);
 
 
-router.get('/product/:productId/:lang', shopController.getProductDetails);
-router.get('/model/:productId/:modelId/:lang', shopController.getModelDetailsPage);
+router.get('/product/:productSlug/:lang', shopController.getProductDetails);
+router.get('/model/:productSlug/:modelSlug/:lang', shopController.getModelDetailsPage);
 
 
 

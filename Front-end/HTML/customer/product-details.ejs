@@ -14,7 +14,7 @@
     : product.ProductThumbnail 
       ? `https://www.draglab.com${product.ProductThumbnail}` 
       : 'https://www.draglab.com/assets/Imgs/logo/logo.png';
-  const canonicalUrl = `https://www.draglab.com/product/${product._id}/${lang}`;
+  const canonicalUrl = `https://www.draglab.com/product/${product.slug}/${lang}`;
 %>
 
 <title><%= productName %> | DragLab</title>
@@ -90,7 +90,7 @@
     : product.ProductThumbnail
       ? `https://www.draglab.com${product.ProductThumbnail}`
       : 'https://www.draglab.com/assets/Imgs/logo/logo.png';
-  const canonicalProductUrl = `https://www.draglab.com/product/${product._id}/${lang}`;
+  const canonicalProductUrl = `https://www.draglab.com/product/${product.slug}/${lang}`;
 %>
 
 <meta name="description" content="<%= cleanProductDesc %>">
@@ -245,7 +245,7 @@
                             <div class="model-capacity">
                                 <%= model.modelcapacity %>
                             </div>
-                            <a class="view-btn" href="/model/<%= product._id %>/<%= model._id %>/<%= lang %>">View
+                            <a class="view-btn" href="/model/<%= product.slug %>/<%= model.slug %>/<%= lang %>">View
                                 Model</a>
                         </div>
                         <% }) %>
@@ -258,7 +258,7 @@
     : model.ModelPhotos[0] 
       ? `https://www.draglab.com${model.ModelPhotos[0]}` 
       : thumbnail;
-  const modelUrl = `https://www.draglab.com/model/${product._id}/${model._id}/${lang}`;
+  const modelUrl = `https://www.draglab.com/model/${product.slug}/${model.slug}/${lang}`;
 %>
 <script type="application/ld+json">
 <%= JSON.stringify({
