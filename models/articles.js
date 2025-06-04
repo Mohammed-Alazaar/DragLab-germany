@@ -7,6 +7,7 @@ const ArticleSchema = new Schema({
     author: String,
     thumbnail: String,
     body: String,
+  slug: { type: String, required: true, unique: true }, // ✅ ADD THIS
 
     language: {
         type: String,

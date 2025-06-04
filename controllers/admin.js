@@ -9,6 +9,7 @@ const Article = require('../models/articles');
 const PDFDocument = require('pdfkit');
 const cloudinary = require('../util/cloudinaryConfig'); // ✅ Import Cloudinary
 const sanitize = require('sanitize-filename');
+const slugify = require('slugify');
 
 const exp = require('constants');
 const express = require('express');
@@ -189,6 +190,8 @@ exports.postAddProduct = async (req, res, next) => {
         features: features
       }];
     });
+    const productNameEN = req.body['ProductName_EN'];
+    const productSlug = slugify(productNameEN || 'unnamed-product', { lower: true, strict: true });
 
     // Step 3: Handle validation errors
     if (validationErrors.length > 0) {
@@ -212,6 +215,8 @@ exports.postAddProduct = async (req, res, next) => {
     // Step 4: Save to the database
     const Product = require('../models/product');
     const product = new Product({
+      slug: productSlug, // ✅ Add this line
+
       ProductThumbnail: productThumbnail,
       ProductSketch: productSketch,
       Language: languageData,
@@ -716,6 +721,8 @@ exports.postAddModel = async (req, res) => {
         technicalSpecifications,
         downloads
       }];
+      const modelSlug = slugify(req.body['ModelName_EN'], { lower: true, strict: true });
+
     }
 
     // ✅ Final model structure
@@ -727,6 +734,7 @@ exports.postAddModel = async (req, res) => {
     }
 
     const newModel = product.Models.create({
+      slug: modelSlug,
       ModelThumbnail,
       ModelPhotos,
       overviewThumbnail,
@@ -761,42 +769,42 @@ exports.postEditModel = async (req, res) => {
     const model = product.Models.id(modelId);
     if (!model) return res.redirect('/admin/Myproduct');
 
-const path = require('path');
-const sanitize = require('sanitize-filename');
-const { v4: uuidv4 } = require('uuid');
+    const path = require('path');
+    const sanitize = require('sanitize-filename');
+    const { v4: uuidv4 } = require('uuid');
 
-const uploadToCloudinary = async (file, folder, resourceType = 'image') => {
-  if (!file || !file.buffer) {
-    console.log(`⚠️ Skipping Cloudinary upload for missing file.`);
-    return null;
-  }
-
-  const ext = path.extname(file.originalname);
-  const baseName = sanitize(path.basename(file.originalname, ext))
-    .replace(/\s+/g, '-')
-    .replace(/[^\w\-]/g, '')
-    .slice(0, 40);
-
-  const uniqueId = `${baseName}-${Date.now()}-${uuidv4()}`;
-
-  const result = await new Promise((resolve, reject) => {
-    cloudinary.uploader.upload_stream(
-      {
-        resource_type: resourceType,
-        folder,
-        public_id: uniqueId,
-        use_filename: false,
-        unique_filename: false
-      },
-      (error, result) => {
-        if (error) reject(error);
-        else resolve(result);
+    const uploadToCloudinary = async (file, folder, resourceType = 'image') => {
+      if (!file || !file.buffer) {
+        console.log(`⚠️ Skipping Cloudinary upload for missing file.`);
+        return null;
       }
-    ).end(file.buffer);
-  });
 
-  return result.secure_url;
-};
+      const ext = path.extname(file.originalname);
+      const baseName = sanitize(path.basename(file.originalname, ext))
+        .replace(/\s+/g, '-')
+        .replace(/[^\w\-]/g, '')
+        .slice(0, 40);
+
+      const uniqueId = `${baseName}-${Date.now()}-${uuidv4()}`;
+
+      const result = await new Promise((resolve, reject) => {
+        cloudinary.uploader.upload_stream(
+          {
+            resource_type: resourceType,
+            folder,
+            public_id: uniqueId,
+            use_filename: false,
+            unique_filename: false
+          },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          }
+        ).end(file.buffer);
+      });
+
+      return result.secure_url;
+    };
 
 
 
@@ -857,27 +865,27 @@ const uploadToCloudinary = async (file, folder, resourceType = 'image') => {
       }
 
       // === Technical Specifications ===
-if (req.body.technicalSpecifications && req.body.technicalSpecifications[lang]) {
-  const langSpecs = req.body.technicalSpecifications[lang];
+      if (req.body.technicalSpecifications && req.body.technicalSpecifications[lang]) {
+        const langSpecs = req.body.technicalSpecifications[lang];
 
-  if (Array.isArray(langSpecs)) {
-    langSpecs.forEach((section) => {
-      const rows = Array.isArray(section.rows)
-        ? section.rows.map(row => ({
-            title: row.title || '',
-            value: row.value || ''
-          }))
-        : [];
+        if (Array.isArray(langSpecs)) {
+          langSpecs.forEach((section) => {
+            const rows = Array.isArray(section.rows)
+              ? section.rows.map(row => ({
+                title: row.title || '',
+                value: row.value || ''
+              }))
+              : [];
 
-      technicalSpecifications.push({
-        sectionTitle: section.sectionTitle || '',
-        rows
-      });
-    });
-  } else {
-    console.warn(`⚠️ Expected technicalSpecifications[${lang}] to be an array.`);
-  }
-}
+            technicalSpecifications.push({
+              sectionTitle: section.sectionTitle || '',
+              rows
+            });
+          });
+        } else {
+          console.warn(`⚠️ Expected technicalSpecifications[${lang}] to be an array.`);
+        }
+      }
 
 
 
@@ -1167,6 +1175,8 @@ exports.getAddArticle = (req, res) => {
 // POST: Add New Article
 exports.postAddArticle = async (req, res) => {
   const { title, author, body, language } = req.body;
+  const slug = slugify(title || 'untitled-article', { lower: true, strict: true });
+
   const file = req.files?.thumbnail?.[0];
   let thumbnail = '';
 
@@ -1196,7 +1206,7 @@ exports.postAddArticle = async (req, res) => {
     }
   }
 
-  const newArticle = new Article({ title, author, body, language, thumbnail });
+  const newArticle = new Article({ title, author, body, language, thumbnail,slug  });
 
   newArticle.save()
     .then(() => {

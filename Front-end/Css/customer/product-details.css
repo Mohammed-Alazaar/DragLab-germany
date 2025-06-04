@@ -233,6 +233,13 @@ a.scroll-button {
         font-size: 28px;
     }
 
+    .slide-text {
+        position: absolute;
+        top: 10%;
+    }
+    .slide-text p {
+    width: 100%;
+    }
 }
 
 /* introduction section  */

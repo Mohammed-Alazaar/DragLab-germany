@@ -2,6 +2,38 @@
 
     <link rel="stylesheet" href="/css/customer/Home-page.css">
 
+    <meta property="og:locale" content="<%= lang === 'EN' ? 'en_US' : lang === 'ES' ? 'es_ES' : 'el_GR' %>">
+    <link rel="alternate" hreflang="en" href="https://www.draglab.com/EN">
+    <link rel="alternate" hreflang="es" href="https://www.draglab.com/ES">
+    <link rel="alternate" hreflang="el" href="https://www.draglab.com/GR">
+
+    
+    <title>DragLab – Scientific Equipment for Modern Labs</title>
+    <meta name="description"
+        content="Explore cutting-edge lab instruments, scientific articles, and industry solutions at DragLab.">
+    <meta name="robots" content="index, follow">
+
+    <meta property="og:title" content="DragLab – Scientific Equipment for Modern Labs">
+    <meta property="og:description"
+        content="Explore cutting-edge lab instruments, scientific articles, and industry solutions at DragLab.">
+    <meta property="og:image" content="https://www.draglab.com/assets/Imgs/logo/logo.png">
+    <meta property="og:url" content="https://www.draglab.com/<%= lang %>">
+    <link rel="canonical" href="https://www.draglab.com/<%= lang %>">
+
+    <script type="application/ld+json">
+<%= JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "DragLab",
+  "url": "https://www.draglab.com",
+  "logo": "https://www.draglab.com/assets/Imgs/logo/logo.png",
+  "sameAs": ["https://www.linkedin.com/company/draglab", "https://www.instagram.com/draglab"]
+}) %>
+</script>
+
+
+
+    </head>
 
 
     <%- include('../../includes/customer/header-end.ejs') %>
@@ -101,7 +133,7 @@
                             %>
 
                             <div class="product-slide">
-                                <a href="/product/<%= product._id %>/<%= lang %>" class="product-card-link">
+                                <a href="/<%= lang %>/products/<%= product.slug %>" class="product-card-link">
 
                                     <div class="product-card">
                                         <div class="product-image-wrapper">
@@ -248,13 +280,13 @@
                     <div class="article-slides-wrapper" id="articleSlidesWrapper">
                         <% articles.forEach(article=> { %>
                             <div class="article-slide">
-                                <a href="/article/<%= article._id %>/<%= lang %>" class="article-card">
+                                <a href="/<%= lang %>/articles/<%= article.slug %>" class="article-card">
                                     <img loading="lazy" src="<%=article.thumbnail %>" alt="<%= article.title %>">
                                     <div class="article-card-information">
                                         <h4>
                                             <%= article.title %>
                                         </h4>
-                                     
+
                                     </div>
                                 </a>
                             </div>

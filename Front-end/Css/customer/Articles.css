@@ -152,6 +152,12 @@
 
 .article-card-information p {
     padding: 0 10px;
+    font-size: 14px;
+}
+
+.article-card-information h4 {
+    font-size: 30px;
+    padding: 0 5px;
 }
 
 

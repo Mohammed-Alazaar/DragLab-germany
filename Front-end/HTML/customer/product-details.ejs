@@ -1,36 +1,37 @@
 <%- include('../../includes/customer/head.ejs') %>
 
 
-    <link rel="stylesheet" href="/css/customer/product-details.css">
+  <link rel="stylesheet" href="/css/customer/product-details.css">
 
-<%- include('../../includes/customer/head.ejs') %>
 
-<%
-  const productName = translation?.ProductName || product.Language.EN[0]?.ProductName || 'Product';
-  const productDesc = translation?.ProductDesc || product.Language.EN[0]?.ProductDesc || '';
-  const cleanDesc = productDesc.replace(/(<([^>]+)>)/gi, '').slice(0, 160);
-  const thumbnail = product.ProductThumbnail?.startsWith('http') 
-    ? product.ProductThumbnail 
-    : product.ProductThumbnail 
-      ? `https://www.draglab.com${product.ProductThumbnail}` 
+    <% const productName=translation?.ProductName || product.Language.EN[0]?.ProductName || 'Product' ; const
+      productDesc=translation?.ProductDesc || product.Language.EN[0]?.ProductDesc || '' ; const
+      cleanDesc=productDesc.replace(/(<([^>]+)>)/gi, '').slice(0, 160);
+      const thumbnail = product.ProductThumbnail?.startsWith('http')
+      ? product.ProductThumbnail
+      : product.ProductThumbnail
+      ? `https://www.draglab.com${product.ProductThumbnail}`
       : 'https://www.draglab.com/assets/Imgs/logo/logo.png';
-  const canonicalUrl = `https://www.draglab.com/product/${product._id}/${lang}`;
-%>
+      const canonicalUrl = `https://www.draglab.com/${lang}/products/${product.slug}`;
+      %>
 
-<title><%= productName %> | DragLab</title>
-<meta name="description" content="<%= cleanDesc %>">
-<meta name="robots" content="index, follow">
-<link rel="canonical" href="<%= canonicalUrl %>">
+      <title>
+        <%= productName %> | DragLab
+      </title>
+      <meta property="og:locale" content="<%= lang === 'EN' ? 'en_US' : lang === 'ES' ? 'es_ES' : 'el_GR' %>">
+      <meta name="description" content="<%= cleanDesc %>">
+      <meta name="robots" content="index, follow">
+      <link rel="canonical" href="<%= canonicalUrl %>">
 
-<!-- Open Graph / Facebook -->
-<meta property="og:title" content="<%= productName %> | DragLab">
-<meta property="og:description" content="<%= cleanDesc %>">
-<meta property="og:image" content="<%= thumbnail %>">
-<meta property="og:url" content="<%= canonicalUrl %>">
-<meta name="twitter:card" content="summary_large_image">
+      <!-- 🔹 Open Graph / Facebook -->
+      <meta property="og:title" content="<%= productName %> | DragLab">
+      <meta property="og:description" content="<%= cleanDesc %>">
+      <meta property="og:image" content="<%= thumbnail %>">
+      <meta property="og:url" content="<%= canonicalUrl %>">
+      <meta name="twitter:card" content="summary_large_image">
 
-<!-- Structured Data: Product -->
-<script type="application/ld+json">
+      <!-- 🔹 Structured Data: Product -->
+      <script type="application/ld+json">
 <%= JSON.stringify({
   "@context": "https://schema.org",
   "@type": "Product",
@@ -47,220 +48,144 @@
   "offers": {
     "@type": "Offer",
     "priceCurrency": "USD",
-    "price": "0.00",
-    "availability": "https://schema.org/InStock"
-  }
-}) %>
-</script>
-
-<!-- Structured Data: Breadcrumb -->
-<script type="application/ld+json">
-<%= JSON.stringify({
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  "itemListElement": [
-    {
-      "@type": "ListItem",
-      "position": 1,
-      "name": "Home",
-      "item": "https://www.draglab.com"
-    },
-    {
-      "@type": "ListItem",
-      "position": 2,
-      "name": "Products",
-      "item": "https://www.draglab.com/products"
-    },
-    {
-      "@type": "ListItem",
-      "position": 3,
-      "name": productName,
-      "item": canonicalUrl
-    }
-  ]
-}) %>
-</script>
-<link rel="stylesheet" href="/css/customer/product-details.css">
-<title><%= translation.ProductName %> | DragLab</title>
-
-<%
-  const cleanProductDesc = translation.ProductDesc?.replace(/(<([^>]+)>)/gi, '').slice(0, 160) || '';
-  const fullProductImage = product.ProductThumbnail?.startsWith('http')
-    ? product.ProductThumbnail
-    : product.ProductThumbnail
-      ? `https://www.draglab.com${product.ProductThumbnail}`
-      : 'https://www.draglab.com/assets/Imgs/logo/logo.png';
-  const canonicalProductUrl = `https://www.draglab.com/product/${product._id}/${lang}`;
-%>
-
-<meta name="description" content="<%= cleanProductDesc %>">
-<link rel="canonical" href="<%= canonicalProductUrl %>">
-<meta name="robots" content="index, follow">
-
-<!-- 🔹 Open Graph -->
-<meta property="og:title" content="<%= translation.ProductName %> | DragLab">
-<meta property="og:description" content="<%= cleanProductDesc %>">
-<meta property="og:image" content="<%= fullProductImage %>">
-<meta property="og:url" content="<%= canonicalProductUrl %>">
-<meta name="twitter:card" content="summary_large_image">
-
-<!-- 🔹 Structured Data: Product -->
-<script type="application/ld+json">
-<%= JSON.stringify({
-  "@context": "https://schema.org",
-  "@type": "Product",
-  "name": translation.ProductName,
-  "description": cleanProductDesc,
-  "image": fullProductImage,
-  "brand": {
-    "@type": "Organization",
-    "name": "DragLab"
-  },
-  "category": "Laboratory Equipment",
-  "releaseDate": new Date(product.createdAt).toISOString(),
-  "isAccessibleForFree": true,
-  "offers": {
-    "@type": "Offer",
-    "priceCurrency": "USD",
     "availability": "https://schema.org/InStock",
     "price": "0.00"
   }
 }) %>
 </script>
 
-<!-- 🔹 Structured Data: Breadcrumb -->
-<script type="application/ld+json">
+      <!-- 🔹 Structured Data: Breadcrumb -->
+      <script type="application/ld+json">
 <%= JSON.stringify({
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
   "itemListElement": [
     { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://www.draglab.com" },
-    { "@type": "ListItem", "position": 2, "name": "Products", "item": "https://www.draglab.com/products" },
-    { "@type": "ListItem", "position": 3, "name": translation.ProductName, "item": canonicalProductUrl }
+    { "@type": "ListItem", "position": 2, "name": "Products", "item": `https://www.draglab.com/${lang}/products`},
+    { "@type": "ListItem", "position": 3, "name": productName, "item": canonicalUrl }
   ]
 }) %>
 </script>
 
-</head>
+      </head>
 
 
 
-    <body>
+      <body>
         <!-- nav-bar -->
 
         <%- include('../../includes/customer/navbar.ejs') %>
 
 
-            <!-- nav-bar -->
+          <!-- nav-bar -->
 
-            <!-- Product Details -->
-            <div class="slide">
-                <div class="slide-text">
-                    <!-- <h1>Water Still Series</h1> -->
-                    <div class="slide-text-content">
-                        <h1>
-                            <%= translation.ProductName %> – &nbsp;
-                        </h1>
-                        <h3>
-                            <%= translation.ProductNameDesc %>
-                        </h3>
-                        <p>
-                            <%= translation.ProductDesc %>
-                        </p>
+          <!-- Product Details -->
+          <div class="slide">
+            <div class="slide-text">
+              <!-- <h1>Water Still Series</h1> -->
+              <div class="slide-text-content">
+                <h1>
+                  <%= translation.ProductName %> – &nbsp;
+                </h1>
+                <h3>
+                  <%= translation.ProductNameDesc %>
+                </h3>
+                <p>
+                  <%= translation.ProductDesc %>
+                </p>
 
-                    </div>
-                    <% if (models && models.length> 0) { %>
-                        <a href="#target-section" class="scroll-button">View Models</a>
-                        <% } %>
-
-                </div>
-                <% if (product.ProductThumbnail) { %>
-                    <img src="<%=product.ProductThumbnail %>" alt="<%= translation.ProductName %>">
-                    <% } %>
+              </div>
+              <% if (models && models.length> 0) { %>
+                <a href="#target-section" class="scroll-button">View Models</a>
+                <% } %>
 
             </div>
+            <% if (product.ProductThumbnail) { %>
+              <img src="<%=product.ProductThumbnail %>" alt="<%= translation.ProductName %>">
+              <% } %>
+
+          </div>
 
 
-            <SECtion class="introduction-section">
-                <h2>Introduction</h2>
-                <div class="introduction-container">
+          <SECtion class="introduction-section">
+            <h2>Introduction</h2>
+            <div class="introduction-container">
 
 
-                    <div class="introduction-text">
-                        <h3>
-                            <%= translation.ProductName %> ?
-                        </h3>
-                        <p>
-                            <%= translation.WhyProductDesc %>
-                        </p>
-                    </div>
-                    <div class="introduction-img">
-                        <% if (product.ProductSketch) { %>
-                            <img src="<%=product.ProductSketch %>" alt="<%= translation.ProductName %>">
-                            <% } %>
-                    </div>
-                </div>
-            </SECtion>
-
-
-
-            <div class="features-wrapper">
-                <h2 class="section-title">Features</h2>
-
-                <div class="features-grid">
-                    <% translation.features.forEach((feature, i)=> { %>
-                        <div class="feature-card">
-                            <img class="feature-img"
-                                src="<%= feature.FeatureImage || product.Language.EN[0].features[i]?.FeatureImage %>"
-                                alt="">
-                            <div class="feature-content">
-                                <h3>
-                                    <%= feature.FeatureName %>
-                                </h3>
-                                <p>
-                                    <%= feature.FeatureDesc %>
-                                </p>
-                            </div>
-                        </div>
-                        <% }) %>
-
-                </div>
+              <div class="introduction-text">
+                <h3>
+                  <%= translation.ProductName %> ?
+                </h3>
+                <p>
+                  <%= translation.WhyProductDesc %>
+                </p>
+              </div>
+              <div class="introduction-img">
+                <% if (product.ProductSketch) { %>
+                  <img src="<%=product.ProductSketch %>" alt="<%= translation.ProductName %>">
+                  <% } %>
+              </div>
             </div>
+          </SECtion>
+
+
+
+          <div class="features-wrapper">
+            <h2 class="section-title">Features</h2>
+
+            <div class="features-grid">
+              <% translation.features.forEach((feature, i)=> { %>
+                <div class="feature-card">
+                  <img class="feature-img"
+                    src="<%= feature.FeatureImage || product.Language.EN[0].features[i]?.FeatureImage %>" alt="">
+                  <div class="feature-content">
+                    <h3>
+                      <%= feature.FeatureName %>
+                    </h3>
+                    <p>
+                      <%= feature.FeatureDesc %>
+                    </p>
+                  </div>
+                </div>
+                <% }) %>
+
+            </div>
+          </div>
 
 
 
 
 
 
-            <% if (models && models.length> 0) { %>
-                <div class="models-container" id="target-section">
-                    <h2>Models</h2>
+          <% if (models && models.length> 0) { %>
+            <div class="models-container" id="target-section">
+              <h2>Models</h2>
 
-                    <% models.forEach(model=> { %>
-                        <div class="model-row">
-                            <img src="<%=model.ModelPhotos %>" alt="<%= model.Language[lang][0].ModelName %>">
-                            <div class="model-info">
-                                <%= model.Language[lang][0].ModelName %>
-                            </div>
-                            <div class="model-capacity">
-                                <%= model.modelcapacity %>
-                            </div>
-                            <a class="view-btn" href="/model/<%= product._id %>/<%= model._id %>/<%= lang %>">View
-                                Model</a>
-                        </div>
-                        <% }) %>
-                        <% models.forEach(model => { 
-  const modelLang = model.Language[lang]?.[0] || model.Language['EN']?.[0];
-  const modelName = modelLang?.ModelName || 'Unnamed Model';
-  const modelDesc = modelLang?.ModelDesc?.replace(/(<([^>]+)>)/gi, '').slice(0, 160) || '';
-  const modelImage = model.ModelPhotos?.[0]?.startsWith('http') 
-    ? model.ModelPhotos[0] 
-    : model.ModelPhotos[0] 
-      ? `https://www.draglab.com${model.ModelPhotos[0]}` 
-      : thumbnail;
-  const modelUrl = `https://www.draglab.com/model/${product._id}/${model._id}/${lang}`;
-%>
-<script type="application/ld+json">
+              <% models.forEach(model=> { %>
+                <div class="model-row">
+                  <img src="<%=model.ModelPhotos %>" alt="<%= model.Language[lang][0].ModelName %>">
+                  <div class="model-info">
+                    <%= model.Language[lang][0].ModelName %>
+                  </div>
+                  <div class="model-capacity">
+                    <%= model.modelcapacity %>
+                  </div>
+                  <a class="view-btn" href="/<%= lang %>/products/<%= product.slug %>/<%= model.slug %>">View
+                    Model</a>
+                </div>
+                <% }) %>
+                  <% models.forEach(model=> {
+                    const modelLang = model.Language[lang]?.[0] || model.Language['EN']?.[0];
+                    const modelName = modelLang?.ModelName || 'Unnamed Model';
+                    const modelDesc = modelLang?.ModelDesc?.replace(/(<([^>]+)>)/gi, '').slice(0, 160) || '';
+                      const modelImage = model.ModelPhotos?.[0]?.startsWith('http')
+                      ? model.ModelPhotos[0]
+                      : model.ModelPhotos[0]
+                      ? `https://www.draglab.com${model.ModelPhotos[0]}`
+                      : thumbnail;
+                      const modelUrl = `https://www.draglab.com/${lang}/products/${product.slug}/${model.slug}`;
+                      %>
+                      <script type="application/ld+json">
 <%= JSON.stringify({
   "@context": "https://schema.org",
   "@type": "ProductModel",
@@ -275,25 +200,25 @@
   "url": modelUrl
 }) %>
 </script>
-<% }) %>
+                      <% }) %>
 
-                </div>
-                <% } %>
-
-
+            </div>
+            <% } %>
 
 
 
 
 
 
-                    <!-- Footer -->
-
-                    <%- include('../../includes/customer/footer.ejs') %>
 
 
-    </body>
-    <%- include('../../includes/customer/script.ejs') %>
+              <!-- Footer -->
+
+              <%- include('../../includes/customer/footer.ejs') %>
+
+
+      </body>
+      <%- include('../../includes/customer/script.ejs') %>
 
 
         </html>

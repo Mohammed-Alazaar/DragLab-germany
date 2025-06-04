@@ -174,87 +174,96 @@ exports.getProduct = (req, res, next) => {
         });
 };
 
+const Fuse = require('fuse.js');
+const normalize = str => str?.toLowerCase().replace(/\s+/g, '') || '';
 
 exports.search = async (req, res) => {
-    const query = req.query.q;
-    if (!query || query.length < 3) {
-        return res.json([]);
-    }
+    const query = req.query.q?.trim();
+    const lang = req.query.lang || 'EN';
+
+    if (!query || query.length < 2) return res.json([]);
 
     try {
-        // Get all non-draft products (we'll filter names manually)
-        const allProducts = await Product.find({ isDraft: false });
+        const products = await Product.find({ isDraft: false });
+        const articles = await Article.find({ language: lang });
 
-        const productResults = [];
-        const modelResults = [];
+        const searchableData = [];
 
-        allProducts.forEach(product => {
-            const productLang = product.Language?.EN?.[0];
+        // Prepare Products & Models
+        for (const product of products) {
+            const pLang = product.Language?.[lang]?.[0] || product.Language?.EN?.[0];
+            searchableData.push({
+                type: 'product',
+                name: pLang?.ProductName,
+                url: `/${lang}/products/${product.slug}`
+            });
 
-            if (productLang?.ProductName?.toLowerCase().includes(query.toLowerCase())) {
-                productResults.push({
-                    type: 'product',
-                    name: productLang.ProductName,
-                    id: product._id
+            for (const model of product.Models || []) {
+                if (!model.isPublished) continue;
+                const mLang = model.Language?.[lang]?.[0] || model.Language?.EN?.[0];
+                searchableData.push({
+                    type: 'model',
+                    name: mLang?.ModelName,
+                    url: `/${lang}/products/${product.slug}/${model.slug}`
                 });
             }
+        }
 
-            // Search through models
-            product.Models?.forEach(model => {
-                if (!model.isPublished) return;
-
-                const modelLang = model.Language?.EN?.[0];
-                if (modelLang?.ModelName?.toLowerCase().includes(query.toLowerCase())) {
-                    modelResults.push({
-                        type: 'model',
-                        name: modelLang.ModelName,
-                        id: model._id,
-                        productId: product._id
-                    });
-                }
+        // Prepare Articles
+        articles.forEach(article => {
+            searchableData.push({
+                type: 'article',
+                name: article.title,
+                url: `/${lang}/articles/${article.slug}`
             });
         });
 
-        // Search articles (EN only)
-        const articleResults = await Article.find({
-            language: 'EN',
-            title: { $regex: query, $options: 'i' }
-        }).limit(5);
+        // Fuse.js config
+        const fuse = new Fuse(searchableData, {
+            keys: ['name'],
+            threshold: 0.4, // lower = stricter match (try 0.3–0.5)
+            includeScore: true
+        });
 
-        const results = [
-            ...productResults,
-            ...modelResults,
-            ...articleResults.map(article => ({
-                type: 'article',
-                name: article.title,
-                id: article._id
-            }))
-        ];
+        // Run search
+        const results = fuse.search(query)
+            .sort((a, b) => a.score - b.score) // low score = better match
+            .map(r => r.item);
 
-        res.json(results);
+        // Optional: limit per type
+        const grouped = { product: [], model: [], article: [] };
+        for (const item of results) {
+            if (grouped[item.type].length < 5) {
+                grouped[item.type].push(item);
+            }
+        }
+
+        return res.json([...grouped.product, ...grouped.model, ...grouped.article]);
     } catch (err) {
-        console.error('Search error:', err);
-        res.status(500).json({ message: 'Server error' });
+        console.error('🔴 Fuse.js Search Error:', err);
+        res.status(500).json({ message: 'Search error' });
     }
 };
 
 
 
+
+
+
 exports.getProductDetails = (req, res, next) => {
-    const { productId, lang } = req.params;
+    const { lang, productSlug } = req.params;
     const supportedLangs = ['EN', 'ES', 'GR'];
     const selectedLang = supportedLangs.includes(lang) ? lang : 'EN';
 
-    Product.findById(productId)
+    Product.findOne({ slug: productSlug })
         .then(product => {
             if (!product) return res.redirect(`/${selectedLang}`);
 
-            // 🔄 Fetch all products for navbar
             return Product.find().then(allProducts => {
                 const publishedProducts = allProducts.map(prod => {
                     const publishedModels = prod.Models.filter(model => model.isPublished);
                     return {
-                        ...prod.toObject(), // flatten mongoose document
+                        ...prod.toObject(),
                         Models: publishedModels
                     };
                 });
@@ -264,8 +273,8 @@ exports.getProductDetails = (req, res, next) => {
                     lang: selectedLang,
                     translation: product.Language[selectedLang]?.[0] || product.Language['EN'][0],
                     models: product.Models.filter(m => m.isPublished),
-                    products: publishedProducts, // use publishedProducts here
-                    req // ✅ Don't forget to pass req if you use req.query.success/error inside the page
+                    products: publishedProducts,
+                    req
                 });
             });
         })
@@ -276,63 +285,63 @@ exports.getProductDetails = (req, res, next) => {
 };
 
 
-exports.getModelDetailsPage = (req, res, next) => {
-    const { productId, modelId, lang } = req.params;
+exports.getModelDetailsPage = async (req, res, next) => {
+    const { lang, productSlug, modelSlug } = req.params;
+    const supportedLangs = ['EN', 'ES', 'GR'];
+    const selectedLang = supportedLangs.includes(lang) ? lang : 'EN';
 
-    Product.findById(productId)
-        .then(product => {
-            if (!product) return res.redirect('/');
-            const model = product.Models.id(modelId);
-            if (!model || model.isPublished === false) return res.redirect('/');
+    try {
+        // ✅ 1. Find product by slug
+        const product = await Product.findOne({ slug: productSlug });
+        if (!product) return res.redirect(`/${selectedLang}`);
 
-            // Get current language data
-            const currentLangData = model.Language[lang]?.[0];
-            const englishLangData = model.Language['EN']?.[0];
+        // ✅ 2. Find model by slug inside the product
+        const model = product.Models.find(m => m.slug === modelSlug);
+        if (!model || model.isPublished === false) return res.redirect(`/${selectedLang}`);
 
-            if (!currentLangData) return res.redirect('/');
+        // ✅ 3. Handle language fallback
+        const currentLangData = model.Language[selectedLang]?.[0];
+        const englishLangData = model.Language['EN']?.[0];
 
-            // ✅ Fetch all products for the navbar
-            return Product.find().then(allProducts => {
-                const productLangData = product.Language[lang]?.[0] || product.Language['EN']?.[0];
+        if (!currentLangData) return res.redirect(`/${selectedLang}`);
 
-                res.render('customer/Model-details', {
-                    pageTitle: currentLangData.ModelName || "Model Details",
-                    ModelName: currentLangData.ModelName || englishLangData.ModelName || "No Name",
-                    ModelNameDesc: currentLangData.ModelNameDesc || englishLangData.ModelNameDesc || "No Description",
-                    ModelDesc: currentLangData.ModelDesc || englishLangData.ModelDesc || "No Details",
-                    overview: (currentLangData.overview?.length ? currentLangData.overview : englishLangData.overview || []).map((o, i) => {
-                        const base = o.toObject ? o.toObject() : o;
-                        return {
-                            ...base,
-                            overviewImage: englishLangData?.overview?.[i]?.overviewImage || ''
-                        };
-                    }),
-                    industry: (currentLangData.industry?.length ? currentLangData.industry : englishLangData.industry || []).map((ind, i) => {
-                        const base = ind.toObject ? ind.toObject() : ind;
-                        return {
-                            ...base,
-                            industryImage: englishLangData?.industry?.[i]?.industryImage || '',
-                            industryLogo: englishLangData?.industry?.[i]?.industryLogo || ''
-                        };
-                    }),
-                    specs: currentLangData.technicalSpecifications,
-                    downloads: currentLangData.downloads || [],
-                    modelThumbnail: model.ModelThumbnail,
-                    overviewThumbnail: model.overviewThumbnail,
-                    modelPhotos: model.ModelPhotos,
-                    lang: lang,
-                    products: allProducts,
-                    productId,
-                    modelId,
-                    productName: productLangData?.ProductName || "Unknown Product" // ✅ Add this line
-                });
-            });
-        })
-        .catch(err => {
-            console.error(err);
-            res.redirect('/EN');
+        // ✅ 4. Fetch all products for the navbar
+        const allProducts = await Product.find();
+
+        const productLangData = product.Language[selectedLang]?.[0] || product.Language['EN']?.[0];
+
+        res.render('customer/Model-details', {
+            pageTitle: currentLangData.ModelName || "Model Details",
+            ModelName: currentLangData.ModelName || englishLangData.ModelName || "No Name",
+            ModelNameDesc: currentLangData.ModelNameDesc || englishLangData.ModelNameDesc || "No Description",
+            ModelDesc: currentLangData.ModelDesc || englishLangData.ModelDesc || "No Details",
+            overview: (currentLangData.overview?.length ? currentLangData.overview : englishLangData.overview || []).map((o, i) => ({
+                ...(o.toObject ? o.toObject() : o),
+                overviewImage: englishLangData?.overview?.[i]?.overviewImage || ''
+            })),
+            industry: (currentLangData.industry?.length ? currentLangData.industry : englishLangData.industry || []).map((ind, i) => ({
+                ...(ind.toObject ? ind.toObject() : ind),
+                industryImage: englishLangData?.industry?.[i]?.industryImage || '',
+                industryLogo: englishLangData?.industry?.[i]?.industryLogo || ''
+            })),
+            specs: currentLangData.technicalSpecifications,
+            downloads: currentLangData.downloads || [],
+            modelThumbnail: model.ModelThumbnail,
+            overviewThumbnail: model.overviewThumbnail,
+            modelPhotos: model.ModelPhotos,
+            lang: selectedLang,
+            products: allProducts,
+            productId: product._id, // might still be needed in forms
+            modelId: model._id,
+            productName: productLangData?.ProductName || "Unknown Product"
         });
+
+    } catch (err) {
+        console.error(err);
+        res.redirect('/EN');
+    }
 };
+
 
 
 
@@ -497,16 +506,16 @@ exports.getArticles = async (req, res) => {
 };
 
 exports.getArticleDetails = async (req, res) => {
-    const { id } = req.params;
+    const { slug } = req.params;
 
     try {
-        const article = await Article.findById(id);
+        const article = await Article.findOne({ slug });
         if (!article) return res.redirect('/');
 
         const lang = article.language; // ✅ Use the actual language of the opened article
 
         const recentArticles = await Article.find({
-            _id: { $ne: id },
+            slug: { $ne: slug },
             language: lang // ✅ Match only the same language
         }).sort({ createdAt: -1 }).limit(4);
 
@@ -570,7 +579,6 @@ exports.getDownloads = async (req, res, next) => {
                         type: 'model'
                     });
 
-                    productNamesSet.add((file.fileProductCategory || productName).toLowerCase().replace(/\s+/g, '-'));
                 }
             }
         }
@@ -650,6 +658,60 @@ exports.getPrivacyPolicy = (req, res, next) => {
             res.render('customer/PrivacyPolicy', {
                 pageTitle: 'Privacy Policy',
                 path: '/PrivacyPolicy',
+                products: products,
+                lang // <- pass it to EJS
+            });
+        })
+        .catch(err => {
+            console.error(err);
+            res.redirect('/EN');
+        });
+
+};
+exports.getDataProtection = (req, res, next) => {
+    const lang = req.query.lang || 'EN'; // <- 🔄 language detection
+
+    Product.find()
+        .then(products => {
+            res.render('customer/Data-Protection.ejs', {
+                pageTitle: 'DataProtection',
+                path: '/Data-Protection',
+                products: products,
+                lang // <- pass it to EJS
+            });
+        })
+        .catch(err => {
+            console.error(err);
+            res.redirect('/EN');
+        });
+
+};
+exports.getimprint = (req, res, next) => {
+    const lang = req.query.lang || 'EN'; // <- 🔄 language detection
+
+    Product.find()
+        .then(products => {
+            res.render('customer/imprint.ejs', {
+                pageTitle: 'imprint',
+                path: '/imprint',
+                products: products,
+                lang // <- pass it to EJS
+            });
+        })
+        .catch(err => {
+            console.error(err);
+            res.redirect('/EN');
+        });
+
+};
+exports.getCodeofEthics = (req, res, next) => {
+    const lang = req.query.lang || 'EN'; // <- 🔄 language detection
+
+    Product.find()
+        .then(products => {
+            res.render('customer/CodeofEthics.ejs', {
+                pageTitle: 'Code of Ethics',
+                path: '/CodeofEthics',
                 products: products,
                 lang // <- pass it to EJS
             });

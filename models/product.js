@@ -91,7 +91,9 @@ const ModelsSchema = new Schema({
             }]
         }]
     },
-    isPublished: { type: Boolean, default: false }
+    isPublished: { type: Boolean, default: false },
+    slug: { type: String, required: true }, // ✅ Model slug
+
 }, { timestamps: true });
 
 const productSchema = new Schema({
@@ -153,7 +155,9 @@ const productSchema = new Schema({
         }]
     },
     Models: [ModelsSchema],
-    isDraft: { type: Boolean, default: false }
+    isDraft: { type: Boolean, default: false },
+    slug: { type: String, required: true, unique: true }, // ✅ Product slug
+
 }, { timestamps: true });
 
 module.exports = mongoose.model('Product', productSchema);

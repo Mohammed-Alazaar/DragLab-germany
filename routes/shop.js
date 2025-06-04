@@ -16,46 +16,49 @@ router.get('/Products/:productId', shopController.getProduct);
 router.get('/search', shopController.search);
 
 
-router.get('/product/:productId/:lang', shopController.getProductDetails);
-router.get('/model/:productId/:modelId/:lang', shopController.getModelDetailsPage);
+router.get('/:lang/products/:productSlug', shopController.getProductDetails);
+router.get('/:lang/products/:productSlug/:modelSlug', shopController.getModelDetailsPage);
 
 
 
-router.get('/technical-service/:lang', shopController.geTechnicalservice);
+router.get('/:lang/technical-service', shopController.geTechnicalservice);
 router.post('/technical-service', shopController.postTechnicalService);
 
-router.get('/Contactus/:lang', shopController.getContactus);
+router.get('/:lang/Contactus', shopController.getContactus);
 router.post('/submit-contactus', shopController.postContactUs);
 
-router.get('/support/:lang', shopController.getSupport);
-router.get('/aboutus/:lang', shopController.getaboutus);
-router.get('/Articles/:lang', shopController.getArticles);
-router.get('/article/:id/:lang', shopController.getArticleDetails);
-router.get('/Downloads/:lang', shopController.getDownloads);
-router.get('/TermCondition/:lang', shopController.getTearmCondition);
-router.get('/PrivacyPolicy/:lang', shopController.getPrivacyPolicy);
-router.get('/Qualitypolicy/:lang', shopController.getQualitypolicy);
-router.get('/WarrantyRegistration/:lang', shopController.getWarrantyRegistration);
+router.get('/:lang/support', shopController.getSupport);
+router.get('/:lang/aboutus', shopController.getaboutus);
+router.get('/:lang/Articles', shopController.getArticles);
+router.get('/:lang/articles/:slug', shopController.getArticleDetails);
+router.get('/:lang/Downloads', shopController.getDownloads);
+router.get('/:lang/TermCondition', shopController.getTearmCondition);
+router.get('/:lang/PrivacyPolicy', shopController.getPrivacyPolicy);
+router.get('/:lang/DataProtection', shopController.getDataProtection);
+router.get('/:lang/imprint', shopController.getimprint);
+router.get('/:lang/CodeofEthics', shopController.getCodeofEthics);
+router.get('/:lang/Qualitypolicy', shopController.getQualitypolicy);
+router.get('/:lang/WarrantyRegistration', shopController.getWarrantyRegistration);
 router.post('/submit-warranty', shopController.postWarrantyRegistration);
 
 router.get('/api/models/:productId', async (req, res) => {
-    const lang = req.query.lang || 'EN';
-  
-    try {
-      const product = await Product.findById(req.params.productId);
-      if (!product) return res.status(404).json({ error: 'Product not found' });
-  
-      const models = product.Models.map(m => ({
-        _id: m._id,
-        ModelName: m.Language[lang]?.[0]?.ModelName || m.Language['EN']?.[0]?.ModelName || 'Unnamed Model'
-      }));
-  
-      res.json({ models });
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ error: 'Server error' });
-    }
-  });
+  const lang = req.query.lang || 'EN';
+
+  try {
+    const product = await Product.findById(req.params.productId);
+    if (!product) return res.status(404).json({ error: 'Product not found' });
+
+    const models = product.Models.map(m => ({
+      _id: m._id,
+      ModelName: m.Language[lang]?.[0]?.ModelName || m.Language['EN']?.[0]?.ModelName || 'Unnamed Model'
+    }));
+
+    res.json({ models });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
 
 
 
