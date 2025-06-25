@@ -1,6 +1,6 @@
 <div class="navbarContainer">
     <div class="navright">
-        <a href="/EN">
+        <a href="/">
             <img src="/assets/Imgs/logo/DragLab-Logo.png" alt="DragLab Logo">
         </a>
     </div>
@@ -32,7 +32,7 @@
 
                                 <% products.filter(p=> !p.isDraft).forEach(product => {
 
-                                    const productLang = product.Language?.EN?.[0];
+                                    const productLang = product.Language?.[lang]?.[0];
                                     const modelsArray = product.Models
                                     .filter(model => model.isPublished) // ✅ Only published models
                                     .map(model => {
@@ -75,7 +75,7 @@
                                 </div>
                                 <ul>
                                     <% products.forEach(product=> {
-                                        const productLang = product.Language?.EN?.[0];
+                                        const productLang = product.Language?.[lang]?.[0];
                                         product.Models.forEach(model => {
                                         const modelLang = model.Language?.EN?.[0];
                                         %>
@@ -111,11 +111,11 @@
             </ul>
         </div>
     </div>
-    <!-- <select id="languageSwitcher" onchange="changeLanguage(this.value)">
+    <select id="languageSwitcher" onchange="changeLanguage(this.value)">
             <option value="EN">English</option>
             <option value="ES">Español</option>
             <option value="GR">Germany</option>
-        </select> -->
+        </select>
 
 
     <div class="navLeft">
@@ -195,7 +195,7 @@
         </div>
 
         <% products.filter(p=> !p.isDraft).forEach(product => {
-            const productLang = product.Language?.EN?.[0];
+            const productLang = product.Language?.[lang]?.[0];
             %>
             <div class="product-item" onclick="showModels('<%= product.slug %>')">
                 <div class="product-photo-container">
@@ -217,7 +217,7 @@
 
     <!-- ✅ Move this outside the productPage -->
     <% products.filter(p=> !p.isDraft).forEach(product => {
-        const productLang = product.Language?.EN?.[0];
+        const productLang = product.Language?.[lang]?.[0];
         const models = product.Models.filter(m => m.isPublished);
         %>
         <div class="menu-page" id="modelMenu_<%= product.slug %>">
