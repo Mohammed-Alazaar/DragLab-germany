@@ -73,7 +73,7 @@ exports.postLogin = (req, res, next) => {
                             if (err) {
                                 console.log(err);
                             }
-                            if (user.role === 'admin' || user.role === 'seller') {
+                            if (user.role === 'admin' || user.role === 'subAdmin') {
                                 res.redirect('/admin/dashboard');
                             } else {
                                 res.redirect('/EN');
