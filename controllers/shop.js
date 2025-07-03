@@ -265,8 +265,8 @@ exports.search = async (req, res) => {
 
         for (const product of products) {
             const pLang = getLangBlock(product.Language, lang);
-console.log('🔍 LANG:', lang, '| Product Language Block:', Object.keys(product.Language || {}));
-console.log('➡️  Product Name:', pLang?.ProductName);
+            console.log('🔍 LANG:', lang, '| Product Language Block:', Object.keys(product.Language || {}));
+            console.log('➡️  Product Name:', pLang?.ProductName);
             if (pLang && pLang.ProductName) {
                 searchableData.push({
                     type: 'product',
@@ -278,7 +278,7 @@ console.log('➡️  Product Name:', pLang?.ProductName);
             for (const model of product.Models || []) {
                 if (!model.isPublished) continue;
                 const mLang = getLangBlock(model.Language, lang);
-console.log('➡️  Model Name:', mLang?.ModelName);
+                console.log('➡️  Model Name:', mLang?.ModelName);
 
                 if (mLang && mLang.ModelName) {
                     searchableData.push({
@@ -2329,6 +2329,7 @@ exports.getCodeofEthics = (req, res, next) => {
                 sectionHeading: t.sectionHeading,
                 sections: t.sections,
                 closingStatement: t.closingStatement,
+                closingStatementBold: t.closingStatementBold, 
                 products,
                 lang
             });
