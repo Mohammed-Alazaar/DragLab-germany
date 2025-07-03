@@ -5,11 +5,7 @@ const bcrypt = require('bcryptjs');
 const nodemailer = require('nodemailer');
 const { validationResult } = require('express-validator');
 
-// const transporter = nodemailer.createTransport(sendDEidTransport({
-//     auth: {
-//         api_key:'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'
-//     }
-// }));
+
 
 
 
