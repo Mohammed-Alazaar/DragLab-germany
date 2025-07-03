@@ -3,12 +3,11 @@ const path = require('path'); // Add this line to import the path module
 const User = require('../models/user');
 const bcrypt = require('bcryptjs');
 const nodemailer = require('nodemailer');
-const sendgridTransport = require('nodemailer-sendgrid-transport');
 const { validationResult } = require('express-validator');
 
-// const transporter = nodemailer.createTransport(sendgridTransport({
+// const transporter = nodemailer.createTransport(sendDEidTransport({
 //     auth: {
-//         api_key:'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'
+//         api_key:'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'
 //     }
 // }));
 

@@ -88,6 +88,9 @@
 .footer-legal a:hover {
     text-decoration: underline;
 }
+.footer-legal2 a:hover {
+    text-decoration: underline;
+}
 
 .footer-social {
     margin-bottom: 10px;

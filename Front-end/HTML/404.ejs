@@ -1,7 +1,30 @@
 <%- include('../includes/customer/head.ejs') %>
 
     <%- include('../includes/customer/header-end.ejs') %>
+        <style>
+            .go-home {
+                display: flex;
+                justify-content: center;
+                flex-direction: column;
+                align-items: center;
+                gap: 1rem;
+                margin: 2rem;
+                color: var(--primary-Color);
+                font-size: 25px;
+            }
 
+            .go-home p {
+                width: auto;
+            }
+
+            .go-home a {
+                margin: 10px;
+                padding: 10px 50px;
+                background: var(--primary-Color);
+                width: fit-content;
+                color: white;
+            }
+        </style>
 
         <body>
 
@@ -15,29 +38,7 @@
                     </a>
                 </div>
 
-                <div class="navMidLeft">
-
-                    <div class="navMid">
-
-                    </div>
-
-
-
-                    <div class="navLeft">
-                        <div class="navMidRight">
-                            <input type="text" id="search" name="search" placeholder="Search..">
-                            <img src="/assets/Imgs/Icons/search.png" alt="search" class="search-icon">
-
-                        </div>
-                        <div id="searchResults" class="search-results"></div>
-
-                    </div>
-
-                </div>
-
-
-
-
+            </div>
 
             </div>
 
@@ -45,10 +46,15 @@
 
             <!-- nav-bar -->
 
-
-            <h2 style="margin: 10rem  ; font-size: 27px;"> 404 :)</h2>
-            <h1 style="margin: 10rem  ; font-size: 27px;"> Nothing to see hereeeeeee</h1>
-
+            <div style="display: flex; flex-direction: column; align-items: center;">
+                <h2 style=" margin: 2rem ; font-size: 27px;"> 404 :)</h2>
+                <h1 style="margin: 2rem  ; font-size: 27px;"> Nothing to see hereeeeeee</h1>
+            </div>
+            <div class="go-home">
+                <p>In the meantime, you can go back to the homepage.</p>
+                <p>Thank you for your patience!</p>
+                <a href="/">Home</a>
+            </div>
             <%- include('../includes/customer/footer.ejs') %>
         </body>
 

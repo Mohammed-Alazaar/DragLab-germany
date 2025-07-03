@@ -1,128 +1,63 @@
 <%- include('../../includes/customer/head.ejs') %>
 
+<link rel="stylesheet" href="/css/customer/PrivacyPolicy.css">
 
-    <link rel="stylesheet" href="/css/customer/PrivacyPolicy.css">
+<%- include('../../includes/customer/header-end.ejs') %>
 
+<!-- ✅ Metadata -->
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title><%= pageTitle %></title>
+<meta name="description" content="<%= metaDescription %>">
 
+<link rel="canonical" href="https://yourdomain.com/<%= lang.toLowerCase() %>/codeofethics" />
+<link rel="alternate" hreflang="en" href="https://yourdomain.com/en/codeofethics" />
+<link rel="alternate" hreflang="de" href="https://yourdomain.com/de/codeofethics" />
+<link rel="alternate" hreflang="es" href="https://yourdomain.com/es/codeofethics" />
 
+<meta property="og:title" content="<%= ogTitle %>" />
+<meta property="og:description" content="<%= ogDescription %>" />
+<meta property="og:image" content="<%= ogImage %>" />
+<meta property="og:url" content="https://yourdomain.com/<%= lang.toLowerCase() %>/codeofethics" />
+<meta property="og:type" content="website" />
 
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="<%= ogTitle %>">
+<meta name="twitter:description" content="<%= ogDescription %>">
+<meta name="twitter:image" content="<%= ogImage %>">
 
-    <body>
-        <!-- nav-bar -->
+<link rel="icon" href="/favicon.ico" type="image/x-icon" />
+<link rel="stylesheet" href="/css/customer/PrivacyPolicy.css" />
+</head>
 
-        <%- include('../../includes/customer/navbar.ejs') %>
+<body>
+  <%- include('../../includes/customer/navbar.ejs') %>
 
-
-            <!-- nav-bar -->
-
-            <!-- contact us thumbnail  -->
-      <div class="slide">
-        <div class="slide-text">
-            <h1>Code of Ethics</h1>
-        </div>
-        <img src="/assets/Imgs/Icons/products/contactus-BC.png" alt="Code of Ethics Background">
+  <div class="slide">
+    <div class="slide-text">
+      <h1><%= sectionHeading %></h1>
     </div>
+    <img src="/assets/Imgs/Icons/products/contactus-BC.png" alt="Code of Ethics Cover">
+  </div>
 
-    <!-- Main Content -->
-    <div class="PrivacyPolicycontainer">
-        <h1>NanoDrag Code of Ethics</h1>
+  <div class="PrivacyPolicycontainer">
+    <h1><%= sectionHeading %></h1>
+    
+    <% sections.forEach(section => { %>
+      <div class="section">
+        <% if (section.title) { %>
+          <h2><%= section.title %></h2>
+        <% } %>
+        <p><%- section.text %></p>
+      </div>
+    <% }) %>
 
-        <div class="section">
-            <p>At NanoDrag, we are committed to upholding the highest ethical standards in all aspects of our business. This Code of Ethics serves as a guide for our employees, partners, and stakeholders, ensuring that our actions reflect our core values of integrity, respect, and excellence.</p>
-        </div>
-
-        <div class="section"><h2>Integrity and Honesty</h2>
-            <p>We adhere to the highest standards of integrity, ensuring that our actions are honest and transparent. We build trust by consistently delivering on our commitments and maintaining open communication with all stakeholders.</p>
-        </div>
-
-        <div class="section"><h2>Respect and Fairness</h2>
-            <p>We treat all individuals with dignity, fostering an inclusive environment where everyone is valued. We are committed to fairness in all our interactions, providing equal opportunities regardless of race, gender, age, religion, or background.</p>
-        </div>
-
-        <div class="section"><h2>Sustainability and Environmental Responsibility</h2>
-            <p>NanoDrag is dedicated to sustainability, striving to minimize our environmental impact through responsible resource use, eco-friendly product design, and continuous innovation in sustainable practices.</p>
-        </div>
-
-        <div class="section"><h2>Compliance with Laws and Regulations</h2>
-            <p>We comply with all applicable laws and regulations in the regions where we operate. We expect all employees and partners to adhere to legal requirements and to conduct business in a manner that reflects our ethical values.</p>
-        </div>
-
-        <div class="section"><h2>Confidentiality and Data Privacy</h2>
-            <p>We respect the privacy and confidentiality of our customers, employees, and partners. We handle all sensitive information with the utmost care, ensuring that it is protected against unauthorized access and misuse.</p>
-        </div>
-
-        <div class="section"><h2>Commitment to Excellence</h2>
-            <p>We are committed to excellence in everything we do. Our focus on innovation, quality, and customer satisfaction drives us to continually improve our products and services, striving to exceed expectations.</p>
-        </div>
-
-        <div class="section"><h2>Accountability</h2>
-            <p>We take responsibility for our actions and their impact on our customers, employees, communities, and the environment. We maintain open channels for reporting unethical behavior and encourage transparency in all aspects of our business.</p>
-        </div>
-
-        <div class="section"><h2>Conflict of Interest</h2>
-            <p>We avoid conflicts of interest that could compromise our integrity or the trust placed in us by our customers and partners. Any potential conflicts are disclosed and managed appropriately to maintain our ethical standards.</p>
-        </div>
-
-        <div class="section"><h2>Anti-Bribery and Corruption</h2>
-            <p>NanoDrag has a zero-tolerance policy for bribery and corruption. We conduct all business transactions transparently and ethically, ensuring that we do not engage in or condone any form of corrupt practices.</p>
-        </div>
-
-        <div class="section"><h2>Social Responsibility</h2>
-            <p>We are committed to making a positive impact on society through our business activities. We support community initiatives, encourage volunteerism, and strive to be a responsible corporate citizen.</p>
-        </div>
-
-        <div class="section"><h2>Health and Safety</h2>
-            <p>We prioritize the health and safety of our employees, customers, and partners. We are committed to maintaining a safe and healthy work environment, adhering to all relevant safety regulations, and promoting wellness initiatives.</p>
-        </div>
-
-        <div class="section"><h2>Innovation and Continuous Improvement</h2>
-            <p>Innovation is at the heart of NanoDrag. We foster a culture of continuous improvement, encouraging creativity and experimentation while adhering to our ethical standards. We believe that innovation should always align with our commitment to ethical practices.</p>
-        </div>
-
-        <div class="section"><h2>Customer Focus</h2>
-            <p>Our customers are central to our mission. We are dedicated to understanding their needs, delivering high-quality products and services, and ensuring customer satisfaction through ethical business practices and open communication.</p>
-        </div>
-
-        <div class="section"><h2>Collaboration and Teamwork</h2>
-            <p>We believe in the power of collaboration and teamwork. By working together, we can achieve our goals and create value for our customers and stakeholders. We foster a culture of mutual respect, trust, and shared success.</p>
-        </div>
-
-        <div class="section"><h2>Ethical Marketing and Advertising</h2>
-            <p>We are committed to honest and ethical marketing practices. Our advertising is truthful, non-deceptive, and reflects the quality and value of our products and services. We do not engage in misleading or exaggerated claims.</p>
-        </div>
-
-        <div class="section"><h2>Supply Chain Responsibility</h2>
-            <p>We expect our suppliers and partners to share our commitment to ethical practices. We work closely with them to ensure that our supply chain operates in a socially responsible and environmentally sustainable manner.</p>
-        </div>
-
-        <div class="section"><h2>Intellectual Property</h2>
-            <p>We respect intellectual property rights and expect others to do the same. We are committed to protecting our intellectual property and ensuring that our innovations are used in ways that align with our ethical standards.</p>
-        </div>
-
-        <div class="section"><h2>Transparency and Disclosure</h2>
-            <p>We believe in transparency in our business operations. We are committed to providing accurate and timely information to our stakeholders, ensuring that they are informed about our activities, performance, and ethical practices.</p>
-        </div>
-
-        <div class="section"><h2>Employee Development</h2>
-            <p>We invest in the growth and development of our employees. We provide opportunities for continuous learning, skill development, and career advancement, ensuring that our workforce is equipped to meet the challenges of tomorrow.</p>
-        </div>
-
-        <div class="section">
-            <p><strong>NanoDrag’s Code of Ethics</strong> is more than a set of guidelines; it is a reflection of who we are as a company. We are committed to upholding these principles in all our actions, ensuring that we remain a trusted and respected leader in our industry. We encourage all employees, partners, and stakeholders to embrace these values and contribute to our mission of ethical excellence.</p>
-        </div>
+    <div class="section">
+<p><strong><%= closingStatementBold %></strong><%= closingStatement %></p>
     </div>
+  </div>
 
-
-
-
-
-            <!-- Footer -->
-
-            <%- include('../../includes/customer/footer.ejs') %>
-
-
-    </body>
-    <%- include('../../includes/customer/script.ejs') %>
-
-
-        </html>
+  <%- include('../../includes/customer/footer.ejs') %>
+</body>
+<%- include('../../includes/customer/script.ejs') %>
+</html>

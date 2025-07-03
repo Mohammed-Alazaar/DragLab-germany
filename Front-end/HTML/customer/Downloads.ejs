@@ -1,133 +1,119 @@
 <%- include('../../includes/customer/head.ejs') %>
 
+<!-- SEO Meta -->
+<title><%= translations.pageTitle %> | DragLab</title>
+<meta name="description" content="<%= translations.metaDescription %>">
+<meta property="og:title" content="<%= translations.pageTitle %> | DragLab">
+<meta property="og:description" content="<%= translations.ogDescription %>">
+<link rel="canonical" href="https://draglab.com/<%= lang.toLowerCase() %>/Downloads" />
+<link rel="alternate" hreflang="en" href="https://draglab.com/en/Downloads" />
+<link rel="alternate" hreflang="es" href="https://draglab.com/es/Downloads" />
+<link rel="alternate" hreflang="de" href="https://draglab.com/de/Downloads" />
 
-    <link rel="stylesheet" href="/css/customer/Downloads.css">
+<link rel="stylesheet" href="/css/customer/Downloads.css">
 
+<body>
+  <!-- nav-bar -->
+  <%- include('../../includes/customer/navbar.ejs') %>
 
-
-
-
-    <body>
-        <!-- nav-bar -->
-
-        <%- include('../../includes/customer/navbar.ejs') %>
-
-
-            <!-- nav-bar -->
-
-            <!-- Downloads thumbnail  -->
-            <div class="slide">
-                <div class="slide-text">
-                    <h1>Downloads</h1>
-                </div>
-                <img src="/assets/Imgs/Icons/products/contactus-BC.png" alt="Photo 1">
-            </div>
-            <!-- Downloads thumbnail  -->
-
-          <div class="catalog-filter-bar">
-    <button class="filter-button active-category" data-category="all">All</button>
-
-    <% if (productNames && productNames.length > 0) { %>
-        <% productNames.forEach(name => { %>
-            <button class="filter-button" data-category="<%= name.toLowerCase().replace(/\s+/g, '-') %>">
-                <%= name %>
-            </button>
-        <% }) %>
-    <% } else { %>
-        <p>No Products Available</p>
-    <% } %>
-
-    <% if (catalogCategoryNames && catalogCategoryNames.length > 0) { %>
-        <% catalogCategoryNames.forEach(name => { %>
-            <button class="filter-button" data-category="<%= name.toLowerCase().replace(/\s+/g, '-') %>">
-                <%= name %>
-            </button>
-        <% }) %>
-    <% } else { %>
-        <p>No Categories Available</p>
-    <% } %>
-</div>
-
-
-
-
-        <div class="catalog-section">
-    <div class="catalog-list" id="catalog-grid">
-        <!-- ✅ Downloads cards -->
-        <% downloads.forEach(file => {
-            const normalizedCategory = (file.fileProductCategory || file.fileCategory || '').toLowerCase().replace(/\s+/g, '-');
-        %>
-            <div class="catalog-item" data-category="<%= normalizedCategory %>">
-                <div class="cataloge-info-container">
-                    <div class="catalog-title">
-                        <%= file.fileName %>
-                    </div>
-                    <div class="catalog-meta">
-                        <div class="catalog-meta-lang">
-                            <%= lang %>
-                        </div>
-                        <div class="catalog-meta-size">
-                            <%= file.fileSize %>
-                        </div>
-                    </div>
-                </div>
-                <a class="download-icon" 
-                   href="<%= file.filePath.includes('cloudinary.com') ? file.filePath.replace('/upload/', '/upload/fl_attachment/') : file.filePath %>" 
-                   download 
-                   onclick="trackDownload()">
-                   <img src="/assets/Imgs/Icons/products/download-icon.png" alt="Download">
-                </a>
-            </div>
-        <% }) %>
+  <!-- Downloads thumbnail -->
+  <div class="slide">
+    <div class="slide-text">
+      <h1><%= translations.heroTitle %></h1>
     </div>
-</div>
+    <img src="/assets/Imgs/Icons/products/contactus-BC.png" alt="Downloads Banner">
+  </div>
 
+  <!-- Filter Buttons -->
+  <div class="catalog-filter-bar">
+    <button class="filter-button active-category" data-category="all"><%= translations.allLabel %></button>
 
+    <% if (productNames && productNames.length && productNames[0] !== 'No Products Available') { %>
+      <% productNames.forEach(name => { %>
+        <button class="filter-button" data-category="<%= name.toLowerCase().replace(/\s+/g, '-') %>">
+          <%= name %>
+        </button>
+      <% }) %>
+    <% } else { %>
+      <p><%= translations.noProducts %></p>
+    <% } %>
 
-            <script>
-                const filterButtons = document.querySelectorAll('.filter-button');
-                const catalogCards = document.querySelectorAll('.catalog-item');
+    <% if (catalogCategoryNames && catalogCategoryNames.length && catalogCategoryNames[0] !== 'No Categories Available') { %>
+      <% catalogCategoryNames.forEach(name => { %>
+        <button class="filter-button" data-category="<%= name.toLowerCase().replace(/\s+/g, '-') %>">
+          <%= name %>
+        </button>
+      <% }) %>
+    <% } else { %>
+      <p><%= translations.noCategories %></p>
+    <% } %>
+  </div>
 
-                filterButtons.forEach(button => {
-                    button.addEventListener('click', () => {
-                        filterButtons.forEach(btn => btn.classList.remove('active-category'));
-                        button.classList.add('active-category');
+  <!-- Downloads Grid -->
+  <div class="catalog-section">
+    <div class="catalog-list" id="catalog-grid">
+      <% downloads.forEach(file => {
+          const normalizedCategory = (file.fileProductCategory || file.fileCategory || '').toLowerCase().replace(/\s+/g, '-');
+      %>
+        <div class="catalog-item" data-category="<%= normalizedCategory %>">
+          <div class="cataloge-info-container">
+            <div class="catalog-title">
+              <%= file.fileName %>
+            </div>
+            <div class="catalog-meta">
+              <div class="catalog-meta-lang">
+                <%= lang %>
+              </div>
+              <div class="catalog-meta-size">
+                <%= file.fileSize %>
+              </div>
+            </div>
+          </div>
+          <a class="download-icon" 
+             href="<%= file.filePath.includes('cloudinary.com') ? file.filePath.replace('/upload/', '/upload/fl_attachment/') : file.filePath %>" 
+             download 
+             onclick="trackDownload()">
+            <img src="/assets/Imgs/Icons/products/download-icon.png" alt="Download">
+          </a>
+        </div>
+      <% }) %>
+    </div>
+  </div>
 
-                        const category = button.getAttribute('data-category');
+  <!-- JS Scripts -->
+  <script>
+    const filterButtons = document.querySelectorAll('.filter-button');
+    const catalogCards = document.querySelectorAll('.catalog-item');
 
-                        catalogCards.forEach(card => {
-                            const cardCategory = card.getAttribute('data-category');
-                            if (category === 'all' || category === 'general') {
-                                card.style.display = '';
-                            } else {
-                                card.style.display = cardCategory === category ? '' : 'none';
-                            }
-                        });
-                    });
-                });
-            </script>
+    filterButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        filterButtons.forEach(btn => btn.classList.remove('active-category'));
+        button.classList.add('active-category');
 
-            <script>
-                function trackDownload() {
-                    gtag('event', 'conversion', {
-                        'send_to': 'AW-754782155/Km5ZCI6_qIQaEMuf9OcC',
-                        'value': 1.0,
-                        'currency': 'USD'
-                    });
-                }
-            </script>
+        const category = button.getAttribute('data-category');
 
+        catalogCards.forEach(card => {
+          const cardCategory = card.getAttribute('data-category');
+          if (category === 'all' || category === 'general') {
+            card.style.display = '';
+          } else {
+            card.style.display = cardCategory === category ? '' : 'none';
+          }
+        });
+      });
+    });
 
+    function trackDownload() {
+      gtag('event', 'conversion', {
+        'send_to': 'AW-754782155/Km5ZCI6_qIQaEMuf9OcC',
+        'value': 1.0,
+        'currency': 'USD'
+      });
+    }
+  </script>
 
+  <!-- Footer -->
+  <%- include('../../includes/customer/footer.ejs') %>
+</body>
 
-
-            <!-- Footer -->
-
-            <%- include('../../includes/customer/footer.ejs') %>
-
-
-    </body>
-    <%- include('../../includes/customer/script.ejs') %>
-
-
-        </html>
+<%- include('../../includes/customer/script.ejs') %>

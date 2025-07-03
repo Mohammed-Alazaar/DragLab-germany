@@ -7,7 +7,38 @@
 
         <%- include('../../includes/customer/header-end.ejs') %>
 
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+  <!-- ✅ Page Title -->
+  <title><%= pageTitle %></title>
+
+  <!-- ✅ Meta Description -->
+  <meta name="description" content="<%= metaDescription %>">
+
+  <!-- ✅ Canonical and Alternate URLs for SEO -->
+  <link rel="canonical" href="https://yourdomain.com/<%= lang.toLowerCase() %>/aboutus" />
+  <link rel="alternate" hreflang="en" href="https://yourdomain.com/en/aboutus" />
+  <link rel="alternate" hreflang="de" href="https://yourdomain.com/de/aboutus" />
+  <link rel="alternate" hreflang="es" href="https://yourdomain.com/es/aboutus" />
+
+  <!-- ✅ Open Graph Tags for Facebook / LinkedIn / WhatsApp -->
+  <meta property="og:title" content="<%= ogTitle %>" />
+  <meta property="og:description" content="<%= ogDescription %>" />
+  <meta property="og:image" content="<%= ogImage %>" />
+  <meta property="og:url" content="https://yourdomain.com/<%= lang.toLowerCase() %>/aboutus" />
+  <meta property="og:type" content="website" />
+
+  <!-- ✅ Twitter Cards -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="<%= ogTitle %>">
+  <meta name="twitter:description" content="<%= ogDescription %>">
+  <meta name="twitter:image" content="<%= ogImage %>">
+
+  <!-- ✅ Favicon and CSS -->
+  <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+  <link rel="stylesheet" href="/css/customer/about-us.css" />
+</head>
 
         <body>
             <!-- nav-bar -->
@@ -18,215 +49,121 @@
                 <!-- nav-bar -->
 
                 <!-- contact us thumbnail  -->
-                <div class="slide">
-                    <div class="slide-text">
-                        <h1>About Us</h1>
-                    </div>
-                    <img src="/assets/Imgs/Icons/products/contactus-BC.png" alt="Photo 1">
-                </div>
-                <!-- contact us thumbnail  -->
-                <!-- about us section -->
+          <div class="slide">
+    <div class="slide-text">
+      <h1><%= sectionHeading %></h1>
+    </div>
+    <img src="/assets/Imgs/Icons/products/contactus-BC.png" alt="Contact Image">
+  </div>
 
-                <section class="about-section">
-                    <h2 style="text-align:center; font-size: 2rem; margin-bottom: 30px;">About Us</h2>
-                    <div class="about-container">
-                        <div class="about-image" id="about-img">
-                            <img src="/assets/Imgs/Icons/products/img-vision.png" alt="About Image">
-                        </div>
-                        <div class="about-content">
-                            <div class="about-tabs">
-                                <div class="about-tab active" data-tab="vision"
-                                    data-icon-default="/assets/Imgs/Icons/products/vision.png"
-                                    data-icon-active="/assets/Imgs/Icons/products/vision-active.png">
-                                    <img src="/assets/Imgs/Icons/products/vision-active.png" class="tab-icon"> Our
-                                    Vision
-                                </div>
-                                <div class="about-tab" data-tab="mission"
-                                    data-icon-default="/assets/Imgs/Icons/products/mission.png"
-                                    data-icon-active="/assets/Imgs/Icons/products/mission-active.png">
-                                    <img src="/assets/Imgs/Icons/products/mission.png" class="tab-icon">
-                                    Our Mission
-                                </div>
-                                <div class="about-tab" data-tab="values"
-                                    data-icon-default="/assets/Imgs/Icons/products/values.png"
-                                    data-icon-active="/assets/Imgs/Icons/products/values-active.png">
-                                    <img src="/assets/Imgs/Icons/products/values.png" class="tab-icon">
-                                    Our Values
-                                </div>
-                            </div>
-                            <div class="about-text" id="about-text">
-                                <div class="title-icon">
-                                    <div class="tab-icon-bg">
-                                        <img src="/assets/Imgs/Icons/products/vision-active.png" class="tab-icon">
-                                    </div>
-                                    <h3>Innovative Excellence</h3>
-                                </div>
+  <section class="about-section">
+    <h2 style="text-align:center; font-size: 2rem; margin-bottom: 30px;"><%= sectionHeading %></h2>
+    <div class="about-container">
+      <div class="about-image" id="about-img">
+        <img src="/assets/Imgs/Icons/products/img-vision.png" alt="About Image">
+      </div>
+      <div class="about-content">
+        <div class="about-tabs">
+          <div class="about-tab active" data-tab="vision" data-icon-default="/assets/Imgs/Icons/products/vision.png" data-icon-active="/assets/Imgs/Icons/products/vision-active.png">
+            <img src="/assets/Imgs/Icons/products/vision-active.png" class="tab-icon" alt="<%= tabs.vision.title %>">  <%= tabs.vision.title %>
+          </div>
+          <div class="about-tab" data-tab="mission" data-icon-default="/assets/Imgs/Icons/products/mission.png" data-icon-active="/assets/Imgs/Icons/products/mission-active.png">
+            <img src="/assets/Imgs/Icons/products/mission.png" class="tab-icon" alt="<%= tabs.mission.title %>"> <%= tabs.mission.title %>
+          </div>
+          <div class="about-tab" data-tab="values" data-icon-default="/assets/Imgs/Icons/products/values.png" data-icon-active="/assets/Imgs/Icons/products/values-active.png">
+            <img src="/assets/Imgs/Icons/products/values.png" class="tab-icon" alt="<%= tabs.values.title %>"> <%= tabs.values.title %>
+          </div>
+        </div>
+        <div class="about-text" id="about-text">
+          <div class="title-icon">
+            <div class="tab-icon-bg">
+              <img src="/assets/Imgs/Icons/products/vision-active.png" class="tab-icon" alt="<%= tabs.vision.title %>">
+            </div>
+            <h3><%= tabs.vision.title %></h3>
+          </div>
+          <h4><%= tabs.vision.subtitle %></h4>
+          <p><%- tabs.vision.desc %></p>
+        </div>
+      </div>
+    </div>
+  </section>
 
-                                <h4>Pushing technology with superior design.</h4>
-                                <p>
-                                    We believe that the products and services we provide will enable our
-                                    partners to be a global leader in
-                                    laboratory and medical equipment, known for our innovation, quality,
-                                    and customer-focused approach.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </section>
+  <script>
+    const tabsData = <%- JSON.stringify(tabs) %>;
+    const tabs = document.querySelectorAll('.about-tab');
+    const text = document.getElementById('about-text');
+    const image = document.getElementById('about-img').querySelector('img');
 
-                <script>
-                    const tabs = document.querySelectorAll('.about-tab');
-                    const text = document.getElementById('about-text');
-                    const image = document.getElementById('about-img').querySelector('img');
+    const content = {
+      vision: {
+        img: "/assets/Imgs/Icons/products/img-vision.png",
+        icon: "/assets/Imgs/Icons/products/vision-active.png",
+        title: tabsData.vision.title,
+        subtitle: tabsData.vision.subtitle,
+        desc: tabsData.vision.desc
+      },
+      mission: {
+        img: "/assets/Imgs/Icons/products/img-mission.png",
+        icon: "/assets/Imgs/Icons/products/mission-active.png",
+        title: tabsData.mission.title,
+        subtitle: tabsData.mission.subtitle,
+        desc: tabsData.mission.desc
+      },
+      values: {
+        img: "/assets/Imgs/Icons/products/img-values.png",
+        icon: "/assets/Imgs/Icons/products/values-active.png",
+        title: tabsData.values.title,
+        subtitle: tabsData.values.subtitle,
+        desc: tabsData.values.desc
+      }
+    };
 
-                    const content = {
-                        vision: {
-                            img: "/assets/Imgs/Icons/products/img-vision.png",
-                            icon: "/assets/Imgs/Icons/products/vision-active.png",
-                            title: "Innovative Excellence",
-                            subtitle: "Pushing technology with superior design.",
-                            desc: `We believe that the products and services we provide will enable our partners to be a global leader in
-                    laboratory and medical equipment, known for our innovation, quality, and customer-focused approach.`
-                        },
-                        mission: {
-                            img: "/assets/Imgs/Icons/products/img-mission.png",
-                            icon: "/assets/Imgs/Icons/products/mission-active.png",
-                            title: "Global Leadership",
-                            subtitle: "Innovation, quality, and customer-driven success.",
-                            desc: `We aim to empower professionals in science and healthcare with advanced, reliable, and user-friendly
-                    equipment, driving progress and improving outcomes.`
-                        },
-                        values: {
-                            img: "/assets/Imgs/Icons/products/img-values.png",
-                            icon: "/assets/Imgs/Icons/products/values-active.png",
-                            title: "Integrity and Responsibility",
-                            subtitle: "Empowering change through ethical commitment.",
-                            desc: `<b> Innovation:</b> Continuously pushing the boundaries of technology to create cutting-edge solutions. <br>
-                     <b> Quality:</b> Upholding the highest standards in product design, manufacturing, and performance.`
-                        }
-                    };
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelector('.about-tab.active')?.classList.remove('active');
+        tab.classList.add('active');
 
-                    tabs.forEach(tab => {
-                        tab.addEventListener('click', () => {
-                            const currentActive = document.querySelector('.about-tab.active');
-                            if (currentActive) {
-                                currentActive.classList.remove('active');
-                                const iconDefault = currentActive.getAttribute('data-icon-default');
-                                currentActive.querySelector('img').src = iconDefault;
-                            }
+        const iconActive = tab.getAttribute('data-icon-active');
+        const key = tab.getAttribute('data-tab');
+        const c = content[key];
 
-                            tab.classList.add('active');
-                            const iconActive = tab.getAttribute('data-icon-active');
-                            tab.querySelector('img').src = iconActive;
+        tab.querySelector('img').src = iconActive;
+        image.src = c.img;
+        text.innerHTML = `
+          <div class="title-icon">
+            <div class="tab-icon-bg">
+              <img src="${c.icon}" class="tab-icon">
+            </div>
+            <h3>${c.title}</h3>
+          </div>
+          <h4>${c.subtitle}</h4>
+          <p>${c.desc}</p>
+        `;
+      });
+    });
+  </script>
 
-                            const key = tab.getAttribute('data-tab');
-                            const c = content[key];
-
-                            image.src = c.img;
-                            text.innerHTML = `
-                        <div class="title-icon">
-                      <div class="tab-icon-bg">
-                        <img src="${c.icon}" class="tab-icon">
-                      </div>
-                      <h3>${c.title}</h3>
-                      </div>
-                      <h4>${c.subtitle}</h4>
-                      <p>${c.desc}</p>
-                    `;
-                        });
-                    });
-                </script>
-
-                <!-- about us section -->
-
-                <section class="features-section">
-                    <h2 class="section-title">Features Points</h2>
-                    <div class="features-container">
-                        <div class="feature-box">
-                            <img src="/assets/Imgs/Icons/products/innovation.png" alt="Innovation Icon"
-                                class="feature-icon">
-                            <h3 class="feature-title">Innovation of Lab Equipment</h3>
-                            <p class="feature-text">
-                                We leverage advanced technology trends and our professional expertise to develop
-                                innovative
-                                laboratory solutions, fulfilling our responsibility as a leading premium provider in the
-                                global market.
-                            </p>
-                        </div>
-
-                        <div class="feature-box">
-                            <img src="/assets/Imgs/Icons/products/Quality.png" alt="Quality Icon" class="feature-icon">
-                            <h3 class="feature-title">Quality of the Products</h3>
-                            <p class="feature-text">
-                                Quality and reliability are our top priorities. All DragLab products are designed for
-                                durability and efficiency, backed by a strict quality control system to ensure the best
-                                customer experience.
-                            </p>
-                        </div>
-
-                        <div class="feature-box">
-                            <img src="/assets/Imgs/Icons/products/Certification.png" alt="Certification Icon"
-                                class="feature-icon">
-                            <h3 class="feature-title">Certification & Standards</h3>
-                            <p class="feature-text">
-                                We prioritize efficiency and customer convenience, offering high-quality products and
-                                early
-                                support for personalized consultations. Contact us via the form or email for a quick,
-                                custom
-                                quotation from our experts.
-                            </p>
-                        </div>
-                    </div>
-                    <div class="features-container2">
-                        <div class="feature-box">
-                            <img src="/assets/Imgs/Icons/products/response.png" alt="Fast and perfect response Icon"
-                                class="feature-icon">
-                            <h3 class="feature-title">Fast and perfect response</h3>
-                            <p class="feature-text">
-                                We prioritize efficiency and customer convenience, offering high-quality products and
-                                early
-                                support for personalized consultations. Contact us via the form or email for a quick,
-                                custom
-                                quotation from our experts.
-                            </p>
-                        </div>
-
-                        <div class="feature-box">
-                            <img src="/assets/Imgs/Icons/products/WarrantyAfterSales.png" alt="Warranty & After Sales"
-                                class="feature-icon">
-                            <h3 class="feature-title">Warranty & After Sales</h3>
-                            <p class="feature-text">
-                                DragLab offers a 24-month standard warranty and ensures 10 years of spare part
-                                availability.
-                                Our quality assurance team inspects every unit before shipment. Submit spare part
-                                requests
-                                via our online form for fast service.
-                            </p>
-                        </div>
-
-                        <div class="feature-box">
-                            <img src="/assets/Imgs/Icons/products/SustainableEnvironment.png"
-                                alt="Sustainable Environment Icon" class="feature-icon">
-                            <h3 class="feature-title">Sustainable Environment</h3>
-                            <p class="feature-text">
-                                DragLab appliances are energy-efficient, eco-friendly, and ISO 14001 certified. Using
-                                recyclable materials like stainless steel, we ensure compliance with international
-                                sustainability standards and a commitment to resource conservation.
-                            </p>
-                        </div>
-                        <div class="feature-box">
-                            <img src="/assets/Imgs/Icons/products/Safety.png" alt="Safety Icon" class="feature-icon">
-                            <h3 class="feature-title">Safety</h3>
-                            <p class="feature-text">
-                                DragLab products meet German and European safety standards, featuring electronic
-                                temperature
-                                monitoring and mechanical temperature limiters for maximum protection of users and
-                                equipment.
-                            </p>
-                        </div>
-                    </div>
-                </section>
-
+  <section class="features-section">
+    <h2 class="section-title"><%= featuresTitle %></h2>
+    <div class="features-container">
+      <% features.slice(0, 3).forEach(feature => { %>
+        <div class="feature-box">
+          <img src="/assets/Imgs/Icons/products/<%= feature.icon %>" alt="<%= feature.alt %>" class="feature-icon">
+          <h3 class="feature-title"><%= feature.title %></h3>
+          <p class="feature-text"><%= feature.text %></p>
+        </div>
+      <% }) %>
+    </div>
+    <div class="features-container2">
+      <% features.slice(3).forEach(feature => { %>
+        <div class="feature-box">
+          <img src="/assets/Imgs/Icons/products/<%= feature.icon %>" alt="<%= feature.alt %>" class="feature-icon">
+          <h3 class="feature-title"><%= feature.title %></h3>
+          <p class="feature-text"><%= feature.text %></p>
+        </div>
+      <% }) %>
+    </div>
+  </section>
                 <!-- Footer -->
 
                 <%- include('../../includes/customer/footer.ejs') %>

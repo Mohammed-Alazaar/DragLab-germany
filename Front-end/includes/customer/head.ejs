@@ -1,21 +1,35 @@
 <!DOCTYPE html>
-<html lang="en">
+<% let lang; lang = typeof lang !== 'undefined' ? lang.toUpperCase() : 'EN'; %>
+<html lang="<%= lang.toLowerCase() %>">
 
 <head>
-  
-    <link rel="stylesheet" href="/css/reset-code.css">
-    <link rel="stylesheet" href="/css/nav-bar.css">
-    <link rel="stylesheet" href="/css/footer.css">
-    <link rel="icon" type="image/png" href="/assets/Imgs/logo/favicon.png">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="stylesheet" href="/css/reset-code.css">
+  <link rel="stylesheet" href="/css/nav-bar.css">
+  <link rel="stylesheet" href="/css/footer.css">
+  <link rel="icon" type="image/png" href="/assets/Imgs/logo/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="index, follow">
+  <meta name="theme-color" content="#005bac">
+  <meta name="author" content="DragLab">
+  <% const metaKeywords={
+    EN: "DragLab, laboratory equipment, medical equipment, incubators, ovens, distillers, water baths, drying ovens, quality policy, privacy policy, code of ethics, terms and conditions, contact us, technical service, warranty registration, download center, multilingual support, global distribution, ISO certified, CE compliant, quality assurance, customer support, research equipment, healthcare devices, lab technology, lab instruments, medical instruments, scientific equipment, biotech equipment, lab solutions, medical supplies, laboratory solutions provider"
+    ,
+    ES: "DragLab, equipos de laboratorio, equipos médicos, incubadoras, hornos, destiladores, baños maría, hornos de secado, política de calidad, política de privacidad, código de ética, términos y condiciones, contáctenos, servicio técnico, registro de garantía, centro de descargas, soporte multilingüe, distribución global, certificado ISO, cumplimiento CE, aseguramiento de calidad, atención al cliente, equipos de investigación, dispositivos médicos, tecnología de laboratorio, instrumentos médicos, instrumentos científicos, soluciones de laboratorio, proveedor de soluciones médicas"
+    ,
+    DE: "DragLab, Laborausrüstung, medizinische Geräte, Inkubatoren, Öfen, Destillierer, Wasserbäder, Trockenschränke, Qualitätspolitik, Datenschutzrichtlinie, Ethikkodex, Allgemeine Geschäftsbedingungen, Kontakt, technischer Support, Garantieanmeldung, Download-Center, mehrsprachiger Support, weltweiter Vertrieb, ISO-zertifiziert, CE-konform, Qualitätssicherung, Kundenservice, Forschungsausrüstung, medizinische Lösungen, Labortechnologie, medizinische Instrumente, wissenschaftliche Geräte, Laborbedarf, Anbieter von Laborausrüstung"
+    }; %>
+
+    <meta name="keywords" content="<%= metaKeywords[lang] %>">
+
 
     <!-- Cookie Consent by TermsFeed https://www.TermsFeed.com -->
     <script type="text/javascript" src="https://www.termsfeed.com/public/cookie-consent/4.2.0/cookie-consent.js"
-        charset="UTF-8"></script>
+      charset="UTF-8"></script>
     <script type="text/javascript" charset="UTF-8">
-        document.addEventListener('DOMContentLoaded', function () {
-            cookieconsent.run({ "notice_banner_type": "interstitial", "consent_type": "implied", "palette": "light", "language": "en", "page_load_consent_levels": ["strictly-necessary", "functionality", "tracking", "targeting"], "notice_banner_reject_button_hide": false, "preferences_center_close_button_hide": false, "page_refresh_confirmation_buttons": false, "website_name": "dragLab" });
-        });
+      document.addEventListener('DOMContentLoaded', function () {
+        cookieconsent.run({ "notice_banner_type": "interstitial", "consent_type": "implied", "palette": "light", "language": "<%= lang.toLowerCase() %>", "page_load_consent_levels": ["strictly-necessary", "functionality", "tracking", "targeting"], "notice_banner_reject_button_hide": false, "preferences_center_close_button_hide": false, "page_refresh_confirmation_buttons": false, "website_name": "dragLab" });
+      });
     </script>
 
     <!--  Tawk.to -->
@@ -44,7 +58,7 @@
 
     <!-- Google Analytics & Google Ads  -->
     <script type="text/plain" data-cookie-consent="tracking" async
-        src="https://www.googletagmanager.com/gtag/js?id=G-6HXYVZ8CMN"></script>
+      src="https://www.googletagmanager.com/gtag/js?id=G-6HXYVZ8CMN"></script>
     <script type="text/plain" data-cookie-consent="tracking">
         window.dataLayer = window.dataLayer || [];
         function gtag() { dataLayer.push(arguments); }
@@ -59,12 +73,72 @@
     <!-- end of Google Analytics & Google Ads -->
 
     <noscript>Free cookie consent management tool by <a href="https://www.termsfeed.com/">TermsFeed
-            Generator</a></noscript>
+        Generator</a></noscript>
     <!-- End Cookie Consent by TermsFeed https://www.TermsFeed.com -->
 
+    <!-- speed up 3rd-party requests -->
+
+    <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
+    <link rel="preconnect" href="https://www.clarity.ms" crossorigin>
+    <link rel="preconnect" href="https://embed.tawk.to" crossorigin>
+
+
+    <!-- speed up 3rd-party requests -->
+
+    <!-- FAQ Schema (JSON-LD Structured Data) For the SEO -->
+     <% const faqSchema = {
+  EN: {
+    url: "https://www.draglab.com/EN",
+    questions: [
+      { q: "What is DragLab?", a: "DragLab is a leading manufacturer of laboratory and medical equipment known for innovation, quality, and global support." },
+      { q: "What makes DragLab products unique?", a: "DragLab products are designed for durability, efficiency, and sustainability. They meet European standards and are backed by long-term support and warranties." },
+      { q: "Where is DragLab located?", a: "DragLab is headquartered in Germany and serves clients globally with multilingual support and service centers." },
+      { q: "What types of equipment does DragLab offer?", a: "DragLab offers water baths, drying ovens, incubators, water stills, distillers, and other laboratory and medical equipment." },
+      { q: "Does DragLab provide international shipping and support?", a: "Yes, DragLab provides worldwide shipping and multilingual technical support for all products." },
+      { q: "How does DragLab ensure product quality?", a: "DragLab follows ISO-certified quality control processes and tests each device to meet international standards before shipment." }
+    ]
+  },
+  ES: {
+    url: "https://www.draglab.com/ES",
+    questions: [
+      { q: "¿Qué es DragLab?", a: "DragLab es un fabricante líder de equipos de laboratorio y médicos, reconocido por su innovación, calidad y soporte global." },
+      { q: "¿Qué hace únicos a los productos de DragLab?", a: "Los productos de DragLab están diseñados para ser duraderos, eficientes y sostenibles. Cumplen con los estándares europeos y están respaldados por soporte y garantías a largo plazo." },
+      { q: "¿Dónde se encuentra DragLab?", a: "DragLab tiene su sede en Alemania y presta servicios a clientes de todo el mundo con soporte multilingüe y centros de servicio." },
+      { q: "¿Qué tipos de equipos ofrece DragLab?", a: "DragLab ofrece baños maría, hornos de secado, incubadoras, destiladores de agua y otros equipos de laboratorio y médicos." },
+      { q: "¿DragLab ofrece envío y soporte internacional?", a: "Sí, DragLab ofrece envío a nivel mundial y soporte técnico multilingüe para todos sus productos." },
+      { q: "¿Cómo garantiza DragLab la calidad de sus productos?", a: "DragLab sigue procesos de control de calidad certificados por ISO y prueba cada dispositivo para cumplir con los estándares internacionales antes del envío." }
+    ]
+  },
+  DE: {
+    url: "https://www.draglab.com/DE",
+    questions: [
+      { q: "Was ist DragLab?", a: "DragLab ist ein führender Hersteller von Labor- und Medizingeräten, bekannt für Innovation, Qualität und globalen Support." },
+      { q: "Was macht die Produkte von DragLab einzigartig?", a: "Die Produkte von DragLab sind langlebig, effizient und nachhaltig. Sie erfüllen europäische Standards und werden durch langfristigen Support und Garantien abgesichert." },
+      { q: "Wo befindet sich DragLab?", a: "Der Hauptsitz von DragLab befindet sich in Deutschland. Das Unternehmen betreut Kunden weltweit mit mehrsprachigem Support und Servicezentren." },
+      { q: "Welche Geräte bietet DragLab an?", a: "DragLab bietet Wasserbäder, Trockenschränke, Inkubatoren, Wasser-Destilliergeräte und weitere Labor- und Medizingeräte an." },
+      { q: "Bietet DragLab internationalen Versand und Support an?", a: "Ja, DragLab bietet weltweiten Versand und mehrsprachigen technischen Support für alle Produkte." },
+      { q: "Wie stellt DragLab die Produktqualität sicher?", a: "DragLab folgt ISO-zertifizierten Qualitätskontrollprozessen und testet jedes Gerät vor dem Versand nach internationalen Standards." }
+    ]
+  }
+}; %>
+
+<script type="application/ld+json">
+<%= JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "@id": faqSchema[lang].url + "#faq",
+  "url": faqSchema[lang].url,
+  "mainEntity": faqSchema[lang].questions.map(item => ({
+    "@type": "Question",
+    "name": item.q,
+    "acceptedAnswer": {
+      "@type": "Answer",
+      "text": item.a
+    }
+  }))
+}, null, 2) %>
+</script>
 
 
 
-
-    <!-- Below is the link that users can use to open Preferences Center to change their preferences. Do not modify the ID parameter. Place it where appropriate, style it as needed. -->
-
+    <!-- FAQ Schema (JSON-LD Structured Data) For the SEO -->

@@ -69,7 +69,7 @@
                                           </div>
                                           
 
-                                        <% ['EN', 'ES' , 'GR' ].forEach(lang=> { %>
+                                        <% ['EN', 'ES' , 'DE' ].forEach(lang=> { %>
                                             <div class="language-section">
                                                 <h3>Language: <%= lang %>
                                                 </h3>
@@ -285,7 +285,7 @@
                <script>
   const modelData = <%- JSON.stringify(model?.Language || {}) %>;
 
-  ['EN', 'ES', 'GR'].forEach(lang => {
+  ['EN', 'ES', 'DE'].forEach(lang => {
     const langData = modelData[lang]?.[0];
     if (!langData) return;
 

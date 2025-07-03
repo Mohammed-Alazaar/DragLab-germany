@@ -12,18 +12,30 @@
             <ul class="menu">
                 <li class="dropdown">
                     <p>
-                        Company <img src="/assets/Imgs/Icons/Down-arrow-blue.png" alt="">
+                    <p>
+                        <%= lang==='DE' ? 'Unternehmen' : lang==='ES' ? 'Empresa' : 'Company' %>
+                            <img src="/assets/Imgs/Icons/Down-arrow-blue.png" alt="Down arrow">
+                    </p>
+
                     </p>
                     <ul class="dropdown-menu">
-                        <li><a href="/aboutus">&#8226; About Us</a></li>
-                        <li><a href="/TermCondition">&#8226; Terms & Condition</a></li>
-                        <li><a href="/PrivacyPolicy">&#8226; Privacy Policy</a></li>
+                        <li><a href="/aboutus">&#8226; <%= lang==='DE' ? 'Über Uns' : lang==='ES' ? 'Sobre Nosotros'
+                                    : 'About Us' %></a></li>
+                        <li><a href="/TermCondition">&#8226; <%= lang==='DE' ? 'AGB' : lang==='ES'
+                                    ? 'Términos y Condiciones' : 'Terms & Condition' %></a></li>
+                        <li><a href="/PrivacyPolicy">&#8226; <%= lang==='DE' ? 'Datenschutzerklärung' : lang==='ES'
+                                    ? 'Política de Privacidad' : 'Privacy Policy' %></a></li>
+
                     </ul>
                 </li>
 
                 <li class="dropdown">
                     <p>
-                        Products <img src="/assets/Imgs/Icons/Down-arrow-blue.png" alt="">
+                    <p>
+                        <%= lang==='DE' ? 'Produkte' : lang==='ES' ? 'Productos' : 'Products' %>
+                            <img src="/assets/Imgs/Icons/Down-arrow-blue.png" alt="Down arrow">
+                    </p>
+
                     </p>
                     <ul class="dropdown-menu dropdown-menu-products">
                         <div class="ProductsDivContainer">
@@ -96,26 +108,51 @@
 
                 <li class="dropdown">
                     <p>
-                        Support <img src="/assets/Imgs/Icons/Down-arrow-blue.png" alt="">
+                    <p>
+                        <%= lang==='DE' ? 'Support' : lang==='ES' ? 'Soporte' : 'Support' %>
+                            <img src="/assets/Imgs/Icons/Down-arrow-blue.png" alt="Down arrow">
+                    </p>
+
                     </p>
                     <ul class="dropdown-menu">
-                        <li><a href="/support">&#8226; Support</a></li>
-                        <li><a href="/technical-service"> &#8226; Technical Services</a></li>
-                        <li><a href="/WarrantyRegistration">&#8226; Warranty Registration</a></li>
-                        <li><a href="/Downloads">&#8226; Downloads</a></li>
+                        <li><a href="/support">&#8226; <%= lang==='DE' ? 'Support' : lang==='ES' ? 'Soporte' : 'Support'
+                                    %></a></li>
+                        <li><a href="/technical-service">&#8226; <%= lang==='DE' ? 'Technischer Service' : lang==='ES'
+                                    ? 'Servicio Técnico' : 'Technical Services' %></a></li>
+                        <li><a href="/WarrantyRegistration">&#8226; <%= lang==='DE' ? 'Garantieregistrierung' :
+                                    lang==='ES' ? 'Registro de Garantía' : 'Warranty Registration' %></a></li>
+                        <li><a href="/Downloads">&#8226; <%= lang==='DE' ? 'Downloads' : lang==='ES' ? 'Descargas'
+                                    : 'Downloads' %></a></li>
                     </ul>
-                </li>
 
-                <li><a href="/Articles">Articles</a></li>
-                <li><a href="/Contactus">Contact Us</a></li>
+                </li>
+                <li><a href="/Articles">
+                        <%= lang==='DE' ? 'Artikel' : lang==='ES' ? 'Artículos' : 'Articles' %>
+                    </a></li>
+                <li><a href="/Contactus">
+                        <%= lang==='DE' ? 'Kontakt' : lang==='ES' ? 'Contáctanos' : 'Contact Us' %>
+                    </a></li>
+
             </ul>
         </div>
     </div>
     <select id="languageSwitcher" onchange="changeLanguage(this.value)">
-            <option value="EN">English</option>
-            <option value="ES">Español</option>
-            <option value="GR">Germany</option>
-        </select>
+        <option value="EN">English</option>
+        <option value="ES">Español</option>
+        <option value="DE">Germany</option>
+    </select>
+    <li class="dropdown language-dropdown-mobile">
+        <p>
+            <%= lang==='DE' ? 'Sprache' : lang==='ES' ? 'Idioma' : 'Language' %>
+                <img src="/assets/Imgs/Icons/Down-arrow-blue.png" alt="Down arrow">
+        </p>
+        <ul class="dropdown-menu">
+            <li><a href="javascript:void(0)" onclick="changeLanguage('EN')">&#8226; English</a></li>
+            <li><a href="javascript:void(0)" onclick="changeLanguage('ES')">&#8226; Español</a></li>
+            <li><a href="javascript:void(0)" onclick="changeLanguage('DE')">&#8226; Deutsch</a></li>
+        </ul>
+    </li>
+
 
 
     <div class="navLeft">
@@ -148,7 +185,7 @@
             <!-- <select id="languageSwitcher" onchange="changeLanguage(this.value)">
                 <option value="EN">EN</option>
                 <option value="ES">ES</option>
-                <option value="GR">GR</option>
+                <option value="DE">DE</option>
             </select> -->
             <span class="close-menu">&#10005;</span>
         </div>
@@ -159,12 +196,29 @@
         </div>
 
         <ul class="main-links">
-            <li onclick="goToPage('companyPage')">Company <img src="/assets/Imgs/Icons/Down-arrow-blue.png" alt=""></li>
-            <li onclick="goToPage('productPage')">Products <img src="/assets/Imgs/Icons/Down-arrow-blue.png" alt="">
+            <li onclick="goToPage('companyPage')">
+                <%= lang==='DE' ? 'Unternehmen' : lang==='ES' ? 'Empresa' : 'Company' %>
+                    <img src="/assets/Imgs/Icons/Down-arrow-blue.png" alt="Down arrow">
             </li>
-            <li onclick="goToPage('supportPage')">Support <img src="/assets/Imgs/Icons/Down-arrow-blue.png" alt=""></li>
-            <li><a href="/Articles">Articles</a></li>
-            <li><a href="/Contactus">Contact Us</a></li>
+            <li onclick="goToPage('productPage')">
+                <%= lang==='DE' ? 'Produkte' : lang==='ES' ? 'Productos' : 'Products' %>
+                    <img src="/assets/Imgs/Icons/Down-arrow-blue.png" alt="">
+            </li>
+            <li onclick="goToPage('supportPage')">
+                <%= lang==='DE' ? 'Support' : lang==='ES' ? 'Soporte' : 'Support' %>
+                    <img src="/assets/Imgs/Icons/Down-arrow-blue.png" alt="">
+            </li>
+            <li><a href="/Articles">
+                    <%= lang==='DE' ? 'Artikel' : lang==='ES' ? 'Artículos' : 'Articles' %>
+                </a></li>
+            <li><a href="/Contactus">
+                    <%= lang==='DE' ? 'Kontakt' : lang==='ES' ? 'Contáctanos' : 'Contact Us' %>
+                </a></li>
+            <li onclick="goToPage('languagePage')">
+                Language
+                <img src="/assets/Imgs/Icons/Down-arrow-blue.png" alt="Down arrow" />
+            </li>
+
         </ul>
     </div>
 
@@ -173,13 +227,22 @@
         <div class="top-bar">
             <span class="back" onclick="goBack('companyPage')"><img src="/assets/Imgs/Icons/backarrow.png"
                     alt=""></span>
-            <span class="page-title">Company</span>
+            <span class="page-title">
+                <%= lang==='DE' ? 'Unternehmen' : lang==='ES' ? 'Empresa' : 'Company' %>
+            </span>
             <span class="close-menu">&#10005;</span>
         </div>
         <ul>
-            <li><a href="/aboutus">About Us</a></li>
-            <li><a href="/TermCondition">Terms & Condition</a></li>
-            <li><a href="/PrivacyPolicy">Privacy Policy</a></li>
+            <li><a href="/aboutus">
+                    <%= lang==='DE' ? 'Über Uns' : lang==='ES' ? 'Sobre Nosotros' : 'About Us' %>
+                </a></li>
+            <li><a href="/TermCondition">
+                    <%= lang==='DE' ? 'AGB' : lang==='ES' ? 'Términos y Condiciones' : 'Terms & Condition' %>
+                </a></li>
+            <li><a href="/PrivacyPolicy">
+                    <%= lang==='DE' ? 'Datenschutzerklärung' : lang==='ES' ? 'Política de Privacidad' : 'Privacy Policy'
+                        %>
+                </a></li>
         </ul>
     </div>
 
@@ -231,7 +294,9 @@
             <div class="model-section">
                 <div class="imgModelContainer">
                     <img src="/assets/Imgs/Icons/models.png" alt="models" width="30">
-                    <p>Models:</p>
+                    <p>
+                        <%= lang==='DE' ? 'Modelle:' : lang==='ES' ? 'Modelos:' : 'Models:' %>
+                    </p>
                 </div>
 
                 <ul>
@@ -260,12 +325,41 @@
                     <span class="close-menu">&#10005;</span>
                 </div>
                 <ul>
-                    <li><a href="/support">Support</a></li>
-                    <li><a href="/technical-service">Technical Services</a></li>
-                    <li><a href="#">Warranty Registration</a></li>
-                    <li><a href="/Downloads">Downloads</a></li>
+                    <li><a href="/support">
+                            <%= lang==='DE' ? 'Support' : lang==='ES' ? 'Soporte' : 'Support' %>
+                        </a></li>
+                    <li><a href="/technical-service">
+                            <%= lang==='DE' ? 'Technischer Service' : lang==='ES' ? 'Servicio Técnico'
+                                : 'Technical Services' %>
+                        </a></li>
+                    <li><a href="/WarrantyRegistration">
+                            <%= lang==='DE' ? 'Garantieregistrierung' : lang==='ES' ? 'Registro de Garantía'
+                                : 'Warranty Registration' %>
+                        </a></li>
+                    <li><a href="/Downloads">
+                            <%= lang==='DE' ? 'Downloads' : lang==='ES' ? 'Descargas' : 'Downloads' %>
+                        </a></li>
+
                 </ul>
             </div>
+            <div class="menu-page" id="languagePage">
+                <div class="top-bar">
+                    <span class="back" onclick="goBack('languagePage')">
+                        <img src="/assets/Imgs/Icons/backarrow.png" alt="Back" />
+                    </span>
+                    <span class="page-title">
+                        <%= lang==='DE' ? 'Sprache' : lang==='ES' ? 'Idioma' : 'Language' %>
+                    </span>
+                    <span class="close-menu">&#10005;</span>
+                </div>
+
+                <ul>
+                    <li><a href="javascript:void(0)" onclick="changeLanguage('EN')">English</a></li>
+                    <li><a href="javascript:void(0)" onclick="changeLanguage('ES')">Español</a></li>
+                    <li><a href="javascript:void(0)" onclick="changeLanguage('DE')">Deutsch</a></li>
+                </ul>
+            </div>
+
 </div>
 
 
@@ -297,7 +391,7 @@
 <script>
     function getCurrentLang() {
         const path = window.location.pathname;
-        const langMatch = path.match(/\/(EN|ES|GR)/);
+        const langMatch = path.match(/\/(EN|ES|DE)/);
         return langMatch ? langMatch[1] : 'EN';
     }
 
@@ -429,7 +523,7 @@
 <script>
     function changeLanguage(lang) {
         const currentPath = window.location.pathname;
-        const updatedPath = currentPath.replace(/\/(EN|ES|GR)/, '/' + lang);
+        const updatedPath = currentPath.replace(/\/(EN|ES|DE)/, '/' + lang);
         if (updatedPath === currentPath) {
             window.location.href = `/${lang}`;
         } else {
@@ -463,7 +557,8 @@
             }
 
             timeout = setTimeout(() => {
-                fetch(`/search?q=${encodeURIComponent(query)}`)
+                const lang = getCurrentLang();
+                fetch(`/search?q=${encodeURIComponent(query)}&lang=${lang}`)
                     .then(res => res.json())
                     .then(data => {
                         resultsContainer.innerHTML = '';
@@ -502,60 +597,61 @@
     });
 </script>
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-    const mobileSearchInput = document.getElementById('mobileSearch');
-    const mobileResultsContainer = mobileSearchInput.nextElementSibling;
+    document.addEventListener('DOMContentLoaded', () => {
+        const mobileSearchInput = document.getElementById('mobileSearch');
+        const mobileResultsContainer = mobileSearchInput.nextElementSibling;
 
-    let timeout;
+        let timeout;
 
-    mobileSearchInput.addEventListener('input', function () {
-        const query = this.value.trim();
-        clearTimeout(timeout);
+        mobileSearchInput.addEventListener('input', function () {
+            const query = this.value.trim();
+            clearTimeout(timeout);
 
-        if (query.length < 3) {
-            mobileResultsContainer.innerHTML = '';
-            mobileResultsContainer.style.display = 'none';
-            return;
-        }
+            if (query.length < 3) {
+                mobileResultsContainer.innerHTML = '';
+                mobileResultsContainer.style.display = 'none';
+                return;
+            }
 
-        timeout = setTimeout(() => {
-            fetch(`/search?q=${encodeURIComponent(query)}`)
-                .then(res => res.json())
-                .then(data => {
-                    mobileResultsContainer.innerHTML = '';
+            timeout = setTimeout(() => {
+                const lang = getCurrentLang();
+                fetch(`/search?q=${encodeURIComponent(query)}&lang=${lang}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        mobileResultsContainer.innerHTML = '';
 
-                    if (data.length === 0) {
-                        mobileResultsContainer.innerHTML = '<div class="no-results">No matches found.</div>';
-                        mobileResultsContainer.style.display = 'block';
-                        return;
-                    }
+                        if (data.length === 0) {
+                            mobileResultsContainer.innerHTML = '<div class="no-results">No matches found.</div>';
+                            mobileResultsContainer.style.display = 'block';
+                            return;
+                        }
 
-                    data.forEach(item => {
-                        const div = document.createElement('div');
-                        div.classList.add('search-item');
-                        div.textContent = `${item.name} (${item.type})`;
-                        div.addEventListener('click', () => {
-                            window.location.href = item.url;
+                        data.forEach(item => {
+                            const div = document.createElement('div');
+                            div.classList.add('search-item');
+                            div.textContent = `${item.name} (${item.type})`;
+                            div.addEventListener('click', () => {
+                                window.location.href = item.url;
+                            });
+
+                            mobileResultsContainer.appendChild(div); // ✅ move here
                         });
 
-                        mobileResultsContainer.appendChild(div); // ✅ move here
+                        mobileResultsContainer.style.display = 'block';
+                    })
+                    .catch(err => {
+                        console.error('Error fetching mobile search results:', err);
                     });
+            }, 300);
+        });
 
-                    mobileResultsContainer.style.display = 'block';
-                })
-                .catch(err => {
-                    console.error('Error fetching mobile search results:', err);
-                });
-        }, 300);
+        // ✅ Moved inside DOMContentLoaded scope
+        document.addEventListener('click', function (e) {
+            if (!mobileResultsContainer.contains(e.target) && e.target !== mobileSearchInput) {
+                mobileResultsContainer.style.display = 'none';
+            }
+        });
     });
-
-    // ✅ Moved inside DOMContentLoaded scope
-    document.addEventListener('click', function (e) {
-        if (!mobileResultsContainer.contains(e.target) && e.target !== mobileSearchInput) {
-            mobileResultsContainer.style.display = 'none';
-        }
-    });
-});
 
     document.addEventListener('click', function (e) {
         if (!mobileResultsContainer.contains(e.target) && e.target !== mobileSearchInput) {

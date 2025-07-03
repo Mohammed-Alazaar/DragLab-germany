@@ -2,12 +2,12 @@
 
     <link rel="stylesheet" href="/css/customer/Home-page.css">
 
-    <meta property="og:locale" content="<%= lang === 'EN' ? 'en_US' : lang === 'ES' ? 'es_ES' : 'el_GR' %>">
+    <meta property="og:locale" content="<%= lang === 'EN' ? 'en_US' : lang === 'ES' ? 'es_ES' : 'el_DE' %>">
     <link rel="alternate" hreflang="en" href="https://www.draglab.com/EN">
     <link rel="alternate" hreflang="es" href="https://www.draglab.com/ES">
-    <link rel="alternate" hreflang="el" href="https://www.draglab.com/GR">
+    <link rel="alternate" hreflang="el" href="https://www.draglab.com/DE">
 
-    
+
     <title>DragLab – Scientific Equipment for Modern Labs</title>
     <meta name="description"
         content="Explore cutting-edge lab instruments, scientific articles, and industry solutions at DragLab.">
@@ -124,7 +124,9 @@
                 <!-- products slideshow start -->
 
                 <div class="slideshow-container">
-                    <h2>Featured Products</h2>
+                    <h2>
+                        <%= t.featured %>
+                    </h2>
                     <div class="slides-wrapper" id="slidesWrapper">
                         <% products .filter(product=> !product.isDraft)
                             .forEach(product => {
@@ -217,7 +219,10 @@
                 <!-- industry section -->
 
                 <section class="industries-section">
-                    <h2>Industries</h2>
+                    <h2>
+                        <%= t.industries %>
+                    </h2>
+
                     <div class="industries-container">
 
 
@@ -229,7 +234,8 @@
                                     <img loading="lazy" src="/assets/Imgs/Icons/products/Chemical-industry.png"
                                         alt="Chemical industry Icon" class="icon" />
                                 </div>
-                                <h3>Chemical industry</h3>
+                                <h3><%= t.industriesList.chemical %></h3>
+
                             </div>
                         </div>
                         <div class="industry-card">
@@ -240,7 +246,7 @@
                                     <img loading="lazy" src="/assets/Imgs/Icons/products/Food-Beverage-Industry.png"
                                         alt="Food and Beverage Industry Icon" class="icon" />
                                 </div>
-                                <h3>Food and Beverage Industry</h3>
+                                <h3><%= t.industriesList.food %></h3>
                             </div>
                         </div>
                         <div class="industry-card">
@@ -252,7 +258,7 @@
                                         src="/assets/Imgs/Icons/products/Biotechnology-Life-Sciences.png"
                                         alt="Biotechnology and Life Sciences Icon" class="icon" />
                                 </div>
-                                <h3>Biotechnology and Life Sciences</h3>
+                                <h3><%= t.industriesList.biotech %></h3>
                             </div>
                         </div>
                         <div class="industry-card">
@@ -263,7 +269,7 @@
                                     <img loading="lazy" src="/assets/Imgs/Icons/products/Pharmaceutical-industry.png"
                                         alt="Pharmaceutical industry" class="icon" />
                                 </div>
-                                <h3>Pharmaceutical industry</h3>
+                                <h3><%= t.industriesList.pharma %></h3>
                             </div>
                         </div>
                     </div>
@@ -276,7 +282,9 @@
                 <!-- article slideshow -->
 
                 <div class="article-slideshow-container" id="articleSlideshow">
-                    <h2>Articles</h2>
+                    <h2>
+                        <%= t.articles %>
+                    </h2>
                     <div class="article-slides-wrapper" id="articleSlidesWrapper">
                         <% articles.forEach(article=> { %>
                             <div class="article-slide">
@@ -363,7 +371,9 @@
                 <!-- about us  -->
 
                 <section class="about-section">
-                    <h2 style="text-align:center; font-size: 2rem; margin-bottom: 30px;">About Us</h2>
+                    <h2 style="text-align:center; font-size: 2rem; margin-bottom: 30px;">
+                        <%= t.about %>
+                    </h2>
                     <div class="about-container">
                         <div class="about-image" id="about-img">
                             <img loading="lazy" src="/assets/Imgs/Icons/products/img-vision.png" alt="About Image">
@@ -374,37 +384,36 @@
                                     data-icon-default="/assets/Imgs/Icons/products/vision.png"
                                     data-icon-active="/assets/Imgs/Icons/products/vision-active.png">
                                     <img loading="lazy" src="/assets/Imgs/Icons/products/vision-active.png"
-                                        class="tab-icon"> Our
-                                    Vision
+                                        class="tab-icon" alt="<%= t.vision %>">
+                                    <%= t.vision %>
                                 </div>
                                 <div class="about-tab" data-tab="mission"
                                     data-icon-default="/assets/Imgs/Icons/products/mission.png"
                                     data-icon-active="/assets/Imgs/Icons/products/mission-active.png">
-                                    <img loading="lazy" src="/assets/Imgs/Icons/products/mission.png" class="tab-icon">
-                                    Our Mission
+                                    <img loading="lazy" src="/assets/Imgs/Icons/products/mission.png" class="tab-icon"
+                                        alt=" <%= t.mission %>">
+                                    <%= t.mission %>
                                 </div>
                                 <div class="about-tab" data-tab="values"
                                     data-icon-default="/assets/Imgs/Icons/products/values.png"
                                     data-icon-active="/assets/Imgs/Icons/products/values-active.png">
-                                    <img loading="lazy" src="/assets/Imgs/Icons/products/values.png" class="tab-icon">
-                                    Our Values
+                                    <img loading="lazy" src="/assets/Imgs/Icons/products/values.png" class="tab-icon"
+                                        alt="<%= t.values %>">
+                                    <%= t.values %>
                                 </div>
                             </div>
                             <div class="about-text" id="about-text">
                                 <div class="title-icon">
                                     <div class="tab-icon-bg">
                                         <img loading="lazy" src="/assets/Imgs/Icons/products/vision-active.png"
-                                            class="tab-icon">
+                                            class="tab-icon" alt="<%= t.vision %>">
                                     </div>
-                                    <h3>Innovative Excellence</h3>
+                                    <h3><%= t.tab1Title %></h3>
                                 </div>
 
-                                <h4>Pushing technology with superior design.</h4>
+                                <h4><%= t.tab1Subtitle %></h4>
                                 <p>
-                                    We believe that the products and services we provide will enable our
-                                    partners to be a global leader in
-                                    laboratory and medical equipment, known for our innovation, quality,
-                                    and customer-focused approach.
+                                    <%- t.tab1Desc %>
                                 </p>
                             </div>
                         </div>
@@ -420,28 +429,26 @@
                         vision: {
                             img: "/assets/Imgs/Icons/products/img-vision.png",
                             icon: "/assets/Imgs/Icons/products/vision-active.png",
-                            title: "Innovative Excellence",
-                            subtitle: "Pushing technology with superior design.",
-                            desc: `We believe that the products and services we provide will enable our partners to be a global leader in
-                                        laboratory and medical equipment, known for our innovation, quality, and customer-focused approach.`
+                            title: "<%= t.tab1Title %>",
+                            subtitle: "<%= t.tab1Subtitle %>",
+                            desc: `<%- t.tab1Desc %>`
                         },
                         mission: {
                             img: "/assets/Imgs/Icons/products/img-mission.png",
                             icon: "/assets/Imgs/Icons/products/mission-active.png",
-                            title: "Global Leadership",
-                            subtitle: "Innovation, quality, and customer-driven success.",
-                            desc: `We aim to empower professionals in science and healthcare with advanced, reliable, and user-friendly
-                                        equipment, driving progress and improving outcomes.`
+                            title: "<%= t.tab2Title %>",
+                            subtitle: "<%= t.tab2Subtitle %>",
+                            desc: `<%- t.tab2Desc %>`
                         },
                         values: {
                             img: "/assets/Imgs/Icons/products/img-values.png",
                             icon: "/assets/Imgs/Icons/products/values-active.png",
-                            title: "Integrity and Responsibility",
-                            subtitle: "Empowering change through ethical commitment.",
-                            desc: `<b> Innovation:</b> Continuously pushing the boundaries of technology to create cutting-edge solutions. <br>
-                                         <b> Quality:</b> Upholding the highest standards in product design, manufacturing, and performance.`
+                            title: "<%= t.tab3Title %>",
+                            subtitle: "<%= t.tab3Subtitle %>",
+                            desc: `<%- t.tab3Desc %>`
                         }
                     };
+
 
                     tabs.forEach(tab => {
                         tab.addEventListener('click', () => {

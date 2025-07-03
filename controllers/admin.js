@@ -17,7 +17,7 @@ const bodyParser = require('body-parser');
 const { validationResult } = require('express-validator');
 const fs = require('fs');
 
-const languages = ['EN', 'ES', 'GR'];
+const languages = ['EN', 'ES', 'DE'];
 
 
 
@@ -54,7 +54,7 @@ exports.getAddProduct = (req, res, next) => {
             { FeatureName: '', FeatureDesc: '' }
           ]
         }],
-        GR: [{
+        DE: [{
           ProductName: '',
           ProductNameDesc: '',
           ProductDesc: '',
@@ -71,7 +71,7 @@ exports.getAddProduct = (req, res, next) => {
     validationErrors: [],
     errorMessage: null,
     isAuthenticated: req.session.isLoggedIn,
-    languages: ['EN', 'ES', 'GR'],
+    languages: ['EN', 'ES', 'DE'],
     isDraft: false // because it's new
   });
 };
@@ -93,7 +93,7 @@ exports.postAddProduct = async (req, res, next) => {
     console.log('🖼️ Product Thumbnail Path:', productThumbnail);
     console.log('🖼️ Product Sketch Path:', productSketch);
 
-    const languages = ['EN', 'ES', 'GR'];
+    const languages = ['EN', 'ES', 'DE'];
     const languageData = {};
     const validationErrors = [];
     const isDraft = req.body.saveType === 'draft';
@@ -292,7 +292,7 @@ exports.getEditProduct = (req, res, next) => {
 
 exports.postEditProduct = (req, res, next) => {
   const productId = req.body.productId;
-  const languages = ['EN', 'ES', 'GR'];
+  const languages = ['EN', 'ES', 'DE'];
   const languageData = {};
   const validationErrors = [];
 
@@ -606,7 +606,7 @@ const uploadToCloudinary = async (file, folder) => {
 
 exports.postAddModel = async (req, res) => {
   const productId = req.params.productId;
-  const languages = ['EN', 'ES', 'GR'];
+  const languages = ['EN', 'ES', 'DE'];
   const languageData = {};
   const isDraft = req.body.action === 'draft';
 
@@ -760,7 +760,7 @@ exports.postAddModel = async (req, res) => {
 // Controller for editing a model
 exports.postEditModel = async (req, res) => {
   const { productId, modelId } = req.params;
-  const languages = ['EN', 'ES', 'GR'];
+  const languages = ['EN', 'ES', 'DE'];
 
   try {
     const product = await Product.findById(productId);

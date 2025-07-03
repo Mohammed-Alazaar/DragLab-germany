@@ -1,37 +1,52 @@
 <%- include('../../includes/customer/head.ejs') %>
-    <link rel="stylesheet" href="/css/customer/Articles.css">
+<title><%= pageTitle %></title>
+<meta name="description" content="<%= metaDescription %>">
+<meta property="og:title" content="<%= pageTitle %>">
+<meta property="og:description" content="<%= metaDescription %>">
+<meta property="og:image" content="https://www.draglab.com/assets/Imgs/Icons/products/ArticlesBg.webp">
+<meta property="og:url" content="https://www.draglab.com/<%= lang %>/articles">
+<meta name="robots" content="index, follow">
+<link rel="stylesheet" href="/css/customer/Articles.css">
+</head>
 
-    <body>
-        <%- include('../../includes/customer/navbar.ejs') %>
+<body>
+  <%- include('../../includes/customer/navbar.ejs') %>
 
-            <div class="slide">
-                <div class="slide-text">
-                    <h1>Articles</h1>
-                    <h3>Explore insights, innovations, and expertise in laboratory equipment and technology.</h3>
-                </div>
-                <img src="/assets/Imgs/Icons/products/ArticlesBg.webp" alt="Articles Banner">
+  <div class="slide">
+    <div class="slide-text">
+      <h1>
+        <% if (lang === 'ES') { %>Artículos<% } else if (lang === 'DE') { %>Artikel<% } else { %>Articles<% } %>
+      </h1>
+      <h3>
+        <% if (lang === 'ES') { %>
+          Explore conocimientos, innovaciones y experiencia en tecnología de laboratorio.
+        <% } else if (lang === 'DE') { %>
+          Entdecken Sie Einblicke, Innovationen und Fachwissen in der Labortechnologie.
+        <% } else { %>
+          Explore insights, innovations, and expertise in laboratory equipment and technology.
+        <% } %>
+      </h3>
+    </div>
+    <img src="/assets/Imgs/Icons/products/ArticlesBg.webp" alt="Articles Banner">
+  </div>
+
+  <div class="article-slides-wrapper">
+    <% articles.forEach(article => { %>
+      <div class="article-slide">
+        <a href="/<%= lang %>/articles/<%= article.slug %>">
+          <div class="article-card">
+            <img src="<%= article.thumbnail %>" alt="<%= article.title %>">
+            <div class="article-card-information">
+              <h4><%= article.title %></h4>
+              <p><%- article.body.replace(/(<([^>]+)>)/gi, "").substring(0, 120) %>...</p>
             </div>
+          </div>
+        </a>
+      </div>
+    <% }) %>
+  </div>
 
-            <div class="article-slides-wrapper">
-                <% articles.forEach(article=> { %>
-                    <div class="article-slide">
-                        <a href="/<%= lang %>/articles/<%= article.slug %>">
-                            <div class="article-card">
-                                <img src="<%=article.thumbnail %>" alt="<%= article.title %>">
-                                <div class="article-card-information">
-                                    <h4>
-                                        <%= article.title %>
-                                    </h4>
-                                    <p><%- article.body.replace(/(<([^>]+)>)/gi, "").substring(0, 120) %>...</p>
-                                </div>
-                            </div>
-                        </a>
-                    </div>
-                    <% }) %>
-            </div>
-
-            <%- include('../../includes/customer/footer.ejs') %>
-    </body>
-    <%- include('../../includes/customer/script.ejs') %>
-
-        </html>
+  <%- include('../../includes/customer/footer.ejs') %>
+  <%- include('../../includes/customer/script.ejs') %>
+</body>
+</html>

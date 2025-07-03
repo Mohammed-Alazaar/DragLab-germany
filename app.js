@@ -88,6 +88,7 @@ app.use(accountRoutes);
 
 app.use(errorController.get404);
 app.use((error, req, res, next) => {
+      console.error('🔴 500 ERROR:', error); // ADD THIS
     res.status(500).render('500', {
         pageTitle: 'Error!',
         path: '/500',
@@ -95,6 +96,9 @@ app.use((error, req, res, next) => {
     });
 });
 
+// app.set('view options', { pretty: true, strict: false });
+// app.locals.compileDebug = true;
+// app.locals.debug = true;
 
 
 

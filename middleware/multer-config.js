@@ -19,7 +19,7 @@ exports.uploadSingle = upload.single('productThumbnail');
 exports.uploadMultiple = upload.array('productPhotos', 5);
 
 // Dynamic field generation
-const languages = ['EN', 'ES', 'GR'];
+const languages = ['EN', 'ES', 'DE'];
 
 const uploadFields = [
   // Product fields
@@ -170,7 +170,7 @@ for (const field of fieldsToUpload) {
 
   try {
     // ✅ Handle multilingual feature images
-    const languages = ['EN', 'ES', 'GR'];
+    const languages = ['EN', 'ES', 'DE'];
     for (const lang of languages) {
       for (let i = 0; i < 4; i++) {
         const files = req.files[`FeatureImage_${lang}[${i}]`];

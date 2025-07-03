@@ -10,7 +10,7 @@ sitemap.pipe(writeStream);
 // Static multilingual pages
 const staticPages = ['/', '/aboutus', '/products', '/news', '/contact'];
 
-const languages = ['EN', 'ES', 'GR'];
+const languages = ['EN', 'ES', 'DE'];
 
 languages.forEach(lang => {
   staticPages.forEach(page => {

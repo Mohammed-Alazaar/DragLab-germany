@@ -12,42 +12,110 @@ const CatalogCategory = require('../models/CatalogCategory'); // Add this line t
 const Slideshow = require('../models/slideshow'); // ✅ Make sure this is imported at the top
 
 
-exports.getHomePage = (req, res, next) => {
-    const lang = req.params.lang || req.query.lang || 'EN';
+exports.getHomePage = async (req, res, next) => {
+    try {
+        const lang = (req.params.lang || req.query.lang || 'EN').toUpperCase();
 
-    Promise.all([
-        Product.find({ isDraft: false }),
-        Slideshow.find({
-            $or: [
-                { language: lang.toUpperCase() },
-                { language: 'ALL' }
-            ]
-        }),
-        Article.find({
-            $or: [
-                { language: lang.toUpperCase() },
-                { language: 'ALL' }
-            ]
-        }).sort({ createdAt: -1 }).limit(10) // limit to 10 latest
-    ])
-        .then(([products, slides, articles]) => {
-            res.render('customer/Home-page', {
-                pageTitle: 'Home',
-                path: '/',
-                products,
-                slides,
-                articles, // ✅ include here
-                categories: [],
-                lang
-            });
-        })
-        .catch(err => {
-            console.error(err);
-            res.redirect('/EN');
+        const [products, slides, articles] = await Promise.all([
+            Product.find({ isDraft: false }),
+            Slideshow.find({ $or: [{ language: lang }, { language: 'ALL' }] }),
+            Article.find({ $or: [{ language: lang }, { language: 'ALL' }] }).sort({ createdAt: -1 }).limit(10)
+        ]);
+
+        const t = {
+            EN: {
+                featured: "Featured Products",
+                articles: "Articles",
+                industries: "Industries",
+                about: "About Us",
+                vision: "Our Vision",
+                mission: "Our Mission",
+                values: "Our Values",
+                tab1Title: "Innovative Excellence",
+                tab1Subtitle: "Pushing technology with superior design.",
+                tab1Desc: "We believe that the products and services we provide will enable our partners to be a global leader in laboratory and medical equipment, known for our innovation, quality, and customer-focused approach.",
+                tab2Title: "Global Leadership",
+                tab2Subtitle: "Innovation, quality, and customer-driven success.",
+                tab2Desc: "We aim to empower professionals in science and healthcare with advanced, reliable, and user-friendly equipment, driving progress and improving outcomes.",
+                tab3Title: "Integrity and Responsibility",
+                tab3Subtitle: "Empowering change through ethical commitment.",
+                tab3Desc: ` <b>Innovation:</b> Continuously pushing the boundaries of technology to create cutting-edge solutions.<br><b>Quality:</b> Upholding the highest standards in product design, manufacturing, and performance.`,
+                industries: "Industries",
+                industriesList: {
+                    chemical: "Chemical industry",
+                    food: "Food and Beverage Industry",
+                    biotech: "Biotechnology and Life Sciences",
+                    pharma: "Pharmaceutical industry"
+                },
+            },
+            ES: {
+                featured: "Productos Destacados",
+                articles: "Artículos",
+                industries: "Industrias",
+                about: "Sobre Nosotros",
+                vision: "Nuestra Visión",
+                mission: "Nuestra Misión",
+                values: "Nuestros Valores",
+                tab1Title: "Excelencia Innovadora",
+                tab1Subtitle: "Impulsando la tecnología con diseño superior.",
+                tab1Desc: "Creemos que los productos y servicios que ofrecemos permitirán a nuestros socios ser líderes globales en equipos de laboratorio y médicos, reconocidos por nuestra innovación, calidad y enfoque en el cliente.",
+                tab2Title: "Liderazgo Global",
+                tab2Subtitle: "Innovación, calidad y éxito orientado al cliente.",
+                tab2Desc: "Nuestro objetivo es empoderar a los profesionales de la ciencia y la salud con equipos avanzados, confiables y fáciles de usar, impulsando el progreso y mejorando los resultados.",
+                tab3Title: "Integridad y Responsabilidad",
+                tab3Subtitle: "Empoderando el cambio mediante el compromiso ético.",
+                tab3Desc: `<b>Innovación:</b> Superar continuamente los límites de la tecnología para crear soluciones innovadoras.<br><b>Calidad:</b> Mantener los más altos estándares en el diseño, fabricación y rendimiento del producto.`,
+                industries: "Industrias",
+                industriesList: {
+                    chemical: "Industria química",
+                    food: "Industria alimentaria y de bebidas",
+                    biotech: "Biotecnología y ciencias de la vida",
+                    pharma: "Industria farmacéutica"
+                },
+            },
+            DE: {
+                featured: "Empfohlene Produkte",
+                articles: "Artikel",
+                industries: "Branchen",
+                about: "Über Uns",
+                vision: "Unsere Vision",
+                mission: "Unsere Mission",
+                values: "Unsere Werte",
+                tab1Title: "Innovative Exzellenz",
+                tab1Subtitle: "Technologie mit überragendem Design vorantreiben.",
+                tab1Desc: "Wir glauben, dass unsere Produkte und Dienstleistungen unseren Partnern helfen, weltweit führend in Labor- und Medizintechnik zu werden – bekannt für Innovation, Qualität und Kundenorientierung.",
+                tab2Title: "Globale Führung",
+                tab2Subtitle: "Innovation, Qualität und kundengesteuerter Erfolg.",
+                tab2Desc: "Unser Ziel ist es, Fachkräfte in Wissenschaft und Gesundheitswesen mit fortschrittlichen, zuverlässigen und benutzerfreundlichen Geräten auszustatten und Fortschritte zu fördern.",
+                tab3Title: "Integrität und Verantwortung",
+                tab3Subtitle: "Veränderung durch ethisches Engagement fördern.",
+                tab3Desc: '<b>Innovation:</b> Continuously pushing the boundaries of technology to create cutting-edge solutions.<br><b>Quality:</b> Upholding the highest standards in product design, manufacturing, and performance.',
+                industries: "Branchen",
+                industriesList: {
+                    chemical: "Chemische Industrie",
+                    food: "Lebensmittel- und Getränkeindustrie",
+                    biotech: "Biotechnologie und Lebenswissenschaften",
+                    pharma: "Pharmazeutische Industrie"
+                },
+            }
+        };
+
+        res.render('customer/Home-page', {
+            pageTitle: 'Home',
+            path: '/',
+            products,
+            slides,
+            articles,
+            lang,
+            t: t[lang] || t.EN
         });
 
-
+    } catch (err) {
+        console.error('Error loading home page:', err);
+        res.redirect('/EN');
+    }
 };
+
 
 
 
@@ -175,11 +243,17 @@ exports.getProduct = (req, res, next) => {
 };
 
 const Fuse = require('fuse.js');
-const normalize = str => str?.toLowerCase().replace(/\s+/g, '') || '';
+
+// Normalize language access
+const getLangBlock = (langObj, lang) => {
+    if (!langObj || typeof langObj !== 'object') return undefined;
+    const matchKey = Object.keys(langObj).find(k => k.toUpperCase() === lang.toUpperCase());
+    return langObj[matchKey]?.[0]; // your schema stores each lang as [ { ... } ]
+};
 
 exports.search = async (req, res) => {
     const query = req.query.q?.trim();
-    const lang = req.query.lang || 'EN';
+    const lang = (req.query.lang || 'EN').toUpperCase(); // active page language
 
     if (!query || query.length < 2) return res.json([]);
 
@@ -189,48 +263,57 @@ exports.search = async (req, res) => {
 
         const searchableData = [];
 
-        // Prepare Products & Models
         for (const product of products) {
-            const pLang = product.Language?.[lang]?.[0] || product.Language?.EN?.[0];
-            searchableData.push({
-                type: 'product',
-                name: pLang?.ProductName,
-                url: `/${lang}/products/${product.slug}`
-            });
+            const pLang = getLangBlock(product.Language, lang);
+console.log('🔍 LANG:', lang, '| Product Language Block:', Object.keys(product.Language || {}));
+console.log('➡️  Product Name:', pLang?.ProductName);
+            if (pLang && pLang.ProductName) {
+                searchableData.push({
+                    type: 'product',
+                    name: pLang.ProductName,
+                    url: `/${lang}/products/${product.slug}`
+                });
+            }
 
             for (const model of product.Models || []) {
                 if (!model.isPublished) continue;
-                const mLang = model.Language?.[lang]?.[0] || model.Language?.EN?.[0];
-                searchableData.push({
-                    type: 'model',
-                    name: mLang?.ModelName,
-                    url: `/${lang}/products/${product.slug}/${model.slug}`
-                });
+                const mLang = getLangBlock(model.Language, lang);
+console.log('➡️  Model Name:', mLang?.ModelName);
+
+                if (mLang && mLang.ModelName) {
+                    searchableData.push({
+                        type: 'model',
+                        name: mLang.ModelName,
+                        url: `/${lang}/products/${product.slug}/${model.slug}`
+                    });
+                }
             }
         }
 
-        // Prepare Articles
-        articles.forEach(article => {
+        // Articles (already language-filtered)
+        for (const article of articles) {
             searchableData.push({
                 type: 'article',
                 name: article.title,
                 url: `/${lang}/articles/${article.slug}`
             });
-        });
+        }
 
-        // Fuse.js config
+        // Optional debug to confirm structure
+        if (searchableData.length === 0) {
+            console.warn(`⚠️ No searchable items found for lang=${lang}`);
+        }
+
         const fuse = new Fuse(searchableData, {
             keys: ['name'],
-            threshold: 0.4, // lower = stricter match (try 0.3–0.5)
+            threshold: 0.4,
             includeScore: true
         });
 
-        // Run search
         const results = fuse.search(query)
-            .sort((a, b) => a.score - b.score) // low score = better match
+            .sort((a, b) => a.score - b.score)
             .map(r => r.item);
 
-        // Optional: limit per type
         const grouped = { product: [], model: [], article: [] };
         for (const item of results) {
             if (grouped[item.type].length < 5) {
@@ -241,7 +324,7 @@ exports.search = async (req, res) => {
         return res.json([...grouped.product, ...grouped.model, ...grouped.article]);
     } catch (err) {
         console.error('🔴 Fuse.js Search Error:', err);
-        res.status(500).json({ message: 'Search error' });
+        return res.status(500).json({ message: 'Search error' });
     }
 };
 
@@ -250,9 +333,11 @@ exports.search = async (req, res) => {
 
 
 
+
+
 exports.getProductDetails = (req, res, next) => {
     const { lang, productSlug } = req.params;
-    const supportedLangs = ['EN', 'ES', 'GR'];
+    const supportedLangs = ['EN', 'ES', 'DE'];
     const selectedLang = supportedLangs.includes(lang) ? lang : 'EN';
 
     Product.findOne({ slug: productSlug })
@@ -287,7 +372,7 @@ exports.getProductDetails = (req, res, next) => {
 
 exports.getModelDetailsPage = async (req, res, next) => {
     const { lang, productSlug, modelSlug } = req.params;
-    const supportedLangs = ['EN', 'ES', 'GR'];
+    const supportedLangs = ['EN', 'ES', 'DE'];
     const selectedLang = supportedLangs.includes(lang) ? lang : 'EN';
 
     try {
@@ -309,6 +394,30 @@ exports.getModelDetailsPage = async (req, res, next) => {
         const allProducts = await Product.find();
 
         const productLangData = product.Language[selectedLang]?.[0] || product.Language['EN']?.[0];
+        const translations = {
+            EN: {
+                overviewTitle: "Overview",
+                industriesTitle: "Industries",
+                specsTitle: "Technical Specifications",
+                downloadsTitle: "Downloads",
+                noDownloads: "No downloads available in this language."
+            },
+            ES: {
+                overviewTitle: "Descripción general",
+                industriesTitle: "Industrias",
+                specsTitle: "Especificaciones técnicas",
+                downloadsTitle: "Descargas",
+                noDownloads: "No hay descargas disponibles en este idioma."
+            },
+            DE: {
+                overviewTitle: "Überblick",
+                industriesTitle: "Branchen",
+                specsTitle: "Technische Daten",
+                downloadsTitle: "Downloads",
+                noDownloads: "Keine Downloads in dieser Sprache verfügbar."
+            }
+        };
+
 
         res.render('customer/Model-details', {
             pageTitle: currentLangData.ModelName || "Model Details",
@@ -333,7 +442,10 @@ exports.getModelDetailsPage = async (req, res, next) => {
             products: allProducts,
             productId: product._id, // might still be needed in forms
             modelId: model._id,
-            productName: productLangData?.ProductName || "Unknown Product"
+            t: translations[selectedLang],
+            productName: productLangData?.ProductName || "Unknown Product",
+            productSlug,
+            modelSlug
         });
 
     } catch (err) {
@@ -346,24 +458,91 @@ exports.getModelDetailsPage = async (req, res, next) => {
 
 
 exports.getContactus = (req, res, next) => {
-    const lang = req.query.lang || 'EN'; // <- 🔄 language detection
+    const lang = req.params.lang?.toUpperCase() || req.query.lang?.toUpperCase() || 'EN';
+
+    const translations = {
+        EN: {
+            pageTitle: 'Contact Us - DragLab',
+            metaDescription: 'Have a question or need help? Contact DragLab for fast support and expert assistance. We’re here to help you.',
+            ogTitle: 'Contact Us | DragLab',
+            ogDescription: 'Need assistance with laboratory equipment or service inquiries? Contact DragLab Technologies today.',
+            ogImage: 'https://yourdomain.com/assets/Imgs/SEO/contact-us.jpg',
+            sectionHeading: 'Contact Us',
+            sectionSub: 'Have a question or need help? Reach out!',
+            successMessage: '✅ Thank you! We have received your message.',
+            errorMessage: '❌ Something went wrong. Please try again later.',
+            labels: {
+                first: 'First Name',
+                last: 'Last Name',
+                subject: 'Subject',
+                email: 'Email',
+                message: 'Write your message...',
+                send: 'Send Message',
+                contactInfo: 'Contact Information',
+            }
+        },
+        DE: {
+            pageTitle: 'Kontaktieren Sie uns - DragLab',
+            metaDescription: 'Haben Sie Fragen oder benötigen Sie Hilfe? Kontaktieren Sie DragLab für schnelle Unterstützung und kompetente Beratung.',
+            ogTitle: 'Kontakt | DragLab',
+            ogDescription: 'Benötigen Sie Hilfe mit Laborgeräten oder technischen Anfragen? Kontaktieren Sie DragLab Technologies noch heute.',
+            ogImage: 'https://yourdomain.com/assets/Imgs/SEO/contact-us.jpg',
+            sectionHeading: 'Kontaktieren Sie uns',
+            sectionSub: 'Haben Sie Fragen oder benötigen Sie Hilfe? Kontaktieren Sie uns!',
+            successMessage: '✅ Vielen Dank! Wir haben Ihre Nachricht erhalten.',
+            errorMessage: '❌ Etwas ist schiefgelaufen. Bitte versuchen Sie es später noch einmal.',
+            labels: {
+                first: 'Vorname',
+                last: 'Nachname',
+                subject: 'Betreff',
+                email: 'E-Mail',
+                message: 'Schreiben Sie Ihre Nachricht...',
+                send: 'Nachricht senden',
+                contactInfo: 'Kontaktinformationen',
+            }
+        },
+        ES: {
+            pageTitle: 'Contáctanos - DragLab',
+            metaDescription: '¿Tienes preguntas o necesitas ayuda? Contacta con DragLab para asistencia rápida y especializada.',
+            ogTitle: 'Contacto | DragLab',
+            ogDescription: '¿Necesitas soporte o tienes dudas sobre nuestros productos? Contáctanos y recibe asistencia inmediata.',
+            ogImage: 'https://yourdomain.com/assets/Imgs/SEO/contact-us.jpg',
+            sectionHeading: 'Contáctanos',
+            sectionSub: '¿Tienes preguntas o necesitas ayuda? ¡Escríbenos!',
+            successMessage: '✅ ¡Gracias! Hemos recibido tu mensaje.',
+            errorMessage: '❌ Algo salió mal. Intenta de nuevo más tarde.',
+            labels: {
+                first: 'Nombre',
+                last: 'Apellido',
+                subject: 'Asunto',
+                email: 'Correo electrónico',
+                message: 'Escribe tu mensaje...',
+                send: 'Enviar mensaje',
+                contactInfo: 'Información de contacto',
+            }
+        }
+    };
+
+    const t = translations[lang] || translations.EN;
 
     Product.find()
         .then(products => {
             res.render('customer/contact-us.ejs', {
-                pageTitle: 'Contact Us',
-                path: '/Contact-us',
-                products: products,
-                categories: [], // Pass an empty array for categories if not needed
+                ...t,
+                labels: t.labels,
                 lang,
-                req //
+                req,
+                products,
+                categories: [],
+                path: `/${lang.toLowerCase()}/contactus`
             });
         })
         .catch(err => {
             console.error(err);
-            res.redirect('/EN');
+            res.redirect('/EN/Contactus');
         });
 };
+
 
 exports.postContactUs = async (req, res, next) => {
     try {
@@ -384,25 +563,126 @@ exports.postContactUs = async (req, res, next) => {
     }
 };
 exports.geTechnicalservice = (req, res, next) => {
-    const lang = req.query.lang || 'EN'; // <- 🔄 language detection
+    const lang = req.params.lang?.toUpperCase() || 'EN';
+
+    const translations = {
+        EN: {
+            slideTitle: "Technical Support at Your Service.",
+            slideSubtitle: "Quick and reliable solutions to your technical problems.",
+            formTitle: "Technical Support Form",
+            success: "✅ Your technical support request has been submitted successfully.",
+            error: "❌ Something went wrong. Please try again.",
+            userSectionTitle: "User Technical Support",
+            aDEeeLabel: "I aDEee to the processing of my personal data in accordance with the Privacy Policy for the purpose of handling my technical support request.*",
+            infoLabel: "Information info:",
+            company: "Company",
+            private: "Private Citizen",
+            salutationLabel: "Salutation:",
+            mrs: "Mrs/Ms",
+            mr: "Mr",
+            firstName: "First Name",
+            lastName: "Last Name",
+            postalTown: "Postal/ ZIP code, Town",
+            street: "Street",
+            country: "Country",
+            telephone: "Telephone",
+            telefax: "Telefax",
+            email: "Email",
+            techSectionTitle: "Technical Question / Failure",
+            failureDate: "Date of Failure",
+            deviceCategory: "Device category*",
+            deviceModel: "Device Model*",
+            serialNo: "Serial No",
+            note: "Note",
+            notePlaceholder: "Write your Note...",
+            sendBtn: "Send Message",
+            selectOption: "Select"
+        },
+        ES: {
+            slideTitle: "Soporte técnico a su servicio.",
+            slideSubtitle: "Soluciones rápidas y fiables a sus problemas técnicos.",
+            formTitle: "Formulario de soporte técnico",
+            success: "✅ Su solicitud de soporte técnico se ha enviado correctamente.",
+            error: "❌ Algo salió mal. Por favor, inténtelo de nuevo.",
+            userSectionTitle: "Soporte técnico de usuario",
+            aDEeeLabel: "Acepto el tratamiento de mis datos personales conforme a la política de privacidad para gestionar mi solicitud de soporte técnico.*",
+            infoLabel: "Tipo de información:",
+            company: "Empresa",
+            private: "Persona particular",
+            salutationLabel: "Saludo:",
+            mrs: "Sra/Srta",
+            mr: "Sr",
+            firstName: "Nombre",
+            lastName: "Apellido",
+            postalTown: "Código postal, ciudad",
+            street: "Calle",
+            country: "País",
+            telephone: "Teléfono",
+            telefax: "Fax",
+            email: "Correo electrónico",
+            techSectionTitle: "Pregunta técnica / Fallo",
+            failureDate: "Fecha del fallo",
+            deviceCategory: "Categoría del dispositivo*",
+            deviceModel: "Modelo del dispositivo*",
+            serialNo: "N.º de serie",
+            note: "Nota",
+            notePlaceholder: "Escriba su nota...",
+            sendBtn: "Enviar mensaje",
+            selectOption: "Seleccionar"
+        },
+        DE: {
+            slideTitle: "Technischer Support zu Ihren Diensten.",
+            slideSubtitle: "Schnelle und zuverlässige Lösungen für Ihre technischen Probleme.",
+            formTitle: "Technisches Support-Formular",
+            success: "✅ Ihre Anfrage wurde erfolDEeich übermittelt.",
+            error: "❌ Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut.",
+            userSectionTitle: "Technischer Support für Benutzer",
+            aDEeeLabel: "Ich stimme der Verarbeitung meiner persönlichen Daten gemäß der Datenschutzrichtlinie zur Bearbeitung meiner Anfrage zu.*",
+            infoLabel: "Informationstyp:",
+            company: "Firma",
+            private: "Privatperson",
+            salutationLabel: "Anrede:",
+            mrs: "Frau",
+            mr: "Herr",
+            firstName: "Vorname",
+            lastName: "Nachname",
+            postalTown: "PLZ / Ort",
+            street: "Straße",
+            country: "Land",
+            telephone: "Telefon",
+            telefax: "Telefax",
+            email: "E-Mail",
+            techSectionTitle: "Technische Frage / Fehler",
+            failureDate: "Datum des Fehlers",
+            deviceCategory: "Gerätekategorie*",
+            deviceModel: "Gerätemodell*",
+            serialNo: "Seriennummer",
+            note: "Notiz",
+            notePlaceholder: "Schreiben Sie Ihre Notiz...",
+            sendBtn: "Nachricht senden",
+            selectOption: "Auswählen"
+        }
+    };
 
     Product.find()
         .then(products => {
             res.render('customer/technical-service', {
-                pageTitle: 'technical service',
+                pageTitle: translations[lang]?.formTitle || 'Technical Service',
                 path: '/technical-service',
-                products: products,
-                categories: [], // Pass an empty array for categories if not needed
-                lang, // <- pass it to EJS
-                req //  pass full request to access query params in EJS
+                products,
+                categories: [],
+                lang,
+                t: translations[lang] || translations['EN'],
+                translations: translations[lang] || translations['EN'],
+                req
             });
         })
         .catch(err => {
             console.error(err);
             res.redirect('/EN');
         });
-
 };
+
 
 exports.postTechnicalService = async (req, res) => {
     try {
@@ -444,35 +724,353 @@ exports.postTechnicalService = async (req, res) => {
 };
 
 exports.getSupport = (req, res, next) => {
-    const lang = req.query.lang || 'EN'; // <- 🔄 language detection
+    const lang = req.params.lang?.toUpperCase() || 'EN';
+
+    const t = {
+        EN: {
+            pageTitle: 'Professional Support When You Need It',
+            heroDesc: 'Comprehensive services to design the perfect solution and ensure long-term operation.',
+            contactUs: 'Contact Us',
+            qualificationTitle: 'Qualification & Validation',
+            qualificationDesc: `Qualification ensures that DragLab product quality is satisfied and that proper procedures are in place for maintenance and operation.
+                                We support you to ensure that production and testing processes run smoothly, and product quality remains high.`,
+            qualificationCTA: 'Contact us for your IQ/OQ qualification plans.',
+
+            calibrationTitle: 'Calibration & Adjustment',
+            calibrationDesc: `Calibration is essential to validate laboratory equipment. We identify and document deviations and readjust unit settings as needed.
+                              All results are documented in a calibration certificate, ensuring quality tests and processes.`,
+            calibrationBenefits: ['Factory-standard calibration.', 'Certified measuring devices.'],
+            calibrationCTA: 'Contact us for more details on calibration.',
+
+            maintenanceTitle: 'Maintenance & Technical Support',
+            maintenanceDesc: `DragLab devices are built with quality and reliability, but regular maintenance is essential for long-term operation.
+                              Authorized technicians provide all maintenance work quickly and competently.`,
+            maintenanceBenefits: ['Expert technical support.', 'Fast response to all requests.'],
+            maintenanceCTA: 'Request technical support now.',
+
+            trainingTitle: 'Training Courses & Seminars',
+            trainingDesc: `The DragLab training program provides essential knowledge for users, partners, and service teams.
+                          Learn how to operate and maintain equipment efficiently, with access to the latest technical topics.`,
+            trainingBenefits: ['Tailored training sessions.', 'Scheduled programs for partners and users.'],
+            trainingCTA: 'Contact us for upcoming training sessions.',
+
+            downloadTitle: 'Download Area',
+            downloadDesc: 'Explore our premium-quality solutions and have all the key arguments, features, and specifications at your fingertips.',
+            downloadExplore: 'Explore Downloads',
+            downloadOptions: ['Brochures', 'Flyers', 'Installation packages.']
+        },
+        ES: {
+            pageTitle: 'Soporte profesional cuando lo necesite',
+            heroDesc: 'Servicios integrales para diseñar la solución perfecta y garantizar un funcionamiento a largo plazo.',
+            contactUs: 'Contáctanos',
+            qualificationTitle: 'Calificación y Validación',
+            qualificationDesc: `La calificación garantiza que la calidad del producto DragLab sea satisfactoria y que existan procedimientos adecuados para el mantenimiento y operación.`,
+            qualificationCTA: 'Contáctanos para tus planes de calificación IQ/OQ.',
+
+            calibrationTitle: 'Calibración y Ajuste',
+            calibrationDesc: `La calibración es esencial para validar equipos de laboratorio. Identificamos y documentamos desviaciones y reajustamos configuraciones según sea necesario.`,
+            calibrationBenefits: ['Calibración según estándares de fábrica.', 'Dispositivos de medición certificados.'],
+            calibrationCTA: 'Contáctanos para más detalles sobre calibración.',
+
+            maintenanceTitle: 'Mantenimiento y Soporte Técnico',
+            maintenanceDesc: `Los dispositivos DragLab están construidos con calidad y confiabilidad, pero el mantenimiento regular es esencial para una operación duradera.`,
+            maintenanceBenefits: ['Soporte técnico experto.', 'Respuesta rápida a todas las solicitudes.'],
+            maintenanceCTA: 'Solicita soporte técnico ahora.',
+
+            trainingTitle: 'Cursos y Seminarios',
+            trainingDesc: `El programa de formación de DragLab proporciona conocimientos esenciales para usuarios, socios y equipos de servicio.`,
+            trainingBenefits: ['Sesiones de formación personalizadas.', 'Programas programados para socios y usuarios.'],
+            trainingCTA: 'Contáctanos para próximas sesiones de formación.',
+
+            downloadTitle: 'Área de Descargas',
+            downloadDesc: 'Explore nuestras soluciones de alta calidad y tenga todos los argumentos clave, funciones y especificaciones a su alcance.',
+            downloadExplore: 'Explorar Descargas',
+            downloadOptions: ['Folletos', 'Volantes', 'Paquetes de instalación.']
+        },
+        DE: {
+            pageTitle: 'Professioneller Support, wann immer Sie ihn brauchen',
+            heroDesc: 'Umfassende Dienstleistungen zur Entwicklung der perfekten Lösung und zur Sicherstellung eines langfristigen Betriebs.',
+            contactUs: 'Kontaktieren Sie uns',
+            qualificationTitle: 'Qualifizierung & Validierung',
+            qualificationDesc: `Die Qualifizierung stellt sicher, dass die Produktqualität von DragLab erfüllt ist und dass geeignete Verfahren für Wartung und Betrieb vorhanden sind.`,
+            qualificationCTA: 'Kontaktieren Sie uns für Ihre IQ/OQ-Qualifizierungspläne.',
+
+            calibrationTitle: 'Kalibrierung & Anpassung',
+            calibrationDesc: `Die Kalibrierung ist unerlässlich, um Laborausrüstung zu validieren. Wir identifizieren und dokumentieren Abweichungen und passen die Einstellungen bei Bedarf an.`,
+            calibrationBenefits: ['Kalibrierung nach Werksstandard.', 'Zertifizierte Messgeräte.'],
+            calibrationCTA: 'Kontaktieren Sie uns für weitere Informationen zur Kalibrierung.',
+
+            maintenanceTitle: 'Wartung & Technischer Support',
+            maintenanceDesc: `Geräte von DragLab sind für Qualität und Zuverlässigkeit gebaut, aber regelmäßige Wartung ist entscheidend für den langfristigen Betrieb.`,
+            maintenanceBenefits: ['Fachkundige technische Unterstützung.', 'Schnelle Reaktion auf alle Anfragen.'],
+            maintenanceCTA: 'Jetzt technischen Support anfordern.',
+
+            trainingTitle: 'Schulungen & Seminare',
+            trainingDesc: `Das Schulungsprogramm von DragLab vermittelt wichtiges Wissen für Benutzer, Partner und Serviceteams.`,
+            trainingBenefits: ['Individuelle Schulungssitzungen.', 'Geplante Programme für Partner und Benutzer.'],
+            trainingCTA: 'Kontaktieren Sie uns für bevorstehende Schulungen.',
+
+            downloadTitle: 'Download-Bereich',
+            downloadDesc: 'Entdecken Sie unsere hochwertigen Lösungen mit allen Argumenten, Funktionen und Spezifikationen auf einen Blick.',
+            downloadExplore: 'Downloads durchsuchen',
+            downloadOptions: ['Broschüren', 'Flyer', 'Installationspakete.']
+        }
+    };
+
+    const content = t[lang] || t.EN;
 
     Product.find()
         .then(products => {
             res.render('customer/Support', {
-                pageTitle: 'support',
+                pageTitle: 'Support',
                 path: '/support',
-                products: products,
-                categories: [], // Pass an empty array for categories if not needed
-                lang // <- pass it to EJS
+                products,
+                lang,
+                content
             });
         })
         .catch(err => {
             console.error(err);
             res.redirect('/EN');
         });
-
 };
 
+
 exports.getaboutus = (req, res, next) => {
-    const lang = req.query.lang || 'EN'; // <- 🔄 language detection
+    const lang = req.params.lang?.toUpperCase() || 'EN';
+
+    const translations = {
+        EN: {
+            pageTitle: 'About Us - DragLab',
+            metaDescription: 'Learn about DragLab’s vision, mission, and values. Explore our innovative lab equipment and commitment to quality and sustainability.',
+            ogTitle: 'About Us | DragLab',
+            ogDescription: 'Discover how DragLab leads the lab equipment market with innovation, integrity, and customer focus.',
+            ogImage: 'https://yourdomain.com/assets/Imgs/SEO/about-us.jpg',
+            sectionHeading: 'About Us',
+            featuresTitle: 'Feature Points',
+            tabs: {
+                vision: {
+                    title: 'Innovative Excellence',
+                    subtitle: 'Pushing technology with superior design.',
+                    desc: 'We believe that the products and services we provide will enable our partners to be a global leader in laboratory and medical equipment, known for our innovation, quality, and customer-focused approach.'
+                },
+                mission: {
+                    title: 'Global Leadership',
+                    subtitle: 'Innovation, quality, and customer-driven success.',
+                    desc: 'We aim to empower professionals in science and healthcare with advanced, reliable, and user-friendly equipment, driving progress and improving outcomes.'
+                },
+                values: {
+                    title: 'Integrity and Responsibility',
+                    subtitle: 'Empowering change through ethical commitment.',
+                    desc: '<b>Innovation:</b> Continuously pushing the boundaries of technology to create cutting-edge solutions.<br><b>Quality:</b> Upholding the highest standards in product design, manufacturing, and performance.'
+                }
+            },
+            features: [
+                {
+                    title: 'Innovation of Lab Equipment',
+                    text: 'We leverage advanced technology trends and our professional expertise to develop innovative laboratory solutions, fulfilling our responsibility as a leading premium provider in the global market.',
+                    icon: 'innovation.png',
+                    alt: 'Lab equipment innovation icon'
+                },
+                {
+                    title: 'Quality of the Products',
+                    text: 'Quality and reliability are our top priorities. All DragLab products are designed for durability and efficiency, backed by a strict quality control system to ensure the best customer experience.',
+                    icon: 'Quality.png',
+                    alt: 'Quality assurance icon'
+                },
+                {
+                    title: 'Certification & Standards',
+                    text: 'We meet ISO and European standards, offering full compliance and documentation for all exported equipment.',
+                    icon: 'Certification.png',
+                    alt: 'Certification compliance icon'
+                },
+                {
+                    title: 'Fast and Perfect Response',
+                    text: 'DragLab is committed to fast response times, offering professional support through multiple communication channels.',
+                    icon: 'response.png',
+                    alt: 'Fast customer response icon'
+                },
+                {
+                    title: 'Warranty & After Sales',
+                    text: 'All products come with a 2-year warranty and a 10-year spare parts guarantee, ensuring long-term satisfaction.',
+                    icon: 'WarrantyAfterSales.png',
+                    alt: 'Warranty and service icon'
+                },
+                {
+                    title: 'Sustainable Environment',
+                    text: 'DragLab follows eco-friendly practices in manufacturing and packaging, aligned with ISO 14001 and EU directives.',
+                    icon: 'SustainableEnvironment.png',
+                    alt: 'Eco-friendly technology icon'
+                },
+                {
+                    title: 'Safety',
+                    text: 'Our devices feature electronic and mechanical safeguards, meeting German and European safety norms.',
+                    icon: 'Safety.png',
+                    alt: 'Safety standards icon'
+                }
+            ]
+        },
+
+        DE: {
+            pageTitle: 'Über uns - DragLab',
+            metaDescription: 'Erfahren Sie mehr über die Vision, Mission und Werte von DragLab. Entdecken Sie unsere innovativen Laborgeräte und unser Engagement für Qualität und Nachhaltigkeit.',
+            ogTitle: 'Über uns | DragLab',
+            ogDescription: 'Erfahren Sie, wie DragLab den Markt für Laborgeräte mit Innovation, Integrität und Kundenorientierung anführt.',
+            ogImage: 'https://yourdomain.com/assets/Imgs/SEO/about-us.jpg',
+            sectionHeading: 'Über uns',
+            featuresTitle: 'Besonderheiten',
+            tabs: {
+                vision: {
+                    title: 'Innovative Exzellenz',
+                    subtitle: 'Technologie vorantreiben mit überlegener Gestaltung.',
+                    desc: 'Wir glauben, dass unsere Produkte und Dienstleistungen unsere Partner zu einem globalen Marktführer in Labor- und Medizintechnik machen, bekannt für Innovation, Qualität und Kundenzufriedenheit.'
+                },
+                mission: {
+                    title: 'Globale Führung',
+                    subtitle: 'Innovation, Qualität und kundenorientierter Erfolg.',
+                    desc: 'Wir wollen Fachkräfte in Wissenschaft und Gesundheitswesen mit zuverlässiger und benutzerfreundlicher Technik ausstatten, um Fortschritte zu erzielen und Ergebnisse zu verbessern.'
+                },
+                values: {
+                    title: 'Integrität und Verantwortung',
+                    subtitle: 'Veränderung durch ethisches Engagement.',
+                    desc: '<b>Innovation:</b> Wir gehen kontinuierlich an die Grenzen der Technologie.<br><b>Qualität:</b> Höchste Standards in Design, Fertigung und Leistung.'
+                }
+            },
+            features: [
+                {
+                    title: 'Innovation von Laborgeräten',
+                    text: 'Wir nutzen moderne Technologien und unsere Fachkenntnisse, um innovative Lösungen zu entwickeln.',
+                    icon: 'innovation.png',
+                    alt: 'Laborgeräte-Innovation Icon'
+                },
+                {
+                    title: 'Produktqualität',
+                    text: 'Zuverlässigkeit und Langlebigkeit stehen im Mittelpunkt. Unsere Produkte durchlaufen strenge Qualitätskontrollen.',
+                    icon: 'Quality.png',
+                    alt: 'Qualitätssicherungs-Icon'
+                },
+                {
+                    title: 'Zertifizierungen & Standards',
+                    text: 'Unsere Geräte erfüllen ISO- und EU-Standards und sind vollständig dokumentiert.',
+                    icon: 'Certification.png',
+                    alt: 'Zertifizierungsicon'
+                },
+                {
+                    title: 'Schnelle Reaktion',
+                    text: 'Schnelle Antwortzeiten und professionelle Unterstützung sind unsere Verpflichtung.',
+                    icon: 'response.png',
+                    alt: 'Schnelle Kundenreaktion Icon'
+                },
+                {
+                    title: 'Garantie & Service',
+                    text: '2 Jahre Garantie und 10 Jahre Ersatzteilverfügbarkeit sind garantiert.',
+                    icon: 'WarrantyAfterSales.png',
+                    alt: 'Garantie Icon'
+                },
+                {
+                    title: 'Nachhaltige Umwelt',
+                    text: 'Wir produzieren umweltfreundlich gemäß ISO 14001.',
+                    icon: 'SustainableEnvironment.png',
+                    alt: 'Umweltschutz Icon'
+                },
+                {
+                    title: 'Sicherheit',
+                    text: 'Unsere Produkte erfüllen alle Sicherheitsnormen gemäß deutschem und europäischem Recht.',
+                    icon: 'Safety.png',
+                    alt: 'Sicherheitsicon'
+                }
+            ]
+        },
+        ES: {
+            pageTitle: 'Sobre Nosotros - DragLab',
+            metaDescription: 'Conozca la visión, misión y valores de DragLab. Descubra nuestro equipamiento de laboratorio innovador y nuestro compromiso con la calidad y la sostenibilidad.',
+            ogTitle: 'Sobre Nosotros | DragLab',
+            ogDescription: 'Descubra cómo DragLab lidera el mercado de equipos de laboratorio con innovación, integridad y enfoque en el cliente.',
+            ogImage: 'https://yourdomain.com/assets/Imgs/SEO/about-us.jpg',
+            sectionHeading: 'Sobre Nosotros',
+            featuresTitle: 'Puntos Destacados',
+            tabs: {
+                vision: {
+                    title: 'Excelencia Innovadora',
+                    subtitle: 'Impulsando la tecnología con diseño superior.',
+                    desc: 'Creemos que nuestros productos y servicios permitirán a nuestros socios convertirse en líderes globales en equipos de laboratorio y médicos, reconocidos por su innovación, calidad y enfoque centrado en el cliente.'
+                },
+                mission: {
+                    title: 'Liderazgo Global',
+                    subtitle: 'Innovación, calidad y éxito impulsado por el cliente.',
+                    desc: 'Nuestro objetivo es empoderar a los profesionales de la ciencia y la salud con equipos avanzados, confiables y fáciles de usar, impulsando el progreso y mejorando los resultados.'
+                },
+                values: {
+                    title: 'Integridad y Responsabilidad',
+                    subtitle: 'Impulsando el cambio con compromiso ético.',
+                    desc: '<b>Innovación:</b> Superamos constantemente los límites de la tecnología para crear soluciones innovadoras.<br><b>Calidad:</b> Mantenemos los más altos estándares en diseño, fabricación y rendimiento.'
+                }
+            },
+            features: [
+                {
+                    title: 'Innovación en Equipos de Laboratorio',
+                    text: 'Aprovechamos las últimas tendencias tecnológicas y nuestra experiencia profesional para desarrollar soluciones de laboratorio innovadoras.',
+                    icon: 'innovation.png',
+                    alt: 'Icono de innovación de laboratorio'
+                },
+                {
+                    title: 'Calidad de los Productos',
+                    text: 'La calidad y la confiabilidad son nuestras principales prioridades. Todos los productos DragLab están diseñados para durar y ofrecer eficiencia.',
+                    icon: 'Quality.png',
+                    alt: 'Icono de garantía de calidad'
+                },
+                {
+                    title: 'Certificaciones y Normas',
+                    text: 'Cumplimos con las normas ISO y europeas, con documentación completa para todos los equipos exportados.',
+                    icon: 'Certification.png',
+                    alt: 'Icono de cumplimiento de certificaciones'
+                },
+                {
+                    title: 'Respuesta Rápida y Eficiente',
+                    text: 'DragLab se compromete a ofrecer tiempos de respuesta rápidos y soporte profesional a través de múltiples canales de comunicación.',
+                    icon: 'response.png',
+                    alt: 'Icono de respuesta rápida al cliente'
+                },
+                {
+                    title: 'Garantía y Postventa',
+                    text: 'Todos los productos tienen una garantía de 2 años y 10 años de disponibilidad de repuestos, asegurando satisfacción a largo plazo.',
+                    icon: 'WarrantyAfterSales.png',
+                    alt: 'Icono de garantía y servicio'
+                },
+                {
+                    title: 'Entorno Sostenible',
+                    text: 'DragLab aplica prácticas ecológicas en la fabricación y embalaje, cumpliendo con la ISO 14001 y directivas de la UE.',
+                    icon: 'SustainableEnvironment.png',
+                    alt: 'Icono de tecnología ecológica'
+                },
+                {
+                    title: 'Seguridad',
+                    text: 'Nuestros dispositivos incluyen protecciones electrónicas y mecánicas, cumpliendo con las normas de seguridad alemanas y europeas.',
+                    icon: 'Safety.png',
+                    alt: 'Icono de estándares de seguridad'
+                }
+            ]
+        }
+        // TODO: Add Spanish or other languages here...
+    };
+
+    const t = translations[lang] || translations['EN'];
 
     Product.find()
         .then(products => {
             res.render('customer/about-us', {
-                pageTitle: 'aboutus',
-                path: '/aboutus',
-                products: products,
-                lang // <- pass it to EJS
+                pageTitle: t.pageTitle,
+                metaDescription: t.metaDescription,
+                ogTitle: t.ogTitle,
+                ogDescription: t.ogDescription,
+                ogImage: t.ogImage,
+                sectionHeading: t.sectionHeading,
+                featuresTitle: t.featuresTitle,
+                products,
+                lang,
+                tabs: t.tabs,
+                features: t.features,
+                req
             });
         })
         .catch(err => {
@@ -481,8 +1079,27 @@ exports.getaboutus = (req, res, next) => {
         });
 };
 
+
+
 exports.getArticles = async (req, res) => {
-    const lang = req.params.lang || 'EN';
+    const lang = req.params.lang?.toUpperCase() || 'EN';
+
+    const seoTranslations = {
+        EN: {
+            pageTitle: 'Articles - DragLab',
+            metaDescription: 'Explore insights, innovations, and expert knowledge in lab technology through DragLab’s latest articles.'
+        },
+        ES: {
+            pageTitle: 'Artículos - DragLab',
+            metaDescription: 'Explore conocimientos, innovaciones y experiencia en tecnología de laboratorio a través de los artículos de DragLab.'
+        },
+        DE: {
+            pageTitle: 'Artikel - DragLab',
+            metaDescription: 'Entdecken Sie Einblicke, Innovationen und Fachwissen über Labortechnologie in den neuesten Artikeln von DragLab.'
+        }
+    };
+
+    const t = seoTranslations[lang] || seoTranslations['EN'];
 
     try {
         const articles = await Article.find({
@@ -492,18 +1109,21 @@ exports.getArticles = async (req, res) => {
             ]
         }).sort({ createdAt: -1 });
 
-        const allProducts = await Product.find(); // ✅ Used by navbar
+        const allProducts = await Product.find();
 
         res.render('customer/Articles', {
             articles,
             lang,
-            products: allProducts // ✅ Now navbar will work
+            products: allProducts,
+            pageTitle: t.pageTitle,
+            metaDescription: t.metaDescription
         });
     } catch (err) {
         console.error(err);
         res.redirect('/EN');
     }
 };
+
 
 exports.getArticleDetails = async (req, res) => {
     const { slug } = req.params;
@@ -534,7 +1154,30 @@ exports.getArticleDetails = async (req, res) => {
 };
 
 exports.getDownloads = async (req, res, next) => {
-    const lang = req.params.lang || 'EN'; // e.g. /Downloads/GR
+    const lang = req.params.lang || 'EN'; // e.g. /Downloads/DE
+    const translations = {
+        EN: {
+            pageTitle: 'Downloads',
+            heroTitle: 'Downloads',
+            noProducts: 'No Products Available',
+            noCategories: 'No Categories Available',
+            allLabel: 'All',
+        },
+        ES: {
+            pageTitle: 'Descargas',
+            heroTitle: 'Descargas',
+            noProducts: 'No hay productos disponibles',
+            noCategories: 'No hay categorías disponibles',
+            allLabel: 'Todos',
+        },
+        DE: {
+            pageTitle: 'Downloads',
+            heroTitle: 'Downloads',
+            noProducts: 'Keine Produkte verfügbar',
+            noCategories: 'Keine Kategorien verfügbar',
+            allLabel: 'Alle',
+        }
+    };
 
     try {
         const products = await Product.find({});
@@ -618,6 +1261,8 @@ exports.getDownloads = async (req, res, next) => {
             productNames: productNames.length ? productNames : ["No Products Available"],
             catalogCategoryNames: catalogCategoryNames.length ? catalogCategoryNames : ["No Categories Available"],
             lang,
+            translations: translations[lang] || translations.EN,
+
             products
         });
     } catch (err) {
@@ -633,33 +1278,729 @@ exports.getDownloads = async (req, res, next) => {
 
 
 exports.getTearmCondition = (req, res, next) => {
-    const lang = req.query.lang || 'EN'; // <- 🔄 language detection
+    const lang = req.params.lang?.toUpperCase() || 'EN';
+
+    const content = {
+        EN: {
+            pageTitle: 'General Terms and Conditions of Sale',
+            metaDescription: 'Read the full Terms and Conditions of NanoDrag including legal definitions, pricing, warranties, and liability terms.',
+            heroTitle: 'General Terms and Conditions of Sale',
+            sections: [
+                {
+                    "title": "Definitions",
+                    "body": "<strong>Nanodrag</strong> means Nanodrag technology GmbH the company supplying the goods or services, or a subsidiary.<br><strong>Customer</strong> means the individual, company or other party with whom the seller contracts.<br><strong>Contract</strong> means the contract order for the purchase of goods or services."
+                },
+                {
+                    "title": "1. General",
+                    "body": "1.1 Any delivery of goods and services by Nanodrag as the seller to the customer ('Customer') shall be subject to the Terms and Conditions set forth herein to the extent no other agreements have been explicitly made. The Customer’s general terms and conditions that are inconsistent with the Terms and Conditions set forth herein shall only be applicable to the extent Nanodrag has explicit approved in writing.<br>1.2 Any claims held against Nanodrag may not be assigned to third parties. Section 354a of the German Commercial Code (HGB) shall remain unaffected.<br>1.3 The sale, resale and the disposal of goods and services including any associated technology or documentation may be governed by German, EU, US export control regulations as well as by the export control regulations of further countries. Any resale of goods to embargoed countries or to denied persons or persons that use or may use the goods for military purposes, ABC weapons or nuclear technology is subject to an official license. Customer declares with his order the conformity with such statutes and regulations and that the goods will not directly or indirectly delivered into countries that prohibit or restrict the import of such goods. Customer declares to have obtained all licenses required for export and import."
+                },
+                {
+                    "title": "2. Information, Consultancy",
+                    "body": "Information and consultancy in relation to Nanodrag’ goods and services is provided as deemed appropriate from existing experience. Any values quoted as part thereof, especially performance data, represent average values which have been determined through experiments under standard laboratory conditions. Nanodrag cannot assume any commitment for its products to precisely meet the quoted values and areas of application. Section 10 of these Terms and Conditions governs any issues of liability."
+                },
+                {
+                    "title": "3. Prices",
+                    "body": "3.1 The prices quoted in the order confirmation of Nanodrag shall solely apply. Additional services will be invoiced separately.<br>3.2 All prices are quoted as net prices and do not include value added tax, which is to be paid additionally by the Customer in the amount specified by applicable law.<br>3.3 Unless otherwise expressly agreed, the prices are quoted ex works of the Nanodrag company using these Terms and Conditions. The Customer shall bear all additional freight costs, packing costs in excess of standard packing, public fees (including withholding taxes) and duties."
+                },
+                {
+                    "title": "4. Delivery",
+                    "body": "4.1 Unless otherwise expressly agreed, Nanodrag shall deliver ex works (EXW INCOTERMS 2010) of the Nanodrag company using these Terms and Conditions.<br>4.2 Delivery periods shall only be binding if expressly agreed in writing. Delivery periods shall begin on the date of the order confirmation by Nanodrag, however, in no case prior to settlement of all details relating to an order including the furnishing of any required official certificates. Delivery periods shall be deemed to be met on timely notification of readiness to ship if the goods cannot be dispatched in time through no fault of Nanodrag.<br>4.3 With respect to delivery periods and dates, which are not expressly defined as fixed in the order confirmation, the Customer may – two weeks after expiry of such a delivery period or date – set an adequate grace period for delivery. Nanodrag may only be deemed to be in default after expiry of such a grace period.<br>4.4 Without prejudicing Nanodrag’ rights from Customer’s default, delivery periods and dates shall be deemed to be extended by the period of time during which the Customer fails to comply with his obligations towards Nanodrag. In case Nanodrag does not comply with its obligations Nanodrag shall only be liable for all types of damages in accordance with section 10 of these Terms and Conditions.<br>4.5 Nanodrag reserves the right to carry out a delivery using its own delivery organization.<br>4.6 Nanodrag may perform partial deliveries and render partial services if such action would not unreasonably affect the Customer.<br>4.7 The Customer may rescind the contract after two unsuccessful grace periods unless the hindrance is merely temporary in nature and a delay would not unreasonably affect the Customer.<br>4.8 Any contractual or statutory right of a Customer to rescind the contract, which the Customer fails to exercise within a reasonable period of time set by Nanodrag, shall be forfeited."
+                },
+                {
+                    "title": "5. Shipment, Passing of Risk",
+                    "body": "5.1. Unless otherwise expressly agreed, shipment shall always be carried out at the Customer's risk. The risk shall pass to the Customer as soon as the goods have been handed over to the person executing the shipment.<br>5.2 If a shipment is delayed for reasons to be attributed to the Customer, the risk of accidental deterioration, loss and destruction shall pass to the Customer on notification of Nanodrag’ readiness to ship. Required storage costs after passing of risk shall be borne by the Customer. This shall not affect any other claims.<br>5.3 If the Customer defaults in accepting, Nanodrag shall be entitled to claim refund of any expenditure associated therewith and the risk of accidental deterioration, loss and destruction shall pass to the Customer."
+                },
+                {
+                    "title": "6. Payment",
+                    "body": "6.1 Payment shall be made in full within 30 days from the date of the invoice. Payment shall be considered to have been made on the day the payable sum is received by Nanodrag. Bills of exchange and cheques shall not be deemed payment until after they have been honored and will be accepted without any obligation to make timely presentation and timely protest.<br>6.2 Immediately upon default of payment – or from the due date if Customer is a merchant within the meaning of the German Commercial Code (HGB) – Nanodrag reserves the right to claim a higher actual damage.<br>6.3 Customers may only withhold or offset due payments against their own counter-claims if these are uncontested or have been found to be legally binding.<br>6.4 Any of Nanodrag’ receivables shall be immediately payable in the event of a default in payment, a notice given in protest against a bill of exchange or suspension of the Customer's payments, independent of the term of the bills of exchange which may have already been accepted. In any of these aforementioned cases, Nanodrag shall also be able to perform remaining deliveries only against advance payment or provision of security, and, if no such advance payment is made or security provided within a two-week time period, to cancel the contract without fixing another extension term. This shall not affect any further claims."
+                },
+                {
+                    "title": "7. Retention of Title",
+                    "body": "7.1 Delivered goods shall fully remain property of Nanodrag (goods sold subject to retention of title) until all receivables, on whatever legal grounds, have been fully paid up.<br>7.2 In case of processing, combining or mixing of goods subject to retention of title with goods of the Customer, Nanodrag shall be entitled to co-ownership of the new property inasmuch as the invoiced value of goods sold with retention of title relates to the value of the other involved goods. Where Nanodrag co-ownership becomes null and void due to processing, combining or mixing with other goods, the Customer immediately assigns to Nanodrag those of his rights of ownership in the new property or compound matter which correspond to the amount of the value of goods subject to retention of title by Nanodrag. Customer shall also be responsible for holding such rights in safe custody on the behalf of Nanodrag and at Customer’s own expense. Any rights to co-ownership created as a result of such processing, combining or mixing shall be subject to section 7.1 of these Terms and Conditions.<br>7.3 The Customer may resell, process, combine or mix with other property, or otherwise integrate goods under retention of title in normal business operations, as long as the Customer is not defaulting. The Customer shall be prohibited from taking any other disposition regarding goods for which Nanodrag retains title. Nanodrag shall be promptly notified about any hypothecation or other seizure of goods under retention of title through a third party. All intervention costs will be charged to the Customer if and to the extent that they cannot be collected from such third party. If the Customer grants his buyer additional time for payment of the sales price, Customer shall reserve title in goods resold with retention of Nanodrag’ title under the same terms which Nanodrag has applied when delivering such goods with retention of title. The Customer shall be prohibited from any other kind of resale.<br>7.4 The Customer shall immediately assign to Nanodrag any receivables resulting from a resale of goods initially sold with retention of Nanodrag’ title. These will be used to substitute the goods under retention of title as collateral of the equivalent amount. The Customer shall only be entitled and authorized to resell such goods if his receivables therefrom accrue to Nanodrag.<br>7.5 If the Customer resells goods under retention of our title together with goods from other suppliers at a certain total price, Customer shall assign to Nanodrag his receivables from such resale in the same amount as stated in the invoice for goods initially sold with retention of title by Nanodrag.<br>7.6 If an assigned receivable is included into a current account, the Customer immediately assigns to Nanodrag that part of the balance which is equivalent to the amount of such receivable, including the final balance from current account operations.<br>7.7 Until Nanodrag gives notice of revocation, the Customer shall be authorized to collect receivables assigned to Nanodrag. Nanodrag shall be entitled to such revocation if the Customer fails to meet his payment obligations under the business relationship with Nanodrag in due course. If the preconditions for exercising a revocation right are fulfilled, the Customer shall promptly notify Nanodrag of any assigned receivables with respective debtors, furnish all data required for collection of such receivables, hand over all related documentation and advise the debtors of such assignment. Nanodrag reserves the right to personally advise the debtors of such assignment.<br>7.8 If the value of the collateral deposited for the benefit of Nanodrag exceeds the amount of secured claims by a total of more than fifty (50) per cent, the Customer shall be entitled to demand that Nanodrag insofar release securities of the choice of Nanodrag.<br>7.9 If Nanodrag claims retention of title, this shall only be understood as rescind of the contract if expressly stated so by Nanodrag in writing. The Customer's right to possess goods under retention of title shall be null and void if he fails to meet his contractual obligations."
+                },
+                {
+                    "title": "8. Warranty",
+                    "body": "8.1 The goods claimed to be defective shall be returned to Nanodrag for examination in their original or equivalent packaging. Nanodrag shall remedy defects if the warranty claim is valid and within the warranty period. It is at Nanodrag’ discretion whether Nanodrag remedies the defect by repair or replacement. Nanodrag shall only bear the costs necessary to remedy the defect.<br>8.2 Nanodrag shall be entitled to refuse to remedy defects in accordance with Nanodrag’ statutory rights. Nanodrag may refuse to remedy defects if the Customer has not complied with Nanodrag’ request to return the goods claimed to be defective.<br>8.3 The Customer shall be entitled to rescind the contract or reduce the contract price in accordance with his statutory rights, however, the Customer shall not be entitled to rescind the contract or to reduce the contract price, unless the Customer has previously given Nanodrag twice a reasonable period to remedy the defect which Nanodrag has failed to observe, unless setting of such a period to remedy defects is dispensable. In the event of rescission, Customer shall be liable for any intentional or negligent actions that cause destruction or loss of the goods as well as for failure to derive benefits from the goods.<br>8.4 If Nanodrag maliciously withholds disclosure of a defect or gives a quality warranty in accordance with section 444 of the German Civil Code (a representation by the seller that the goods will have certain qualities at the time the risk passes and acceptance by seller of strict liability in the event that they do not), the Customer’s rights shall be governed exclusively by the statutory provisions.<br>8.5 Any rights of the Customer to receive damages or compensation shall be governed by the provisions in section 10 of these Terms and Conditions.<br>8.6 Specifications of Nanodrag’ goods, especially pictures, drawings, data about weight, measure and capacity contained in offers and brochures are to be considered as average data. Such specifications and data shall in no way constitute a quality warranty but merely a description or labelling of the goods.<br>8.7 Unless limits for variations have expressly been agreed in the order confirmation, such variations shall be admissible that are customary within the trade.<br>8.8 Nanodrag shall not accept any liability for defects in the goods supplied if they are caused by normal wear and tear. The Customer shall have no rights against Nanodrag in respect of defects in goods sold as lower-class or used goods.<br>8.9 Any warranty shall be void if operating or maintenance instructions are not observed, if changes are made to deliveries or services, if parts are replaced or materials used that are not in accordance with the original product specifications by Nanodrag, unless the Customer can show that the defect in question resulted from another cause.<br>8.10 Provided that the Customer is a merchant, the Customer shall be obliged to notify defects to Nanodrag in writing or via fax.<br>8.11 The limitation period for claims for defects shall be 12 months (24 months in case the Customer is a consumer). This shall not apply to Customer’s claims for damages based on damages of body or health caused by a defect for which Nanodrag is responsible or claims for damages based on intentional or grossly negligent conduct by Nanodrag."
+                },
+                {
+                    "title": "9. Limited Liability",
+                    "body": "9.1 In case of a breach of contractual obligations, defective deliveries or tortious acts, Nanodrag shall only be obliged to compensate damages or expenses – subject to any other contractual or statutory conditions for liability – if Nanodrag has acted intentionally or with gross negligence or in cases of minor negligence, if such negligence results in the breach of an essential contractual duty (a duty the breach of which puts the fulfilment of the purpose of the contract at risk). However, in case of minor negligence, Nanodrag’ liability shall be limited to typical damages which are foreseeable at the time of the conclusion of the contract.<br>9.2 The liability of Nanodrag for losses caused by late delivery due to minor negligence shall be limited to 5% of the agreed purchase price.<br>9.3 The exclusions and limitations of liability in sections 10.1 – 10.2 shall not apply in cases of a quality warranty in accordance with section 444 of the German Civil Code (see section 9.4), in cases where Nanodrag has maliciously failed to disclose a defect, in case of damages resulting from death, injury to health or physical injury or where the laws on product liability impose overriding liabilities which cannot be excluded.<br>9.4 The limitation period for claims against Nanodrag – based on whatever legal ground – shall be 12 months (24 months in case Customer is a consumer) from the date of delivery to the Customer and in case of tortious claims, 12 months (24 months in case Customer is a consumer) from the date the Customer becomes aware or could have become aware of the grounds giving rise to a claim and the liable person, had the Customer not been grossly negligent. The provisions in this clause shall neither apply in cases of intentional or gross negligent breaches of duty nor shall they apply in cases referred to in section 10.3 of these Terms and Conditions.<br>9.5 If the Customer is an intermediary seller of the goods obtained from Nanodrag and the final purchaser of the goods is a consumer, the limitation period for any action of recourse against Nanodrag by the Customer shall be the period specified by statute."
+                },
+                {
+                    "title": "10. Industrial Property Rights, Copyrights",
+                    "body": "10.1 In the event of claims against the Customer because of breach of an industrial property right or a copyright in using deliveries or services supplied by Nanodrag in accordance with the contractually defined manner, Nanodrag shall be responsible to obtain the right for the Customer to continue using such deliveries or services, provided that the Customer gives immediate written notice of such third-party claims and Nanodrag’ rights to take all appropriate defensive and out-of-court actions are reserved. If, despite such actions, it proves impossible to continue using the deliveries or services supplied by Nanodrag under reasonable economic conditions, it shall be understood as agreed that Nanodrag may, at the discretion of Nanodrag, modify or replace the particular delivery or service for removal of a legal deficiency, or take back such delivery or service with refunding of the sales price previously paid to Nanodrag less a certain deduction to account for the age of the delivery or service in question.<br>10.2 The Customer shall have no further claims alleging infringement of industrial property or copyrights provided Nanodrag has neither violated essential contractual duties nor intentionally or grossly negligently breached contractual duties. Nanodrag shall have no obligations in accordance with section 10.1 in case breaches of rights are caused by exploiting the deliveries or services supplied by Nanodrag in any other manner than contractually defined or by operating these together with any other than Nanodrag deliveries or services."
+                },
+                {
+                    "title": "11. Confidentiality",
+                    "body": "11.1 Unless otherwise expressly stipulated in writing, no information provided to Nanodrag in connection with orders shall be regarded as confidential, unless their confidential nature is obvious.<br>11.2 Nanodrag points out that personal data in relation to the contractual relationship may be stored by Nanodrag and may be transferred to companies associated with Nanodrag in the Nanodrag Group."
+                }
+            ]
+        },
+        ES: {
+            pageTitle: 'Condiciones Generales de Venta',
+            metaDescription: 'Lea los Términos y Condiciones completos de NanoDrag, incluidas las definiciones legales, precios, garantías y términos de responsabilidad.',
+            heroTitle: 'Condiciones Generales de Venta',
+            sections: [
+                {
+                    "title": "Definiciones",
+                    "body": "<strong>Nanodrag</strong> significa Nanodrag Technology GmbH, la empresa que suministra los bienes o servicios, o una de sus filiales.<br><strong>Cliente</strong> significa la persona física, empresa u otra parte con la que el vendedor celebra el contrato.<br><strong>Contrato</strong> significa el pedido contractual para la compra de bienes o servicios."
+                },
+                {
+                    "title": "1. General",
+                    "body": "1.1 Cualquier entrega de bienes y servicios por parte de Nanodrag como vendedor al cliente (“Cliente”) estará sujeta a las Condiciones establecidas en este documento, salvo que se hayan hecho otros acuerdos explícitos. Las condiciones generales del Cliente que sean incompatibles con estas Condiciones solo serán aplicables en la medida en que Nanodrag las haya aprobado expresamente por escrito.<br>1.2 Las reclamaciones contra Nanodrag no podrán ser cedidas a terceros. El artículo 354a del Código de Comercio Alemán (HGB) no se verá afectado.<br>1.3 La venta, reventa y disposición de bienes y servicios, incluida cualquier tecnología o documentación asociada, puede estar sujeta a regulaciones de control de exportaciones alemanas, de la UE, de EE. UU. y de otros países. Cualquier reventa de bienes a países embargados o a personas denegadas o personas que utilicen o puedan utilizar los bienes con fines militares, armas ABC o tecnología nuclear está sujeta a una licencia oficial. El Cliente declara con su pedido que cumple con dichas leyes y regulaciones y que los bienes no se entregarán directa o indirectamente a países que prohíban o restrinjan la importación de dichos bienes. El Cliente declara haber obtenido todas las licencias necesarias para la exportación e importación."
+                },
+                {
+                    "title": "2. Información y Consultoría",
+                    "body": "La información y consultoría relacionada con los bienes y servicios de Nanodrag se proporciona según se considere apropiado a partir de la experiencia existente. Los valores citados, especialmente los datos de rendimiento, representan valores promedio determinados mediante ensayos en condiciones estándar de laboratorio. Nanodrag no asume ningún compromiso de que sus productos cumplan con exactitud los valores citados ni con las áreas de aplicación mencionadas. La sección 10 de estas Condiciones regula cualquier cuestión relativa a la responsabilidad."
+                },
+                {
+                    "title": "3. Precios",
+                    "body": "3.1 Solo serán aplicables los precios indicados en la confirmación del pedido de Nanodrag. Los servicios adicionales se facturarán por separado.<br>3.2 Todos los precios se indican como precios netos y no incluyen el impuesto sobre el valor añadido, que deberá ser abonado adicionalmente por el Cliente en la cuantía establecida por la legislación aplicable.<br>3.3 A menos que se acuerde expresamente lo contrario, los precios se cotizan franco fábrica (ex works) de la empresa Nanodrag que utiliza estas Condiciones. El Cliente asumirá todos los costes adicionales de transporte, costes de embalaje superiores al estándar, tasas públicas (incluidos impuestos retenidos) y derechos."
+                },
+                {
+                    "title": "4. Entrega",
+                    "body": "4.1 A menos que se acuerde expresamente lo contrario, Nanodrag entregará los productos ex works (EXW INCOTERMS 2010) desde la empresa Nanodrag que utiliza estas Condiciones.<br>4.2 Los plazos de entrega solo serán vinculantes si se acuerdan expresamente por escrito. Los plazos de entrega comenzarán en la fecha de la confirmación del pedido por parte de Nanodrag, pero nunca antes de haberse resuelto todos los detalles del pedido, incluida la presentación de los certificados oficiales necesarios. Los plazos de entrega se considerarán cumplidos si se notifica puntualmente la disposición para el envío, incluso si no se puede realizar el despacho de los bienes por causas no imputables a Nanodrag.<br>4.3 Con respecto a los plazos y fechas de entrega que no estén definidos expresamente como fijos en la confirmación del pedido, el Cliente podrá —dos semanas después del vencimiento de dicho plazo o fecha— fijar un plazo de gracia adecuado para la entrega. Nanodrag solo se considerará en mora tras el vencimiento de dicho plazo de gracia.<br>4.4 Sin perjuicio de los derechos de Nanodrag derivados del incumplimiento del Cliente, los plazos y fechas de entrega se entenderán prorrogados por el periodo en que el Cliente incumpla sus obligaciones frente a Nanodrag. En caso de que Nanodrag incumpla sus obligaciones, solo será responsable de los daños conforme a lo dispuesto en la sección 10 de estas Condiciones.<br>4.5 Nanodrag se reserva el derecho de efectuar la entrega utilizando su propia organización de transporte.<br>4.6 Nanodrag podrá realizar entregas y prestaciones parciales si ello no afecta de manera irrazonable al Cliente.<br>4.7 El Cliente podrá rescindir el contrato tras dos plazos de gracia fallidos, salvo que el impedimento sea meramente temporal y un retraso no afecte de manera irrazonable al Cliente.<br>4.8 Cualquier derecho contractual o legal del Cliente para rescindir el contrato que no se ejerza en un plazo razonable fijado por Nanodrag se considerará perdido."
+                },
+                {
+                    "title": "5. Envío, Transmisión del Riesgo",
+                    "body": "5.1 A menos que se acuerde expresamente lo contrario, el envío se realizará siempre por cuenta y riesgo del Cliente. El riesgo se transmitirá al Cliente tan pronto como los bienes se hayan entregado a la persona encargada del envío.<br>5.2 Si el envío se retrasa por causas imputables al Cliente, el riesgo de deterioro, pérdida y destrucción accidental se transmitirá al Cliente en el momento de la notificación de la disponibilidad de los bienes por parte de Nanodrag. Los costes de almacenamiento tras la transmisión del riesgo correrán a cargo del Cliente. Esto no afectará a otros posibles derechos.<br>5.3 Si el Cliente incurre en mora de aceptación, Nanodrag tendrá derecho a reclamar el reembolso de los gastos derivados, y el riesgo de deterioro, pérdida y destrucción accidental se transmitirá al Cliente."
+                },
+                {
+                    "title": "6. Pago",
+                    "body": "6.1 El pago deberá realizarse íntegramente en un plazo de 30 días a partir de la fecha de la factura. El pago se considerará efectuado el día en que Nanodrag reciba la cantidad correspondiente. Las letras de cambio y los cheques no se considerarán como pago hasta que hayan sido efectivamente cobrados y serán aceptados sin obligación de presentación o protesta oportuna.<br>6.2 Inmediatamente en caso de mora —o desde la fecha de vencimiento si el Cliente es un comerciante en el sentido del Código de Comercio Alemán (HGB)—, Nanodrag se reserva el derecho de reclamar un daño mayor real.<br>6.3 El Cliente solo podrá retener o compensar pagos vencidos con sus propias reclamaciones si estas no son controvertidas o han sido reconocidas legalmente.<br>6.4 Todas las cuentas por cobrar de Nanodrag serán exigibles de inmediato en caso de mora en el pago, protesta de una letra de cambio o suspensión de pagos del Cliente, independientemente del plazo de vencimiento de las letras de cambio previamente aceptadas. En cualquiera de estos casos, Nanodrag también podrá realizar las entregas restantes solo contra pago anticipado o prestación de garantía, y si no se realiza dicho pago o garantía dentro de un plazo de dos semanas, cancelar el contrato sin establecer otro plazo adicional. Esto no afecta otros posibles derechos adicionales."
+                },
+                {
+                    "title": "7. Reserva de Dominio",
+                    "body": "7.1 Los bienes entregados seguirán siendo propiedad de Nanodrag (bienes vendidos con reserva de dominio) hasta que se hayan pagado completamente todas las cuentas pendientes, sea cual sea el fundamento legal.<br>7.2 En caso de procesamiento, combinación o mezcla de bienes sujetos a reserva de dominio con bienes del Cliente, Nanodrag tendrá derecho a la copropiedad del nuevo bien en la medida en que el valor facturado de los bienes vendidos con reserva de dominio guarde proporción con el valor de los otros bienes involucrados. Si la copropiedad de Nanodrag quedara anulada debido al procesamiento, combinación o mezcla, el Cliente cede inmediatamente a Nanodrag sus derechos de propiedad sobre el nuevo bien o conjunto resultante en la medida correspondiente al valor de los bienes sujetos a reserva de dominio por parte de Nanodrag. El Cliente será responsable de conservar dichos derechos en nombre de Nanodrag y por su propia cuenta. Cualquier derecho de copropiedad creado como resultado del procesamiento, combinación o mezcla estará sujeto a la cláusula 7.1 de estas Condiciones.<br>7.3 El Cliente podrá revender, procesar, combinar o mezclar con otros bienes, o integrar de otro modo los bienes sujetos a reserva de dominio en operaciones comerciales normales, siempre que no incurra en mora. El Cliente no podrá disponer de otra forma sobre los bienes cuya titularidad conserva Nanodrag. Se deberá notificar de inmediato a Nanodrag cualquier embargo u otra incautación de los bienes por parte de terceros. Todos los costos de intervención correrán a cargo del Cliente si no pueden ser recuperados del tercero. Si el Cliente concede a su comprador un plazo adicional para el pago del precio de venta, deberá reservarse la propiedad de los bienes revendidos bajo las mismas condiciones que aplicó Nanodrag al entregar los bienes con reserva de dominio. El Cliente no podrá revender los bienes en otras condiciones.<br>7.4 El Cliente cede inmediatamente a Nanodrag los créditos derivados de la reventa de bienes inicialmente vendidos con reserva de dominio por Nanodrag. Estos servirán como garantía en sustitución de los bienes con reserva de dominio por el importe equivalente. El Cliente solo estará autorizado a revender dichos bienes si los créditos derivados de ello se transfieren a Nanodrag.<br>7.5 Si el Cliente revende los bienes sujetos a nuestra reserva de dominio junto con bienes de otros proveedores por un precio total determinado, cederá a Nanodrag los créditos de dicha reventa por el importe que figure en la factura de los bienes inicialmente vendidos con reserva de dominio por Nanodrag.<br>7.6 Si un crédito cedido se incluye en una cuenta corriente, el Cliente cederá inmediatamente a Nanodrag la parte del saldo correspondiente al importe de dicho crédito, incluido el saldo final de las operaciones en cuenta corriente.<br>7.7 Hasta que Nanodrag notifique su revocación, el Cliente estará autorizado a cobrar los créditos cedidos a Nanodrag. Nanodrag podrá ejercer dicha revocación si el Cliente no cumple puntualmente sus obligaciones de pago en la relación comercial con Nanodrag. Si se cumplen las condiciones para ejercer el derecho de revocación, el Cliente deberá informar de inmediato a Nanodrag sobre los créditos cedidos y sus respectivos deudores, facilitar todos los datos necesarios para su cobro, entregar toda la documentación relacionada y notificar a los deudores sobre la cesión. Nanodrag se reserva el derecho de informar directamente a los deudores sobre la cesión.<br>7.8 Si el valor de las garantías constituidas a favor de Nanodrag excede el importe de los créditos garantizados en más de un 50 %, el Cliente tendrá derecho a exigir a Nanodrag la liberación de garantías, a elección de Nanodrag.<br>7.9 Si Nanodrag hace valer la reserva de dominio, esto solo se considerará una rescisión del contrato si Nanodrag lo declara expresamente por escrito. El derecho del Cliente a poseer bienes sujetos a reserva de dominio quedará anulado si no cumple con sus obligaciones contractuales."
+                },
+                {
+                    "title": "8. Garantía",
+                    "body": "8.1 Los bienes reclamados como defectuosos deberán devolverse a Nanodrag para su examen en su embalaje original o equivalente. Nanodrag subsanará los defectos si la reclamación de garantía es válida y dentro del período de garantía. Nanodrag decidirá a su discreción si subsana el defecto mediante reparación o reemplazo. Nanodrag solo asumirá los costes necesarios para subsanar el defecto.<br>8.2 Nanodrag tendrá derecho a negarse a subsanar defectos conforme a sus derechos legales. Podrá negarse si el Cliente no ha cumplido con la solicitud de Nanodrag de devolver los bienes reclamados como defectuosos.<br>8.3 El Cliente tendrá derecho a rescindir el contrato o reducir el precio conforme a sus derechos legales. Sin embargo, no podrá hacerlo a menos que haya concedido previamente a Nanodrag dos plazos razonables para subsanar el defecto y estos hayan transcurrido sin éxito, salvo que no sea necesario fijar un plazo. En caso de rescisión, el Cliente será responsable por acciones intencionales o negligentes que causen la destrucción o pérdida de los bienes, así como por no aprovechar los beneficios de los mismos.<br>8.4 Si Nanodrag oculta maliciosamente un defecto o garantiza ciertas cualidades conforme al artículo 444 del Código Civil Alemán (una declaración de que los bienes tendrán ciertas cualidades en el momento de la transferencia del riesgo), los derechos del Cliente se regirán exclusivamente por las disposiciones legales.<br>8.5 Cualquier derecho del Cliente a recibir indemnización estará regulado por lo dispuesto en la sección 10 de estas Condiciones Generales.<br>8.6 Las especificaciones de los bienes de Nanodrag, en particular imágenes, dibujos, datos sobre peso, medida y capacidad incluidos en ofertas y folletos, deben considerarse datos promedio. Estas especificaciones no constituyen una garantía de calidad, sino únicamente una descripción o denominación de los bienes.<br>8.7 A menos que se acuerden expresamente límites de variación en la confirmación del pedido, se permitirán las variaciones habituales en el comercio.<br>8.8 Nanodrag no asumirá responsabilidad alguna por defectos derivados del desgaste normal. El Cliente no tendrá derechos contra Nanodrag respecto a bienes vendidos como de segunda clase o usados.<br>8.9 Toda garantía será inválida si no se observan las instrucciones de uso o mantenimiento, si se realizan modificaciones en las entregas o servicios, si se sustituyen piezas o se utilizan materiales no conformes con las especificaciones originales del producto de Nanodrag, salvo que el Cliente demuestre que el defecto se debió a otra causa.<br>8.10 Siempre que el Cliente sea un comerciante, estará obligado a notificar los defectos a Nanodrag por escrito o por fax.<br>8.11 El plazo de prescripción para reclamaciones por defectos será de 12 meses (24 meses si el Cliente es consumidor). Esto no se aplicará a las reclamaciones por daños corporales o a la salud causados por defectos cuya responsabilidad recae en Nanodrag ni a las reclamaciones por conductas dolosas o gravemente negligentes de Nanodrag."
+                },
+                {
+                    "title": "9. Responsabilidad Limitada",
+                    "body": "9.1 En caso de incumplimiento de obligaciones contractuales, entregas defectuosas o actos ilícitos, Nanodrag solo estará obligado a compensar daños o gastos –sujeto a otras condiciones contractuales o legales de responsabilidad– si ha actuado con dolo o negligencia grave, o en casos de negligencia leve cuando tal negligencia resulte en el incumplimiento de una obligación contractual esencial (una obligación cuyo incumplimiento pone en riesgo el cumplimiento del propósito del contrato). Sin embargo, en caso de negligencia leve, la responsabilidad de Nanodrag se limitará a los daños típicos previsibles al momento de la celebración del contrato.<br>9.2 La responsabilidad de Nanodrag por pérdidas causadas por retraso en la entrega debido a negligencia leve estará limitada al 5% del precio de compra acordado.<br>9.3 Las exclusiones y limitaciones de responsabilidad de las secciones 9.1 y 9.2 no se aplicarán en caso de una garantía de calidad conforme al artículo 444 del Código Civil Alemán (ver sección 9.4), ni en caso de ocultamiento doloso de un defecto, ni en caso de daños resultantes de fallecimiento, lesiones personales o daños a la salud, ni cuando la legislación sobre responsabilidad del producto imponga responsabilidades que no pueden ser excluidas.<br>9.4 El plazo de prescripción para reclamaciones contra Nanodrag –independientemente del fundamento legal– será de 12 meses (24 meses si el Cliente es consumidor) desde la fecha de entrega al Cliente, y en caso de reclamaciones extracontractuales, 12 meses (24 meses si el Cliente es consumidor) desde la fecha en que el Cliente tenga o podría haber tenido conocimiento de los hechos que dan lugar a la reclamación y de la persona responsable, a menos que haya actuado con negligencia grave. Estas disposiciones no se aplicarán en caso de incumplimiento intencionado o gravemente negligente ni en los casos contemplados en la sección 9.3.<br>9.5 Si el Cliente revende los bienes adquiridos a Nanodrag y el comprador final es un consumidor, el plazo de prescripción para cualquier acción de recurso contra Nanodrag será el establecido legalmente."
+                },
+                {
+                    "title": "10. Derechos de Propiedad Industrial y Derechos de Autor",
+                    "body": "10.1 En caso de que se presenten reclamaciones contra el Cliente por infracción de un derecho de propiedad industrial o de autor debido al uso de entregas o servicios suministrados por Nanodrag conforme al uso definido contractualmente, Nanodrag se responsabilizará de obtener el derecho para que el Cliente pueda continuar utilizando dichas entregas o servicios, siempre que el Cliente notifique inmediatamente por escrito dichas reclamaciones de terceros y se reserven los derechos de Nanodrag de adoptar todas las medidas defensivas y extrajudiciales adecuadas. Si, a pesar de estas medidas, resulta imposible continuar utilizando las entregas o servicios suministrados por Nanodrag en condiciones económicas razonables, se considerará acordado que Nanodrag, a su discreción, podrá modificar o reemplazar dicha entrega o servicio para eliminar la deficiencia legal, o bien retirar dicha entrega o servicio reembolsando el precio de venta previamente pagado a Nanodrag, deduciendo una cantidad razonable en función de la antigüedad del bien o servicio.<br>10.2 El Cliente no tendrá más reclamaciones por supuestas infracciones de derechos de propiedad industrial o de autor, salvo que Nanodrag haya incumplido obligaciones contractuales esenciales o haya actuado con dolo o negligencia grave. Nanodrag no tendrá obligaciones conforme a la sección 10.1 si las infracciones son causadas por el uso de las entregas o servicios de Nanodrag de forma distinta a la definida contractualmente o por su operación junto con productos o servicios no suministrados por Nanodrag."
+                },
+                {
+                    "title": "11. Confidencialidad",
+                    "body": "11.1 Salvo estipulación expresa por escrito en contrario, ninguna información proporcionada a Nanodrag en relación con pedidos será considerada confidencial, a menos que su naturaleza confidencial sea evidente.<br>11.2 Nanodrag señala que los datos personales relacionados con la relación contractual podrán ser almacenados por Nanodrag y transferidos a empresas asociadas del Grupo Nanodrag."
+                }
+            ]
+        },
+        DE: {
+            pageTitle: 'Allgemeine Verkaufsbedingungen',
+            metaDescription: 'Lesen Sie die vollständigen Allgemeinen Geschäftsbedingungen von NanoDrag mit rechtlichen Definitionen, Preisen, Garantien und Haftungshinweisen.',
+            heroTitle: 'Allgemeine Verkaufsbedingungen',
+            sections: [
+                {
+                    "title": "Begriffsbestimmungen",
+                    "body": "<strong>Nanodrag</strong> bezeichnet die Nanodrag Technology GmbH, das Unternehmen, das die Waren oder Dienstleistungen liefert, oder eine Tochtergesellschaft.<br><strong>Kunde</strong> bezeichnet die natürliche oder juristische Person oder sonstige Partei, mit der der Verkäufer einen Vertrag schließt.<br><strong>Vertrag</strong> bezeichnet die vertragliche Bestellung zum Kauf von Waren oder Dienstleistungen."
+                },
+                {
+                    "title": "1. Allgemeines",
+                    "body": "1.1 Jede Lieferung von Waren und Dienstleistungen durch Nanodrag als Verkäufer an den Kunden („Kunde“) unterliegt den nachstehenden Allgemeinen Geschäftsbedingungen, sofern keine abweichenden Vereinbarungen ausdrücklich getroffen wurden. Allgemeinen Geschäftsbedingungen des Kunden, die von diesen Bedingungen abweichen, wird nur Geltung beigemessen, wenn Nanodrag diesen ausdrücklich schriftlich zugestimmt hat.<br>1.2 Ansprüche gegen Nanodrag dürfen nicht an Dritte abgetreten werden. § 354a HGB bleibt hiervon unberührt.<br>1.3 Der Verkauf, Weiterverkauf und die Entsorgung von Waren und Dienstleistungen einschließlich etwaiger zugehöriger Technologie oder Dokumentation kann den deutschen, EU- und US-amerikanischen Exportkontrollvorschriften sowie denen weiterer Länder unterliegen. Der Weiterverkauf in Embargoländer oder an gesperrte Personen oder an Personen, die die Waren für militärische Zwecke, ABC-Waffen oder Nukleartechnologie verwenden oder verwenden könnten, unterliegt einer behördlichen Genehmigung. Der Kunde erklärt mit seiner Bestellung die Einhaltung solcher Gesetze und Vorschriften und dass die Waren weder direkt noch indirekt in Länder geliefert werden, die deren Einfuhr verbieten oder einschränken. Der Kunde erklärt, alle für den Export und Import erforderlichen Genehmigungen eingeholt zu haben."
+                },
+                {
+                    "title": "2. Informationen, Beratung",
+                    "body": "Informationen und Beratungen in Bezug auf Waren und Dienstleistungen von Nanodrag erfolgen nach bestem Wissen und auf Grundlage bestehender Erfahrungen. Alle dabei angegebenen Werte, insbesondere Leistungsdaten, stellen Durchschnittswerte dar, die unter Standardlaborbedingungen ermittelt wurden. Nanodrag übernimmt keine Verpflichtung, dass die Produkte exakt den angegebenen Werten oder Anwendungsbereichen entsprechen. Fragen der Haftung regelt Abschnitt 10 dieser Bedingungen."
+                },
+                {
+                    "title": "3. Preise",
+                    "body": "3.1 Es gelten ausschließlich die in der Auftragsbestätigung von Nanodrag angegebenen Preise. Zusatzleistungen werden gesondert in Rechnung gestellt.<br>3.2 Alle Preise verstehen sich als Nettopreise und enthalten keine gesetzliche Mehrwertsteuer, die vom Kunden zusätzlich in gesetzlicher Höhe zu entrichten ist.<br>3.3 Sofern nicht ausdrücklich anders vereinbart, gelten die Preise ab Werk des Unternehmens Nanodrag, das diese Bedingungen verwendet. Der Kunde trägt sämtliche zusätzlichen Frachtkosten, Verpackungskosten über die Standardverpackung hinaus, öffentliche Abgaben (einschließlich Quellensteuer) und Zölle."
+                },
+                {
+                    "title": "4. Lieferung",
+                    "body": "4.1 Sofern nicht ausdrücklich anders vereinbart, liefert Nanodrag ab Werk (EXW INCOTERMS 2010) des Unternehmens Nanodrag, das diese Bedingungen verwendet.<br>4.2 Lieferfristen sind nur verbindlich, wenn sie ausdrücklich schriftlich vereinbart wurden. Die Fristen beginnen mit dem Datum der Auftragsbestätigung durch Nanodrag, jedoch niemals vor Klärung aller für die Bestellung relevanten Details, einschließlich der Vorlage etwaiger erforderlicher behördlicher Genehmigungen. Eine Lieferfrist gilt als eingehalten, wenn die Versandbereitschaft rechtzeitig mitgeteilt wird, selbst wenn die Ware aus von Nanodrag nicht zu vertretenden Gründen nicht rechtzeitig versendet werden kann.<br>4.3 Bei nicht ausdrücklich als fest vereinbarten Lieferfristen kann der Kunde zwei Wochen nach Ablauf der Lieferfrist eine angemessene Nachfrist setzen. Ein Verzug von Nanodrag liegt erst nach Ablauf dieser Nachfrist vor.<br>4.4 Unbeschadet der Rechte von Nanodrag aus einem Verzug des Kunden verlängern sich Lieferfristen und -termine um den Zeitraum, in dem der Kunde seinen Verpflichtungen gegenüber Nanodrag nicht nachkommt. Bei einem Versäumnis seitens Nanodrag haftet das Unternehmen nur im Rahmen von Abschnitt 10 dieser Bedingungen.<br>4.5 Nanodrag behält sich vor, Lieferungen mit eigenem Lieferservice durchzuführen.<br>4.6 Teillieferungen und Teilleistungen sind zulässig, sofern sie dem Kunden zumutbar sind.<br>4.7 Der Kunde kann nach zwei erfolglosen Nachfristen vom Vertrag zurücktreten, es sei denn, das Leistungshindernis ist nur vorübergehend und eine Verzögerung ist für den Kunden nicht unzumutbar.<br>4.8 Vertrags- oder gesetzliche Rücktrittsrechte des Kunden verfallen, wenn sie nicht innerhalb einer von Nanodrag gesetzten angemessenen Frist ausgeübt werden."
+                },
+                {
+                    "title": "5. Versand, Gefahrübergang",
+                    "body": "5.1 Sofern nicht ausdrücklich anders vereinbart, erfolgt der Versand stets auf Gefahr des Kunden. Die Gefahr geht auf den Kunden über, sobald die Ware der mit dem Versand beauftragten Person übergeben wurde.<br>5.2 Verzögert sich der Versand aus vom Kunden zu vertretenden Gründen, geht die Gefahr des zufälligen Untergangs, Verlusts oder der Verschlechterung der Ware mit Anzeige der Versandbereitschaft auf den Kunden über. Nach Gefahrübergang anfallende Lagerkosten trägt der Kunde. Weitere Ansprüche bleiben unberührt.<br>5.3 Gerät der Kunde in Annahmeverzug, ist Nanodrag berechtigt, Ersatz der durch die Verzögerung entstandenen Kosten zu verlangen. Auch in diesem Fall geht die Gefahr des zufälligen Untergangs, Verlusts oder der Verschlechterung auf den Kunden über."
+                },
+                {
+                    "title": "6. Zahlung",
+                    "body": "6.1 Die Zahlung ist innerhalb von 30 Tagen nach Rechnungsdatum vollständig zu leisten. Eine Zahlung gilt als erfolgt, sobald der fällige Betrag bei Nanodrag eingegangen ist. Wechsel und Schecks gelten erst nach Einlösung als Zahlung und werden ohne Verpflichtung zur rechtzeitigen Vorlage und Protestannahme akzeptiert.<br>6.2 Bei Zahlungsverzug – oder ab Fälligkeit, wenn der Kunde Kaufmann im Sinne des HGB ist – ist Nanodrag berechtigt, einen höheren tatsächlichen Verzugsschaden geltend zu machen.<br>6.3 Der Kunde darf fällige Zahlungen nur mit unbestrittenen oder rechtskräftig festgestellten Gegenforderungen aufrechnen oder zurückhalten.<br>6.4 Sämtliche Forderungen von Nanodrag werden sofort fällig, wenn sich der Kunde im Zahlungsverzug befindet, ein Wechselprotest vorliegt oder der Kunde seine Zahlungen einstellt, unabhängig von der Laufzeit etwaiger bereits akzeptierter Wechsel. In diesen Fällen ist Nanodrag berechtigt, ausstehende Lieferungen nur gegen Vorauszahlung oder Sicherheitsleistung durchzuführen. Erfolgt diese nicht innerhalb von zwei Wochen, kann Nanodrag vom Vertrag zurücktreten. Weitere Ansprüche bleiben unberührt."
+                },
+                {
+                    "title": "7. Eigentumsvorbehalt",
+                    "body": "7.1 Die gelieferten Waren bleiben bis zur vollständigen Bezahlung sämtlicher Forderungen aus der Geschäftsbeziehung Eigentum von Nanodrag.<br>7.2 Bei Verarbeitung, Verbindung oder Vermischung der unter Eigentumsvorbehalt stehenden Waren mit anderen, dem Kunden gehörenden Waren, steht Nanodrag ein Miteigentumsanteil an der neuen Sache zu, entsprechend dem Verhältnis des Rechnungswerts der Vorbehaltsware zum Wert der anderen verwendeten Waren. Erlischt das Miteigentum durch Verarbeitung, Verbindung oder Vermischung, überträgt der Kunde bereits jetzt die ihm zustehenden Eigentumsrechte an der neuen Sache in Höhe des Rechnungswerts der Vorbehaltsware an Nanodrag und verwahrt diese unentgeltlich für Nanodrag.<br>7.3 Der Kunde darf die Vorbehaltsware im ordentlichen Geschäftsgang weiterveräußern, verarbeiten oder vermischen, solange er nicht in Verzug ist. Andere Verfügungen über die Ware sind unzulässig. Verpfändungen oder Sicherungsübereignungen sind unzulässig. Der Kunde hat Nanodrag über Zwangsvollstreckungsmaßnahmen Dritter in die Vorbehaltsware unverzüglich schriftlich zu unterrichten. Der Kunde trägt alle Kosten, die zur Aufhebung des Zugriffs und zur Wiederbeschaffung der Ware aufgewendet werden müssen, soweit diese nicht von Dritten erstattet werden.<br>7.4 Der Kunde tritt sämtliche Forderungen aus der Weiterveräußerung der Vorbehaltsware schon jetzt in Höhe des Rechnungswerts der Vorbehaltsware an Nanodrag ab. Diese Abtretung dient der Sicherung in demselben Umfang wie die Vorbehaltsware.<br>7.5 Wird die Vorbehaltsware vom Kunden zusammen mit anderen, nicht Nanodrag gehörenden Waren zu einem Gesamtpreis veräußert, tritt der Kunde schon jetzt seine Forderung aus der Weiterveräußerung in Höhe des Anteils der Vorbehaltsware an Nanodrag ab.<br>7.6 Wird die abgetretene Forderung in ein Kontokorrent aufgenommen, tritt der Kunde seine Forderung aus dem Kontokorrentverhältnis in Höhe des Betrags ab, der dem ursprünglich abgetretenen Forderungsbetrag entspricht.<br>7.7 Der Kunde ist bis zum Widerruf durch Nanodrag berechtigt, die an Nanodrag abgetretenen Forderungen einzuziehen. Der Widerruf ist zulässig, wenn der Kunde seinen Zahlungsverpflichtungen nicht ordnungsgemäß nachkommt. Nach Widerruf hat der Kunde Nanodrag alle zur Geltendmachung der Forderung notwendigen Angaben zu machen, Unterlagen auszuhändigen und den Schuldnern die Abtretung mitzuteilen.<br>7.8 Übersteigt der realisierbare Wert der für Nanodrag bestehenden Sicherheiten die Forderungen von Nanodrag insgesamt um mehr als 50 %, ist Nanodrag auf Verlangen des Kunden zur Freigabe von Sicherheiten nach eigener Wahl verpflichtet.<br>7.9 Die Geltendmachung des Eigentumsvorbehalts durch Nanodrag gilt nur dann als Rücktritt vom Vertrag, wenn dies ausdrücklich schriftlich erklärt wird. Das Besitzrecht des Kunden an der Vorbehaltsware erlischt, wenn er seine vertraglichen Verpflichtungen nicht erfüllt."
+                },
+                {
+                    "title": "8. Gewährleistung",
+                    "body": "8.1 Die als mangelhaft beanstandeten Waren sind in der Originalverpackung oder einer gleichwertigen Verpackung an Nanodrag zur Prüfung zurückzusenden. Nanodrag wird Mängel beheben, sofern der Gewährleistungsanspruch berechtigt und innerhalb der Gewährleistungsfrist geltend gemacht wurde. Es liegt im Ermessen von Nanodrag, ob der Mangel durch Reparatur oder Ersatzlieferung behoben wird. Nanodrag übernimmt nur die zur Mängelbehebung erforderlichen Kosten.<br>8.2 Nanodrag ist berechtigt, die Mängelbeseitigung gemäß den gesetzlichen Vorschriften abzulehnen. Eine Mängelbeseitigung kann auch abgelehnt werden, wenn der Kunde der Aufforderung von Nanodrag zur Rücksendung der beanstandeten Ware nicht nachkommt.<br>8.3 Der Kunde ist berechtigt, vom Vertrag zurückzutreten oder den Kaufpreis zu mindern, soweit dies gesetzlich vorgesehen ist. Der Kunde ist jedoch nur dann zum Rücktritt oder zur Minderung berechtigt, wenn er Nanodrag zuvor zweimal eine angemessene Frist zur Mängelbeseitigung gesetzt hat und diese Fristen erfolglos verstrichen sind, es sei denn, eine Fristsetzung ist entbehrlich. Im Falle des Rücktritts haftet der Kunde für vorsätzliche oder fahrlässige Beschädigungen oder Verluste sowie für die unterlassene Nutzung der Ware.<br>8.4 Hat Nanodrag einen Mangel arglistig verschwiegen oder eine Beschaffenheitsgarantie gemäß § 444 BGB übernommen, richten sich die Rechte des Kunden ausschließlich nach den gesetzlichen Bestimmungen.<br>8.5 Etwaige Ansprüche des Kunden auf Schadensersatz oder Aufwendungsersatz richten sich nach den Bestimmungen in Abschnitt 9 dieser Allgemeinen Geschäftsbedingungen.<br>8.6 Angaben zu den Produkten von Nanodrag, insbesondere Abbildungen, Zeichnungen, Gewichts-, Maß- und Leistungsangaben in Angeboten und Broschüren, sind als Durchschnittswerte zu verstehen. Solche Angaben stellen keine zugesicherten Eigenschaften dar, sondern dienen lediglich der Beschreibung oder Kennzeichnung der Produkte.<br>8.7 Sofern im Auftrag nicht ausdrücklich Abweichungstoleranzen vereinbart wurden, sind handelsübliche Abweichungen zulässig.<br>8.8 Für Mängel, die durch normale Abnutzung entstehen, übernimmt Nanodrag keine Haftung. Bei als mindere Qualität oder gebrauchte Ware verkauften Produkten bestehen gegenüber Nanodrag keine Mängelansprüche.<br>8.9 Eine Gewährleistung entfällt, wenn Betriebs- oder Wartungsanweisungen nicht beachtet werden, Änderungen an den Lieferungen oder Leistungen vorgenommen werden, Teile ersetzt oder Materialien verwendet werden, die nicht den Originalspezifikationen von Nanodrag entsprechen, es sei denn, der Kunde weist nach, dass der Mangel nicht hierauf zurückzuführen ist.<br>8.10 Ist der Kunde Kaufmann, so hat er Mängel schriftlich oder per Fax anzuzeigen.<br>8.11 Die Verjährungsfrist für Mängelansprüche beträgt 12 Monate (bei Verbrauchern 24 Monate). Dies gilt nicht für Schadensersatzansprüche des Kunden wegen Verletzung von Leben, Körper oder Gesundheit infolge eines Mangels, für den Nanodrag verantwortlich ist, oder für Schadensersatzansprüche aufgrund vorsätzlichen oder grob fahrlässigen Verhaltens seitens Nanodrag."
+                },
+                {
+                    "title": "9. Haftungsbeschränkung",
+                    "body": "9.1 Bei Verletzungen vertraglicher Pflichten, mangelhafter Lieferung oder unerlaubter Handlung haftet Nanodrag – vorbehaltlich anderer vertraglicher oder gesetzlicher Haftungsvoraussetzungen – nur bei Vorsatz oder grober Fahrlässigkeit oder bei einfacher Fahrlässigkeit, wenn dadurch eine wesentliche Vertragspflicht verletzt wurde (eine Pflicht, deren Verletzung die Erreichung des Vertragszwecks gefährdet). Im Falle einfacher Fahrlässigkeit ist die Haftung von Nanodrag jedoch auf vorhersehbare, vertragstypische Schäden begrenzt.<br>9.2 Die Haftung von Nanodrag für Schäden aufgrund verspäteter Lieferung infolge einfacher Fahrlässigkeit ist auf 5 % des vereinbarten Kaufpreises begrenzt.<br>9.3 Die in Abschnitt 9.1 – 9.2 genannten Haftungsausschlüsse und -beschränkungen gelten nicht bei einer Beschaffenheitsgarantie im Sinne des § 444 BGB (siehe Abschnitt 9.4), bei arglistigem Verschweigen eines Mangels, bei Schäden aus der Verletzung des Lebens, des Körpers oder der Gesundheit sowie bei gesetzlich vorgeschriebener, nicht abdingbarer Produkthaftung.<br>9.4 Die Verjährungsfrist für Ansprüche gegen Nanodrag – gleich aus welchem Rechtsgrund – beträgt 12 Monate (bei Verbrauchern 24 Monate) ab Lieferung an den Kunden. Bei deliktischen Ansprüchen beträgt die Verjährungsfrist 12 Monate (bei Verbrauchern 24 Monate) ab dem Zeitpunkt, an dem der Kunde von den anspruchsbegründenden Umständen und der haftenden Person Kenntnis erlangt oder ohne grobe Fahrlässigkeit hätte erlangen müssen. Diese Regelung gilt nicht bei vorsätzlicher oder grob fahrlässiger Pflichtverletzung sowie in den in Abschnitt 9.3 genannten Fällen.<br>9.5 Ist der Kunde Zwischenhändler und erfolgt der Endverkauf an einen Verbraucher, so gelten für Rückgriffsansprüche des Kunden gegen Nanodrag die gesetzlichen Verjährungsfristen."
+                },
+                {
+                    "title": "10. Gewerbliche Schutzrechte und Urheberrechte",
+                    "body": "10.1 Wird der Kunde aufgrund der vertragsgemäßen Nutzung der von Nanodrag gelieferten Produkte oder Dienstleistungen wegen der Verletzung eines gewerblichen Schutzrechts oder Urheberrechts in Anspruch genommen, so wird Nanodrag dem Kunden das Recht zum weiteren Gebrauch verschaffen, sofern der Kunde Nanodrag unverzüglich schriftlich über derartige Ansprüche Dritter informiert und Nanodrag sämtliche Verteidigungsmaßnahmen – sowohl gerichtlich als auch außergerichtlich – vorbehalten bleiben. Ist es unter wirtschaftlich vertretbaren Bedingungen nicht möglich, die vertragsgemäße Nutzung der Lieferung oder Leistung aufrechtzuerhalten, ist Nanodrag berechtigt, die betroffene Lieferung oder Leistung nach eigener Wahl zu ändern oder zu ersetzen, um die Rechtsverletzung zu beseitigen, oder die Lieferung oder Leistung zurückzunehmen und den Kaufpreis abzüglich eines Nutzungsabschlags zu erstatten.<br>10.2 Weitere Ansprüche des Kunden wegen der Verletzung gewerblicher Schutzrechte oder Urheberrechte bestehen nicht, sofern Nanodrag keine wesentlichen Vertragspflichten vorsätzlich oder grob fahrlässig verletzt hat. Eine Haftung von Nanodrag gemäß Abschnitt 10.1 besteht insbesondere nicht, wenn die Rechtsverletzung durch eine nicht vertragsgemäße Nutzung der Lieferung oder Leistung oder durch deren Kombination mit anderen nicht von Nanodrag gelieferten Produkten oder Dienstleistungen verursacht wurde."
+                },
+                {
+                    "title": "11. Vertraulichkeit",
+                    "body": "11.1 Sofern nicht ausdrücklich schriftlich anders vereinbart, gelten Informationen, die dem Kunden im Zusammenhang mit Bestellungen an Nanodrag übermittelt werden, nicht als vertraulich, es sei denn, deren vertraulicher Charakter ist offensichtlich.<br>11.2 Nanodrag weist darauf hin, dass personenbezogene Daten im Zusammenhang mit der Vertragsbeziehung gespeichert und an mit Nanodrag verbundene Unternehmen innerhalb der Nanodrag-Gruppe übermittelt werden können."
+                }
+            ]
+        }
+    };
+
+    const langContent = content[lang] || content.EN;
 
     Product.find()
         .then(products => {
             res.render('customer/tearmCondition', {
-                pageTitle: 'Terms and Conditions',
+                ...langContent,
                 path: '/TermCondition',
-                products: products,
-                lang // <- pass it to EJS
+                products,
+                lang
             });
         })
         .catch(err => {
             console.error(err);
             res.redirect('/EN');
         });
-
 };
-exports.getPrivacyPolicy = (req, res, next) => {
-    const lang = req.query.lang || 'EN'; // <- 🔄 language detection
 
+exports.getPrivacyPolicy = (req, res, next) => {
+    const supportedLangs = ['EN', 'ES', 'DE'];
+    const rawLang = req.params.lang?.toUpperCase() || 'EN';
+    const lang = supportedLangs.includes(rawLang) ? rawLang : 'EN';
     Product.find()
         .then(products => {
+            const privacyPolicyContent = {
+                EN: {
+                    pageTitle: "Privacy Policy",
+                    metaDescription: "Read DragLab's Data Protection and Privacy Policy. Learn how we collect, use, and protect your information.",
+                    status: "01.01.2019",
+                    contactInfo: `
+                            The responsible body, i.e. the data controller, within the meaning of the data protection laws
+                            is:
+                            <br>
+                            NanoDrag Technology GmbH<br>
+                             Alfred-Herrhausen-Allee 3-5<br>
+                             D-65760 Eschborn Germany<br>
+                            Tel: +49 6196 400816<br>
+                            Fax: +49 6196 400910<br>
+                            <span class="highlighted">Email: <a href="mailto:info@drag-lab.de">info@drag-lab.de</a> <br>
+                                Website: <a href="https://www.drag-lab.de">www.drag-lab.de</a><br></span>
+                            Head office: Eschborn<br>
+                            Registration court: Amtsgericht Eschborn - HRB 97258<br>
+                            Legal Form: Gesellschaft mit Beschränkter Haftung<br>
+                            Trade Register: Eschborn HRB 97258<br>
+                            Place of Registration: Eschborn<br>
+                           Alfred-Herrhausen-Allee 3-5<br>
+                             D-65760 Eschborn Germany<br>
+    `,
+                    sections: [
+                        {
+                            title: "1. The collection of general information",
+                            body: `When you visit our website, certain general information is automatically collected and stored in server log files. This may include:
+
+                    <ul>
+                        <li>
+                            Browser type and version
+                        </li>
+                        <li>
+                            Operating system used
+                        </li>
+                        <li>
+                            Referrer URL
+                        </li>
+                        <li>
+                            Host name of the accessing computer (IP address)
+                        </li>
+                        <li>
+                            Date and time of the server request
+                        </li>
+                        <li>
+                            Other similar data required for secure and stable website operation
+                        </li>
+                    </ul>
+                    <br>
+                    This information is technically necessary to ensure a smooth connection setup, system security, and proper delivery of our website content.
+
+                    Although this data does not directly identify a specific individual, it may qualify as personal data under applicable data protection laws.
+
+                    Legal basis: The processing of this data is based on Art. 6(1)(f) GDPR. Our legitimate interest lies in maintaining the functionality, security, and optimization of our website.
+
+                    Storage duration: Log data is stored temporarily and automatically deleted after a maximum of 14 days, unless longer retention is required for security or legal purposes.`
+                        },
+                        {
+                            title: "2. Cookies",
+                            body: `   We use cookies on our website. Cookies are small text files that are stored on your device when you visit our site.
+    They help us provide, improve, and personalize our services. <br>
+
+    We differentiate between:
+    <ul>
+        <li>
+            <span class="text-bold">Essential cookies:</span> Required for the basic functioning of the website (e.g. language
+            settings, session management).
+
+        </li>
+        <li>
+            <span class="text-bold">Analytics cookies:</span> Used to collect anonymized data on how users interact with the site
+            (e.g. Google Analytics).
+
+        </li>
+        <li>
+            <span class="text-bold">Marketing cookies:</span> Used by third parties to display personalized ads or track user
+            behavior across websites.
+
+        </li>
+    </ul>
+    <br>
+  <span class="text-bold">Legal basis:</span>
+    <br>
+    <ul>
+        <li>
+            Essential cookies are processed based on our legitimate interest in ensuring the website’s functionality
+            (Art.
+            6(1)(f) GDPR).
+        </li>
+        <li>
+            All other cookies (analytics, marketing) are processed only with your explicit consent (Art. 6(1)(a) GDPR),
+            which
+            you provide via our cookie banner.
+        </li>
+    </ul>
+
+
+
+
+
+    You can manage or withdraw your consent at any time through the cookie settings link at the bottom of our website.
+
+    Most browsers accept cookies by default. You can configure your browser to reject cookies or notify you before they
+    are set. However, disabling cookies may affect the full functionality of this website.
+
+    For more information, please see our [Cookie Policy].`
+                        },
+
+                        {
+                            title: "3. Newsletter",
+                            body: `If you subscribe to our newsletter, we will use the personal data you provide (typically your email address) exclusively to send you information about our company, products, services, and updates.
+ <br>
+ <span class="text-bold"> Subscription process: </span> <br>
+We use a double opt-in procedure to verify your identity. After entering your email address, you will receive a confirmation email with a link to finalize your subscription. Only after confirmation will you be added to our mailing list.
+ <br>
+<span class="text-bold"> Legal basis: </span> <br>
+The processing of your data is based on your consent (Art. 6(1)(a) GDPR). You can withdraw your consent at any time with effect for the future by clicking the unsubscribe link in any newsletter or contacting us directly at <a class="highlighted" href="mailto:info@drag-lab.de">info@drag-lab.de</a>.
+ <br>
+ <span class="text-bold"> Data storage & third-party services: </span> <br>
+Your data is stored securely and will not be shared with third parties, except where we use an email service provider (e.g. Mailchimp, Brevo). These providers process data only on our behalf and in accordance with data protection agreements.
+ <br>
+ <span class="text-bold"> Optional analytics (if used): </span> <br>
+Our newsletters may contain tracking pixels to help us understand user engagement. You can opt out at any time by unsubscribing.
+`
+                        },
+                        {
+                            title: "4. Data Collected Through Forms",
+                            body: `Our website offers several forms through which you can contact us, request technical support, or register your
+    product warranty. When you use these forms, we collect the personal data you provide in order to respond to your
+    inquiry or process your request.
+    <br>
+    <span class="text-bold">The types of data collected may include:</span>
+    <ul>
+        <li>
+            <span class="text-bold">Contact Form:</span> First name, last name, email address, subject, and message
+        </li>
+        <li>
+            <span class="text-bold">Technical Support Form:</span> Contact type (individual/company), company name,
+            department, salutation, full name, address details, phone, fax, email, date of failure, device category and
+            model, serial number, and description of the issue
+        </li>
+        <li>
+            <span class="text-bold">Warranty Registration Form:</span> Name, email address, date of purchase,
+            device category and model, serial number, technical concern, and additional message
+        </li>
+    </ul>
+
+    <span class="text-bold">Purpose of processing:</span>
+    We use the data solely to process your inquiry, provide customer support, and manage warranty or service-related
+    follow-ups.
+    <br>
+    <span class="text-bold">Legal basis:</span>
+    Processing is carried out either:
+    <ul>
+        <li>
+            Based on your consent (Art. 6(1)(a) GDPR), given when you submit the form; or
+        </li>
+        <li>
+            Where applicable, for the performance of a contract or pre-contractual measures (Art. 6(1)(b) GDPR).
+        </li>
+    </ul>
+
+    <br>
+    <span class="text-bold">Data retention:</span>
+    We retain your data only for as long as necessary to fulfill the purpose of the request, unless statutory retention
+    obligations apply (e.g. legal, warranty, or tax-related documentation requirements).
+    <br>
+    <span class="text-bold"></span>Third-party processors:</span>
+    Your data may be processed by authorized employees of DragLab or trusted service providers (e.g. hosting, email, or
+    CRM platforms) bound by data protection agreements and confidentiality.`
+                        }, {
+                            title: "5. Use of Microsoft Clarity",
+                            body: `
+We use Microsoft Clarity, a user behavior analytics tool provided by: <br>
+
+<span class="text-bold">Microsoft Corporation</span><br>
+<span class="text-bold">One Microsoft Way, Redmond, WA 98052-6399, USA</span><br>
+
+Clarity uses cookies and similar technologies to collect and process usage data such as mouse movements, page scrolls, click behavior, device information, and referring URLs. This helps us understand how users interact with our website and improve its usability and content structure. <br>
+
+Microsoft may use the collected data for its own business purposes, as described in the <a class="highlighted" href="https://privacy.microsoft.com/" class="highlighted">Microsoft Privacy Statement</a>.
+
+<span class="text-bold">Legal basis:</span>
+The use of Microsoft Clarity is based on your consent under Art. 6(1)(a) GDPR, which you provide through our cookie banner. You may withdraw your consent at any time via the cookie settings link at the bottom of our site.
+
+<span class="text-bold">Data transfer:</span>
+Data may be transferred to servers in the United States. Microsoft is certified under the EU-U.S. Data Privacy Framework.
+
+<span class="text-bold">Opt-out:</span>
+You can control the collection of data by configuring your browser settings or managing your cookie preferences on our website.
+
+
+`
+                        },
+                        {
+                            title: "6. Use of Google Analytics",
+                            body: `
+This website uses Google Analytics, a web analytics service provided by: <br>
+
+<span class="text-bold">Google Ireland Limited</span><br>
+Gordon House, Barrow Street<br>
+Dublin 4, Ireland<br>
+
+Google Analytics uses cookies to analyze how users interact with our website. The information generated (e.g. IP address, user behavior, browser type) is generally transferred to a Google server in the United States and stored there. We have enabled IP anonymization on this website, which means that your IP address will be shortened within the European Union before being transmitted to Google. <br>
+
+Google processes this data on our behalf under a data processing agreement (as per Art. 28 GDPR). You can learn more about how <a class="highlighted" href="https://policies.google.com/privacy">Google handles personal data here</a>
+<br>
+<span class="text-bold">Legal basis:</span> <br>
+Analytics cookies and the use of Google Analytics are based on your explicit consent (Art. 6(1)(a) GDPR), which you provide through our cookie banner. You can withdraw your consent at any time via the [cookie settings] on our site.
+<br>
+<span class="text-bold">Retention:</span><br>
+User-level and event-level data associated with cookies and user identifiers is retained for a maximum of 14 months, after which it is automatically deleted.
+<br>
+<span class="text-bold">Opt-out options:</span><br>
+You can:<br>    
+
+<ul>
+    <li>
+        Withdraw consent via our cookie settings        
+    </li>
+    <li>
+        Install the official browser plugin: Google Analytics Opt-out Add-on
+    </li>
+    <li>
+        Set your browser to block cookies
+    </li>
+</ul>
+
+`
+                        },
+                        {
+                            title: "7. Use of Google Ads Conversion Tracking",
+                            body: `
+    Our website uses the conversion tracking feature of Google Ads, a service provided by: <br>
+
+<span class="text-bold"> Google Ireland Limited </span> <br>
+Gordon House, Barrow Street<br>
+Dublin 4, Ireland<br>
+
+When you click on an ad served by Google, a cookie is placed on your device. This cookie enables us to track conversions — for example, whether you completed a form or visited a specific page. These cookies expire after 30 days and do not contain personally identifiable information.<br>
+
+However, if you visit certain pages while the cookie is active, Google and we may recognize that you clicked on an ad and were redirected to our site. This allows Google to compile conversion statistics for us (e.g. total number of conversions). We do not receive any data that personally identifies users.
+
+<span class="text-bold">Legal basis:</span><br>
+The use of Google Ads and conversion tracking cookies is based on your explicit consent (Art. 6(1)(a) GDPR), provided through our cookie banner.
+
+<span class="text-bold"></span>Data sharing and profiling:</span><br>
+Google may associate your data with your Google account if you are signed in and may use it for personalized advertising purposes in accordance with their <a class="highlighted" href="https://policies.google.com/privacy">privacy policy </a> <br>
+
+<span class="text-bold">Withdrawal and Opt-out:</span><br>
+You can:
+<ul>
+    <li>
+        Withdraw consent at any time through our [cookie settings]
+    </li>
+    <li>
+        Disable interest-based advertising via your Google Ads settings
+    </li>
+    <li>
+        Block cookies from the domain googleadservices.com in your browser
+    </li>
+</ul>
+`
+                        },
+                        {
+                            title: "8. Your Data Protection Rights",
+                            body: `As a data subject under the General Data Protection Regulation (GDPR), you have the following rights with regard to your personal data:
+<ul>
+    <li>
+      <span class="text-bold">Right of access (Art. 15 GDPR):</span> You have the right to request information about the personal data we hold about you.        
+    </li>
+    <li>
+       <span class="text-bold">Right to rectification (Art. 16 GDPR):</span> You may request correction of inaccurate or incomplete personal data.
+    </li>
+    <li>
+      <span class="text-bold"> Right to erasure (Art. 17 GDPR):</span> You may request the deletion of your personal data, provided there is no legal obligation for us to retain it.
+    </li>
+    <li>
+       <span class="text-bold">Right to restriction of processing (Art. 18 GDPR):</span> You may request that we restrict the processing of your data under certain conditions.
+    </li>
+    <li>
+       <span class="text-bold">Right to data portability (Art. 20 GDPR):</span> You have the right to receive your personal data in a structured, commonly used, and machine-readable format and to transmit it to another controller.
+    </li>
+    <li>
+       <span class="text-bold">Right to object (Art. 21 GDPR):</span> You may object to the processing of your personal data where processing is based on legitimate interests.
+    </li>
+    <li>
+       <span class="text-bold">Right to withdraw consent (Art. 7(3) GDPR):</span> If processing is based on your consent, you may withdraw it at any time with future effect.
+    </li>
+</ul>
+To exercise your rights, please contact our Data Protection Officer at: <br>
+Email: <a class="highlighted" href="mailto:info@drag-lab.de">info@drag-lab.de</a> <br>
+We may require verification of your identity before processing your request. <br>
+
+You also have the right to lodge a complaint with a supervisory authority, such as: <br>
+<a class="highlighted" href="https://datenschutz.hessen.de/">Der Hessische Beauftragte für Datenschutz und Informationsfreiheit</a>
+
+
+`
+                        },
+                        {
+                            title: "9. Changes to our Data Protection Policy",
+                            body: `We may update this Privacy Policy from time to time to reflect changes in legal requirements, our services, or how we process personal data. <br>
+
+When we make changes, we will update the “Effective Date” at the top of this page. If the changes are material, we may also notify you by prominently posting a notice on our website or, where appropriate, via email. <br>
+
+We encourage you to review this Privacy Policy periodically to stay informed about how we protect your personal data. <br>
+
+The current version of this Privacy Policy is always available at <a class="highlighted" href="https://www.drag-lab.de/EN/PrivacyPolicy">privacy policy </a>`
+                        },
+                        {
+                            title: "10.  Contacting Our Data Protection Officer",
+                            body: `
+                            If you have any questions regarding the processing of your personal data or wish to exercise your data protection rights, you may contact our Data Protection Officer directly: <br>
+
+           <span class="text-bold">Data Protection Officer</span><br>
+             <span class="text-bold"> DragLab Technology GmbH</span><br>
+                            Email: <a class="highlighted" href="mailto:info@drag-lab.de">info@drag-lab.de</a><br>
+
+                You may also lodge a complaint with the relevant data protection supervisory authority: <br>
+
+           <a class="highlighted" href="https://datenschutz.hessen.de/">Der Hessische Beauftragte für Datenschutz und Informationsfreiheit</a>   <br>
+               <span class="text-bold"> Postal Address: </span> Postfach 3163, 65021 Wiesbaden, Germany <br>
+
+                            If you have any questions regarding data protection, please contact:
+
+                            Data Protection Officer of Nanodrag Technology GmbH<br>
+
+                            You also have the right to contact the responsible supervisory authority at any time.`
+                        }
+
+
+
+
+
+
+
+
+
+                    ]
+                },
+
+
+                ES: {
+                    pageTitle: "Política de Privacidad",
+                    metaDescription: "Lea la política de privacidad de DragLab y descubra cómo recopilamos, usamos y protegemos su información.",
+                    status: "01.01.2019",
+                    contactInfo: `
+                    DragLab Technology GmbH<br>
+                    Mergenthalerallee 10-12<br>
+                    D-65760 Eschborn, Alemania<br>
+                    Tel: +49 6196 400816<br>
+                    Fax: +49 6196 400910<br>
+                    Correo electrónico: <a href="mailto:info@drag-lab.de">info@drag-lab.de</a><br>
+                    Sitio web: <a href="https://www.drag-lab.de">www.drag-lab.de</a><br>
+                    Oficina central: Eschborn<br>
+                    Registro mercantil: Amtsgericht Eschborn - HRB 97258<br>
+                    Forma jurídica: Sociedad de responsabilidad limitada (GmbH)<br>
+                    Registro comercial: Eschborn HRB 97258<br>
+                    Lugar de registro: Eschborn<br>
+                    `,
+                    sections: [
+                        {
+                            "title": "1. Recopilación de información general",
+                            "body": "Cuando visitas nuestro sitio web, cierta información general se recopila y almacena automáticamente en archivos de registro del servidor. Esto puede incluir:\n<ul>\n<li>Tipo y versión del navegador</li>\n<li>Sistema operativo utilizado</li>\n<li>URL de referencia</li>\n<li>Nombre del host del ordenador que accede (dirección IP)</li>\n<li>Fecha y hora de la solicitud del servidor</li>\n<li>Otros datos similares necesarios para el funcionamiento seguro y estable del sitio web</li>\n</ul>\n<br>\nEsta información es técnicamente necesaria para garantizar una conexión fluida, la seguridad del sistema y la entrega adecuada del contenido del sitio.\n<br>\nAunque estos datos no identifican directamente a una persona específica, pueden considerarse datos personales según la legislación de protección de datos aplicable.\n<br><br>\n<strong>Base legal:</strong> El tratamiento de estos datos se basa en el Art. 6(1)(f) del RGPD. Nuestro interés legítimo radica en mantener la funcionalidad, seguridad y optimización de nuestro sitio web.\n<br><br>\n<strong>Duración del almacenamiento:</strong> Los datos de registro se almacenan temporalmente y se eliminan automáticamente después de un máximo de 14 días, a menos que se requiera una retención más prolongada por motivos de seguridad o legales."
+                        },
+                        {
+                            "title": "2. Cookies",
+                            "body": "Utilizamos cookies en nuestro sitio web. Las cookies son pequeños archivos de texto que se almacenan en tu dispositivo cuando visitas nuestro sitio. Nos ayudan a ofrecer, mejorar y personalizar nuestros servicios.\n<br><br>\nDistinguimos entre:\n<ul>\n<li><span class=\"text-bold\">Cookies esenciales:</span> Requeridas para el funcionamiento básico del sitio web (por ejemplo, configuración de idioma, gestión de sesiones).</li>\n<li><span class=\"text-bold\">Cookies analíticas:</span> Utilizadas para recopilar datos anónimos sobre cómo los usuarios interactúan con el sitio (por ejemplo, Google Analytics).</li>\n<li><span class=\"text-bold\">Cookies de marketing:</span> Utilizadas por terceros para mostrar anuncios personalizados o rastrear el comportamiento del usuario en diferentes sitios web.</li>\n</ul>\n<br>\n<span class=\"text-bold\">Base legal:</span>\n<ul>\n<li>Las cookies esenciales se procesan en base a nuestro interés legítimo en garantizar la funcionalidad del sitio web (Art. 6(1)(f) RGPD).</li>\n<li>Las demás cookies (analíticas, marketing) se procesan solo con tu consentimiento explícito (Art. 6(1)(a) RGPD), que proporcionas a través de nuestro banner de cookies.</li>\n</ul>\n<br>\nPuedes gestionar o retirar tu consentimiento en cualquier momento mediante el enlace de configuración de cookies al final de nuestro sitio web.\n<br><br>\nLa mayoría de los navegadores aceptan cookies por defecto. Puedes configurar tu navegador para rechazarlas o notificarte antes de que se almacenen. Sin embargo, desactivar las cookies puede afectar la funcionalidad total del sitio.\n<br><br>\nPara más información, consulta nuestra [Política de Cookies]."
+                        },
+                        {
+                            "title": "3. Boletín informativo",
+                            "body": "Si te suscribes a nuestro boletín informativo, utilizaremos los datos personales que proporciones (normalmente tu dirección de correo electrónico) exclusivamente para enviarte información sobre nuestra empresa, productos, servicios y actualizaciones.\n<br><br>\n<span class=\"text-bold\">Proceso de suscripción:</span>\n<br>\nUtilizamos un procedimiento de doble confirmación (double opt-in) para verificar tu identidad. Después de introducir tu correo electrónico, recibirás un mensaje con un enlace de confirmación para finalizar tu suscripción. Solo después de confirmar serás añadido a nuestra lista de correo.\n<br><br>\n<span class=\"text-bold\">Base legal:</span>\n<br>\nEl tratamiento de tus datos se basa en tu consentimiento (Art. 6(1)(a) RGPD). Puedes retirar tu consentimiento en cualquier momento con efecto futuro haciendo clic en el enlace de cancelación de suscripción o escribiendo a <a class=\"highlighted\" href=\"mailto:info@drag-lab.de\">info@drag-lab.de</a>.\n<br><br>\n<span class=\"text-bold\">Almacenamiento de datos y servicios de terceros:</span>\n<br>\nTus datos se almacenan de forma segura y no se comparten con terceros, salvo que utilicemos un proveedor de servicios de correo electrónico (por ejemplo, Mailchimp, Brevo). Estos proveedores procesan los datos exclusivamente en nuestro nombre y bajo acuerdos de protección de datos.\n<br><br>\n<span class=\"text-bold\">Análisis opcional (si se utiliza):</span>\n<br>\nNuestros boletines pueden contener píxeles de seguimiento para ayudarnos a comprender la interacción del usuario. Puedes darte de baja en cualquier momento para desactivar este seguimiento."
+                        }, {
+                            "title": "4. Datos recopilados a través de formularios",
+                            "body": "Nuestro sitio web ofrece varios formularios mediante los cuales puedes contactarnos, solicitar soporte técnico o registrar la garantía de tu producto. Al utilizarlos, recopilamos los datos personales que proporciones para responder a tu solicitud.\n<br><br>\n<span class=\"text-bold\">Los tipos de datos recopilados pueden incluir:</span>\n<ul>\n<li><span class=\"text-bold\">Formulario de contacto:</span> Nombre, apellidos, dirección de correo electrónico, asunto y mensaje</li>\n<li><span class=\"text-bold\">Formulario de soporte técnico:</span> Tipo de contacto (particular/empresa), nombre de la empresa, departamento, tratamiento, nombre completo, dirección, teléfono, fax, correo electrónico, fecha del fallo, categoría y modelo del dispositivo, número de serie y descripción del problema</li>\n<li><span class=\"text-bold\">Formulario de registro de garantía:</span> Nombre, dirección de correo electrónico, fecha de compra, categoría y modelo del dispositivo, número de serie, problema técnico y mensaje adicional</li>\n</ul>\n<br>\n<span class=\"text-bold\">Finalidad del tratamiento:</span>\nUtilizamos los datos únicamente para procesar tu solicitud, ofrecer soporte al cliente y gestionar el seguimiento relacionado con garantías o servicios.\n<br><br>\n<span class=\"text-bold\">Base legal:</span>\n<ul>\n<li>Basado en tu consentimiento (Art. 6(1)(a) RGPD), otorgado al enviar el formulario; o</li>\n<li>Cuando sea aplicable, para la ejecución de un contrato o medidas precontractuales (Art. 6(1)(b) RGPD).</li>\n</ul>\n<br><br>\n<span class=\"text-bold\">Conservación de datos:</span>\nConservamos tus datos únicamente el tiempo necesario para cumplir con la finalidad de la solicitud, salvo que existan obligaciones legales de retención (por ejemplo, requisitos legales, de garantía o fiscales).\n<br><br>\n<span class=\"text-bold\">Procesadores externos:</span>\nTus datos pueden ser tratados por empleados autorizados de DragLab o por proveedores de servicios de confianza (por ejemplo, alojamiento, correo electrónico o plataformas CRM) que estén sujetos a acuerdos de protección de datos y confidencialidad."
+                        },
+                        {
+                            "title": "5. Uso de Microsoft Clarity",
+                            "body": "Utilizamos Microsoft Clarity, una herramienta de análisis del comportamiento del usuario proporcionada por:<br><br>\n<span class=\"text-bold\">Microsoft Corporation</span><br>\n<span class=\"text-bold\">One Microsoft Way, Redmond, WA 98052-6399, USA</span><br><br>\nClarity utiliza cookies y tecnologías similares para recopilar y procesar datos de uso como movimientos del ratón, desplazamientos en la página, clics, información del dispositivo y URL de referencia. Esto nos ayuda a entender cómo los usuarios interactúan con nuestro sitio web y mejorar su usabilidad y estructura de contenido.\n<br><br>\nMicrosoft puede utilizar los datos recopilados para sus propios fines, como se describe en la <a class=\"highlighted\" href=\"https://privacy.microsoft.com/\">Declaración de privacidad de Microsoft</a>.\n<br><br>\n<span class=\"text-bold\">Base legal:</span>\nEl uso de Microsoft Clarity se basa en tu consentimiento según el Art. 6(1)(a) RGPD, otorgado a través de nuestro banner de cookies. Puedes retirar tu consentimiento en cualquier momento mediante el enlace de configuración de cookies al pie de nuestra web.\n<br><br>\n<span class=\"text-bold\">Transferencia de datos:</span>\nLos datos pueden ser transferidos a servidores en Estados Unidos. Microsoft está certificado bajo el Marco de Privacidad de Datos UE-EE.UU.\n<br><br>\n<span class=\"text-bold\">Opción de exclusión:</span>\nPuedes controlar la recopilación de datos configurando tu navegador o administrando tus preferencias de cookies en nuestro sitio web."
+                        },
+                        {
+                            "title": "6. Uso de Google Analytics",
+                            "body": "Este sitio web utiliza Google Analytics, un servicio de análisis web proporcionado por:<br><br>\n<span class=\"text-bold\">Google Ireland Limited</span><br>\nGordon House, Barrow Street<br>\nDublín 4, Irlanda<br><br>\nGoogle Analytics utiliza cookies para analizar cómo interactúan los usuarios con nuestro sitio web. La información generada (por ejemplo, dirección IP, comportamiento del usuario, tipo de navegador) generalmente se transfiere a un servidor de Google en Estados Unidos y se almacena allí.\n<br><br>\nHemos activado la anonimización de IP en este sitio web, lo que significa que tu dirección IP será acortada dentro de la Unión Europea antes de ser transmitida a Google.\n<br><br>\nGoogle procesa estos datos en nuestro nombre bajo un acuerdo de procesamiento de datos (según el Art. 28 RGPD). Puedes obtener más información sobre cómo <a class=\"highlighted\" href=\"https://policies.google.com/privacy\">Google maneja los datos personales aquí</a>.\n<br><br>\n<span class=\"text-bold\">Base legal:</span>\nLas cookies analíticas y el uso de Google Analytics se basan en tu consentimiento explícito (Art. 6(1)(a) RGPD), otorgado mediante nuestro banner de cookies. Puedes retirar tu consentimiento en cualquier momento desde la [configuración de cookies] de nuestro sitio.\n<br><br>\n<span class=\"text-bold\">Retención:</span>\nLos datos a nivel de usuario y evento asociados con cookies e identificadores se retienen por un máximo de 14 meses, tras lo cual se eliminan automáticamente.\n<br><br>\n<span class=\"text-bold\">Opciones de exclusión:</span>\n<ul>\n<li>Retirar el consentimiento desde nuestra configuración de cookies</li>\n<li>Instalar el complemento oficial del navegador: Google Analytics Opt-out Add-on</li>\n<li>Configurar tu navegador para bloquear cookies</li>\n</ul>"
+                        },
+                        {
+                            "title": "7. Uso del seguimiento de conversiones de Google Ads",
+                            "body": "Nuestro sitio web utiliza la función de seguimiento de conversiones de Google Ads, un servicio proporcionado por:<br><br>\n<span class=\"text-bold\">Google Ireland Limited</span><br>\nGordon House, Barrow Street<br>\nDublín 4, Irlanda<br><br>\nCuando haces clic en un anuncio servido por Google, se coloca una cookie en tu dispositivo. Esta cookie nos permite rastrear conversiones, por ejemplo, si completaste un formulario o visitaste una página específica. Estas cookies expiran después de 30 días y no contienen información personal identificable.\n<br><br>\nSin embargo, si visitas ciertas páginas mientras la cookie está activa, Google y nosotros podemos reconocer que hiciste clic en un anuncio y fuiste redirigido a nuestro sitio. Esto permite a Google compilar estadísticas de conversión (por ejemplo, número total de conversiones). No recibimos ningún dato que identifique personalmente a los usuarios.\n<br><br>\n<span class=\"text-bold\">Base legal:</span><br>\nEl uso de Google Ads y las cookies de seguimiento de conversiones se basa en tu consentimiento explícito (Art. 6(1)(a) RGPD), otorgado mediante nuestro banner de cookies.\n<br><br>\n<span class=\"text-bold\">Compartición de datos y elaboración de perfiles:</span><br>\nGoogle puede asociar tus datos con tu cuenta de Google si has iniciado sesión y utilizarlos con fines publicitarios personalizados de acuerdo con su <a class=\"highlighted\" href=\"https://policies.google.com/privacy\">política de privacidad</a>.\n<br><br>\n<span class=\"text-bold\">Retirada y exclusión:</span><br>\n<ul>\n<li>Retirar el consentimiento en cualquier momento desde nuestra [configuración de cookies]</li>\n<li>Desactivar la publicidad basada en intereses en la configuración de anuncios de tu cuenta de Google</li>\n<li>Bloquear cookies del dominio googleadservices.com en tu navegador</li>\n</ul>"
+                        },
+                        {
+                            "title": "8. Tus derechos de protección de datos",
+                            "body": "Como interesado bajo el Reglamento General de Protección de Datos (RGPD), tienes los siguientes derechos con respecto a tus datos personales:\n<ul>\n<li><span class=\"text-bold\">Derecho de acceso (Art. 15 RGPD):</span> Puedes solicitar información sobre los datos personales que tenemos sobre ti.</li>\n<li><span class=\"text-bold\">Derecho de rectificación (Art. 16 RGPD):</span> Puedes solicitar la corrección de datos personales inexactos o incompletos.</li>\n<li><span class=\"text-bold\">Derecho de supresión (Art. 17 RGPD):</span> Puedes solicitar la eliminación de tus datos personales, siempre que no exista una obligación legal de conservarlos.</li>\n<li><span class=\"text-bold\">Derecho a la limitación del tratamiento (Art. 18 RGPD):</span> Puedes solicitar que limitemos el tratamiento de tus datos bajo ciertas condiciones.</li>\n<li><span class=\"text-bold\">Derecho a la portabilidad de los datos (Art. 20 RGPD):</span> Tienes derecho a recibir tus datos personales en un formato estructurado, de uso común y lectura mecánica, y a transmitirlos a otro responsable.</li>\n<li><span class=\"text-bold\">Derecho de oposición (Art. 21 RGPD):</span> Puedes oponerte al tratamiento de tus datos cuando este se base en intereses legítimos.</li>\n<li><span class=\"text-bold\">Derecho a retirar el consentimiento (Art. 7(3) RGPD):</span> Si el tratamiento se basa en tu consentimiento, puedes retirarlo en cualquier momento con efecto futuro.</li>\n</ul>\n<br>\nPara ejercer tus derechos, por favor contacta a nuestro Delegado de Protección de Datos en:<br>\nCorreo electrónico: <a class=\"highlighted\" href=\"mailto:info@drag-lab.de\">info@drag-lab.de</a><br>\nPodemos requerir la verificación de tu identidad antes de procesar tu solicitud.<br><br>\nTambién tienes derecho a presentar una reclamación ante una autoridad de control, como:<br>\n<a class=\"highlighted\" href=\"https://datenschutz.hessen.de/\">El Comisionado de Protección de Datos y Libertad de Información de Hesse</a>"
+                        },
+                        {
+                            "title": "9. Cambios en nuestra política de protección de datos",
+                            "body": "Podemos actualizar esta Política de Privacidad ocasionalmente para reflejar cambios en los requisitos legales, nuestros servicios o cómo tratamos los datos personales.\n<br><br>\nCuando realicemos cambios, actualizaremos la \"Fecha de vigencia\" en la parte superior de esta página. Si los cambios son significativos, también podemos notificarte mediante un aviso destacado en nuestro sitio web o, si procede, por correo electrónico.\n<br><br>\nTe recomendamos revisar esta Política de Privacidad periódicamente para estar informado sobre cómo protegemos tus datos personales.\n<br><br>\nLa versión actual de esta Política de Privacidad está siempre disponible en <a class=\"highlighted\" href=\"https://www.drag-lab.de/ES/PrivacyPolicy\">política de privacidad</a>"
+                        },
+                        {
+                            "title": "10. Contacto con nuestro delegado de protección de datos",
+                            "body": "Si tienes alguna pregunta relacionada con el tratamiento de tus datos personales o deseas ejercer tus derechos de protección de datos, puedes contactar directamente con nuestro Delegado de Protección de Datos:<br><br>\n<span class=\"text-bold\">Delegado de Protección de Datos</span><br>\n<span class=\"text-bold\">DragLab Technology GmbH</span><br>\nCorreo electrónico: <a class=\"highlighted\" href=\"mailto:info@drag-lab.de\">info@drag-lab.de</a><br><br>\nTambién puedes presentar una reclamación ante la autoridad de control competente:<br>\n<a class=\"highlighted\" href=\"https://datenschutz.hessen.de/\">El Comisionado de Protección de Datos y Libertad de Información de Hesse</a><br><br>\n<span class=\"text-bold\">Dirección postal:</span> Postfach 3163, 65021 Wiesbaden, Alemania<br><br>\nSi tienes alguna pregunta sobre protección de datos, por favor contacta con:\n<br>Delegado de Protección de Datos de Nanodrag Technology GmbH<br><br>\nTambién tienes derecho a contactar con la autoridad de control competente en cualquier momento."
+                        }
+
+
+
+
+                    ] // will fill below
+                },
+
+                DE: {
+                    pageTitle: "Datenschutzerklärung",
+                    metaDescription: "Lesen Sie die Datenschutzerklärung von DragLab und erfahren Sie, wie wir Ihre Informationen sammeln, verwenden und schützen.",
+                    status: "01.01.2019",
+                    contactInfo: `
+                    DragLab Technology GmbH<br>
+                    Mergenthalerallee 10-12<br>
+                    D-65760 Eschborn, Deutschland<br>
+                    Tel: +49 6196 400816<br>
+                    Fax: +49 6196 400910<br>
+                    E-Mail: <a href="mailto:info@drag-lab.de">info@drag-lab.de</a><br>
+                    Website: <a href="https://www.drag-lab.de">www.drag-lab.de</a><br>
+                    Hauptsitz: Eschborn<br>
+                    Handelsregister: Amtsgericht Eschborn - HRB 97258<br>
+                    Rechtsform: Gesellschaft mit beschränkter Haftung (GmbH)<br>
+                    Handelsregister: Eschborn HRB 97258<br>
+                        Ort der Registrierung: Eschborn<br>
+                    `,
+                    sections: [
+                        {
+                            "title": "1. Erhebung allgemeiner Informationen",
+                            "body": "Wenn Sie unsere Website besuchen, werden bestimmte allgemeine Informationen automatisch erfasst und in Server-Logdateien gespeichert. Dazu können gehören:\n<ul>\n<li>Browsertyp und -version</li>\n<li>Verwendetes Betriebssystem</li>\n<li>Referrer-URL</li>\n<li>Hostname des zugreifenden Rechners (IP-Adresse)</li>\n<li>Datum und Uhrzeit der Serveranfrage</li>\n<li>Weitere ähnliche Daten, die für einen sicheren und stabilen Betrieb der Website erforderlich sind</li>\n</ul>\n<br>\nDiese Informationen sind technisch erforderlich, um eine reibungslose Verbindung, Systemsicherheit und die korrekte Auslieferung der Inhalte unserer Website zu gewährleisten.\n<br>\nAuch wenn diese Daten keine direkte Identifizierung einer bestimmten Person ermöglichen, können sie gemäß geltendem Datenschutzrecht als personenbezogene Daten gelten.\n<br><br>\n<strong>Rechtsgrundlage:</strong> Die Verarbeitung dieser Daten erfolgt auf Grundlage von Art. 6 Abs. 1 lit. f DSGVO. Unser berechtigtes Interesse liegt in der Aufrechterhaltung der Funktionalität, Sicherheit und Optimierung unserer Website.\n<br><br>\n<strong>Speicherdauer:</strong> Die Logdaten werden vorübergehend gespeichert und automatisch spätestens nach 14 Tagen gelöscht, es sei denn, eine längere Aufbewahrung ist aus Sicherheits- oder Rechtsgründen erforderlich."
+                        },
+                        {
+                            "title": "2. Cookies",
+                            "body": "Wir verwenden auf unserer Website Cookies. Cookies sind kleine Textdateien, die auf Ihrem Gerät gespeichert werden, wenn Sie unsere Website besuchen. Sie helfen uns, unsere Dienste bereitzustellen, zu verbessern und zu personalisieren.\n<br><br>\nWir unterscheiden zwischen:\n<ul>\n<li><span class=\"text-bold\">Essenzielle Cookies:</span> Erforderlich für die grundlegende Funktionalität der Website (z. B. Spracheinstellungen, Sitzungsverwaltung).</li>\n<li><span class=\"text-bold\">Analyse-Cookies:</span> Dienen zur Erfassung anonymisierter Daten über die Nutzung der Website (z. B. Google Analytics).</li>\n<li><span class=\"text-bold\">Marketing-Cookies:</span> Werden von Dritten verwendet, um personalisierte Werbung anzuzeigen oder Nutzerverhalten über Websites hinweg zu verfolgen.</li>\n</ul>\n<br>\n<span class=\"text-bold\">Rechtsgrundlage:</span>\n<ul>\n<li>Essenzielle Cookies werden auf Grundlage unseres berechtigten Interesses an der Funktionsfähigkeit der Website verarbeitet (Art. 6 Abs. 1 lit. f DSGVO).</li>\n<li>Alle anderen Cookies (Analyse, Marketing) werden nur mit Ihrer ausdrücklichen Einwilligung verarbeitet (Art. 6 Abs. 1 lit. a DSGVO), die Sie über unser Cookie-Banner erteilen.</li>\n</ul>\n<br>\nSie können Ihre Einwilligung jederzeit über den Cookie-Einstellungen-Link am Ende unserer Website verwalten oder widerrufen.\n<br><br>\nDie meisten Browser akzeptieren Cookies standardmäßig. Sie können Ihren Browser jedoch so einstellen, dass er Cookies ablehnt oder Sie benachrichtigt, bevor Cookies gesetzt werden. Das Deaktivieren von Cookies kann jedoch die vollständige Funktionalität der Website beeinträchtigen.\n<br><br>\nWeitere Informationen finden Sie in unserer [Cookie-Richtlinie]."
+                        },
+                        {
+                            "title": "3. Newsletter",
+                            "body": "Wenn Sie sich für unseren Newsletter anmelden, verwenden wir die von Ihnen bereitgestellten personenbezogenen Daten (in der Regel Ihre E-Mail-Adresse) ausschließlich, um Ihnen Informationen über unser Unternehmen, unsere Produkte, Dienstleistungen und Neuigkeiten zuzusenden.\n<br><br>\n<span class=\"text-bold\">Anmeldeverfahren:</span>\n<br>\nWir verwenden das Double-Opt-In-Verfahren zur Überprüfung Ihrer Identität. Nach Eingabe Ihrer E-Mail-Adresse erhalten Sie eine Bestätigungsmail mit einem Link, um Ihre Anmeldung abzuschließen. Erst nach Bestätigung werden Sie in unseren Verteiler aufgenommen.\n<br><br>\n<span class=\"text-bold\">Rechtsgrundlage:</span>\n<br>\nDie Verarbeitung Ihrer Daten erfolgt auf Grundlage Ihrer Einwilligung (Art. 6 Abs. 1 lit. a DSGVO). Sie können Ihre Einwilligung jederzeit mit Wirkung für die Zukunft widerrufen, indem Sie den Abmeldelink in jedem Newsletter anklicken oder uns direkt unter <a class=\"highlighted\" href=\"mailto:info@drag-lab.de\">info@drag-lab.de</a> kontaktieren.\n<br><br>\n<span class=\"text-bold\">Datenspeicherung & Drittanbieter-Dienste:</span>\n<br>\nIhre Daten werden sicher gespeichert und nicht an Dritte weitergegeben, außer wenn wir einen E-Mail-Dienstleister (z. B. Mailchimp, Brevo) verwenden. Diese Anbieter verarbeiten Daten nur in unserem Auftrag und im Einklang mit Datenschutzvereinbarungen.\n<br><br>\n<span class=\"text-bold\">Optionale Analysen (falls verwendet):</span>\n<br>\nUnsere Newsletter können Zählpixel enthalten, die uns helfen, das Nutzerverhalten besser zu verstehen. Sie können sich jederzeit abmelden, um dieses Tracking zu deaktivieren."
+                        },
+                        {
+                            "title": "4. Über Formulare erhobene Daten",
+                            "body": "Unsere Website bietet verschiedene Formulare, über die Sie mit uns Kontakt aufnehmen, technischen Support anfordern oder Ihre Produktgarantie registrieren können. Wenn Sie diese Formulare nutzen, erfassen wir die von Ihnen bereitgestellten personenbezogenen Daten, um Ihre Anfrage zu bearbeiten.\n<br><br>\n<span class=\"text-bold\">Die erhobenen Daten können Folgendes umfassen:</span>\n<ul>\n<li><span class=\"text-bold\">Kontaktformular:</span> Vorname, Nachname, E-Mail-Adresse, Betreff und Nachricht</li>\n<li><span class=\"text-bold\">Supportformular:</span> Kontaktart (Privatperson/Firma), Firmenname, Abteilung, Anrede, vollständiger Name, Adressdaten, Telefon, Fax, E-Mail, Fehlerdatum, Gerätekategorie und -modell, Seriennummer und Fehlerbeschreibung</li>\n<li><span class=\"text-bold\">Garantieregistrierung:</span> Name, E-Mail-Adresse, Kaufdatum, Gerätekategorie und -modell, Seriennummer, technische Anfrage und zusätzliche Nachricht</li>\n</ul>\n<br>\n<span class=\"text-bold\">Zweck der Verarbeitung:</span>\nDie Daten werden ausschließlich zur Bearbeitung Ihrer Anfrage, zur Kundenbetreuung sowie für Garantie- oder Servicezwecke verwendet.\n<br><br>\n<span class=\"text-bold\">Rechtsgrundlage:</span>\n<ul>\n<li>Basierend auf Ihrer Einwilligung (Art. 6 Abs. 1 lit. a DSGVO), die Sie beim Absenden des Formulars erteilen; oder</li>\n<li>Gegebenenfalls zur Durchführung eines Vertrags oder vorvertraglicher Maßnahmen (Art. 6 Abs. 1 lit. b DSGVO).</li>\n</ul>\n<br><br>\n<span class=\"text-bold\">Speicherdauer:</span>\nWir speichern Ihre Daten nur so lange, wie es zur Bearbeitung Ihrer Anfrage erforderlich ist, es sei denn, gesetzliche Aufbewahrungspflichten bestehen (z. B. Garantie-, Steuer- oder Rechtsvorgaben).\n<br><br>\n<span class=\"text-bold\">Externe Dienstleister:</span>\nIhre Daten können durch autorisierte Mitarbeitende von DragLab oder beauftragte Dienstleister (z. B. Hosting-, E-Mail- oder CRM-Anbieter) verarbeitet werden, die vertraglich zur Vertraulichkeit und zum Datenschutz verpflichtet sind."
+                        },
+                        {
+                            "title": "5. Einsatz von Microsoft Clarity",
+                            "body": "Wir verwenden Microsoft Clarity, ein Tool zur Verhaltensanalyse von Nutzern, bereitgestellt von:<br><br>\n<span class=\"text-bold\">Microsoft Corporation</span><br>\n<span class=\"text-bold\">One Microsoft Way, Redmond, WA 98052-6399, USA</span><br><br>\nClarity verwendet Cookies und ähnliche Technologien, um Daten wie Mausbewegungen, Scrollverhalten, Klickverhalten, Geräteinformationen und Referrer-URLs zu erfassen und zu verarbeiten. Diese Daten helfen uns, das Nutzerverhalten besser zu verstehen und die Benutzerfreundlichkeit sowie den Aufbau unserer Website zu optimieren.\n<br><br>\nMicrosoft kann die erhobenen Daten auch zu eigenen Geschäftszwecken verwenden, wie in der <a class=\"highlighted\" href=\"https://privacy.microsoft.com/\">Datenschutzerklärung von Microsoft</a> beschrieben.\n<br><br>\n<span class=\"text-bold\">Rechtsgrundlage:</span><br>\nDie Nutzung von Microsoft Clarity basiert auf Ihrer Einwilligung gemäß Art. 6 Abs. 1 lit. a DSGVO, die Sie über unser Cookie-Banner erteilen. Sie können Ihre Einwilligung jederzeit über den Link zu den Cookie-Einstellungen am unteren Rand unserer Website widerrufen.\n<br><br>\n<span class=\"text-bold\">Datenübermittlung:</span><br>\nDie Daten können an Server in den USA übertragen werden. Microsoft ist nach dem EU-US Data Privacy Framework zertifiziert.\n<br><br>\n<span class=\"text-bold\">Opt-out:</span><br>\nSie können die Datenerfassung durch entsprechende Browsereinstellungen oder die Verwaltung Ihrer Cookie-Präferenzen auf unserer Website kontrollieren."
+                        },
+                        {
+                            "title": "6. Einsatz von Google Analytics",
+                            "body": "Diese Website nutzt Google Analytics, einen Webanalysedienst der:<br><br>\n<span class=\"text-bold\">Google Ireland Limited</span><br>\nGordon House, Barrow Street<br>\nDublin 4, Irland<br><br>\nGoogle Analytics verwendet Cookies, um die Interaktion der Nutzer mit unserer Website zu analysieren. Die erzeugten Informationen (z. B. IP-Adresse, Nutzerverhalten, Browsertyp) werden in der Regel an einen Server von Google in den USA übertragen und dort gespeichert.\n<br><br>\nWir haben die IP-Anonymisierung auf dieser Website aktiviert, sodass Ihre IP-Adresse innerhalb der Europäischen Union gekürzt wird, bevor sie an Google übertragen wird.\n<br><br>\nGoogle verarbeitet diese Daten in unserem Auftrag auf Grundlage eines Auftragsverarbeitungsvertrags gemäß Art. 28 DSGVO. Weitere Informationen zum Umgang von Google mit personenbezogenen Daten finden Sie <a class=\"highlighted\" href=\"https://policies.google.com/privacy\">hier</a>.\n<br><br>\n<span class=\"text-bold\">Rechtsgrundlage:</span>\nDie Verwendung von Analyse-Cookies und Google Analytics erfolgt auf Grundlage Ihrer ausdrücklichen Einwilligung (Art. 6 Abs. 1 lit. a DSGVO), die Sie über unser Cookie-Banner erteilen. Sie können Ihre Einwilligung jederzeit über die [Cookie-Einstellungen] widerrufen.\n<br><br>\n<span class=\"text-bold\">Speicherdauer:</span><br>\nDaten auf Nutzer- und Ereignisebene, die mit Cookies oder Nutzerkennungen verknüpft sind, werden maximal 14 Monate gespeichert und danach automatisch gelöscht.\n<br><br>\n<span class=\"text-bold\">Opt-out-Möglichkeiten:</span><br>\n<ul>\n<li>Widerruf der Einwilligung über unsere Cookie-Einstellungen</li>\n<li>Installation des offiziellen Browser-Add-ons: Google Analytics Opt-out</li>\n<li>Browserkonfiguration zur Blockierung von Cookies</li>\n</ul>"
+                        },
+                        {
+                            "title": "7. Einsatz von Google Ads Conversion Tracking",
+                            "body": `Unsere Website nutzt das Conversion-Tracking von Google Ads, einen Dienst der:<br><br>
+                            <span class=\"text-bold\">Google Ireland Limited</span><br>
+                            Gordon House, Barrow Street<br>
+                            Dublin 4, Irland<br><br>
+                            Wenn Sie auf eine von Google geschaltete Anzeige klicken, wird ein Cookie auf Ihrem Gerät gespeichert. Dieses Cookie ermöglicht es uns, zu verfolgen, ob bestimmte Aktionen durchgeführt wurden – zum Beispiel, ob ein Formular ausgefüllt oder eine bestimmte Seite besucht wurde. Diese Cookies sind 30 Tage gültig und enthalten keine personenbezogenen Daten.<br><br>
+                            Wenn Sie bestimmte Seiten während der Gültigkeit des Cookies besuchen, können Google und wir erkennen, dass Sie auf eine Anzeige geklickt haben und auf unsere Website weitergeleitet wurden. Dies erlaubt Google, Conversion-Statistiken für uns zu erstellen. Wir erhalten jedoch keine Informationen, mit denen sich Nutzer persönlich identifizieren lassen.<br><br>
+                            <strong>Rechtsgrundlage:</strong><br>
+                            Die Verwendung von Google Ads und Conversion-Tracking-Cookies erfolgt auf Grundlage Ihrer ausdrücklichen Einwilligung (Art. 6 Abs. 1 lit. a DSGVO), die Sie über unser Cookie-Banner erteilen.<br><br>
+                            <strong>Datenweitergabe und Profilbildung:</strong><br>
+                            Google kann Ihre Daten mit Ihrem Google-Konto verknüpfen und diese für personalisierte Werbung gemäß der <a class=\"highlighted\" href=\"https://policies.google.com/privacy\">Datenschutzerklärung von Google</a> verwenden.<br><br>
+                            <strong>Widerruf und Opt-out:</strong><br>
+                            <ul>
+                            <li>Widerrufen Sie Ihre Einwilligung jederzeit über unsere [Cookie-Einstellungen]</li>
+                            <li>Deaktivieren Sie interessenbezogene Werbung in Ihren Google Ads-Einstellungen</li>
+                            <li>Blockieren Sie Cookies von der Domain googleadservices.com in Ihrem Browser</li>
+                            </ul>`
+                        },
+                        {
+                            "title": "8. Ihre Datenschutzrechte",
+                            "body": `Als betroffene Person im Sinne der Datenschutz-Grundverordnung (DSGVO) haben Sie folgende Rechte in Bezug auf Ihre personenbezogenen Daten:
+                            <ul>
+                            <li><span class=\"text-bold\">Auskunftsrecht (Art. 15 DSGVO):</span> Sie haben das Recht, Auskunft über die von uns gespeicherten personenbezogenen Daten zu verlangen.</li>
+                            <li><span class=\"text-bold\">Recht auf Berichtigung (Art. 16 DSGVO):</span> Sie können die Berichtigung unrichtiger oder unvollständiger personenbezogener Daten verlangen.</li>
+                            <li><span class=\"text-bold\">Recht auf Löschung (Art. 17 DSGVO):</span> Sie können die Löschung Ihrer Daten verlangen, sofern keine gesetzliche Aufbewahrungspflicht besteht.</li>
+                            <li><span class=\"text-bold\">Recht auf Einschränkung der Verarbeitung (Art. 18 DSGVO):</span> Sie können unter bestimmten Voraussetzungen die Einschränkung der Verarbeitung verlangen.</li>
+                            <li><span class=\"text-bold\">Recht auf Datenübertragbarkeit (Art. 20 DSGVO):</span> Sie haben das Recht, Ihre personenbezogenen Daten in einem strukturierten, gängigen und maschinenlesbaren Format zu erhalten und an einen anderen Verantwortlichen zu übermitteln.</li>
+                            <li><span class=\"text-bold\">Widerspruchsrecht (Art. 21 DSGVO):</span> Sie können der Verarbeitung Ihrer personenbezogenen Daten widersprechen, sofern diese auf berechtigten Interessen beruht.</li>
+                            <li><span class=\"text-bold\">Widerruf der Einwilligung (Art. 7 Abs. 3 DSGVO):</span> Sie können Ihre Einwilligung jederzeit mit Wirkung für die Zukunft widerrufen.</li>
+                            </ul>
+                            Um Ihre Rechte auszuüben, wenden Sie sich bitte an unseren Datenschutzbeauftragten unter:<br>
+                            E-Mail: <a class=\"highlighted\" href=\"mailto:info@drag-lab.de\">info@drag-lab.de</a><br>
+                            Zur Bearbeitung Ihrer Anfrage können wir einen Identitätsnachweis verlangen.<br><br>
+                            Sie haben außerdem das Recht, sich bei einer Aufsichtsbehörde zu beschweren, z. B. bei:<br>
+                            <a class=\"highlighted\" href=\"https://datenschutz.hessen.de/\">Der Hessische Beauftragte für Datenschutz und Informationsfreiheit</a>`
+                        },
+                        {
+                            "title": "9. Änderungen unserer Datenschutzrichtlinie",
+                            "body": `Wir behalten uns vor, diese Datenschutzerklärung gelegentlich anzupassen, um geänderte rechtliche Anforderungen oder Änderungen unserer Dienste zu berücksichtigen.<br><br>
+                            Wenn Änderungen vorgenommen werden, aktualisieren wir das \"Gültigkeitsdatum\" oben auf dieser Seite. Bei wesentlichen Änderungen informieren wir Sie gegebenenfalls durch einen Hinweis auf unserer Website oder per E-Mail.<br><br>
+                            Wir empfehlen, diese Datenschutzrichtlinie regelmäßig zu lesen, um informiert zu bleiben, wie wir Ihre Daten schützen.<br><br>
+                            Die jeweils aktuelle Version dieser Richtlinie finden Sie unter <a class=\"highlighted\" href=\"https://www.drag-lab.de/DE/PrivacyPolicy\">Datenschutzerklärung</a>.`
+                        },
+                        {
+                            "title": "10. Kontakt zum Datenschutzbeauftragten",
+                            "body": `Wenn Sie Fragen zur Verarbeitung Ihrer personenbezogenen Daten haben oder Ihre Datenschutzrechte ausüben möchten, können Sie sich direkt an unseren Datenschutzbeauftragten wenden:<br><br>
+                            <span class=\"text-bold\">Datenschutzbeauftragter</span><br>
+                            <span class=\"text-bold\">DragLab Technology GmbH</span><br>
+                            E-Mail: <a class=\"highlighted\" href=\"mailto:info@drag-lab.de\">info@drag-lab.de</a><br><br>
+                            Sie haben auch das Recht, sich jederzeit an die zuständige Datenschutzaufsichtsbehörde zu wenden:<br>
+                            <a class=\"highlighted\" href=\"https://datenschutz.hessen.de/\">Der Hessische Beauftragte für Datenschutz und Informationsfreiheit</a><br><br>
+                            <span class=\"text-bold\">Postanschrift:</span> Postfach 3163, 65021 Wiesbaden, Deutschland<br><br>
+                            Bei Fragen zum Datenschutz wenden Sie sich bitte an den Datenschutzbeauftragten der Nanodrag Technology GmbH.`}
+                    ]
+
+                }
+            };
+
+
+
             res.render('customer/PrivacyPolicy', {
-                pageTitle: 'Privacy Policy',
-                path: '/PrivacyPolicy',
-                products: products,
-                lang // <- pass it to EJS
+                lang,
+                privacyPolicyContent,
+                pageTitle: {
+                    EN: 'Privacy Policy',
+                    ES: 'Política de Privacidad',
+                    DE: 'Datenschutzerklärung'
+                }[lang],
+                metaDescription: {
+                    EN: 'Read DragLab’s Privacy Policy and learn how we handle your data.',
+                    ES: 'Lea la Política de Privacidad de DragLab y conozca cómo manejamos sus datos.',
+                    DE: 'Lesen Sie die Datenschutzrichtlinie von DragLab und erfahren Sie, wie wir mit Ihren Daten umgehen.'
+                }[lang],
+                products,
+                lang,
+                privacyPolicyContent
+
             });
         })
         .catch(err => {
@@ -669,89 +2010,615 @@ exports.getPrivacyPolicy = (req, res, next) => {
 
 };
 exports.getDataProtection = (req, res, next) => {
-    const lang = req.query.lang || 'EN'; // <- 🔄 language detection
+    const lang = req.params.lang?.toUpperCase() || req.query.lang?.toUpperCase() || 'EN';
+
+    const translations = {
+        EN: {
+            pageTitle: 'Data Protection Policy - DragLab',
+            metaDescription: 'Learn how DragLab protects your personal data. Read our Data Protection Policy covering privacy, security, consent, and international data handling.',
+            ogTitle: 'Data Protection Policy | DragLab',
+            ogDescription: 'Your privacy matters. Learn how DragLab collects, uses, and safeguards your personal data in accordance with GDPR, CCPA, and international standards.',
+            ogImage: 'https://yourdomain.com/assets/Imgs/SEO/dataprotection.jpg',
+            sectionHeading: 'Data Protection Policy',
+            content: [
+                { title: 'Commitment to Privacy', text: 'At DragLab, we prioritize the protection of your personal data and are committed to ensuring its security and confidentiality. This includes any data that can identify you, such as your name, contact details, and any other information you provide to us. We handle your data with the utmost care, ensuring it is only used for legitimate purposes.' },
+                { title: 'Data Collection and Usage', text: 'We collect only the data necessary to provide our products and services, improve our offerings, and communicate with you effectively. We are transparent about the types of data we collect, how it is used, and the legal basis for processing your information. Your data is used solely for the purposes it was collected for, and we do not sell or share your information with third parties without your consent.' },
+                { title: 'Consent and Control', text: 'Your consent is paramount. We seek your explicit consent before collecting, using, or sharing your personal data. You have the right to withdraw your consent at any time, and we provide clear instructions on how to do so. Additionally, you have control over your personal information, including the right to access, correct, or delete your data.' },
+                { title: 'Data Security', text: 'We employ advanced security measures to protect your personal data from unauthorized access, loss, or misuse. This includes encryption, secure servers, and regular security audits to ensure that your information remains safe.' },
+                { title: 'Data Retention', text: 'We retain your personal data only for as long as necessary to fulfill the purposes for which it was collected, comply with legal obligations, or resolve disputes. Once the data is no longer needed, it is securely deleted or anonymized.' },
+                { title: 'Third-Party Data Sharing', text: 'We only share your personal data with trusted third parties when it is essential for providing our services or when required by law. These parties are contractually obligated to protect your data and use it solely for the intended purpose. We do not sell your data to third parties.' },
+                { title: 'International Data Transfers', text: 'As a global company, DragLab may transfer your personal data to countries outside of your home jurisdiction. When we do so, we ensure your data is protected by appropriate safeguards in accordance with international standards.' },
+                { title: 'Your Rights', text: 'You have several rights regarding your personal data, including the right to access, correct, update, or delete your information. You can also object to or restrict the processing of your data. We respond to these requests promptly and transparently.' },
+                { title: 'Cookies and Tracking Technologies', text: 'We use cookies and similar technologies to enhance your experience, analyze usage, and support marketing efforts. You have control over your preferences and can choose to accept or decline cookies.' },
+                { title: 'Data Breach Response', text: 'In the event of a data breach, we have a comprehensive response plan. We will notify affected individuals and authorities in compliance with legal requirements, and we will take steps to mitigate harm and prevent future incidents.' },
+                { title: 'Employee Training and Awareness', text: 'Our employees are trained on data protection principles. We maintain a strong culture of privacy awareness and responsibility throughout our team.' },
+                { title: 'Compliance with Laws and Regulations', text: 'We comply with all applicable data protection laws, including GDPR and CCPA. We are committed to maintaining the highest standards of data protection worldwide.' },
+                { title: 'Children’s Privacy', text: 'Our services are not directed to children under 13, and we do not knowingly collect data from them. If we do collect such data, we delete it immediately.' },
+                { title: 'Transparency and Communication', text: 'We are committed to transparency in our data handling practices. If you have any questions or concerns, we are available to assist you.' },
+                { title: 'Policy Updates', text: 'We may update this policy to reflect changes in law or our practices. Significant updates will be communicated clearly and made readily available.' }
+            ]
+        },
+        DE: {
+            pageTitle: 'Datenschutzrichtlinie - DragLab',
+            metaDescription: 'Erfahren Sie, wie DragLab Ihre persönlichen Daten schützt. Lesen Sie unsere Datenschutzrichtlinie über Sicherheit, Einwilligung und internationale Datenverarbeitung.',
+            ogTitle: 'Datenschutz | DragLab',
+            ogDescription: 'Ihre Privatsphäre ist uns wichtig. Erfahren Sie, wie DragLab personenbezogene Daten sammelt, verwendet und gemäß DSGVO schützt.',
+            ogImage: 'https://yourdomain.com/assets/Imgs/SEO/dataprotection.jpg',
+            sectionHeading: 'Datenschutzrichtlinie',
+            content: [
+                { title: 'Engagement für den Datenschutz', text: 'Bei DragLab steht der Schutz Ihrer personenbezogenen Daten an erster Stelle. Wir verpflichten uns zur Sicherheit und Vertraulichkeit Ihrer Daten, einschließlich Name, Kontaktdaten und anderer von Ihnen bereitgestellter Informationen. Ihre Daten werden nur zu legitimen Zwecken verwendet.' },
+                { title: 'Datenerhebung und -verwendung', text: 'Wir erheben nur die Daten, die zur Bereitstellung unserer Produkte und Services erforderlich sind. Wir informieren Sie transparent über die Art der Daten, deren Verwendung und die rechtliche Grundlage. Ihre Daten werden nicht ohne Ihre Zustimmung verkauft oder an Dritte weitergegeben.' },
+                { title: 'Einwilligung und Kontrolle', text: 'Ihre Zustimmung ist für uns entscheidend. Sie können Ihre Einwilligung jederzeit widerrufen. Darüber hinaus haben Sie das Recht auf Zugriff, Berichtigung und Löschung Ihrer Daten.' },
+                { title: 'Datensicherheit', text: 'Wir setzen fortschrittliche Sicherheitsmaßnahmen ein, einschließlich Verschlüsselung und sicherer Server, um Ihre Daten vor unbefugtem Zugriff, Verlust oder Missbrauch zu schützen.' },
+                { title: 'Datenspeicherung', text: 'Ihre Daten werden nur so lange gespeichert, wie sie für den jeweiligen Zweck notwendig sind oder gesetzliche Vorschriften dies erfordern. Danach werden sie sicher gelöscht oder anonymisiert.' },
+                { title: 'Weitergabe an Dritte', text: 'Wir geben Ihre Daten nur an vertrauenswürdige Partner weiter, wenn dies zur Leistungserbringung notwendig ist oder gesetzlich vorgeschrieben. Diese Partner sind vertraglich zur Vertraulichkeit verpflichtet.' },
+                { title: 'Internationale Datenübertragung', text: 'Als global tätiges Unternehmen übermitteln wir ggf. Daten in andere Länder. Dabei stellen wir sicher, dass Ihre Daten durch angemessene Sicherheitsvorkehrungen geschützt sind.' },
+                { title: 'Ihre Rechte', text: 'Sie haben das Recht auf Auskunft, Berichtigung, Löschung sowie Widerspruch gegen die Verarbeitung Ihrer Daten. Wir reagieren transparent und zeitnah auf Ihre Anfragen.' },
+                { title: 'Cookies und Tracking-Technologien', text: 'Wir verwenden Cookies, um Ihre Nutzererfahrung zu verbessern. Sie können Ihre Einstellungen jederzeit anpassen.' },
+                { title: 'Reaktion bei Datenpannen', text: 'Im Falle eines Datenschutzvorfalls informieren wir betroffene Personen und Behörden gemäß den gesetzlichen Vorschriften und leiten Gegenmaßnahmen ein.' },
+                { title: 'Mitarbeiterschulung und Bewusstsein', text: 'Unsere Mitarbeiter werden regelmäßig im Datenschutz geschult und sensibilisiert, um einen verantwortungsvollen Umgang mit Daten zu gewährleisten.' },
+                { title: 'Rechtskonformität', text: 'Wir halten alle geltenden Datenschutzgesetze wie die DSGVO ein und gewährleisten höchste Standards im Datenschutz weltweit.' },
+                { title: 'Datenschutz von Kindern', text: 'Unsere Dienstleistungen richten sich nicht an Kinder unter 13 Jahren. Sollte dennoch eine Datenerhebung erfolgen, löschen wir diese umgehend.' },
+                { title: 'Transparenz und Kommunikation', text: 'Wir legen großen Wert auf Offenheit im Umgang mit Daten. Bei Fragen stehen wir Ihnen gerne zur Verfügung.' },
+                { title: 'Aktualisierung der Richtlinie', text: 'Diese Richtlinie kann bei Bedarf angepasst werden. Wesentliche Änderungen werden transparent kommuniziert.' }
+            ]
+
+        },
+        ES: {
+            pageTitle: 'Política de Protección de Datos - DragLab',
+            metaDescription: 'Conozca cómo DragLab protege sus datos personales. Lea nuestra Política de Protección de Datos sobre privacidad, seguridad y uso internacional.',
+            ogTitle: 'Protección de Datos | DragLab',
+            ogDescription: 'Su privacidad es importante. Descubra cómo DragLab recopila, utiliza y protege sus datos personales en cumplimiento de la RGPD y otras leyes.',
+            ogImage: 'https://yourdomain.com/assets/Imgs/SEO/dataprotection.jpg',
+            sectionHeading: 'Política de Protección de Datos',
+            content: [
+                { title: 'Compromiso con la privacidad', text: 'En DragLab priorizamos la protección de sus datos personales y nos comprometemos a garantizar su seguridad y confidencialidad. Esto incluye cualquier dato que pueda identificarle, como nombre, datos de contacto y cualquier otra información que nos proporcione.' },
+                { title: 'Recopilación y uso de datos', text: 'Recopilamos solo los datos necesarios para brindar nuestros productos y servicios, mejorar nuestras ofertas y comunicarnos eficazmente con usted. No vendemos ni compartimos sus datos sin su consentimiento.' },
+                { title: 'Consentimiento y control', text: 'Solicitamos su consentimiento explícito antes de recopilar, usar o compartir sus datos. Puede retirarlo en cualquier momento. Además, puede acceder, corregir o eliminar su información personal.' },
+                { title: 'Seguridad de los datos', text: 'Implementamos medidas de seguridad avanzadas, como cifrado y servidores seguros, para proteger sus datos contra accesos no autorizados, pérdida o uso indebido.' },
+                { title: 'Retención de datos', text: 'Conservamos sus datos solo el tiempo necesario para cumplir con el propósito para el cual fueron recopilados o según lo exija la ley. Luego, los eliminamos o anonimizamos de forma segura.' },
+                { title: 'Compartir datos con terceros', text: 'Solo compartimos sus datos con terceros confiables cuando es esencial o por requerimiento legal. Estas entidades están obligadas a proteger sus datos y no los utilizarán para otros fines.' },
+                { title: 'Transferencias internacionales de datos', text: 'Como empresa global, es posible que transfiramos sus datos a otros países. En esos casos, aplicamos salvaguardias adecuadas conforme a estándares internacionales.' },
+                { title: 'Sus derechos', text: 'Usted tiene derecho a acceder, corregir, actualizar o eliminar su información, así como a oponerse o limitar su procesamiento. Respondemos a estas solicitudes de forma rápida y transparente.' },
+                { title: 'Cookies y tecnologías de seguimiento', text: 'Usamos cookies para mejorar su experiencia y realizar análisis. Usted puede aceptar o rechazar el uso de cookies según sus preferencias.' },
+                { title: 'Respuesta ante violaciones de datos', text: 'Contamos con un plan de respuesta ante incidentes. Notificamos a las autoridades y personas afectadas según la ley y tomamos medidas para mitigar cualquier daño.' },
+                { title: 'Capacitación de empleados', text: 'Nuestros empleados reciben formación continua en protección de datos y fomentamos una cultura de privacidad responsable.' },
+                { title: 'Cumplimiento legal', text: 'Cumplimos con todas las leyes de protección de datos aplicables, incluidas el RGPD y la CCPA, y mantenemos altos estándares de cumplimiento a nivel global.' },
+                { title: 'Privacidad infantil', text: 'Nuestros servicios no están dirigidos a menores de 13 años. No recopilamos conscientemente sus datos y, de hacerlo, los eliminamos de inmediato.' },
+                { title: 'Transparencia y comunicación', text: 'Nos comprometemos a mantener una comunicación clara y abierta sobre nuestras prácticas de privacidad. Puede contactarnos ante cualquier duda.' },
+                { title: 'Actualización de la política', text: 'Esta política puede modificarse conforme cambien las leyes o nuestras prácticas. Le informaremos de cualquier cambio importante.' }
+            ]
+
+        }
+    };
+
+    const t = translations[lang] || translations.EN;
 
     Product.find()
         .then(products => {
-            res.render('customer/Data-Protection.ejs', {
-                pageTitle: 'DataProtection',
-                path: '/Data-Protection',
-                products: products,
-                lang // <- pass it to EJS
+            res.render('customer/Data-Protection', {
+                pageTitle: t.pageTitle,
+                metaDescription: t.metaDescription,
+                ogTitle: t.ogTitle,
+                ogDescription: t.ogDescription,
+                ogImage: t.ogImage,
+                sectionHeading: t.sectionHeading,
+                content: t.content,
+                products,
+                lang
             });
         })
         .catch(err => {
             console.error(err);
-            res.redirect('/EN');
+            res.redirect('/EN/Data-Protection');
         });
-
 };
-exports.getimprint = (req, res, next) => {
-    const lang = req.query.lang || 'EN'; // <- 🔄 language detection
 
-    Product.find()
-        .then(products => {
-            res.render('customer/imprint.ejs', {
-                pageTitle: 'imprint',
-                path: '/imprint',
-                products: products,
-                lang // <- pass it to EJS
-            });
-        })
-        .catch(err => {
-            console.error(err);
-            res.redirect('/EN');
+exports.getimprint = async (req, res, next) => {
+    try {
+        const lang = (req.query.lang || req.params.lang || 'EN').toUpperCase();
+
+        const translations = {
+            EN: {
+                companyName: "Company Name",
+                location: "Location",
+                representedBy: "Represented by",
+                managingPartner: "Managing Partner",
+                emailGeneral: "Email (General)",
+                website: "Website",
+                registrationCourt: "Registration Court",
+                registrationNumber: "Registration Number",
+                legalForm: "Legal Form",
+                registrationPlace: "Place of Registration",
+                vatHeading: "Sales tax identification number according to § 27a of the sales tax law",
+                taxNumber: "Tax Number",
+                contactDetails: "Contact Details",
+                tel: "Tel",
+                fax: "Fax",
+                heroTitle: "Legal Notice (Imprint)",
+                pageHeading: "Company Legal Information"
+            },
+            ES: {
+                companyName: "Nombre de la Empresa",
+                location: "Ubicación",
+                representedBy: "Representado por",
+                managingPartner: "Socio Administrador",
+                emailGeneral: "Correo electrónico (general)",
+                website: "Sitio web",
+                registrationCourt: "Juzgado de Registro",
+                registrationNumber: "Número de Registro",
+                legalForm: "Forma jurídica",
+                registrationPlace: "Lugar de Registro",
+                vatHeading: "Número de identificación fiscal conforme al § 27a de la ley del IVA",
+                taxNumber: "Número de Impuesto",
+                contactDetails: "Datos de Contacto",
+                tel: "Tel",
+                fax: "Fax",
+                heroTitle: "Aviso Legal",
+                pageHeading: "Información Legal de la Empresa"
+            },
+            DE: {
+                companyName: "Firmenname",
+                location: "Standort",
+                representedBy: "Vertreten durch",
+                managingPartner: "Geschäftsführender Gesellschafter",
+                emailGeneral: "E-Mail (Allgemein)",
+                website: "Webseite",
+                registrationCourt: "Registergericht",
+                registrationNumber: "Handelsregisternummer",
+                legalForm: "Rechtsform",
+                registrationPlace: "Ort der Registrierung",
+                vatHeading: "Umsatzsteuer-Identifikationsnummer gemäß § 27a Umsatzsteuergesetz",
+                taxNumber: "Steuernummer",
+                contactDetails: "Kontaktinformationen",
+                tel: "Tel",
+                fax: "Fax",
+                heroTitle: "Impressum",
+                pageHeading: "Rechtliche Unternehmensinformationen"
+            }
+        };
+
+        const meta = {
+            EN: {
+                title: "Legal Notice (Imprint) – DragLab",
+                desc: "View DragLab’s legal disclosure, registration details, and contact information for Germany.",
+                heroTitle: "Legal Notice (Imprint)",
+                pageHeading: "Company Legal Information"
+            },
+            ES: {
+                title: "Aviso Legal – DragLab",
+                desc: "Consulta la divulgación legal, detalles de registro e información de contacto de DragLab en Alemania.",
+                heroTitle: "Aviso Legal",
+                pageHeading: "Información Legal de la Empresa"
+            },
+            DE: {
+                title: "Impressum – DragLab",
+                desc: "Rechtliche Hinweise, Handelsregistereintrag und Kontaktdaten von DragLab in Deutschland.",
+                heroTitle: "Impressum",
+                pageHeading: "Rechtliche Unternehmensinformationen"
+            }
+        };
+
+        const products = await Product.find();
+
+        res.render('customer/imprint', {
+            pageTitle: meta[lang].title,
+            path: '/imprint',
+            products,
+            lang,
+            t: translations[lang],
+            meta: meta[lang]
         });
-
+    } catch (err) {
+        console.error('Error loading imprint page:', err);
+        res.redirect('/EN/imprint');
+    }
 };
+
 exports.getCodeofEthics = (req, res, next) => {
-    const lang = req.query.lang || 'EN'; // <- 🔄 language detection
+    const lang = req.params.lang?.toUpperCase() || 'EN'; // 🔄 USE PARAM, not query
+
+    const translations = {
+        EN: {
+            pageTitle: 'DragLab Code of Ethics',
+            metaDescription: 'Read the DragLab Code of Ethics, outlining our values of integrity, sustainability, customer focus, and ethical responsibility.',
+            ogTitle: 'Code of Ethics | DragLab ',
+            ogDescription: 'Explore how DragLab commits to excellence, sustainability, fairness, and ethical practices across all business areas.',
+            ogImage: 'https://yourdomain.com/assets/Imgs/SEO/codeofethics.jpg',
+            sectionHeading: 'Code of Ethics',
+            closingStatementBold: 'DragLab ’s Code of Ethics is more than a set of guidelines;',
+            closingStatement: ' it is a reflection of who we are as a company. We are committed to upholding these principles in all our actions, ensuring that we remain a trusted and respected leader in our industry We encourage all employees, partners, and stakeholders to embrace these values and contribute to our mission of ethical excellence.',
+            sections: [
+                { title: '', text: 'At DragLab , we are committed to upholding the highest ethical standards in all aspects of our business. This Code of Ethics serves as a guide for our employees, partners, and stakeholders, ensuring that our actions reflect our core values of integrity, respect, and excellence.' },
+                { title: 'Integrity and Honesty', text: 'We adhere to the highest standards of integrity, ensuring that our actions are honest and transparent. We build trust by consistently delivering on our commitments and maintaining open communication with all stakeholders.' },
+                { title: 'Respect and Fairness', text: 'We treat all individuals with dignity, fostering an inclusive environment where everyone is valued. We are committed to fairness in all our interactions, providing equal opportunities regardless of race, gender, age, religion, or background.' },
+                { title: 'Sustainability and Environmental Responsibility', text: 'DragLab is dedicated to sustainability, striving to minimize our environmental impact through responsible resource use, eco-friendly product design, and continuous innovation in sustainable practices.' },
+                { title: 'Compliance with Laws and Regulations', text: 'We comply with all applicable laws and regulations in the regions where we operate. We expect all employees and partners to adhere to legal requirements and to conduct business in a manner that reflects our ethical values.' },
+                { title: 'Confidentiality and Data Privacy', text: 'We respect the privacy and confidentiality of our customers, employees, and partners. We handle all sensitive information with the utmost care, ensuring that it is protected against unauthorized access and misuse.' },
+                { title: 'Commitment to Excellence', text: 'We are committed to excellence in everything we do. Our focus on innovation, quality, and customer satisfaction drives us to continually improve our products and services, striving to exceed expectations.' },
+                { title: 'Accountability', text: 'We take responsibility for our actions and their impact on our customers, employees, communities, and the environment. We maintain open channels for reporting unethical behavior and encourage transparency in all aspects of our business.' },
+                { title: 'Conflict of Interest', text: 'We avoid conflicts of interest that could compromise our integrity or the trust placed in us by our customers and partners. Any potential conflicts are disclosed and managed appropriately to maintain our ethical standards.' },
+                { title: 'Anti-Bribery and Corruption', text: 'DragLab has a zero-tolerance policy for bribery and corruption. We conduct all business transactions transparently and ethically, ensuring that we do not engage in or condone any form of corrupt practices.' },
+                { title: 'Social Responsibility', text: 'We are committed to making a positive impact on society through our business activities. We support community initiatives, encourage volunteerism, and strive to be a responsible corporate citizen.' },
+                { title: 'Health and Safety', text: 'We prioritize the health and safety of our employees, customers, and partners. We are committed to maintaining a safe and healthy work environment, adhering to all relevant safety regulations, and promoting wellness initiatives.' },
+                { title: 'Innovation and Continuous Improvement', text: 'Innovation is at the heart of DragLab. We foster a culture of continuous improvement, encouraging creativity and experimentation while adhering to our ethical standards. We believe that innovation should always align with our commitment to ethical practices' },
+                { title: 'Customer Focus', text: 'Our customers are central to our mission. We are dedicated to understanding their needs, delivering high-quality products and services, and ensuring customer satisfaction through ethical business practices and open communication.' },
+                { title: 'Collaboration and Teamwork', text: 'We believe in the power of collaboration and teamwork. By working together, we can achieve our goals and create value for our customers and stakeholders. We foster a culture of mutual respect, trust, and shared success.' },
+                { title: 'Ethical Marketing and Advertising', text: 'We are committed to honest and ethical marketing practices. Our advertising is truthful, non-deceptive, and reflects the quality and value of our products and services. We do not engage in misleading or exaggerated claims.' },
+                { title: 'Supply Chain Responsibility', text: 'We expect our suppliers and partners to share our commitment to ethical practices. We work closely with them to ensure that our supply chain operates in a socially responsible and environmentally sustainable manner.' },
+                { title: 'Intellectual Property', text: 'We respect intellectual property rights and expect others to do the same. We are committed to protecting our intellectual property and ensuring that our innovations are used in ways that align with our ethical standards.' },
+                { title: 'Transparency and Disclosure', text: 'We believe in transparency in our business operations. We are committed to providing accurate and timely information to our stakeholders, ensuring that they are informed about our activities, performance, and ethical practices.' },
+                { title: 'Employee Development', text: 'We invest in the growth and development of our employees. We provide opportunities for continuous learning, skill development, and career advancement, ensuring that our workforce is equipped to meet the challenges of tomorrow.' }
+            ]
+        },
+        ES: {
+            pageTitle: 'Código de Ética - DragLab',
+            metaDescription: 'Descubra el Código de Ética de DragLab, que refleja nuestros valores de integridad, sostenibilidad, responsabilidad ética y enfoque en el cliente.',
+            ogTitle: 'Código de Ética | DragLab',
+            ogDescription: 'Explore cómo DragLab se compromete con la excelencia, la sostenibilidad, la equidad y las prácticas éticas en todas sus operaciones.',
+            ogImage: 'https://yourdomain.com/assets/Imgs/SEO/codeofethics.jpg',
+            sectionHeading: 'Código de Ética',
+            closingStatement: 'El Código de Ética de DragLab es más que un conjunto de directrices; es un reflejo de quiénes somos como empresa. Estamos comprometidos a mantener estos principios en todas nuestras acciones, asegurando que sigamos siendo un líder confiable y respetado en nuestra industria.',
+            sections: [
+                { title: '', text: 'En DragLab, estamos comprometidos con los más altos estándares éticos en todos los aspectos de nuestro negocio. Este Código de Ética sirve como guía para nuestros empleados, socios y partes interesadas, asegurando que nuestras acciones reflejen nuestros valores fundamentales de integridad, respeto y excelencia.' },
+                { title: 'Integridad y Honestidad', text: 'Nos adherimos a los más altos estándares de integridad, asegurando que nuestras acciones sean honestas y transparentes. Generamos confianza cumpliendo constantemente nuestros compromisos y manteniendo una comunicación abierta con todas las partes interesadas.' },
+                { title: 'Respeto e Imparcialidad', text: 'Tratamos a todas las personas con dignidad, fomentando un entorno inclusivo donde todos sean valorados. Nos comprometemos con la equidad en todas nuestras interacciones, brindando igualdad de oportunidades sin importar raza, género, edad, religión u origen.' },
+                { title: 'Sostenibilidad y Responsabilidad Ambiental', text: 'DragLab está comprometido con la sostenibilidad, buscando minimizar nuestro impacto ambiental mediante el uso responsable de recursos, el diseño ecológico de productos y la innovación continua en prácticas sostenibles.' },
+                { title: 'Cumplimiento de Leyes y Normativas', text: 'Cumplimos con todas las leyes y regulaciones aplicables en las regiones donde operamos. Esperamos que todos los empleados y socios respeten los requisitos legales y actúen de acuerdo con nuestros valores éticos.' },
+                { title: 'Confidencialidad y Privacidad de Datos', text: 'Respetamos la privacidad y confidencialidad de nuestros clientes, empleados y socios. Tratamos toda información sensible con el máximo cuidado, asegurando que esté protegida contra accesos no autorizados o usos indebidos.' },
+                { title: 'Compromiso con la Excelencia', text: 'Estamos comprometidos con la excelencia en todo lo que hacemos. Nuestro enfoque en la innovación, la calidad y la satisfacción del cliente nos impulsa a mejorar continuamente nuestros productos y servicios.' },
+                { title: 'Responsabilidad', text: 'Asumimos la responsabilidad por nuestras acciones y su impacto en los clientes, empleados, comunidades y el medio ambiente. Mantenemos canales abiertos para reportar conductas no éticas y fomentamos la transparencia en todas las áreas del negocio.' },
+                { title: 'Conflicto de Interés', text: 'Evitamos los conflictos de interés que puedan comprometer nuestra integridad o la confianza depositada en nosotros. Cualquier conflicto potencial se debe comunicar y gestionar adecuadamente para mantener nuestros estándares éticos.' },
+                { title: 'Anticorrupción y Antisoborno', text: 'DragLab aplica una política de tolerancia cero frente al soborno y la corrupción. Todas nuestras transacciones se realizan de forma transparente y ética.' },
+                { title: 'Responsabilidad Social', text: 'Estamos comprometidos con generar un impacto positivo en la sociedad a través de nuestras actividades empresariales. Apoyamos iniciativas comunitarias, fomentamos el voluntariado y buscamos ser un ciudadano corporativo responsable.' },
+                { title: 'Salud y Seguridad', text: 'Priorizamos la salud y seguridad de nuestros empleados, clientes y socios. Nos comprometemos a mantener un entorno de trabajo seguro y saludable, cumpliendo con todas las normativas vigentes.' },
+                { title: 'Innovación y Mejora Continua', text: 'La innovación es el núcleo de DragLab. Fomentamos una cultura de mejora continua, creatividad y ética en cada paso del proceso de desarrollo.' },
+                { title: 'Enfoque en el Cliente', text: 'Nuestros clientes están en el centro de nuestra misión. Nos dedicamos a comprender sus necesidades, ofrecer productos de alta calidad y garantizar su satisfacción mediante prácticas éticas.' },
+                { title: 'Colaboración y Trabajo en Equipo', text: 'Creemos en el poder del trabajo colaborativo. Juntos alcanzamos nuestras metas, creando valor compartido para nuestros clientes y socios.' },
+                { title: 'Marketing y Publicidad Éticos', text: 'Nos comprometemos con un marketing honesto y responsable. Nuestras campañas son claras, veraces y no engañosas.' },
+                { title: 'Responsabilidad en la Cadena de Suministro', text: 'Esperamos que nuestros proveedores compartan nuestro compromiso ético. Trabajamos con ellos para garantizar prácticas responsables y sostenibles en toda la cadena de suministro.' },
+                { title: 'Propiedad Intelectual', text: 'Respetamos los derechos de propiedad intelectual y esperamos el mismo respeto por parte de otros. Protegemos nuestras innovaciones según principios éticos.' },
+                { title: 'Transparencia y Divulgación', text: 'Creemos en la transparencia. Proporcionamos información precisa y oportuna a nuestros grupos de interés sobre nuestras operaciones y valores.' },
+                { title: 'Desarrollo de Empleados', text: 'Invertimos en el crecimiento profesional de nuestros empleados, ofreciendo oportunidades de aprendizaje continuo y avance en sus carreras.' }
+            ]
+        },
+        DE: {
+            pageTitle: 'Verhaltenskodex - DragLab',
+            metaDescription: 'Lesen Sie den Verhaltenskodex von DragLab, der unsere Werte wie Integrität, Nachhaltigkeit, Kundenorientierung und ethische Verantwortung beschreibt.',
+            ogTitle: 'Verhaltenskodex | DragLab',
+            ogDescription: 'Erfahren Sie, wie sich DragLab für Exzellenz, Nachhaltigkeit, Fairness und ethisches Handeln in allen Unternehmensbereichen einsetzt.',
+            ogImage: 'https://yourdomain.com/assets/Imgs/SEO/codeofethics.jpg',
+            sectionHeading: 'Verhaltenskodex',
+            closingStatement: 'Der Verhaltenskodex von DragLab ist mehr als nur eine Richtlinie; er ist Ausdruck unserer Identität als Unternehmen. Wir verpflichten uns, diese Grundsätze in allen Handlungen einzuhalten und ein vertrauenswürdiger Marktführer zu bleiben.',
+            sections: [
+                { title: '', text: 'Bei DragLab verpflichten wir uns zu höchsten ethischen Standards in allen Bereichen unseres Unternehmens. Dieser Verhaltenskodex dient als Leitfaden für unsere Mitarbeiter, Partner und Stakeholder und stellt sicher, dass unser Handeln unsere Werte Integrität, Respekt und Exzellenz widerspiegelt.' },
+                { title: 'Integrität und Ehrlichkeit', text: 'Wir handeln ehrlich und transparent. Wir bauen Vertrauen auf, indem wir unsere Zusagen einhalten und offen mit allen Interessengruppen kommunizieren.' },
+                { title: 'Respekt und Fairness', text: 'Wir behandeln alle Menschen mit Würde und fördern ein integratives Umfeld. Wir setzen uns für Fairness und Chancengleichheit ein – unabhängig von Herkunft, Geschlecht, Alter, Religion oder Hintergrund.' },
+                { title: 'Nachhaltigkeit und Umweltverantwortung', text: 'DragLab engagiert sich für Nachhaltigkeit und bemüht sich, die Umweltbelastung durch verantwortungsvolle Ressourcennutzung, umweltfreundliches Produktdesign und innovative Verfahren zu minimieren.' },
+                { title: 'Einhaltung von Gesetzen und Vorschriften', text: 'Wir halten uns an alle geltenden Gesetze und Vorschriften in den Regionen, in denen wir tätig sind. Unsere Mitarbeiter und Partner handeln im Einklang mit unseren ethischen Grundsätzen.' },
+                { title: 'Vertraulichkeit und Datenschutz', text: 'Wir respektieren die Privatsphäre und Vertraulichkeit unserer Kunden, Mitarbeiter und Partner. Sensible Daten werden mit größter Sorgfalt behandelt und vor Missbrauch geschützt.' },
+                { title: 'Streben nach Exzellenz', text: 'Wir streben nach Spitzenleistungen in allem, was wir tun. Durch Innovation und Qualität verbessern wir unsere Produkte und Dienstleistungen kontinuierlich.' },
+                { title: 'Verantwortung', text: 'Wir übernehmen Verantwortung für unser Handeln und dessen Auswirkungen. Unethisches Verhalten kann jederzeit gemeldet werden – Offenheit und Transparenz sind uns wichtig.' },
+                { title: 'Interessenkonflikte', text: 'Wir vermeiden Situationen, die unsere Integrität oder das Vertrauen unserer Partner gefährden könnten. Potenzielle Konflikte werden transparent offengelegt und verantwortungsvoll behandelt.' },
+                { title: 'Antikorruption und Bestechung', text: 'DragLab hat eine Null-Toleranz-Politik gegenüber Korruption. Geschäftstransaktionen erfolgen stets transparent und ethisch korrekt.' },
+                { title: 'Soziale Verantwortung', text: 'Wir tragen durch unsere Geschäftsaktivitäten positiv zur Gesellschaft bei. Wir fördern ehrenamtliches Engagement und unterstützen gemeinnützige Initiativen.' },
+                { title: 'Gesundheit und Sicherheit', text: 'Die Gesundheit und Sicherheit unserer Mitarbeiter, Kunden und Partner hat höchste Priorität. Wir schaffen sichere Arbeitsumgebungen und fördern das Wohlbefinden.' },
+                { title: 'Innovation und kontinuierliche Verbesserung', text: 'Innovation steht im Mittelpunkt unserer Arbeit. Wir fördern Kreativität und kontinuierliches Lernen im Einklang mit unseren ethischen Standards.' },
+                { title: 'Kundenorientierung', text: 'Unsere Kunden stehen im Fokus. Wir verstehen ihre Bedürfnisse, liefern hochwertige Produkte und sorgen für ihre Zufriedenheit durch ethisches Verhalten.' },
+                { title: 'Zusammenarbeit und Teamarbeit', text: 'Erfolg ist Teamarbeit. Wir fördern Respekt, Vertrauen und gemeinsames Wachstum.' },
+                { title: 'Ethisches Marketing und Werbung', text: 'Unsere Werbung ist ehrlich, sachlich und nicht irreführend. Wir kommunizieren den wahren Wert unserer Produkte.' },
+                { title: 'Verantwortung in der Lieferkette', text: 'Wir erwarten von unseren Lieferanten dieselben ethischen Standards. Wir arbeiten nur mit verantwortungsvollen Partnern zusammen.' },
+                { title: 'Geistiges Eigentum', text: 'Wir respektieren geistiges Eigentum – sowohl unser eigenes als auch das anderer. Unsere Innovationen schützen wir verantwortungsvoll.' },
+                { title: 'Transparenz und Offenlegung', text: 'Wir informieren unsere Stakeholder offen und zeitnah über unsere Leistungen, Werte und Ziele.' },
+                { title: 'Mitarbeiterentwicklung', text: 'Wir investieren in unsere Mitarbeiter durch Weiterbildung und individuelle Entwicklungsmöglichkeiten.' }
+            ]
+        }
+
+    };
+
+    const t = translations[lang] || translations['EN'];
 
     Product.find()
         .then(products => {
-            res.render('customer/CodeofEthics.ejs', {
-                pageTitle: 'Code of Ethics',
-                path: '/CodeofEthics',
-                products: products,
-                lang // <- pass it to EJS
+            res.render('customer/CodeofEthics', {
+                pageTitle: t.pageTitle,
+                metaDescription: t.metaDescription,
+                ogTitle: t.ogTitle,
+                ogDescription: t.ogDescription,
+                ogImage: t.ogImage,
+                sectionHeading: t.sectionHeading,
+                sections: t.sections,
+                closingStatement: t.closingStatement,
+                products,
+                lang
             });
         })
         .catch(err => {
             console.error(err);
             res.redirect('/EN');
         });
-
 };
 
-exports.getQualitypolicy = (req, res, next) => {
-    const lang = req.query.lang || 'EN'; // <- 🔄 language detection
+exports.getQualitypolicy = async (req, res, next) => {
+    const lang = req.params.lang?.toUpperCase() || 'EN';
 
-    Product.find()
-        .then(products => {
-            res.render('customer/quality-policy', {
-                pageTitle: 'quality Policy',
-                path: '/quality policy',
-                products: products,
-                lang // <- pass it to EJS
-            });
-        })
-        .catch(err => {
-            console.error(err);
-            res.redirect('/EN');
+    const translations = {
+        EN: {
+            pageTitle: 'Quality Policy',
+            metaDescription: 'Discover DragLab’s commitment to product excellence and continuous improvement. Read our comprehensive Quality Policy.',
+            ogTitle: 'Quality Policy | DragLab',
+            ogDescription: 'Explore our dedication to quality, compliance, sustainability, and customer satisfaction through our quality practices.',
+            heroTitle: 'Quality Policy',
+            heading: 'Our Quality Policy',
+            intro: `At <strong>DragLab</strong>, our Quality Policy reflects our commitment to excellence, reliability, and continuous improvement across all aspects of our operations. Our goal is to consistently provide products and services that meet or exceed customer expectations.`,
+            sections: [
+                {
+                    title: "Customer Focus",
+                    body: "Understanding and meeting customer needs is our top priority. We strive to build long-lasting relationships based on trust, performance, and satisfaction."
+                },
+                {
+                    title: "Compliance and Standards",
+                    body: "We adhere to all relevant industry standards and regulatory requirements, ensuring that our products are safe, effective, and reliable."
+                },
+                {
+                    title: "Continuous Improvement",
+                    body: "Through regular reviews, feedback mechanisms, and innovation, we continuously enhance our processes, products, and services. We embrace new technologies to stay at the forefront of the laboratory equipment industry."
+                },
+                {
+                    title: "Employee Involvement",
+                    body: "Our team is our greatest asset. We invest in ongoing training and professional development to empower our employees to actively contribute to our quality objectives."
+                },
+                {
+                    title: "Supplier Relationships",
+                    body: "We work closely with our suppliers to ensure that all materials and components meet our stringent quality standards, supporting the excellence of our final products."
+                },
+                {
+                    title: "Sustainability",
+                    body: "We are committed to sustainable practices across all operations, minimizing environmental impact while maintaining the highest quality standards."
+                }
+            ],
+            implementationTitle: "Implementation and Monitoring",
+            implementationList: [
+                {
+                    title: "Quality Management System:",
+                    value: "Robust system aligned with ISO and CE standards."
+                },
+                {
+                    title: "Audits and Inspections:",
+                    value: "Regular internal and external evaluations for compliance and improvements."
+                },
+                {
+                    title: "Customer Feedback:",
+                    value: "Active collection and application of customer feedback to drive excellence."
+                }
+            ],
+            commitmentTitle: "Commitment to Excellence",
+            commitmentBody: `At DragLab, maintaining the highest standards of quality is the foundation of everything we do. Our Quality Policy supports our mission to deliver superior laboratory products and services that our customers can trust. We thank you for your confidence in DragLab and look forward to serving you with the highest levels of quality and innovation.`
+        },
+        ES: {
+            pageTitle: 'Política de Calidad',
+            metaDescription: 'Descubra el compromiso de DragLab con la excelencia de productos y la mejora continua. Lea nuestra Política de Calidad.',
+            ogTitle: 'Política de Calidad | DragLab',
+            ogDescription: 'Explore nuestra dedicación a la calidad, cumplimiento, sostenibilidad y satisfacción del cliente a través de nuestras prácticas de calidad.',
+            heroTitle: 'Política de Calidad',
+            heading: 'Nuestra Política de Calidad',
+            intro: `En <strong>DragLab</strong>, nuestra Política de Calidad refleja nuestro compromiso con la excelencia, la fiabilidad y la mejora continua en todos los aspectos de nuestras operaciones. Nuestro objetivo es proporcionar constantemente productos y servicios que cumplan o superen las expectativas del cliente.`,
+            sections: [
+                {
+                    title: "Enfoque en el cliente",
+                    body: "Comprender y satisfacer las necesidades del cliente es nuestra principal prioridad. Nos esforzamos por construir relaciones duraderas basadas en la confianza, el rendimiento y la satisfacción."
+                },
+                {
+                    title: "Cumplimiento y normas",
+                    body: "Cumplimos con todas las normas del sector y requisitos reglamentarios pertinentes, garantizando que nuestros productos sean seguros, eficaces y fiables."
+                },
+                {
+                    title: "Mejora continua",
+                    body: "Mediante revisiones periódicas, mecanismos de retroalimentación e innovación, mejoramos continuamente nuestros procesos, productos y servicios. Adoptamos nuevas tecnologías para mantenernos a la vanguardia de la industria de equipos de laboratorio."
+                },
+                {
+                    title: "Participación de los empleados",
+                    body: "Nuestro equipo es nuestro mayor activo. Invertimos en formación continua y desarrollo profesional para capacitar a nuestros empleados a contribuir activamente a nuestros objetivos de calidad."
+                },
+                {
+                    title: "Relaciones con proveedores",
+                    body: "Colaboramos estrechamente con nuestros proveedores para garantizar que todos los materiales y componentes cumplan con nuestros estrictos estándares de calidad, apoyando así la excelencia de nuestros productos finales."
+                },
+                {
+                    title: "Sostenibilidad",
+                    body: "Estamos comprometidos con prácticas sostenibles en todas nuestras operaciones, minimizando el impacto ambiental mientras mantenemos los más altos estándares de calidad."
+                }
+            ],
+            implementationTitle: "Implementación y seguimiento",
+            implementationList: [
+                {
+                    title: "Sistema de gestión de calidad:",
+                    value: "Sistema robusto alineado con las normas ISO y CE."
+                },
+                {
+                    title: "Auditorías e inspecciones:",
+                    value: "Evaluaciones internas y externas regulares para garantizar el cumplimiento y detectar mejoras."
+                },
+                {
+                    title: "Comentarios de los clientes:",
+                    value: "Recogida activa y aplicación de comentarios de los clientes para impulsar la excelencia."
+                }
+            ],
+            commitmentTitle: "Compromiso con la excelencia",
+            commitmentBody: `En DragLab, mantener los más altos estándares de calidad es la base de todo lo que hacemos. Nuestra Política de Calidad respalda nuestra misión de ofrecer productos y servicios de laboratorio superiores en los que nuestros clientes puedan confiar. Gracias por confiar en DragLab; esperamos poder servirle con los más altos niveles de calidad e innovación.`
+        },
+        DE: {
+            pageTitle: 'Qualitätspolitik',
+            metaDescription: 'Erfahren Sie mehr über DragLabs Engagement für Produktqualität und kontinuierliche Verbesserung. Lesen Sie unsere Qualitätspolitik.',
+            ogTitle: 'Qualitätspolitik | DragLab',
+            ogDescription: 'Erfahren Sie mehr über unser Engagement für Qualität, Konformität, Nachhaltigkeit und Kundenzufriedenheit durch unsere Qualitätspolitik.',
+            heroTitle: 'Qualitätspolitik',
+            heading: 'Unsere Qualitätspolitik',
+            intro: `Bei <strong>DragLab</strong> spiegelt unsere Qualitätspolitik unser Engagement für Exzellenz, Zuverlässigkeit und kontinuierliche Verbesserung in allen Bereichen unseres Unternehmens wider. Unser Ziel ist es, stets Produkte und Dienstleistungen zu liefern, die die Erwartungen unserer Kunden erfüllen oder übertreffen.`,
+            sections: [
+                {
+                    title: "Kundenorientierung",
+                    body: "Das Verständnis und die Erfüllung der Kundenbedürfnisse stehen für uns an erster Stelle. Wir streben langfristige Beziehungen an, die auf Vertrauen, Leistung und Zufriedenheit basieren."
+                },
+                {
+                    title: "Normen und Vorschriften",
+                    body: "Wir halten alle relevanten Branchenstandards und gesetzlichen Anforderungen ein und stellen sicher, dass unsere Produkte sicher, wirksam und zuverlässig sind."
+                },
+                {
+                    title: "Kontinuierliche Verbesserung",
+                    body: "Durch regelmäßige Überprüfungen, Feedbackmechanismen und Innovation verbessern wir kontinuierlich unsere Prozesse, Produkte und Dienstleistungen. Wir nutzen neue Technologien, um in der Laborgerätebranche führend zu bleiben."
+                },
+                {
+                    title: "Mitarbeiterengagement",
+                    body: "Unser Team ist unser wertvollstes Kapital. Wir investieren in kontinuierliche Schulungen und berufliche Weiterentwicklung, damit unsere Mitarbeitenden aktiv zu unseren Qualitätszielen beitragen können."
+                },
+                {
+                    title: "Lieferantenbeziehungen",
+                    body: "Wir arbeiten eng mit unseren Lieferanten zusammen, um sicherzustellen, dass alle Materialien und Komponenten unseren strengen Qualitätsstandards entsprechen und die Exzellenz unserer Endprodukte unterstützen."
+                },
+                {
+                    title: "Nachhaltigkeit",
+                    body: "Wir verpflichten uns zu nachhaltigen Praktiken in allen Bereichen unseres Unternehmens, um die Umweltbelastung zu minimieren und gleichzeitig höchste Qualitätsstandards zu wahren."
+                }
+            ],
+            implementationTitle: "Umsetzung und Überwachung",
+            implementationList: [
+                {
+                    title: "Qualitätsmanagementsystem:",
+                    value: "Robustes System nach ISO- und CE-Standards."
+                },
+                {
+                    title: "Audits und Inspektionen:",
+                    value: "Regelmäßige interne und externe Bewertungen zur Sicherstellung der Einhaltung und Verbesserung."
+                },
+                {
+                    title: "Kundenfeedback:",
+                    value: "Aktive Sammlung und Umsetzung von Kundenfeedback zur Förderung der Exzellenz."
+                }
+            ],
+            commitmentTitle: "Engagement für Exzellenz",
+            commitmentBody: `Bei DragLab ist die Einhaltung höchster Qualitätsstandards die Grundlage all unserer Aktivitäten. Unsere Qualitätspolitik unterstützt unsere Mission, hochwertige Laborprodukte und -dienstleistungen zu liefern, auf die sich unsere Kunden verlassen können. Vielen Dank für Ihr Vertrauen in DragLab – wir freuen uns darauf, Sie mit höchster Qualität und Innovation zu bedienen.`
+        }
+    };
+
+    try {
+        const t = translations[lang] || translations.EN;
+
+        res.render('customer/quality-policy', {
+            lang,
+            products: await Product.find(),
+            pageTitle: t.pageTitle,
+            metaDescription: t.metaDescription,
+            ogTitle: t.ogTitle,
+            ogDescription: t.ogDescription,
+            heroTitle: t.heroTitle,
+            heading: t.heading,
+            intro: t.intro,
+            sections: t.sections,
+            implementationTitle: t.implementationTitle,
+            implementationList: t.implementationList,
+            commitmentTitle: t.commitmentTitle,
+            commitmentBody: t.commitmentBody,
         });
-
+    } catch (err) {
+        console.error(err);
+        res.redirect('/EN');
+    }
 };
 
 exports.getWarrantyRegistration = (req, res) => {
-    const lang = req.params.lang || 'EN';
+    const supportedLangs = ['EN', 'ES', 'DE'];
+    const rawLang = req.params.lang?.toUpperCase() || 'EN';
+    const lang = supportedLangs.includes(rawLang) ? rawLang : 'EN';
+
+    const t = {
+        EN: {
+            pageTitle: 'Warranty Registration',
+            metaDescription: 'Register your DragLab product warranty for quick technical support and secure service.',
+            ogTitle: 'Warranty Registration | DragLab',
+            ogDescription: 'Fill out the warranty registration form to activate support and service for your DragLab product.',
+            heroTitle: 'Warranty Registration',
+            heroDesc: 'Quick and reliable solutions to your technical problems.',
+            formTitle: 'Warranty Registration Form',
+            dataLabel: 'I agree to the processing of my personal data in accordance with the',
+            privacyPolicy: 'Privacy Policy',
+            dataSuffix: 'for the purpose of handling my Warranty Registration request.',
+            name: 'Name*',
+            namePlaceholder: 'Name',
+            datePurchased: 'Date Purchased*',
+            email: 'Email*',
+            techHeader: 'Technical Question / Failure',
+            deviceCategory: 'Device Category*',
+            deviceModel: 'Device Model*',
+            serialNo: 'Serial No*',
+            message: 'Message',
+            messagePlaceholder: 'Write your message...',
+            select: 'Select',
+            submit: 'Send Message',
+            successMessage: '✅ Your warranty has been successfully registered.',
+            errorMessage: '❌ Something went wrong. Please try again later.'
+        },
+        ES: {
+            pageTitle: 'Registro de Garantía',
+            metaDescription: 'Registra la garantía de tu producto DragLab para recibir soporte técnico rápido y un servicio seguro.',
+            ogTitle: 'Registro de Garantía | DragLab',
+            ogDescription: 'Rellena el formulario de registro de garantía para activar el soporte de tu producto DragLab.',
+            heroTitle: 'Registro de Garantía',
+            heroDesc: 'Soluciones rápidas y confiables para tus problemas técnicos.',
+            formTitle: 'Formulario de Registro de Garantía',
+            dataLabel: 'Acepto el tratamiento de mis datos personales de acuerdo con la',
+            privacyPolicy: 'Política de Privacidad',
+            dataSuffix: 'para gestionar mi solicitud de registro de garantía.',
+            name: 'Nombre*',
+            namePlaceholder: 'Nombre',
+            datePurchased: 'Fecha de compra*',
+            email: 'Email*',
+            techHeader: 'Pregunta técnica / Falla',
+            deviceCategory: 'Categoría del dispositivo*',
+            deviceModel: 'Modelo del dispositivo*',
+            serialNo: 'Número de serie*',
+            message: 'Mensaje',
+            messagePlaceholder: 'Escribe tu mensaje...',
+            select: 'Seleccionar',
+            submit: 'Enviar mensaje',
+            successMessage: '✅ Tu garantía ha sido registrada correctamente.',
+            errorMessage: '❌ Algo salió mal. Por favor, inténtalo de nuevo más tarde.'
+        },
+        DE: {
+            pageTitle: 'Garantieregistrierung',
+            metaDescription: 'Registrieren Sie Ihre DragLab-Produktgarantie für schnellen technischen Support und sicheren Service.',
+            ogTitle: 'Garantieregistrierung | DragLab',
+            ogDescription: 'Füllen Sie das Formular aus, um Support und Service für Ihr DragLab-Produkt zu aktivieren.',
+            heroTitle: 'Garantieregistrierung',
+            heroDesc: 'Schnelle und zuverlässige Lösungen für Ihre technischen Probleme.',
+            formTitle: 'Garantie-Registrierungsformular',
+            dataLabel: 'Ich stimme der Verarbeitung meiner personenbezogenen Daten gemäß der',
+            privacyPolicy: 'Datenschutzerklärung',
+            dataSuffix: 'zum Zweck der Bearbeitung meiner Garantieregistrierung.',
+            name: 'Name*',
+            namePlaceholder: 'Name',
+            datePurchased: 'Kaufdatum*',
+            email: 'Email*',
+            techHeader: 'Technische Frage / Fehler',
+            deviceCategory: 'Gerätekategorie*',
+            deviceModel: 'Gerätemodell*',
+            serialNo: 'Seriennummer*',
+            message: 'Nachricht',
+            messagePlaceholder: 'Schreiben Sie Ihre Nachricht...',
+            select: 'Auswählen',
+            submit: 'Nachricht senden',
+            successMessage: '✅ Ihre Garantie wurde erfolgreich registriert.',
+            errorMessage: '❌ Etwas ist schiefgelaufen. Bitte versuchen Sie es später erneut.'
+        }
+    };
 
     Product.find()
         .then(products => {
             res.render('customer/WarrantyRegistration', {
-                pageTitle: 'Warranty Registration',
-                products,
                 lang,
-                req // 👈 pass full request to access query params in EJS
+                products,
+                t: t[lang],
+                req
             });
         })
         .catch(err => {
@@ -780,4 +2647,3 @@ exports.postWarrantyRegistration = async (req, res) => {
         res.redirect(`/WarrantyRegistration/${lang}?error=true`);
     }
 };
-

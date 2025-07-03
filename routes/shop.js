@@ -37,7 +37,7 @@ router.get('/:lang/PrivacyPolicy', shopController.getPrivacyPolicy);
 router.get('/:lang/DataProtection', shopController.getDataProtection);
 router.get('/:lang/imprint', shopController.getimprint);
 router.get('/:lang/CodeofEthics', shopController.getCodeofEthics);
-router.get('/:lang/Qualitypolicy', shopController.getQualitypolicy);
+router.get('/:lang/quality-policy', shopController.getQualitypolicy);
 router.get('/:lang/WarrantyRegistration', shopController.getWarrantyRegistration);
 router.post('/submit-warranty', shopController.postWarrantyRegistration);
 
@@ -60,6 +60,17 @@ router.get('/api/models/:productId', async (req, res) => {
   }
 });
 
+router.get('/', (req, res) => {
+  const acceptLang = req.headers['accept-language'] || '';
+  const browserLang = acceptLang.slice(0, 2).toLowerCase();
+
+  let redirectLang = 'EN'; // default
+
+  if (browserLang === 'es') redirectLang = 'ES';
+  else if (browserLang === 'de') redirectLang = 'DE';
+
+  res.redirect(`/${redirectLang}`);
+});
 
 
 

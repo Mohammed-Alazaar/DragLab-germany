@@ -1,149 +1,132 @@
 <%- include('../../includes/customer/head.ejs') %>
+<link rel="stylesheet" href="/css/customer/conact-us.css">
+<%- include('../../includes/customer/header-end.ejs') %>
 
+<!-- SEO Metadata -->
+<title><%= pageTitle %></title>
+<meta name="description" content="<%= metaDescription %>">
+<link rel="canonical" href="https://yourdomain.com/<%= lang.toLowerCase() %>/contactus" />
+<link rel="alternate" hreflang="en" href="https://yourdomain.com/en/contactus" />
+<link rel="alternate" hreflang="de" href="https://yourdomain.com/de/contactus" />
+<link rel="alternate" hreflang="es" href="https://yourdomain.com/es/contactus" />
+<meta property="og:title" content="<%= ogTitle %>" />
+<meta property="og:description" content="<%= ogDescription %>" />
+<meta property="og:image" content="<%= ogImage %>" />
+<meta property="og:url" content="https://yourdomain.com/<%= lang.toLowerCase() %>/contactus" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="<%= ogTitle %>">
+<meta name="twitter:description" content="<%= ogDescription %>">
+<meta name="twitter:image" content="<%= ogImage %>">
+<link rel="icon" href="/favicon.ico" type="image/x-icon" />
 
-    <link rel="stylesheet" href="/css/customer/conact-us.css">
+<body>
+  <%- include('../../includes/customer/navbar.ejs') %>
 
+  <!-- Header Thumbnail -->
+  <div class="slide">
+    <div class="slide-text">
+      <h1><%= sectionHeading %></h1>
+      <p><%= sectionSub %></p>
+    </div>
+    <img src="/assets/Imgs/Icons/products/contactus-BC.png" alt="Contact Us Background">
+  </div>
 
+  <!-- Success / Error Messages -->
+  <% if (req.query.success) { %>
+    <div class="success-message"><%= successMessage %></div>
+    <script>
+      gtag('event', 'conversion', {
+        'send_to': 'AW-754782155/Km5ZCI6_qIQaEMuf9OcC',
+        'value': 1.0,
+        'currency': 'USD',
+        'transaction_id': ''
+      });
+    </script>
+  <% } else if (req.query.error) { %>
+    <div class="error-message"><%= errorMessage %></div>
+  <% } %>
 
+  <!-- Contact Form Section -->
+  <div class="contact-container">
+    <div class="contact-form">
+      <h2><%= labels.contactInfo %></h2>
+      <form id="contactus-form" action="/submit-contactus" method="POST">
+        <div class="row">
+          <div class="field">
+            <label for="first"><%= labels.first %></label>
+            <input type="text" id="first" name="firstName" placeholder="<%= labels.first %>" required />
+          </div>
+          <div class="field">
+            <label for="last"><%= labels.last %></label>
+            <input type="text" id="last" name="lastName" placeholder="<%= labels.last %>" required />
+          </div>
+        </div>
+        <div class="row">
+          <div class="field">
+            <label for="subject"><%= labels.subject %></label>
+            <input type="text" id="subject" name="subject" placeholder="<%= labels.subject %>" required />
+          </div>
+          <div class="field">
+            <label for="email"><%= labels.email %></label>
+            <input type="email" id="email" name="email" placeholder="<%= labels.email %>" required />
+          </div>
+        </div>
+        <div class="row">
+          <div class="field" style="flex: 1 1 100%;">
+            <label for="message"><%= labels.message %></label>
+            <textarea id="message" name="message" placeholder="<%= labels.message %>" required></textarea>
+          </div>
+        </div>
+        <div class="recaptcha">
+          <div class="g-recaptcha" data-sitekey="6LdBFQkrAAAAALGPy8986JpxndbqzY1_6kEDxH1s"></div>
+        </div>
+        <div class="submit-button">
+          <button class="g-recaptcha submit-btn" data-sitekey="6LdBFQkrAAAAALGPy8986JpxndbqzY1_6kEDxH1s"
+            data-callback='onSubmit' data-action='submit' type="submit">
+            <%= labels.send %>
+          </button>
+        </div>
+        <script>
+          function onSubmit(token) {
+            const form = document.getElementById("contactus-form");
+            if (form.checkValidity()) {
+              form.submit();
+            } else {
+              form.reportValidity();
+            }
+          }
+        </script>
+      </form>
+    </div>
 
+    <!-- Contact Info Box -->
+    <div class="contact-info">
+      <div class="info-box">
+        <img src="/assets/Imgs/Icons/products/bxs_phone-call.png" alt="Phone icon" />
+        <span><a href="tel:+49 6196 400816">+49 6196 400816</a></span>
+      </div>
+      <div class="info-box">
+        <img src="/assets/Imgs/Icons/products/email-vector.png" alt="Email icon">
+        <span><a href="mailto:info@drag-lab.de">info@drag-lab.de</a></span>
+      </div>
+      <div class="info-box">
+        <img src="/assets/Imgs/Icons/products/map-Vector.png" alt="Location icon">
+        <span><a href="https://maps.app.goo.gl/AEP5y3Gwv7ejRwa48" target="_blank">
+          Alfred-Herrhausen-Allee<br>3-5, D-65760 Eschborn, Germany</a></span>
+      </div>
+    </div>
+  </div>
 
-    <body>
-        <!-- nav-bar -->
+  <!-- Embedded Google Map -->
+  <div style="width: 100%; height: 400px;">
+    <iframe
+      src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1278.7375735863695!2d8.575659556692225!3d50.13354253361766!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x47bd0941bdcfb47d%3A0xda5a70222b134090!2sDragLab%20Technologies%20-%20Nanodrag%20Technology%20GmbH!5e0!3m2!1sen!2sus!4v1743626791829!5m2!1sen!2sus"
+      width="100%" height="450" style="border:0;" allowfullscreen="" loading="lazy"
+      referrerpolicy="no-referrer-when-downgrade"></iframe>
+  </div>
 
-        <%- include('../../includes/customer/navbar.ejs') %>
-
-
-            <!-- nav-bar -->
-
-            <!-- contact us thumbnail  -->
-            <div class="slide">
-                <div class="slide-text">
-                    <h1>Contact Us</h1>
-                    <p>Have a question or need help? Reach out! </p>
-                </div>
-                <img src="/assets/Imgs/Icons/products/contactus-BC.png" alt="Photo 1">
-            </div>
-            <!-- contact us thumbnail  -->
-
-            <!-- contact us form  -->
-            <% if (req.query.success) { %>
-                <div class="success-message">✅ Thank you! We have received your message.</div>
-                <!-- Google Ads Conversion Tracking Script -->
-                <script>
-                    gtag('event', 'conversion', {
-                        'send_to': 'AW-754782155/Km5ZCI6_qIQaEMuf9OcC',
-                        'value': 1.0,
-                        'currency': 'USD',
-                        'transaction_id': ''
-                    });
-                </script>
-                <% } else if (req.query.error) { %>
-                    <div class="error-message">❌ Something went wrong. Please try again later.</div>
-                    <% } %>
-
-                        <div class="contact-container">
-
-                            <!-- Contact Form -->
-                            <div class="contact-form">
-                                <h2>Contact Information</h2>
-                                <form id="contactus-form" action="/submit-contactus" method="POST">
-                                    <div class="row">
-                                        <div class="field">
-                                            <label for="first">First Name</label>
-                                            <input type="text" id="first" name="firstName" placeholder="First Name"
-                                                required />
-                                        </div>
-                                        <div class="field">
-                                            <label for="last">Last Name</label>
-                                            <input type="text" id="last" name="lastName" placeholder="Last Name"
-                                                required />
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="field">
-                                            <label for="subject">Subject</label>
-                                            <input type="text" id="subject" name="subject" placeholder="Subject"
-                                                required />
-                                        </div>
-                                        <div class="field">
-                                            <label for="email">Email</label>
-                                            <input type="email" id="email" name="email" placeholder="Email" required />
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="field" style="flex: 1 1 100%;">
-                                            <label for="message">Message</label>
-                                            <textarea id="message" name="message" placeholder="Write your message.."
-                                                required></textarea>
-                                        </div>
-                                    </div>
-                                    <div class="recaptcha">
-                                        <div class="g-recaptcha" data-sitekey="6LdBFQkrAAAAALGPy8986JpxndbqzY1_6kEDxH1s">
-                                        </div>
-                                    </div>
-                                    <div class="submit-button">
-                                        <button class="g-recaptcha submit-btn" data-sitekey="6LdBFQkrAAAAALGPy8986JpxndbqzY1_6kEDxH1s"
-                                            data-callback='onSubmit' data-action='submit' type="submit">
-                                            Send Message
-                                        </button>
-                                    </div>
-                                    <script>
-                                        function onSubmit(token) {
-                                            const form = document.getElementById("contactus-form");
-                                            if (form.checkValidity()) {
-                                                form.submit();
-                                            } else {
-                                                // Trigger built-in browser validation UI
-                                                form.reportValidity();
-                                            }
-                                        }
-                                    </script>
-                                </form>
-
-                            </div>
-
-                            <!-- Contact Info -->
-                            <div class="contact-info">
-                                <div class="info-box">
-                                    <!-- Phone -->
-                                    <img src="/assets/Imgs/Icons/products/bxs_phone-call.png" alt="phone number" />
-                                    <span><a href="tel:+49 6196 400816">+49 6196 400816</a></span>
-                                </div>
-                                <div class="info-box">
-                                    <!-- Email -->
-                                    <img src="/assets/Imgs/Icons/products/email-vector.png" alt="Email Adress">
-                                    <span><a href="mailto:info@drag-lab.de">info@drag-lab.de</a></span>
-                                </div>
-                                <div class="info-box">
-                                    <!-- Location -->
-                                    <img src="/assets/Imgs/Icons/products/map-Vector.png" alt="our location">
-                                    <span><a href="https://maps.app.goo.gl/AEP5y3Gwv7ejRwa48" target="_blank">Alfred-Herrhausen-Allee<br> 3-5 
-                                        D-65760 Eschborn
-                                        Germany</a></li></span>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- contact us form  -->
-
-
-
-                        <!-- Map -->
-
-                        <div style="width: 100%; height: 400px;">
-                            <iframe
-                                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1278.7375735863695!2d8.575659556692225!3d50.13354253361766!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x47bd0941bdcfb47d%3A0xda5a70222b134090!2sDragLab%20Technologies%20-%20Nanodrag%20Technology%20GmbH!5e0!3m2!1sen!2sus!4v1743626791829!5m2!1sen!2sus"
-                                width="100%" height="450" style="border:0;" allowfullscreen="" loading="lazy"
-                                referrerpolicy="no-referrer-when-downgrade"></iframe>
-                        </div>
-                        <!-- Map -->
-
-                        <!-- Footer -->
-
-                        <%- include('../../includes/customer/footer.ejs') %>
-
-
-    </body>
-    <%- include('../../includes/customer/script.ejs') %>
-
-
-        </html>
+  <%- include('../../includes/customer/footer.ejs') %>
+</body>
+<%- include('../../includes/customer/script.ejs') %>
+</html>

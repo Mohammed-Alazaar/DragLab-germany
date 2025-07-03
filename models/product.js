@@ -63,7 +63,7 @@ const ModelsSchema = new Schema({
                 fileProductCategory: String
             }]
         }],
-        GR: [{
+        DE: [{
             ModelName: { type: String },
             ModelNameDesc: { type: String },
             ModelDesc: { type: String },
@@ -142,7 +142,7 @@ const productSchema = new Schema({
             ProductDesc: { type: String, required: false },           // ✅ No required
             WhyProductDesc: { type: String, required: false }         // ✅ No required
         }],
-        GR: [{
+        DE: [{
             features: [{
                 FeatureImage: { type: String },
                 FeatureName: { type: String },

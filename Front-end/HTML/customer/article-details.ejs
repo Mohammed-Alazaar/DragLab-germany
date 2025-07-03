@@ -1,17 +1,15 @@
 <%- include('../../includes/customer/head.ejs') %>
 
-    <title>
-        <%= article.title %> | DragLab
-    </title>
-    <meta name="description"
-        content="<%= (article.summary || article.body.replace(/(<([^>]+)>)/gi, '').replace(/&nbsp;/g, ' ').slice(0, 160)).trim() %>">
-    <meta property="og:title" content="<%= article.title %>">
-    <meta property="og:description"
-        content="<%= (article.summary || article.body.replace(/(<([^>]+)>)/gi, '').replace(/&nbsp;/g, ' ').slice(0, 160)).trim() %>">
-    <meta property="og:image" content="<%= article.thumbnail %>">
+<title><%= article.title %> | DragLab</title>
+
+<meta name="description" content="<%= (article.summary || article.body.replace(/(<([^>]+)>)/gi, '').replace(/&nbsp;/g, ' ').slice(0, 160)).trim() %>">
+<meta property="og:title" content="<%= article.title %>">
+<meta property="og:description" content="<%= (article.summary || article.body.replace(/(<([^>]+)>)/gi, '').replace(/&nbsp;/g, ' ').slice(0, 160)).trim() %>">
+<meta property="og:image" content="<%= article.thumbnail %>">
 <meta property="og:url" content="https://www.draglab.com/<%= lang %>/article/<%= article.slug %>">
-    <meta name="robots" content="index, follow">
-    <script type="application/ld+json">
+<meta name="robots" content="index, follow">
+
+<script type="application/ld+json">
 <%= JSON.stringify({
   "@context": "https://schema.org",
   "@type": "Article",
@@ -35,59 +33,55 @@
   "dateModified": article.updatedAt.toISOString()
 }) %>
 </script>
-    <link rel="stylesheet" href="/css/customer/article-details.css">
 
-    </head>
+<link rel="stylesheet" href="/css/customer/article-details.css">
+</head>
 
-    <body>
-        <!-- nav-bar -->
-        <%- include('../../includes/customer/navbar.ejs') %>
+<body>
+<%- include('../../includes/customer/navbar.ejs') %>
 
-            <div class="container">
-                <article class="main-content no-reset">
-                    <% if (article.thumbnail) { %>
-                        <img src="<%=article.thumbnail %>" alt="<%= article.title %>">
-                        <% } %>
-                            <h1>
-                                <%= article.title %>
-                            </h1>
-                            <h2 id="authorName">
-                                <%= article.author %>
-                            </h2>
-                            <%- article.body %> <!-- This renders TinyMCE rich text content as HTML -->
-                </article>
+<div class="container">
+  <article class="main-content no-reset">
+    <% if (article.thumbnail) { %>
+      <img src="<%= article.thumbnail %>" alt="<%= article.title %>">
+    <% } %>
+    <h1><%= article.title %></h1>
+    <h2 id="authorName"><%= article.author %></h2>
+    <%- article.body %>
+  </article>
 
-                <section class="sidebar-container">
-                    <h3>Recent Articles</h3>
+  <section class="sidebar-container">
+    <h3>
+      <% if (lang === 'EN') { %>Recent Articles
+      <% } else if (lang === 'ES') { %>Artículos Recientes
+      <% } else if (lang === 'DE') { %>Neueste Artikel
+      <% } %>
+    </h3>
 
-                    <div class="sidebar">
-                        <% if (recentArticles.length> 0) { %>
-                            <% recentArticles.forEach(item=> { %>
-                                <a href="/<%= lang %>/articles/<%= item.slug %>">
-                                    <div class="recent-article">
-                                        <img src="<%=item.thumbnail %>" alt="<%= item.title %>">
-                                        <h4>
-                                            <%= item.title %>
-                                        </h4>
-                                    </div>
-                                </a>
-                                <hr>
-                                <% }) %>
-                                    <% } else { %>
-                                        <p style="color: #666; font-style: italic; padding: 10px;">
-                                            No related articles available in this language.
-                                        </p>
-                                        <% } %>
-                    </div>
-                </section>
-
+    <div class="sidebar">
+      <% if (recentArticles.length > 0) { %>
+        <% recentArticles.forEach(item => { %>
+          <a href="/<%= lang %>/articles/<%= item.slug %>">
+            <div class="recent-article">
+              <img src="<%= item.thumbnail %>" alt="<%= item.title %>">
+              <h4><%= item.title %></h4>
             </div>
+          </a>
+          <hr>
+        <% }) %>
+      <% } else { %>
+        <p style="color: #666; font-style: italic; padding: 10px;">
+          <% if (lang === 'EN') { %>No related articles available in this language.
+          <% } else if (lang === 'ES') { %>No hay artículos relacionados en este idioma.
+          <% } else if (lang === 'DE') { %>Keine verwandten Artikel in dieser Sprache verfügbar.
+          <% } %>
+        </p>
+      <% } %>
+    </div>
+  </section>
+</div>
 
-            <!-- Footer -->
-            <%- include('../../includes/customer/footer.ejs') %>
-
-    </body>
-
-    <%- include('../../includes/customer/script.ejs') %>
-
-        </html>
+<%- include('../../includes/customer/footer.ejs') %>
+<%- include('../../includes/customer/script.ejs') %>
+</body>
+</html>

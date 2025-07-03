@@ -95,6 +95,14 @@
     font-weight: bold;
 }
 
+.catalog-filter-bar p {
+    background-color: var(--primary-Color);
+    color: #ffff;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
 .catalog-filter-bar button.active-category {
     background-color: #ECEDF3;
     color: var(--primary-Color);

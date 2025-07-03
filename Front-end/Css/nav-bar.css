@@ -338,6 +338,10 @@ select#languageSwitcher {
     #languageSwitcher {
         display: none;
     }
+    
+.language-dropdown-mobile {
+    display: block;
+}
 
     .navLeft,
     .navMid {
@@ -630,4 +634,32 @@ select#languageSwitcher {
 .no-results {
     padding: 8px 12px;
     color: gray;
+}
+
+
+.language-dropdown-mobile {
+    display: none;
+}
+
+
+#languageSwitcher {
+  font-size: 14px;
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background-color: #f9f9f9;
+  cursor: pointer;
+  font-weight: 500;
+  color: #333;
+  appearance: none;
+  background-image: url('/assets/Imgs/Icons/Down-arrow-blue.png');
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 12px;
+  padding-right: 32px;
+  transition: all 0.2s ease;
+}
+
+#languageSwitcher:hover {
+  border-color: #007BFF;
 }

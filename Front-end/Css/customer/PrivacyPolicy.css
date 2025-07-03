@@ -1,4 +1,7 @@
 /* product thumbnail section  */
+.PrivacyPolicycontainer li{
+  list-style-type:disc !important;
+}
 .slide {
   position: relative;
   overflow: hidden;
@@ -44,7 +47,10 @@
   color: var(--white-text-Color);
 
 }
-
+.text-bold {
+  font-weight: 600;
+  
+}
 
 @media (max-width: 790px) {
   .slide {

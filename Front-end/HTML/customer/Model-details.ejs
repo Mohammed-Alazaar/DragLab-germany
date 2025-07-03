@@ -1,23 +1,41 @@
 <%- include('../../includes/customer/head.ejs') %>
 
-<%
-  const canonicalUrl = `https://www.draglab.com/${lang}/product/${productId}/model/${modelId}`;
-  const cleanDesc = ModelDesc?.replace(/(<([^>]+)>)/gi, '').slice(0, 160) || '';
-  const fullImageUrl = modelThumbnail?.startsWith('http')
-    ? modelThumbnail
-    : modelThumbnail
-    ? `https://www.draglab.com${modelThumbnail}`
-    : 'https://www.draglab.com/assets/Imgs/logo/logo.png';
-%>
+    <% const canonicalUrl=`https://www.draglab.com/${lang}/product/${productId}/model/${modelId}`; const
+        cleanDesc=ModelDesc?.replace(/(<([^>]+)>)/gi, '').slice(0, 160) || '';
+        const fullImageUrl = modelThumbnail?.startsWith('http')
+        ? modelThumbnail
+        : modelThumbnail
+        ? `https://www.draglab.com${modelThumbnail}`
+        : 'https://www.draglab.com/assets/Imgs/logo/logo.png';
+        %>
 
-<link rel="stylesheet" href="/css/customer/Model-details.css">
-<title><%= ModelName %> | DragLab</title>
-<meta name="description" content="<%= cleanDesc %>">
-<link rel="canonical" href="<%= canonicalUrl %>">
-<meta name="robots" content="index, follow">
+        <link rel="stylesheet" href="/css/customer/Model-details.css">
+        <title>
+            <%= ModelName %> | DragLab
+        </title>
+        <meta name="description" content="<%= cleanDesc %>">
+        <meta name="robots" content="index, follow">
+        <link rel="canonical" href="<%= canonicalUrl %>">
 
-<!-- ✅ Structured Data: Product -->
-<script type="application/ld+json">
+        <!-- Hreflang for multilingual SEO -->
+        <% ['EN', 'ES' , 'DE' ].forEach(code=> { %>
+            <link rel="alternate" hreflang="<%= code.toLowerCase() %>"
+                href="https://www.draglab.com/<%= code %>/product/<%= productSlug %>/model/<%= modelSlug %>" />
+            <% }) %>
+                <link rel="alternate" hreflang="x-default"
+                    href="https://www.draglab.com/EN/product/<%= productSlug %>/model/<%= modelSlug %>" />
+
+                <!-- Open Graph -->
+                <meta property="og:title" content="<%= ModelName %> | DragLab">
+                <meta property="og:description" content="<%= cleanDesc %>">
+                <meta property="og:image" content="<%= fullImageUrl %>">
+                <meta property="og:url" content="<%= canonicalUrl %>">
+                <meta property="og:locale" content="<%= lang === 'EN' ? 'en_US' : lang === 'ES' ? 'es_ES' : 'de_DE' %>">
+                <meta name="twitter:card" content="summary_large_image">
+
+
+                <!-- ✅ Structured Data: Product -->
+                <script type="application/ld+json">
 <%= JSON.stringify({
   "@context": "https://schema.org",
   "@type": "Product",
@@ -40,8 +58,8 @@
 }) %>
 </script>
 
-<!-- ✅ Structured Data: ProductModel Variant -->
-<script type="application/ld+json">
+                <!-- ✅ Structured Data: ProductModel Variant -->
+                <script type="application/ld+json">
 <%= JSON.stringify({
   "@context": "https://schema.org",
   "@type": "ProductModel",
@@ -54,8 +72,8 @@
 }) %>
 </script>
 
-<!-- ✅ Structured Data: Breadcrumb -->
-<script type="application/ld+json">
+                <!-- ✅ Structured Data: Breadcrumb -->
+                <script type="application/ld+json">
 <%= JSON.stringify({
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
@@ -67,185 +85,199 @@
 }) %>
 </script>
 
-<!-- ✅ OpenGraph & Twitter Cards -->
-<meta property="og:title" content="<%= ModelName %> | DragLab">
-<meta property="og:description" content="<%= cleanDesc %>">
-<meta property="og:image" content="<%= fullImageUrl %>">
-<meta property="og:url" content="<%= canonicalUrl %>">
-<meta name="twitter:card" content="summary_large_image">
+                <!-- ✅ OpenGraph & Twitter Cards -->
+                <meta property="og:title" content="<%= ModelName %> | DragLab">
+                <meta property="og:description" content="<%= cleanDesc %>">
+                <meta property="og:image" content="<%= fullImageUrl %>">
+                <meta property="og:url" content="<%= canonicalUrl %>">
+                <meta name="twitter:card" content="summary_large_image">
 
-</head>
-
-
-
-
-    <body>
-        <!-- nav-bar -->
-
-        <%- include('../../includes/customer/navbar.ejs') %>
-
-
-            <!-- nav-bar -->
-
-            <!-- Product Details -->
-            <div class="slide">
-                <div class="slide-text">
-                    <!-- <h1>Water Still Series</h1> -->
-                    <div class="slide-text-content">
-                        <h1>
-                            <%= ModelName %> – &nbsp;
-                        </h1>
-                        <h3>
-                            <%= ModelNameDesc %>
-                        </h3>
-                    </div>
-
-                    <p>
-                        <%= ModelDesc %>
-                    </p>
-                </div>
-                <img src="<%=modelThumbnail %>" alt="<%= pageTitle %>">
-            </div>
+                </head>
 
 
 
 
-            <section class="model-overview section">
-                <h2 class="section-title">Overview </h2>
-                <div class="model-overview-container">
+                <body>
+                    <!-- nav-bar -->
 
-                    <% if (overview && overview.length) { %>
+                    <%- include('../../includes/customer/navbar.ejs') %>
 
-                        <div class="model-overview-img">
-                            <img src="<%=overviewThumbnail%>" alt="<%= pageTitle %>">
-                        </div>
-                        <div class="features-wrapper">
 
-                            <div class="features-grid">
-                                <% overview.forEach(o=> { %>
-                                    <div class="feature-card">
-                                        <img class="feature-img" src="<%= o.overviewImage %>" alt="">
-                                        <div class="feature-content">
-                                            <h3>
-                                                <%= o.overviewName %>
-                                            </h3>
-                                            <p>
-                                                <%= o.overviewDesc %>
-                                            </p>
-                                        </div>
+                        <!-- nav-bar -->
+                        <main>
+                            <!-- Product Details -->
+                            <div class="slide">
+                                <div class="slide-text">
+                                    <!-- <h1>Water Still Series</h1> -->
+                                    <div class="slide-text-content">
+                                        <h1>
+                                            <%= ModelName %> – &nbsp;
+                                        </h1>
+                                        <h3>
+                                            <%= ModelNameDesc %>
+                                        </h3>
                                     </div>
-                                    <% }) %>
-                            </div>
-                            <% } %>
 
-                        </div>
-                </div>
-            </section>
-
-            <section class="industries-section">
-                <h2>Industries</h2>
-                <% if (industry && industry.length) { %>
-                    <div class="industries-container">
-                        <% industry.forEach(i=> { %>
-                            <div class="industry-card">
-                                <img class="industry-img" src="<%= i.industryImage %>" />
-                                <div class="overlay">
-                                    <div class="icon-wrapper">
-                                        <img src="<%=i.industryLogo %>" class="icon" />
-                                    </div>
-                                    <h3>
-                                        <%= i.industryName %>
-                                    </h3>
+                                    <p>
+                                        <%= ModelDesc %>
+                                    </p>
                                 </div>
+                                <img src="<%=modelThumbnail %>" alt="<%= pageTitle %>">
                             </div>
-                            <% }) %>
-                    </div>
-                    <% } %>
-
-            </section>
-
-            <!-- model table section  -->
-
-            <section class="model-table-section">
-                <h2>Technical Specifications</h2>
-
-                <% if (specs && specs.length) { %>
-                    <% specs.forEach(section=> { %>
-                        <div class="table-section-title">
-                            <%= section.sectionTitle %>
-                        </div>
-                        <table>
-                            <% section.rows.forEach(row=> { %>
-                                <tr>
-                                    <td class="title">
-                                        <%= row.title %>
-                                    </td>
-                                    <td class="value">
-                                        <%= row.value %>
-                                    </td>
-                                </tr>
-                                <% }) %>
-                        </table>
-                        <% }) %>
-                            <% } %>
 
 
 
 
-            </section>
-            <!-- model table section  -->
+                            <section class="model-overview section">
+                                <h2 class="section-title">
+                                    <%= t.overviewTitle %>
+                                </h2>
+                                <div class="model-overview-container">
 
+                                    <% if (overview && overview.length) { %>
 
-            <!-- model download center section  -->
-
-            <section class="download-centercontainer">
-                <h2>Downloads</h2>
-                <div class="download-cards-container">
-                    <% if (downloads && downloads.length) { %>
-                        <% downloads.forEach(download=> { %>
-                            <div class="download-card">
-                                <div class="download-info">
-                                    <div class="download-title">
-                                        <%= download.fileName %>
-                                    </div>
-                                    <div class="download-meta">
-                                        <div>
-                                            <%= download.fileCategory || 'General' %>
+                                        <div class="model-overview-img">
+                                            <img src="<%=overviewThumbnail%>" alt="<%= pageTitle %>">
                                         </div>
+                                        <div class="features-wrapper">
 
-                                        <div>
-                                            <%= download.fileSize %>
+                                            <div class="features-grid">
+                                                <% overview.forEach(o=> { %>
+                                                    <div class="feature-card">
+                                                        <img class="feature-img" src="<%= o.overviewImage %>"
+                                                            alt="<%= o.overviewName %>">
+                                                        <div class="feature-content">
+                                                            <h3>
+                                                                <%= o.overviewName %>
+                                                            </h3>
+                                                            <p>
+                                                                <%= o.overviewDesc %>
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    <% }) %>
+                                            </div>
+                                            <% } %>
+
                                         </div>
-                                    </div>
                                 </div>
-                                <a href="<%= download.filePath %>" target="_blank" class="download-link" download="true"
-                                    title="Download">
-                                    <p>Download</p>
-                                    <svg class="download-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                                        <path d="M5 20h14v-2H5v2zm7-18l-5 5h3v6h4v-6h3l-5-5z" />
-                                    </svg>
-                                </a>
-                            </div>
-                            <% }) %>
-                                <% } else { %>
-                                    <p style="padding: 1rem;">No downloads available in this language.</p>
+                            </section>
+
+                            <section class="industries-section">
+                                <h2>
+                                    <%= t.industriesTitle %>
+                                </h2>
+                                <% if (industry && industry.length) { %>
+                                    <div class="industries-container">
+                                        <% industry.forEach(i=> { %>
+                                            <div class="industry-card">
+                                                <img class="industry-img" src="<%= i.industryImage %>"
+                                                    alt="<%= i.industryName %>" />
+                                                <div class="overlay">
+                                                    <div class="icon-wrapper">
+                                                        <img src="<%=i.industryLogo %>" class="icon"
+                                                            alt="<%= i.industryName %> Logo" />
+                                                    </div>
+                                                    <h3>
+                                                        <%= i.industryName %>
+                                                    </h3>
+                                                </div>
+                                            </div>
+                                            <% }) %>
+                                    </div>
                                     <% } %>
-                </div>
-            </section>
+
+                            </section>
+
+                            <!-- model table section  -->
+
+                            <section class="model-table-section">
+                                <h2>
+                                    <%= t.specsTitle %>
+                                </h2>
+
+                                <% if (specs && specs.length) { %>
+                                    <% specs.forEach(section=> { %>
+                                        <div class="table-section-title">
+                                            <%= section.sectionTitle %>
+                                        </div>
+                                        <table>
+                                            <% section.rows.forEach(row=> { %>
+                                                <tr>
+                                                    <td class="title">
+                                                        <%= row.title %>
+                                                    </td>
+                                                    <td class="value">
+                                                        <%= row.value %>
+                                                    </td>
+                                                </tr>
+                                                <% }) %>
+                                        </table>
+                                        <% }) %>
+                                            <% } %>
 
 
-            <!-- model download center section  -->
 
 
+                            </section>
+                            <!-- model table section  -->
 
 
-            <!-- Footer -->
+                            <!-- model download center section  -->
 
-            <%- include('../../includes/customer/footer.ejs') %>
+                            <section class="download-centercontainer">
+                                <h2>
+                                    <%= t.downloadsTitle %>
+                                </h2>
+                                <div class="download-cards-container">
+                                    <% if (downloads && downloads.length) { %>
+                                        <% downloads.forEach(download=> { %>
+                                            <div class="download-card">
+                                                <div class="download-info">
+                                                    <div class="download-title">
+                                                        <%= download.fileName %>
+                                                    </div>
+                                                    <div class="download-meta">
+                                                        <div>
+                                                            <%= download.fileCategory || 'General' %>
+                                                        </div>
+
+                                                        <div>
+                                                            <%= download.fileSize %>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <a href="<%= download.filePath %>" target="_blank" class="download-link"
+                                                    download="true" title="Download">
+                                                    <p>Download</p>
+                                                    <svg class="download-icon" xmlns="http://www.w3.org/2000/svg"
+                                                        viewBox="0 0 24 24">
+                                                        <path d="M5 20h14v-2H5v2zm7-18l-5 5h3v6h4v-6h3l-5-5z" />
+                                                    </svg>
+                                                </a>
+                                            </div>
+                                            <% }) %>
+                                                <% } else { %>
+                                                    <p style="padding: 1rem;">
+                                                        <%= t.noDownloads %>
+                                                    </p>
+                                                    <% } %>
+                                </div>
+                            </section>
 
 
-    </body>
-    <%- include('../../includes/customer/script.ejs') %>
+                            <!-- model download center section  -->
 
 
-        </html>
+                        </main>
+
+                        <!-- Footer -->
+
+                        <%- include('../../includes/customer/footer.ejs') %>
+
+
+                </body>
+                <%- include('../../includes/customer/script.ejs') %>
+
+
+                    </html>

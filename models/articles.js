@@ -11,7 +11,7 @@ const ArticleSchema = new Schema({
 
     language: {
         type: String,
-        enum: ['EN', 'ES', 'GR', 'ALL'],
+        enum: ['EN', 'ES', 'DE', 'ALL'],
         default: 'EN',
         required: true
     }
