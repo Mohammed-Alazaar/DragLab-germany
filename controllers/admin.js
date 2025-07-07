@@ -1206,7 +1206,7 @@ exports.postAddArticle = async (req, res) => {
     }
   }
 
-  const newArticle = new Article({ title, author, body, language, thumbnail,slug  });
+  const newArticle = new Article({ title, author, body, language, thumbnail, slug });
 
   newArticle.save()
     .then(() => {
@@ -1411,7 +1411,13 @@ exports.getDashboard = async (req, res, next) => {
       pageTitle: 'Dashboard',
       products: products,
       path: '/admin/Dashboard',
-      isAuthenticated: req.session.isLoggedIn
+      lang: 'EN',
+      isAuthenticated: req.session.isLoggedIn,
+      faqSchema: {
+        EN: {
+          url: "https://www.draglab.com/EN"
+        }
+      }
     });
   } catch (err) {
     next(new Error(err));

@@ -123,7 +123,7 @@
 }; %>
 
 <script type="application/ld+json">
-<%= JSON.stringify({
+<% const faq = (typeof faqSchema !== 'undefined' && faqSchema[lang]) ? faqSchema[lang] : faqSchema?.EN || { url: "https://www.draglab.com/EN" }; %>
   "@context": "https://schema.org",
   "@type": "FAQPage",
   "@id": faqSchema[lang].url + "#faq",

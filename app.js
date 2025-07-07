@@ -75,6 +75,16 @@ app.use((req, res, next) => {
         });
 });
 
+app.use((req, res, next) => {
+  res.locals.lang = (req.params.lang || req.query.lang || 'EN').toUpperCase();
+  res.locals.faqSchema = {
+    EN: { url: "https://www.draglab.com/EN" },
+    ES: { url: "https://www.draglab.com/ES" },
+    DE: { url: "https://www.draglab.com/DE" }
+  };
+  next();
+});
+
 // Log and compress
 app.use(compression()); // Compress all routes
 app.use(morgan('combined', { stream: accessLogStream })); // Log all requests to the console
@@ -99,6 +109,7 @@ app.use((error, req, res, next) => {
 // app.set('view options', { pretty: true, strict: false });
 // app.locals.compileDebug = true;
 // app.locals.debug = true;
+
 
 
 
