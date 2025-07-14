@@ -1,160 +1,171 @@
 <%- include('../../includes/customer/head.ejs') %>
 
-<link rel="stylesheet" href="/css/customer/WarrantyRegistration.css">
-<script src="https://www.google.com/recaptcha/enterprise.js?render=6LdBFQkrAAAAALGPy8986JpxndbqzY1_6kEDxH1s"></script>
-<title><%= t.pageTitle %> | DragLab</title>
-<meta name="description" content="<%= t.metaDescription %>">
+    <link rel="stylesheet" href="/css/customer/WarrantyRegistration.css">
+    <script
+        src="https://www.google.com/recaptcha/enterprise.js?render=6LdBFQkrAAAAALGPy8986JpxndbqzY1_6kEDxH1s"></script>
+    <title>
+        <%= t.pageTitle %> | DragLab
+    </title>
+    <meta name="description" content="<%= t.metaDescription %>">
 
-<!-- Open Graph (Facebook, LinkedIn, etc.) -->
-<meta property="og:title" content="<%= t.ogTitle %>">
-<meta property="og:description" content="<%= t.ogDescription %>">
-<meta property="og:url" content="https://www.draglab.com/<%= lang %>/WarrantyRegistration">
-<meta property="og:type" content="website">
+    <!-- Open Graph (Facebook, LinkedIn, etc.) -->
+    <meta property="og:title" content="<%= t.ogTitle %>">
+    <meta property="og:description" content="<%= t.ogDescription %>">
+    <meta property="og:url" content="https://www.draglab.com/<%= lang %>/WarrantyRegistration">
+    <meta property="og:type" content="website">
 
-<!-- Twitter -->
-<meta name="twitter:title" content="<%= t.ogTitle %>">
-<meta name="twitter:description" content="<%= t.ogDescription %>">
-<meta name="twitter:card" content="summary">
+    <!-- Twitter -->
+    <meta name="twitter:title" content="<%= t.ogTitle %>">
+    <meta name="twitter:description" content="<%= t.ogDescription %>">
+    <meta name="twitter:card" content="summary">
 
-<!-- Canonical & Alternate hreflang -->
-<link rel="canonical" href="https://www.draglab.com/<%= lang %>/WarrantyRegistration">
-<link rel="alternate" hreflang="en" href="https://www.draglab.com/EN/WarrantyRegistration">
-<link rel="alternate" hreflang="es" href="https://www.draglab.com/ES/WarrantyRegistration">
-<link rel="alternate" hreflang="de" href="https://www.draglab.com/DE/WarrantyRegistration">
+    <!-- Canonical & Alternate hreflang -->
+    <link rel="canonical" href="https://www.draglab.com/<%= lang %>/WarrantyRegistration">
+    <link rel="alternate" hreflang="en" href="https://www.draglab.com/EN/WarrantyRegistration">
+    <link rel="alternate" hreflang="es" href="https://www.draglab.com/ES/WarrantyRegistration">
+    <link rel="alternate" hreflang="de" href="https://www.draglab.com/DE/WarrantyRegistration">
 
-<body>
-    <%- include('../../includes/customer/navbar.ejs') %>
+    <body>
+        <%- include('../../includes/customer/navbar.ejs') %>
 
-    <div class="slide">
-        <div class="slide-text">
-            <h1><%= t.heroTitle %></h1>
-            <p><%= t.heroDesc %></p>
-        </div>
-        <img src="/assets/Imgs/Icons/products/contactus-BC.png" alt="Warranty Registration">
-    </div>
-
-    <section class="warranty-registration-section">
-        <h2><%= t.formTitle %></h2>
-
-        <% if (req.query.success) { %>
-            <div class="success-message"><%= t.successMessage %></div>
-        <% } else if (req.query.error) { %>
-            <div class="error-message"><%= t.errorMessage %></div>
-        <% } %>
-
-        <form id="warranty-form" action="/submit-warranty" method="POST">
-            <div class="checkbox-group">
-                <input type="checkbox" name="Dataprocessing" required>
-                <label for="Dataprocessing">
-                    <%= t.dataLabel %> <a href="/PrivacyPolicy/<%= lang %>"><%= t.privacyPolicy %></a> <%= t.dataSuffix %>
-                </label>
+            <div class="slide">
+                <div class="slide-text">
+                    <h1>
+                        <%= t.heroTitle %>
+                    </h1>
+                    <p>
+                        <%= t.heroDesc %>
+                    </p>
+                </div>
+                <img src="/assets/Imgs/Icons/products/contactus-BC.png" alt="Warranty Registration">
             </div>
 
-            <div class="form-row">
-                <div class="two-form-group">
-                    <div class="form-group">
-                        <label for="name"><%= t.name %></label>
-                        <input type="text" id="name" name="name" placeholder="<%= t.namePlaceholder %>" required>
+            <section class="warranty-registration-section">
+                <h2>
+                    <%= t.formTitle %>
+                </h2>
+
+                <% if (req.query.success) { %>
+                    <div class="success-message">
+                        <%= t.successMessage %>
                     </div>
-                    <div class="form-group">
-                        <label for="datePurchased"><%= t.datePurchased %></label>
-                        <input type="date" id="datePurchased" name="datePurchased" required>
-                    </div>
-                </div>
+                    <% } else if (req.query.error) { %>
+                        <div class="error-message">
+                            <%= t.errorMessage %>
+                        </div>
+                        <% } %>
 
-                <div class="form-group">
-                    <label for="email"><%= t.email %></label>
-                    <input type="email" id="email" name="email" placeholder="Email" required>
-                </div>
-            </div>
+                            <form id="warranty-form" action="/submit-warranty" method="POST">
+                                <div class="checkbox-group">
+                                    <input type="checkbox" name="Dataprocessing" required>
+                                    <label for="Dataprocessing">
+                                        <%= t.dataLabel %> <a href="/PrivacyPolicy/<%= lang %>">
+                                                <%= t.privacyPolicy %>
+                                            </a>
+                                            <%= t.dataSuffix %>
+                                    </label>
+                                </div>
 
-            <h3><%= t.techHeader %></h3>
+                                <div class="form-row">
+                                    <div class="two-form-group">
+                                        <div class="form-group">
+                                            <label for="name">
+                                                <%= t.name %>
+                                            </label>
+                                            <input type="text" id="name" name="name"
+                                                placeholder="<%= t.namePlaceholder %>" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="datePurchased">
+                                                <%= t.datePurchased %>
+                                            </label>
+                                            <input type="date" id="datePurchased" name="datePurchased" required>
+                                        </div>
+                                    </div>
 
-            <div class="form-row">
-                <div class="two-form-group">
-                    <div class="form-group">
-                        <label for="deviceCategory"><%= t.deviceCategory %></label>
-                        <select id="deviceCategory" name="deviceCategory" required>
-                            <option value=""><%= t.select %></option>
-                            <% products.forEach(product => { %>
-                                <option value="<%= product._id %>">
-                                    <%= product.Language[lang]?.[0]?.ProductName || product.Language['EN']?.[0]?.ProductName %>
-                                </option>
-                            <% }) %>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="deviceModel"><%= t.deviceModel %></label>
-                        <select id="deviceModel" name="deviceModel" required>
-                            <option value=""><%= t.select %></option>
-                        </select>
-                    </div>
-                </div>
+                                    <div class="form-group">
+                                        <label for="email">
+                                            <%= t.email %>
+                                        </label>
+                                        <input type="email" id="email" name="email" placeholder="Email" required>
+                                    </div>
+                                </div>
 
-                <div class="form-group">
-                    <label for="serialNo"><%= t.serialNo %></label>
-                    <input type="text" id="serialNo" name="serialNo" placeholder="<%= t.serialNo %>" required>
-                </div>
+                                <h3>
+                                    <%= t.techHeader %>
+                                </h3>
 
-                <div class="form-group">
-                    <label for="message"><%= t.message %></label>
-                    <textarea id="message" name="message" placeholder="<%= t.messagePlaceholder %>" rows="5"></textarea>
-                </div>
-            </div>
+                                <div class="form-row">
+                                    <div class="two-form-group">
+                                        <div class="form-group">
+                                            <label for="deviceCategory">
+                                                <%= t.deviceCategory %>
+                                            </label>
+                                            <select id="deviceCategory" name="deviceCategory" required>
+                                                <option value="">
+                                                    <%= t.select %>
+                                                </option>
+                                                <% products.forEach(product=> { %>
+                                                    <option value="<%= product._id %>">
+                                                        <%= product.Language[lang]?.[0]?.ProductName ||
+                                                            product.Language['EN']?.[0]?.ProductName %>
+                                                    </option>
+                                                    <% }) %>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="deviceModel">
+                                                <%= t.deviceModel %>
+                                            </label>
+                                            <select id="deviceModel" name="deviceModel" required
+                                                data-default-option="<%= t.select %>">
+                                                <option value="">
+                                                    <%= t.select %>
+                                                </option>
+                                            </select>
 
-            <input type="hidden" name="lang" value="<%= lang %>">
+                                        </div>
+                                    </div>
 
-            <div class="recaptcha">
-                <div class="g-recaptcha" data-sitekey="6LdBFQkrAAAAALGPy8986JpxndbqzY1_6kEDxH1s"></div>
-            </div>
+                                    <div class="form-group">
+                                        <label for="serialNo">
+                                            <%= t.serialNo %>
+                                        </label>
+                                        <input type="text" id="serialNo" name="serialNo" placeholder="<%= t.serialNo %>"
+                                            required>
+                                    </div>
 
-            <div class="submit-button">
-                <button class="g-recaptcha" data-sitekey="6LdBFQkrAAAAALGPy8986JpxndbqzY1_6kEDxH1s"
-                    data-callback='onSubmit' data-action='submit' type="submit">
-                    <%= t.submit %>
-                </button>
-            </div>
+                                    <div class="form-group">
+                                        <label for="message">
+                                            <%= t.message %>
+                                        </label>
+                                        <textarea id="message" name="message" placeholder="<%= t.messagePlaceholder %>"
+                                            rows="5"></textarea>
+                                    </div>
+                                </div>
 
-            <script>
-                function onSubmit(token) {
-                    const form = document.getElementById("warranty-form");
-                    if (form.checkValidity()) {
-                        form.submit();
-                    } else {
-                        form.reportValidity();
-                    }
-                }
-            </script>
-        </form>
-    </section>
+                                <input type="hidden" name="lang" value="<%= lang %>">
 
-    <script>
-        const lang = '<%= lang %>';
-        document.getElementById('deviceCategory').addEventListener('change', async function () {
-            const productId = this.value;
-            const modelSelect = document.getElementById('deviceModel');
-            modelSelect.innerHTML = `<option value="">${'<%= t.select %>'}</option>`;
 
-            if (!productId) return;
+                                <div class="submit-button">
+                                    <button id="submit-btn" type="button">
+                                        <%= t.submit %>
+                                    </button>
 
-            try {
-                const res = await fetch(`/api/models/${productId}?lang=${lang}`);
-                const data = await res.json();
 
-                data.models.forEach(model => {
-                    const option = document.createElement('option');
-                    option.value = model._id;
-                    option.textContent = model.ModelName;
-                    modelSelect.appendChild(option);
-                });
-            } catch (err) {
-                console.error('Error fetching models:', err);
-            }
-        });
-    </script>
 
-    <%- include('../../includes/customer/footer.ejs') %>
-</body>
+                                </div>
 
-<%- include('../../includes/customer/script.ejs') %>
-</html>
+                            </form>
+            </section>
+
+
+
+            <%- include('../../includes/customer/footer.ejs') %>
+                <script src="/js/warranty.js" defer nonce="<%= nonce %>"></script>
+
+    </body>
+
+    <%- include('../../includes/customer/script.ejs') %>
+
+        </html>

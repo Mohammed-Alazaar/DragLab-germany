@@ -2679,9 +2679,9 @@ exports.postWarrantyRegistration = async (req, res) => {
             deviceCategory, deviceModel, serialNo, message, lang: req.body.lang
         }).save();
 
-        res.redirect(`/WarrantyRegistration/${lang}?success=true`);
+        res.redirect(`/${lang}/WarrantyRegistration?success=true`);
     } catch (err) {
         console.error(err);
-        res.redirect(`/WarrantyRegistration/${lang}?error=true`);
+        res.redirect(`/${lang}/WarrantyRegistration?success=true`);
     }
 };
