@@ -43,8 +43,8 @@
                                         <a href="/admin/articles/edit/<%= article._id %>">Edit</a> |
                                         <form action="/admin/articles/delete/<%= article._id %>" method="POST"
                                             style="display:inline">
-                                            <button type="submit"
-                                                onclick="return confirm('Are you sure?')">Delete</button>
+                                            <button type="submit">Delete</button>
+
                                         </form>
                                     </td>
                                 </tr>
@@ -53,4 +53,6 @@
                     </table>
                 </div>
             </section>
+            <script src="/js/all-articles.js" nonce="<%= nonce %>"></script>
+
     </body>

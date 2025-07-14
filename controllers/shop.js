@@ -545,8 +545,14 @@ exports.getContactus = (req, res, next) => {
 
 
 exports.postContactUs = async (req, res, next) => {
+    let fallbackLang = 'en'; // set a default early
+
     try {
-        const { firstName, lastName, subject, email, message, lang } = req.body;
+        if (req.body && typeof req.body.lang === 'string') {
+            fallbackLang = req.body.lang.toLowerCase();
+        }
+
+        const { firstName, lastName, subject, email, message } = req.body;
 
         await new ContactUs({
             firstName,
@@ -556,12 +562,17 @@ exports.postContactUs = async (req, res, next) => {
             message
         }).save();
 
-        res.redirect(`/Contactus/EN?&success=true`);
+        res.redirect(`/${fallbackLang}/contactus?success=true`);
     } catch (err) {
         console.error(err);
-        res.redirect(`/Contactus/EN?&success=true`);
+        res.redirect(`/${fallbackLang}/contactus?error=true`);
     }
 };
+
+
+
+
+
 exports.geTechnicalservice = (req, res, next) => {
     const lang = req.params.lang?.toUpperCase() || 'EN';
 
@@ -678,21 +689,47 @@ exports.geTechnicalservice = (req, res, next) => {
             });
         })
         .catch(err => {
-            console.error(err);
+            console.error("🔴 ERROR in Product.find or rendering:", err);
             res.redirect('/EN');
         });
 };
 
 
+const axios = require('axios');
+
 exports.postTechnicalService = async (req, res) => {
+    const lang = req.query.lang?.toUpperCase() || 'EN';
+    const token = req.body['g-recaptcha-response'];
+
+    // ✅ Check if token exists
+    if (!token) {
+        console.error("❌ Missing reCAPTCHA token");
+        return res.redirect(`/technical-service/${lang}?error=true`);
+    }
+
     try {
+        // ✅ Verify token with Google
+        const verifyUrl = `https://www.google.com/recaptcha/api/siteverify`;
+        const response = await axios.post(verifyUrl, null, {
+            params: {
+                secret: process.env.RECAPTCHA_SECRET_KEY,
+                response: token
+            }
+        });
+
+        const { success, score } = response.data;
+
+        if (!success || score < 0.5) {
+            console.error("❌ reCAPTCHA verification failed:", response.data);
+            return res.redirect(`/technical-service/${lang}?error=true`);
+        }
+
+        // ✅ Passed reCAPTCHA — proceed to save
         const {
             infoType, company, department, salutation, firstName, lastName,
             postalTown, street, country, telephone, telefax, email,
             failureDate, deviceCategory, deviceModel, serialNo, note
         } = req.body;
-
-        const lang = req.query.lang || 'EN'; // ✅ Define lang before using
 
         await TechnicalService.create({
             infoType,
@@ -712,16 +749,16 @@ exports.postTechnicalService = async (req, res) => {
             deviceModel,
             serialNo,
             note,
-            lang: req.query.lang || 'EN'
+            lang
         });
 
-        // ✅ Redirect with a success flag in query string
-        res.redirect(`/technical-service/${lang}?success=true`);
+        return res.redirect(`/technical-service/${lang}?success=true`);
     } catch (error) {
-        console.error('Error saving technical service request:', error);
-        res.redirect(`/technical-service/${lang}?error=true`);
+        console.error('❌ Error in TechnicalService submission:', error);
+        return res.redirect(`/technical-service/${lang}?error=true`);
     }
 };
+
 
 exports.getSupport = (req, res, next) => {
     const lang = req.params.lang?.toUpperCase() || 'EN';
@@ -2329,7 +2366,7 @@ exports.getCodeofEthics = (req, res, next) => {
                 sectionHeading: t.sectionHeading,
                 sections: t.sections,
                 closingStatement: t.closingStatement,
-                closingStatementBold: t.closingStatementBold, 
+                closingStatementBold: t.closingStatementBold,
                 products,
                 lang
             });

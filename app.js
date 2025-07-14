@@ -10,7 +10,7 @@ const flash = require('connect-flash');
 const compression = require('compression');
 const morgan = require('morgan');
 const fs = require('fs');
-
+const crypto = require('crypto');
 
 
 
@@ -18,6 +18,68 @@ const errorController = require('./controllers/error');
 const User = require('./models/user');
 
 const app = express();
+
+
+const helmet = require('helmet');
+
+
+// General helmet middleware (adds common security headers)
+app.use(helmet());
+
+// Content Security Policy (CSP)
+
+
+app.use((req, res, next) => {
+  const nonce = crypto.randomBytes(16).toString('base64');
+  res.locals.nonce = nonce;
+
+  const csp = `
+    default-src 'self';
+    script-src 'self' 'nonce-${nonce}' https://cdn.jsdelivr.net https://cdn.tiny.cloud https://www.termsfeed.com https://embed.tawk.to https://va.tawk.to https://client.tawk.to https://api.tawk.to https://www.googletagmanager.com https://www.clarity.ms https://www.google.com/recaptcha/ https://www.gstatic.com https://code.jquery.com https://www.googleadservices.com https://www.google-analytics.com;
+    style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com https://cdn.tiny.cloud https://embed.tawk.to https://va.tawk.to https://client.tawk.to;
+    img-src 'self' data: blob: https://cdn.draglab.com https://res.cloudinary.com https://cdn.jsdelivr.net https://*.googleusercontent.com https://sp.tinymce.com https://embed.tawk.to https://va.tawk.to https://client.tawk.to https://api.tawk.to https://www.google-analytics.com https://www.googleadservices.com https://www.googletagmanager.com https://www.google.com https://www.google.com.tr https://c.clarity.ms https://td.doubleclick.net https://c.bing.com https://s3.amazonaws.com;
+    connect-src 'self' https://cdn.tiny.cloud https://embed.tawk.to https://va.tawk.to https://client.tawk.to https://api.tawk.to https://*.tawk.to wss://embed.tawk.to wss://va.tawk.to wss://client.tawk.to wss://*.tawk.to https://www.google-analytics.com https://www.googleadservices.com https://www.googletagmanager.com https://www.google.com https://www.google.com.tr https://c.clarity.ms https://c.bing.com https://k.clarity.ms;
+    font-src 'self' https://fonts.gstatic.com https://embed.tawk.to https://va.tawk.to https://client.tawk.to data:;
+    frame-src https://www.google.com https://www.youtube.com https://www.googletagmanager.com https://td.doubleclick.net https://embed.tawk.to https://va.tawk.to https://client.tawk.to;
+    object-src 'none';
+    frame-ancestors 'self';
+  `.replace(/\s+/g, ' ').trim();
+
+  // In production: strict CSP | In dev: report-only
+  if (process.env.NODE_ENV === 'production') {
+    res.setHeader('Content-Security-Policy', csp);
+  } else {
+    res.setHeader('Content-Security-Policy-Report-Only', csp);
+  }
+
+  next();
+});
+
+
+
+
+// Referrer-Policy
+app.use(helmet.referrerPolicy({ policy: 'strict-origin-when-cross-origin' }));
+
+// X-Frame-Options
+app.use(helmet.frameguard({ action: 'deny' }));
+
+// X-Content-Type-Options
+app.use(helmet.noSniff());
+
+// Strict Transport Security (HSTS)
+app.use(
+    helmet.hsts({
+        maxAge: 63072000, // 2 years
+        includeSubDomains: true,
+        preload: true,
+    })
+);
+
+// CORP (Cross-Origin Resource Policy)
+app.use(helmet.crossOriginResourcePolicy({ policy: 'same-origin' }));
+
+
 
 const MONGODB_URI = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@cluster0.yrit4.mongodb.net/${process.env.MONGO_DATABASE}?retryWrites=true&w=majority&ssl=true`;
 
@@ -45,6 +107,7 @@ app.use(bodyParser.urlencoded({ limit: '1000mb', extended: true }));
 
 app.use('/assets', express.static(path.join(__dirname, 'Front-end', 'assets')));
 app.use('/css', express.static(path.join(__dirname, 'Front-end', 'Css')));
+app.use('/js', express.static(path.join(__dirname, 'Front-end', 'JS')));
 app.use('/includes', express.static(path.join(__dirname, 'Front-end', 'includes')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(session({ secret: ' my secret', resave: false, saveUninitialized: false, store: store }));
@@ -76,13 +139,13 @@ app.use((req, res, next) => {
 });
 
 app.use((req, res, next) => {
-  res.locals.lang = (req.params.lang || req.query.lang || 'EN').toUpperCase();
-  res.locals.faqSchema = {
-    EN: { url: "https://www.draglab.com/EN" },
-    ES: { url: "https://www.draglab.com/ES" },
-    DE: { url: "https://www.draglab.com/DE" }
-  };
-  next();
+    res.locals.lang = (req.params.lang || req.query.lang || 'EN').toUpperCase();
+    res.locals.faqSchema = {
+        EN: { url: "https://www.draglab.com/EN" },
+        ES: { url: "https://www.draglab.com/ES" },
+        DE: { url: "https://www.draglab.com/DE" }
+    };
+    next();
 });
 
 // Log and compress
@@ -98,11 +161,11 @@ app.use(accountRoutes);
 
 app.use(errorController.get404);
 app.use((error, req, res, next) => {
-      console.error('🔴 500 ERROR:', error); // ADD THIS
+    console.error('🔴 500 ERROR:', error); // ADD THIS
     res.status(500).render('500', {
         pageTitle: 'Error!',
         path: '/500',
-        isAuthenticated: req.session.isLoggedIn
+        isAuthenticated: req.session?.isLoggedIn || false
     });
 });
 

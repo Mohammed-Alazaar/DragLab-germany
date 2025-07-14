@@ -7,6 +7,16 @@
   <link rel="stylesheet" href="/css/reset-code.css">
   <link rel="stylesheet" href="/css/nav-bar.css">
   <link rel="stylesheet" href="/css/footer.css">
+  <script src="/js/navbar.js" defer></script>
+  <script src="https://www.termsfeed.com/public/cookie-consent/4.2.0/cookie-consent.js" nonce="<%= nonce %>" defer></script>
+  <script src="/js/termsfeed-init.js" defer nonce="<%= nonce %>"></script>
+  <script type="text/plain" data-cookie-consent="strictly-necessary" src="/js/tawkto-init.js" defer></script>
+<!-- In your head.ejs -->
+<script src="/js/clarity.js" defer nonce="<%= nonce %>"></script>
+  <script type="text/plain" data-cookie-consent="tracking" async
+    src="https://www.googletagmanager.com/gtag/js?id=G-6HXYVZ8CMN"></script>
+  <script type="text/plain" data-cookie-consent="tracking" src="/js/gtag-config.js" defer></script>
+
   <link rel="icon" type="image/png" href="/assets/Imgs/logo/favicon.png">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="index, follow">
@@ -23,122 +33,16 @@
     <meta name="keywords" content="<%= metaKeywords[lang] %>">
 
 
-    <!-- Cookie Consent by TermsFeed https://www.TermsFeed.com -->
-    <script type="text/javascript" src="https://www.termsfeed.com/public/cookie-consent/4.2.0/cookie-consent.js"
-      charset="UTF-8"></script>
-    <script type="text/javascript" charset="UTF-8">
-      document.addEventListener('DOMContentLoaded', function () {
-        cookieconsent.run({ "notice_banner_type": "interstitial", "consent_type": "implied", "palette": "light", "language": "<%= lang.toLowerCase() %>", "page_load_consent_levels": ["strictly-necessary", "functionality", "tracking", "targeting"], "notice_banner_reject_button_hide": false, "preferences_center_close_button_hide": false, "page_refresh_confirmation_buttons": false, "website_name": "dragLab" });
-      });
-    </script>
-
-    <!--  Tawk.to -->
-    <script type="text/plain" data-cookie-consent="strictly-necessary">
-        var Tawk_API = Tawk_API || {}, Tawk_LoadStart = new Date();
-        (function () {
-            var s1 = document.createElement("script"), s0 = document.getElementsByTagName("script")[0];
-            s1.async = true;
-            s1.src = 'https://embed.tawk.to/680d85354b378d190bfa2ea0/1ipqd0mat';
-            s1.charset = 'UTF-8';
-            s1.setAttribute('crossorigin', '*');
-            s0.parentNode.insertBefore(s1, s0);
-        })();
-    </script>
-    <!-- end of  Tawk.to-->
-
-    <!-- Microsoft clarity -->
-    <script type="text/plain" data-cookie-consent="tracking">
-        (function (c, l, a, r, i, t, y) {
-            c[a] = c[a] || function () { (c[a].q = c[a].q || []).push(arguments) };
-            t = l.createElement(r); t.async = 1; t.src = "https://www.clarity.ms/tag/" + i;
-            y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y);
-        })(window, document, "clarity", "script", "rafdtxx5y2");
-    </script>
-    <!-- end of Microsoft clarity-->
-
-    <!-- Google Analytics & Google Ads  -->
-    <script type="text/plain" data-cookie-consent="tracking" async
-      src="https://www.googletagmanager.com/gtag/js?id=G-6HXYVZ8CMN"></script>
-    <script type="text/plain" data-cookie-consent="tracking">
-        window.dataLayer = window.dataLayer || [];
-        function gtag() { dataLayer.push(arguments); }
-        gtag('js', new Date());
-
-        // Google Analytics (GA4) config
-        gtag('config', 'G-6HXYVZ8CMN');
-
-        // Google Ads config
-        gtag('config', 'AW-754782155'); 
-    </script>
-    <!-- end of Google Analytics & Google Ads -->
-
-    <noscript>Free cookie consent management tool by <a href="https://www.termsfeed.com/">TermsFeed
-        Generator</a></noscript>
-    <!-- End Cookie Consent by TermsFeed https://www.TermsFeed.com -->
-
     <!-- speed up 3rd-party requests -->
 
     <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
-    <link rel="preconnect" href="https://www.clarity.ms" crossorigin>
     <link rel="preconnect" href="https://embed.tawk.to" crossorigin>
 
 
     <!-- speed up 3rd-party requests -->
 
-    <!-- FAQ Schema (JSON-LD Structured Data) For the SEO -->
-     <% const faqSchema = {
-  EN: {
-    url: "https://www.draglab.com/EN",
-    questions: [
-      { q: "What is DragLab?", a: "DragLab is a leading manufacturer of laboratory and medical equipment known for innovation, quality, and global support." },
-      { q: "What makes DragLab products unique?", a: "DragLab products are designed for durability, efficiency, and sustainability. They meet European standards and are backed by long-term support and warranties." },
-      { q: "Where is DragLab located?", a: "DragLab is headquartered in Germany and serves clients globally with multilingual support and service centers." },
-      { q: "What types of equipment does DragLab offer?", a: "DragLab offers water baths, drying ovens, incubators, water stills, distillers, and other laboratory and medical equipment." },
-      { q: "Does DragLab provide international shipping and support?", a: "Yes, DragLab provides worldwide shipping and multilingual technical support for all products." },
-      { q: "How does DragLab ensure product quality?", a: "DragLab follows ISO-certified quality control processes and tests each device to meet international standards before shipment." }
-    ]
-  },
-  ES: {
-    url: "https://www.draglab.com/ES",
-    questions: [
-      { q: "¿Qué es DragLab?", a: "DragLab es un fabricante líder de equipos de laboratorio y médicos, reconocido por su innovación, calidad y soporte global." },
-      { q: "¿Qué hace únicos a los productos de DragLab?", a: "Los productos de DragLab están diseñados para ser duraderos, eficientes y sostenibles. Cumplen con los estándares europeos y están respaldados por soporte y garantías a largo plazo." },
-      { q: "¿Dónde se encuentra DragLab?", a: "DragLab tiene su sede en Alemania y presta servicios a clientes de todo el mundo con soporte multilingüe y centros de servicio." },
-      { q: "¿Qué tipos de equipos ofrece DragLab?", a: "DragLab ofrece baños maría, hornos de secado, incubadoras, destiladores de agua y otros equipos de laboratorio y médicos." },
-      { q: "¿DragLab ofrece envío y soporte internacional?", a: "Sí, DragLab ofrece envío a nivel mundial y soporte técnico multilingüe para todos sus productos." },
-      { q: "¿Cómo garantiza DragLab la calidad de sus productos?", a: "DragLab sigue procesos de control de calidad certificados por ISO y prueba cada dispositivo para cumplir con los estándares internacionales antes del envío." }
-    ]
-  },
-  DE: {
-    url: "https://www.draglab.com/DE",
-    questions: [
-      { q: "Was ist DragLab?", a: "DragLab ist ein führender Hersteller von Labor- und Medizingeräten, bekannt für Innovation, Qualität und globalen Support." },
-      { q: "Was macht die Produkte von DragLab einzigartig?", a: "Die Produkte von DragLab sind langlebig, effizient und nachhaltig. Sie erfüllen europäische Standards und werden durch langfristigen Support und Garantien abgesichert." },
-      { q: "Wo befindet sich DragLab?", a: "Der Hauptsitz von DragLab befindet sich in Deutschland. Das Unternehmen betreut Kunden weltweit mit mehrsprachigem Support und Servicezentren." },
-      { q: "Welche Geräte bietet DragLab an?", a: "DragLab bietet Wasserbäder, Trockenschränke, Inkubatoren, Wasser-Destilliergeräte und weitere Labor- und Medizingeräte an." },
-      { q: "Bietet DragLab internationalen Versand und Support an?", a: "Ja, DragLab bietet weltweiten Versand und mehrsprachigen technischen Support für alle Produkte." },
-      { q: "Wie stellt DragLab die Produktqualität sicher?", a: "DragLab folgt ISO-zertifizierten Qualitätskontrollprozessen und testet jedes Gerät vor dem Versand nach internationalen Standards." }
-    ]
-  }
-}; %>
 
-<script type="application/ld+json">
-<% const faq = (typeof faqSchema !== 'undefined' && faqSchema[lang]) ? faqSchema[lang] : faqSchema?.EN || { url: "https://www.draglab.com/EN" }; %>
-  "@context": "https://schema.org",
-  "@type": "FAQPage",
-  "@id": faqSchema[lang].url + "#faq",
-  "url": faqSchema[lang].url,
-  "mainEntity": faqSchema[lang].questions.map(item => ({
-    "@type": "Question",
-    "name": item.q,
-    "acceptedAnswer": {
-      "@type": "Answer",
-      "text": item.a
-    }
-  }))
-}, null, 2) %>
-</script>
+    <%- include('./faqSchema.ejs', { lang, faqSchema }) %>
 
 
-
-    <!-- FAQ Schema (JSON-LD Structured Data) For the SEO -->
+      <!-- FAQ Schema (JSON-LD Structured Data) For the SEO -->

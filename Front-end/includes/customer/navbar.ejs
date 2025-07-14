@@ -46,17 +46,18 @@
 
                                     const productLang = product.Language?.[lang]?.[0];
                                     const modelsArray = product.Models
-                                    .filter(model => model.isPublished) // ✅ Only published models
+                                    .filter(model => model.isPublished)
                                     .map(model => {
                                     return {
-                                    id: model.slug, // ✅ use slug
-                                    name: model.Language?.EN?.[0]?.ModelName
+                                    id: model.slug,
+                                    name: model.Language?.[lang]?.[0]?.ModelName || model.Language?.EN?.[0]?.ModelName
                                     };
                                     });
 
+
                                     %>
-                                    <div class="productContainer" onclick="goToProduct('<%= product.slug %>')"
-                                        onmouseenter="updateModels('<%= product.slug %>')" data-id="<%= product.slug %>"
+                                    <div class="productContainer" data-goto-product="<%= product.slug %>"
+                                        data-update-models="<%= product.slug %>" data-id="<%= product.slug %>"
                                         data-sketch="<%= product.ProductSketch %>"
                                         data-models='<%- JSON.stringify(modelsArray) %>'>
 
@@ -89,7 +90,8 @@
                                     <% products.forEach(product=> {
                                         const productLang = product.Language?.[lang]?.[0];
                                         product.Models.forEach(model => {
-                                        const modelLang = model.Language?.EN?.[0];
+                                        const modelLang = model.Language?.[lang]?.[0];
+
                                         %>
                                         <li>
                                             <%= productLang?.ProductName %> - <%= modelLang?.ModelName %>
@@ -115,32 +117,40 @@
 
                     </p>
                     <ul class="dropdown-menu">
-                        <li><a href="/support">&#8226; <%= lang==='DE' ? 'Support' : lang==='ES' ? 'Soporte' : 'Support'
-                                    %></a></li>
-                        <li><a href="/technical-service">&#8226; <%= lang==='DE' ? 'Technischer Service' : lang==='ES'
-                                    ? 'Servicio Técnico' : 'Technical Services' %></a></li>
-                        <li><a href="/WarrantyRegistration">&#8226; <%= lang==='DE' ? 'Garantieregistrierung' :
-                                    lang==='ES' ? 'Registro de Garantía' : 'Warranty Registration' %></a></li>
-                        <li><a href="/Downloads">&#8226; <%= lang==='DE' ? 'Downloads' : lang==='ES' ? 'Descargas'
-                                    : 'Downloads' %></a></li>
+                        <li><a href="/<%= lang %>/support">&#8226; <%= lang==='DE' ? 'Support' : lang==='ES' ? 'Soporte'
+                                    : 'Support' %></a></li>
+                        <li><a href="/<%= lang %>/technical-service">&#8226; <%= lang==='DE' ? 'Technischer Service' :
+                                    lang==='ES' ? 'Servicio Técnico' : 'Technical Services' %></a></li>
+                        <li><a href="/<%= lang %>/WarrantyRegistration">&#8226; <%= lang==='DE'
+                                    ? 'Garantieregistrierung' : lang==='ES' ? 'Registro de Garantía'
+                                    : 'Warranty Registration' %></a></li>
+                        <li><a href="/<%= lang %>/Downloads">&#8226; <%= lang==='DE' ? 'Downloads' : lang==='ES'
+                                    ? 'Descargas' : 'Downloads' %></a></li>
                     </ul>
 
                 </li>
-                <li><a href="/Articles">
+                <li><a href="/<%= lang %>/Articles">
                         <%= lang==='DE' ? 'Artikel' : lang==='ES' ? 'Artículos' : 'Articles' %>
                     </a></li>
-                <li><a href="/Contactus">
+                <li><a href="/<%= lang %>/Contactus">
                         <%= lang==='DE' ? 'Kontakt' : lang==='ES' ? 'Contáctanos' : 'Contact Us' %>
                     </a></li>
 
             </ul>
         </div>
     </div>
-    <select id="languageSwitcher" onchange="changeLanguage(this.value)">
-        <option value="EN">English</option>
-        <option value="ES">Español</option>
-        <option value="DE">Germany</option>
-    </select>
+    <div id="languageSwitcher" class="language-switcher">
+        <button type="button" class="lang-toggle" id="currentLangBtn"><span id="currentLangName">Language</span> <img
+                src="/assets/Imgs/Icons/Down-arrow-blue.png" alt="Down arrow"></button>
+        <ul class="lang-options">
+            <li><button type="button" data-lang="EN">English</button></li>
+            <li><button type="button" data-lang="ES">Español</button></li>
+            <li><button type="button" data-lang="DE">Deutsch</button></li>
+        </ul>
+    </div>
+
+
+
     <li class="dropdown language-dropdown-mobile">
         <p>
             <%= lang==='DE' ? 'Sprache' : lang==='ES' ? 'Idioma' : 'Language' %>
@@ -168,7 +178,7 @@
 
 
     <div class="hamburgerIconcontainer">
-        <img src="/assets/Imgs/Icons/hamburger-menu.png" alt="menu" class="menu-icon" onclick="openNav()" />
+        <img src="/assets/Imgs/Icons/hamburger-menu.png" alt="menu" id="hamburgerBtn" class="menu-icon" />
     </div>
 
 
@@ -196,25 +206,25 @@
         </div>
 
         <ul class="main-links">
-            <li onclick="goToPage('companyPage')">
+            <li data-goto-page="companyPage">
                 <%= lang==='DE' ? 'Unternehmen' : lang==='ES' ? 'Empresa' : 'Company' %>
                     <img src="/assets/Imgs/Icons/Down-arrow-blue.png" alt="Down arrow">
             </li>
-            <li onclick="goToPage('productPage')">
+            <li data-goto-page="productPage">
                 <%= lang==='DE' ? 'Produkte' : lang==='ES' ? 'Productos' : 'Products' %>
                     <img src="/assets/Imgs/Icons/Down-arrow-blue.png" alt="">
             </li>
-            <li onclick="goToPage('supportPage')">
+            <li data-goto-page="supportPage">
                 <%= lang==='DE' ? 'Support' : lang==='ES' ? 'Soporte' : 'Support' %>
                     <img src="/assets/Imgs/Icons/Down-arrow-blue.png" alt="">
             </li>
-            <li><a href="/Articles">
+            <li><a href="/<%= lang %>/Articles">
                     <%= lang==='DE' ? 'Artikel' : lang==='ES' ? 'Artículos' : 'Articles' %>
                 </a></li>
-            <li><a href="/Contactus">
+            <li><a href="/<%= lang %>/Contactus">
                     <%= lang==='DE' ? 'Kontakt' : lang==='ES' ? 'Contáctanos' : 'Contact Us' %>
                 </a></li>
-            <li onclick="goToPage('languagePage')">
+            <li data-goto-page="languagePage">
                 Language
                 <img src="/assets/Imgs/Icons/Down-arrow-blue.png" alt="Down arrow" />
             </li>
@@ -225,21 +235,23 @@
     <!-- Company Submenu -->
     <div class="menu-page" id="companyPage">
         <div class="top-bar">
-            <span class="back" onclick="goBack('companyPage')"><img src="/assets/Imgs/Icons/backarrow.png"
-                    alt=""></span>
+            <span class="back" data-go-back-parent>
+                <img src="/assets/Imgs/Icons/backarrow.png" alt="">
+            </span>
+
             <span class="page-title">
                 <%= lang==='DE' ? 'Unternehmen' : lang==='ES' ? 'Empresa' : 'Company' %>
             </span>
             <span class="close-menu">&#10005;</span>
         </div>
         <ul>
-            <li><a href="/aboutus">
+            <li><a href="/<%= lang %>/aboutus">
                     <%= lang==='DE' ? 'Über Uns' : lang==='ES' ? 'Sobre Nosotros' : 'About Us' %>
                 </a></li>
-            <li><a href="/TermCondition">
+            <li><a href="/<%= lang %>/TermCondition">
                     <%= lang==='DE' ? 'AGB' : lang==='ES' ? 'Términos y Condiciones' : 'Terms & Condition' %>
                 </a></li>
-            <li><a href="/PrivacyPolicy">
+            <li><a href="/<%= lang %>/PrivacyPolicy">
                     <%= lang==='DE' ? 'Datenschutzerklärung' : lang==='ES' ? 'Política de Privacidad' : 'Privacy Policy'
                         %>
                 </a></li>
@@ -251,8 +263,7 @@
     <!-- Products list page -->
     <div class="menu-page" id="productPage">
         <div class="top-bar">
-            <span class="back" onclick="goBack('productPage')"><img src="/assets/Imgs/Icons/backarrow.png"
-                    alt=""></span>
+            <span class="back" data-go-back-parent><img src="/assets/Imgs/Icons/backarrow.png" alt=""></span>
             <span class="page-title">Products</span>
             <span class="close-menu">&#10005;</span>
         </div>
@@ -260,7 +271,8 @@
         <% products.filter(p=> !p.isDraft).forEach(product => {
             const productLang = product.Language?.[lang]?.[0];
             %>
-            <div class="product-item" onclick="showModels('<%= product.slug %>')">
+            <div class="product-item" data-show-models="<%= product.slug %>">
+
                 <div class="product-photo-container">
                     <img src="<%=product.ProductSketch %>" alt="Product Image" width="80px" height="80px" />
                     <div class="product-info">
@@ -285,8 +297,10 @@
         %>
         <div class="menu-page" id="modelMenu_<%= product.slug %>">
             <div class="top-bar">
-                <span class="back" onclick="goBack('modelMenu_<%= product.slug %>')"><img
-                        src="/assets/Imgs/Icons/backarrow.png" alt=""></span>
+                <span class="back" data-go-back="modelMenu_<%= product.slug %>">
+                    <img src="/assets/Imgs/Icons/backarrow.png" alt="">
+                </span>
+
                 <span class="page-title">Models</span>
                 <span class="close-menu">&#10005;</span>
             </div>
@@ -301,16 +315,18 @@
 
                 <ul>
                     <% models.forEach(model=> {
-                        const modelLang = model.Language?.EN?.[0];
+                        const modelLang = model.Language?.[lang]?.[0] || model.Language?.EN?.[0];
+
                         %>
-                        <li onclick="goToModel('<%= product.slug %>', '<%= model.slug %>')">
+                        <li data-goto-model-product="<%= product.slug %>" data-goto-model-model="<%= model.slug %>">
                             <%= productLang?.ProductName %> - <%= modelLang?.ModelName %>
                         </li>
+
                         <% }) %>
                 </ul>
 
                 <img src="<%=product.ProductSketch %>" class="model-img" alt="Model Image" />
-                <button class="view-product" onclick="goToProduct('<%= product.slug %>')">View Product</button>
+                <button class="view-product" data-goto-product="<%= product.slug %>">View Product</button>
             </div>
         </div>
         <% }) %>
@@ -319,24 +335,23 @@
             <!-- Support Submenu -->
             <div class="menu-page" id="supportPage">
                 <div class="top-bar">
-                    <span class="back" onclick="goBack('supportPage')"><img src="/assets/Imgs/Icons/backarrow.png"
-                            alt=""></span>
+                    <span class="back" data-go-back-parent><img src="/assets/Imgs/Icons/backarrow.png" alt=""></span>
                     <span class="page-title">Support</span>
                     <span class="close-menu">&#10005;</span>
                 </div>
                 <ul>
-                    <li><a href="/support">
+                    <li><a href="/<%= lang %>/support">
                             <%= lang==='DE' ? 'Support' : lang==='ES' ? 'Soporte' : 'Support' %>
                         </a></li>
-                    <li><a href="/technical-service">
+                    <li><a href="/<%= lang %>/technical-service">
                             <%= lang==='DE' ? 'Technischer Service' : lang==='ES' ? 'Servicio Técnico'
                                 : 'Technical Services' %>
                         </a></li>
-                    <li><a href="/WarrantyRegistration">
+                    <li><a href="/<%= lang %>/WarrantyRegistration">
                             <%= lang==='DE' ? 'Garantieregistrierung' : lang==='ES' ? 'Registro de Garantía'
                                 : 'Warranty Registration' %>
                         </a></li>
-                    <li><a href="/Downloads">
+                    <li><a href="/<%= lang %>/Downloads">
                             <%= lang==='DE' ? 'Downloads' : lang==='ES' ? 'Descargas' : 'Downloads' %>
                         </a></li>
 
@@ -344,7 +359,7 @@
             </div>
             <div class="menu-page" id="languagePage">
                 <div class="top-bar">
-                    <span class="back" onclick="goBack('languagePage')">
+                    <span class="back" data-go-back-parent>
                         <img src="/assets/Imgs/Icons/backarrow.png" alt="Back" />
                     </span>
                     <span class="page-title">
@@ -354,308 +369,10 @@
                 </div>
 
                 <ul>
-                    <li><a href="javascript:void(0)" onclick="changeLanguage('EN')">English</a></li>
-                    <li><a href="javascript:void(0)" onclick="changeLanguage('ES')">Español</a></li>
-                    <li><a href="javascript:void(0)" onclick="changeLanguage('DE')">Deutsch</a></li>
+                    <li><a href="javascript:void(0)" data-lang="EN">English</a></li>
+                    <li><a href="javascript:void(0)" data-lang="ES">Español</a></li>
+                    <li><a href="javascript:void(0)" data-lang="DE">Deutsch</a></li>
                 </ul>
             </div>
 
 </div>
-
-
-
-
-<script>
-    function goToPage(id) {
-        document.querySelectorAll('.menu-page').forEach(p => p.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-    }
-
-    function goBack(currentId) {
-        document.getElementById(currentId).classList.remove('active');
-        document.getElementById('mainMenu').classList.add('active');
-    }
-
-    document.querySelectorAll('.close-menu').forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.getElementById('mobileNavbar').style.display = 'none';
-        });
-    });
-
-    // You can toggle this with your hamburger icon
-    function openMobileMenu() {
-        document.getElementById('mobileNavbar').style.display = 'block';
-    }
-</script>
-
-<script>
-    function getCurrentLang() {
-        const path = window.location.pathname;
-        const langMatch = path.match(/\/(EN|ES|DE)/);
-        return langMatch ? langMatch[1] : 'EN';
-    }
-
-    function goToProduct(productSlug) {
-        const lang = getCurrentLang();
-        window.location.href = `/${lang}/products/${productSlug}`;
-    }
-
-    function goToModel(productSlug, modelSlug) {
-        const lang = getCurrentLang();
-        setTimeout(() => {
-            window.location.href = `/${lang}/products/${productSlug}/${modelSlug}`;
-        }, 100);
-    }
-
-
-
-
-    function updateModels(productId) {
-        const productEl = document.querySelector(`.productContainer[data-id="${productId}"]`);
-        const modelsContainer = document.querySelector(".modelsContainer ul");
-        const imageContainer = document.querySelector(".productImgContainer img");
-
-        if (productEl && modelsContainer && imageContainer) {
-            // Update sketch image
-            const sketch = productEl.getAttribute('data-sketch');
-            imageContainer.src = sketch;
-
-            // Update model list
-            const models = JSON.parse(productEl.getAttribute('data-models'));
-            modelsContainer.innerHTML = "";
-
-            if (models.length === 0) {
-                modelsContainer.innerHTML = "<li>No models available</li>";
-            } else {
-                models.forEach(model => {
-                    const li = document.createElement("li");
-                    li.textContent = model.name;
-                    li.style.cursor = 'pointer';
-                    li.onclick = (e) => {
-                        e.stopPropagation(); // prevent parent click
-                        goToModel(productId, model.id); // ✅ FIXED: use `productId` not `productSlug`
-                    };
-                    modelsContainer.appendChild(li);
-                });
-
-            }
-        }
-    }
-</script>
-
-<script>
-    window.addEventListener("DOMContentLoaded", () => {
-        const firstProduct = document.querySelector(".productContainer");
-        if (firstProduct) {
-            const productId = firstProduct.getAttribute("data-id");
-            updateModels(productId);
-        }
-    });
-</script>
-
-<script>
-    function showModels(productId) {
-        document.querySelectorAll('.menu-page').forEach(p => p.classList.remove('active'));
-        document.getElementById(`modelMenu_${productId}`).classList.add('active');
-    }
-
-
-    // Dynamically update link hrefs on page load
-    window.addEventListener('DOMContentLoaded', () => {
-        const lang = getCurrentLang();
-
-        const langLinks = {
-            '/support': `/${lang}/support`,
-            '/technical-service': `/${lang}/technical-service`,
-            '/WarrantyRegistration': `/${lang}/WarrantyRegistration`,
-            '/TermCondition': `/${lang}/TermCondition`,
-            '/PrivacyPolicy': `/${lang}/PrivacyPolicy`,
-            '/Downloads': `/${lang}/Downloads`,
-            '/aboutus': `/${lang}/aboutus`,
-            '/Articles': `/${lang}/Articles`,
-            '/Contactus': `/${lang}/Contactus`,
-            '/': `/${lang}`,
-            // Add more if needed
-        };
-
-        document.querySelectorAll('a').forEach(link => {
-            const href = link.getAttribute('href');
-            if (langLinks[href]) {
-                link.setAttribute('href', langLinks[href]);
-            }
-        });
-    });
-</script>
-
-
-
-
-
-
-
-<script>
-    function openNav() {
-        document.getElementById("mobileNavbar").style.display = "block";
-    }
-
-    document.querySelectorAll(".close-menu").forEach(btn => {
-        btn.addEventListener("click", () => {
-            document.getElementById("mobileNavbar").style.display = "none";
-            document.querySelectorAll(".menu-page").forEach(page => page.classList.remove("active"));
-            document.getElementById("mainMenu").classList.add("active");
-        });
-    });
-
-    function goToPage(pageId) {
-        document.querySelectorAll(".menu-page").forEach(page => page.classList.remove("active"));
-        document.getElementById(pageId).classList.add("active");
-    }
-
-    function goBack(currentPageId) {
-        document.getElementById(currentPageId).classList.remove("active");
-        document.getElementById("mainMenu").classList.add("active");
-    }
-</script>
-
-
-
-
-<script>
-    function changeLanguage(lang) {
-        const currentPath = window.location.pathname;
-        const updatedPath = currentPath.replace(/\/(EN|ES|DE)/, '/' + lang);
-        if (updatedPath === currentPath) {
-            window.location.href = `/${lang}`;
-        } else {
-            window.location.href = updatedPath;
-        }
-    }
-
-    window.addEventListener("DOMContentLoaded", () => {
-        const lang = getCurrentLang();
-        document.getElementById("languageSwitcher").value = lang;
-    });
-</script>
-
-
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const searchInput = document.getElementById('search');
-        const resultsContainer = document.getElementById('searchResults');
-
-        let timeout;
-
-        searchInput.addEventListener('input', function () {
-            const query = this.value.trim();
-
-            clearTimeout(timeout);
-
-            if (query.length < 3) {
-                resultsContainer.innerHTML = '';
-                resultsContainer.style.display = 'none';
-                return;
-            }
-
-            timeout = setTimeout(() => {
-                const lang = getCurrentLang();
-                fetch(`/search?q=${encodeURIComponent(query)}&lang=${lang}`)
-                    .then(res => res.json())
-                    .then(data => {
-                        resultsContainer.innerHTML = '';
-
-                        if (data.length === 0) {
-                            resultsContainer.innerHTML = '<div class="no-results">No matches found.</div>';
-                            resultsContainer.style.display = 'block';
-                            return;
-                        }
-
-                        data.forEach(item => {
-                            const div = document.createElement('div');
-                            div.classList.add('search-item');
-                            div.textContent = `${item.name} (${item.type})`;
-                            div.addEventListener('click', () => {
-                                window.location.href = item.url;
-                            });
-
-                            resultsContainer.appendChild(div);
-                        });
-
-                        resultsContainer.style.display = 'block';
-                    })
-                    .catch(err => {
-                        console.error('Error fetching search results:', err);
-                    });
-            }, 300); // Delay to avoid too many calls
-        });
-
-        // Hide results when clicking outside
-        document.addEventListener('click', function (e) {
-            if (!resultsContainer.contains(e.target) && e.target !== searchInput) {
-                resultsContainer.style.display = 'none';
-            }
-        });
-    });
-</script>
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const mobileSearchInput = document.getElementById('mobileSearch');
-        const mobileResultsContainer = mobileSearchInput.nextElementSibling;
-
-        let timeout;
-
-        mobileSearchInput.addEventListener('input', function () {
-            const query = this.value.trim();
-            clearTimeout(timeout);
-
-            if (query.length < 3) {
-                mobileResultsContainer.innerHTML = '';
-                mobileResultsContainer.style.display = 'none';
-                return;
-            }
-
-            timeout = setTimeout(() => {
-                const lang = getCurrentLang();
-                fetch(`/search?q=${encodeURIComponent(query)}&lang=${lang}`)
-                    .then(res => res.json())
-                    .then(data => {
-                        mobileResultsContainer.innerHTML = '';
-
-                        if (data.length === 0) {
-                            mobileResultsContainer.innerHTML = '<div class="no-results">No matches found.</div>';
-                            mobileResultsContainer.style.display = 'block';
-                            return;
-                        }
-
-                        data.forEach(item => {
-                            const div = document.createElement('div');
-                            div.classList.add('search-item');
-                            div.textContent = `${item.name} (${item.type})`;
-                            div.addEventListener('click', () => {
-                                window.location.href = item.url;
-                            });
-
-                            mobileResultsContainer.appendChild(div); // ✅ move here
-                        });
-
-                        mobileResultsContainer.style.display = 'block';
-                    })
-                    .catch(err => {
-                        console.error('Error fetching mobile search results:', err);
-                    });
-            }, 300);
-        });
-
-        // ✅ Moved inside DOMContentLoaded scope
-        document.addEventListener('click', function (e) {
-            if (!mobileResultsContainer.contains(e.target) && e.target !== mobileSearchInput) {
-                mobileResultsContainer.style.display = 'none';
-            }
-        });
-    });
-
-    document.addEventListener('click', function (e) {
-        if (!mobileResultsContainer.contains(e.target) && e.target !== mobileSearchInput) {
-            mobileResultsContainer.style.display = 'none';
-        }
-    });
-</script>

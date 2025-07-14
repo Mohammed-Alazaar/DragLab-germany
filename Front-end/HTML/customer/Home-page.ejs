@@ -36,7 +36,6 @@
     </head>
 
 
-    <%- include('../../includes/customer/header-end.ejs') %>
 
         <body>
             <!-- nav-bar -->
@@ -78,42 +77,6 @@
                             </div>
                 </section>
                 <!-- slideshow -->
-
-                <script>
-                    document.addEventListener("DOMContentLoaded", function () {
-                        let slideIndex = 0;
-                        const slides = document.querySelectorAll(".slide");
-                        const dots = document.querySelectorAll(".dot");
-
-                        if (slides.length === 0) return;
-
-                        function showSlides() {
-                            // Hide all slides
-                            slides.forEach(slide => {
-                                slide.classList.remove("show");
-                            });
-
-                            // Deactivate all dots
-                            dots.forEach(dot => {
-                                dot.classList.remove("activedot");
-                            });
-
-                            // Show current slide and dot
-                            slides[slideIndex].classList.add("show");
-                            dots[slideIndex].classList.add("activedot");
-
-                            // Move to next index
-                            slideIndex = (slideIndex + 1) % slides.length;
-                        }
-
-                        // Initial show
-                        slides[slideIndex].classList.add("show");
-                        dots[slideIndex].classList.add("activedot");
-
-                        // Start autoplay
-                        setInterval(showSlides, 5000);
-                    });
-                </script>
 
                 <!-- slideshow -->
 
@@ -160,57 +123,13 @@
                     </div>
 
 
-                    <button class="slideshow-btn prev-btn" onclick="moveSlide(-1)"><img
+                    <button class="slideshow-btn prev-btn" data-dir="-1"><img
                             src="/assets/Imgs/Icons/right-products-arrow.png" alt=""></button>
-                    <button class="slideshow-btn next-btn" onclick="moveSlide(1)"><img
+                    <button class="slideshow-btn next-btn" data-dir="1"><img
                             src="/assets/Imgs/Icons/left-products-arrow.png" alt=""></button>
                 </div>
 
-                <script>
-                    let currentIndex = 0;
-
-                    const slidesWrapper = document.getElementById("slidesWrapper");
-                    const slides = document.querySelectorAll(".product-slide");
-
-                    const updateSlidePosition = () => {
-                        const isMobile = window.innerWidth <= 768;
-                        if (!isMobile) {
-                            const slideWidth = slides[0].offsetWidth + 10; // 10 = gap between slides
-                            const offset = currentIndex * slideWidth;
-                            slidesWrapper.style.transform = `translateX(-${offset}px)`;
-                        } else {
-                            slidesWrapper.style.transform = 'none';
-                        }
-                    };
-
-                    const moveSlide = (direction) => {
-                        const isMobile = window.innerWidth <= 768;
-                        if (isMobile) return;
-
-                        const slidesPerPage = 2;
-                        const maxIndex = Math.max(0, slides.length - slidesPerPage);
-
-                        currentIndex += direction;
-
-                        if (currentIndex > maxIndex) {
-                            currentIndex = 0; // loop to start
-                        } else if (currentIndex < 0) {
-                            currentIndex = maxIndex; // loop to end
-                        }
-
-                        updateSlidePosition();
-                    };
-
-                    const handleResize = () => {
-                        updateSlidePosition();
-                    };
-
-                    // Initialize
-                    window.addEventListener("resize", handleResize);
-                    window.addEventListener("load", updateSlidePosition);
-                </script>
-
-
+          
 
 
                 <!-- products slideshow end -->
@@ -234,7 +153,9 @@
                                     <img loading="lazy" src="/assets/Imgs/Icons/products/Chemical-industry.png"
                                         alt="Chemical industry Icon" class="icon" />
                                 </div>
-                                <h3><%= t.industriesList.chemical %></h3>
+                                <h3>
+                                    <%= t.industriesList.chemical %>
+                                </h3>
 
                             </div>
                         </div>
@@ -246,7 +167,9 @@
                                     <img loading="lazy" src="/assets/Imgs/Icons/products/Food-Beverage-Industry.png"
                                         alt="Food and Beverage Industry Icon" class="icon" />
                                 </div>
-                                <h3><%= t.industriesList.food %></h3>
+                                <h3>
+                                    <%= t.industriesList.food %>
+                                </h3>
                             </div>
                         </div>
                         <div class="industry-card">
@@ -258,7 +181,9 @@
                                         src="/assets/Imgs/Icons/products/Biotechnology-Life-Sciences.png"
                                         alt="Biotechnology and Life Sciences Icon" class="icon" />
                                 </div>
-                                <h3><%= t.industriesList.biotech %></h3>
+                                <h3>
+                                    <%= t.industriesList.biotech %>
+                                </h3>
                             </div>
                         </div>
                         <div class="industry-card">
@@ -269,7 +194,9 @@
                                     <img loading="lazy" src="/assets/Imgs/Icons/products/Pharmaceutical-industry.png"
                                         alt="Pharmaceutical industry" class="icon" />
                                 </div>
-                                <h3><%= t.industriesList.pharma %></h3>
+                                <h3>
+                                    <%= t.industriesList.pharma %>
+                                </h3>
                             </div>
                         </div>
                     </div>
@@ -302,70 +229,15 @@
                     </div>
 
 
-                    <button class="article-slideshow-btn article-prev-btn" onclick="moveArticleSlide(-1)">
+                    <button class="article-slideshow-btn article-prev-btn" data-article-dir="-1">
                         <img loading="lazy" src="/assets/Imgs/Icons/right-products-arrow.png" alt="Previous">
                     </button>
-                    <button class="article-slideshow-btn article-next-btn" onclick="moveArticleSlide(1)">
+                    <button class="article-slideshow-btn article-next-btn" data-article-dir="1">
                         <img loading="lazy" src="/assets/Imgs/Icons/left-products-arrow.png" alt="Next">
                     </button>
                 </div>
 
-                <script>
-                    const articleWrapper = document.getElementById('articleSlidesWrapper');
-                    const articleSlides = document.querySelectorAll('.article-slide');
-                    const total = articleSlides.length;
-                    let articleIndex = 0;
-
-                    function updateArticleSlides() {
-                        const isMobile = window.innerWidth <= 760;
-
-                        articleSlides.forEach((slide, i) => {
-                            slide.classList.remove('featured');
-                            slide.style.flex = isMobile ? '0 0 100%' : '0 0 25%';
-                        });
-
-                        articleSlides[articleIndex].classList.add('featured');
-                        articleSlides[articleIndex].style.flex = isMobile ? '0 0 100%' : '0 0 calc(50% - 5px)';
-
-                        if (isMobile) {
-                            const slideWidth = articleSlides[articleIndex].offsetWidth;
-                            articleWrapper.scrollTo({
-                                left: slideWidth * articleIndex,
-                                behavior: 'smooth'
-                            });
-                        } else {
-                            let offset = 0;
-                            for (let i = 0; i < articleIndex; i++) {
-                                offset += 25;
-                            }
-                            articleWrapper.style.transform = `translateX(-${offset}%)`;
-                        }
-                    }
-
-                    function moveArticleSlide(direction) {
-                        articleIndex += direction;
-
-                        if (articleIndex < 0) {
-                            articleIndex = total - 1;
-                        } else if (articleIndex >= total) {
-                            articleIndex = 0;
-                        }
-
-                        updateArticleSlides();
-                    }
-
-                    updateArticleSlides(); // Initial setup
-
-                    // Auto-play every 5 seconds
-                    setInterval(() => {
-                        moveArticleSlide(1);
-                    }, 5000);
-
-                    // Update layout on resize
-                    window.addEventListener('resize', updateArticleSlides);
-
-                </script>
-
+          
 
 
                 <!-- about us  -->
@@ -408,10 +280,14 @@
                                         <img loading="lazy" src="/assets/Imgs/Icons/products/vision-active.png"
                                             class="tab-icon" alt="<%= t.vision %>">
                                     </div>
-                                    <h3><%= t.tab1Title %></h3>
+                                    <h3>
+                                        <%= t.tab1Title %>
+                                    </h3>
                                 </div>
 
-                                <h4><%= t.tab1Subtitle %></h4>
+                                <h4>
+                                    <%= t.tab1Subtitle %>
+                                </h4>
                                 <p>
                                     <%- t.tab1Desc %>
                                 </p>
@@ -420,66 +296,7 @@
                     </div>
                 </section>
 
-                <script>
-                    const tabs = document.querySelectorAll('.about-tab');
-                    const text = document.getElementById('about-text');
-                    const image = document.getElementById('about-img').querySelector('img');
 
-                    const content = {
-                        vision: {
-                            img: "/assets/Imgs/Icons/products/img-vision.png",
-                            icon: "/assets/Imgs/Icons/products/vision-active.png",
-                            title: "<%= t.tab1Title %>",
-                            subtitle: "<%= t.tab1Subtitle %>",
-                            desc: `<%- t.tab1Desc %>`
-                        },
-                        mission: {
-                            img: "/assets/Imgs/Icons/products/img-mission.png",
-                            icon: "/assets/Imgs/Icons/products/mission-active.png",
-                            title: "<%= t.tab2Title %>",
-                            subtitle: "<%= t.tab2Subtitle %>",
-                            desc: `<%- t.tab2Desc %>`
-                        },
-                        values: {
-                            img: "/assets/Imgs/Icons/products/img-values.png",
-                            icon: "/assets/Imgs/Icons/products/values-active.png",
-                            title: "<%= t.tab3Title %>",
-                            subtitle: "<%= t.tab3Subtitle %>",
-                            desc: `<%- t.tab3Desc %>`
-                        }
-                    };
-
-
-                    tabs.forEach(tab => {
-                        tab.addEventListener('click', () => {
-                            const currentActive = document.querySelector('.about-tab.active');
-                            if (currentActive) {
-                                currentActive.classList.remove('active');
-                                const iconDefault = currentActive.getAttribute('data-icon-default');
-                                currentActive.querySelector('img').src = iconDefault;
-                            }
-
-                            tab.classList.add('active');
-                            const iconActive = tab.getAttribute('data-icon-active');
-                            tab.querySelector('img').src = iconActive;
-
-                            const key = tab.getAttribute('data-tab');
-                            const c = content[key];
-
-                            image.src = c.img;
-                            text.innerHTML = `
-                                            <div class="title-icon">
-                                          <div class="tab-icon-bg">
-                                            <img loading="lazy"src="${c.icon}" class="tab-icon">
-                                          </div>
-                                          <h3>${c.title}</h3>
-                                          </div>
-                                          <h4>${c.subtitle}</h4>
-                                          <p>${c.desc}</p>
-                                        `;
-                        });
-                    });
-                </script>
 
                 <!-- about us  -->
 
@@ -489,14 +306,33 @@
 
 
                 <%- include('../../includes/customer/footer.ejs') %>
+                    <script src="/js/index.js?v=1.0.1"></script>
+<!-- after all HTML and just before </body> -->
+<script nonce="<%= nonce %>">
+  window.tabsData = <%- JSON.stringify({
+    vision: {
+      title: t.tab1Title,
+      subtitle: t.tab1Subtitle,
+      desc: t.tab1Desc.replace(/\n/g, '<br>')
+    },
+    mission: {
+      title: t.tab2Title,
+      subtitle: t.tab2Subtitle,
+      desc: t.tab2Desc.replace(/\n/g, '<br>')
+    },
+    values: {
+      title: t.tab3Title,
+      subtitle: t.tab3Subtitle,
+      desc: t.tab3Desc.replace(/\n/g, '<br>')
+    }
+  }) %>;
+</script>
+
+<script src="/js/about-us.js" nonce="<%= nonce %>"></script>
 
 
         </body>
         <%- include('../../includes/customer/script.ejs') %>
-            <script>
-                function goToProductPage(path) {
-                    window.location.href = path;
-                }
-            </script>
+        
 
             </html>

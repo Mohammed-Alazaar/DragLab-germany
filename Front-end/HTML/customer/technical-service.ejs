@@ -1,228 +1,270 @@
 <%- include('../../includes/customer/head.ejs') %>
+    <html lang="<%= lang %>" data-lang="<%= lang %>" data-select-option="<%= translations.selectOption %>">
 
-<link rel="stylesheet" href="/css/customer/technical-service.css">
-<script src="https://www.google.com/recaptcha/enterprise.js?render=6LdBFQkrAAAAALGPy8986JpxndbqzY1_6kEDxH1s"></script>
-<title><%= t.pageTitle %> | DragLab</title>
-<meta name="description" content="<%= t.metaDescription %>">
-<meta property="og:title" content="<%= t.ogTitle %>">
-<meta property="og:description" content="<%= t.ogDescription %>">
-<meta property="og:url" content="https://www.draglab.com/<%= lang %>/WarrantyRegistration">
-<meta property="og:type" content="website">
-<meta name="twitter:title" content="<%= t.ogTitle %>">
-<meta name="twitter:description" content="<%= t.ogDescription %>">
-<meta name="twitter:card" content="summary">
-<link rel="canonical" href="https://www.draglab.com/<%= lang %>/WarrantyRegistration">
-<link rel="alternate" hreflang="en" href="https://www.draglab.com/EN/WarrantyRegistration">
-<link rel="alternate" hreflang="es" href="https://www.draglab.com/ES/WarrantyRegistration">
-<link rel="alternate" hreflang="de" href="https://www.draglab.com/DE/WarrantyRegistration">
-<link rel="alternate" hreflang="x-default" href="https://www.draglab.com/EN/WarrantyRegistration">
-</head>
-<body>
-    <!-- nav-bar -->
-    <%- include('../../includes/customer/navbar.ejs') %>
+    <link rel="stylesheet" href="/css/customer/technical-service.css">
+    <script
+        src="https://www.google.com/recaptcha/enterprise.js?render=6LdBFQkrAAAAALGPy8986JpxndbqzY1_6kEDxH1s"></script>
+    <title>
+        <%= t.pageTitle %> | DragLab
+    </title>
+    <meta name="description" content="<%= t.metaDescription %>">
+    <meta property="og:title" content="<%= t.ogTitle %>">
+    <meta property="og:description" content="<%= t.ogDescription %>">
+    <meta property="og:url" content="https://www.draglab.com/<%= lang %>/WarrantyRegistration">
+    <meta property="og:type" content="website">
+    <meta name="twitter:title" content="<%= t.ogTitle %>">
+    <meta name="twitter:description" content="<%= t.ogDescription %>">
+    <meta name="twitter:card" content="summary">
+    <link rel="canonical" href="https://www.draglab.com/<%= lang %>/WarrantyRegistration">
+    <link rel="alternate" hreflang="en" href="https://www.draglab.com/EN/WarrantyRegistration">
+    <link rel="alternate" hreflang="es" href="https://www.draglab.com/ES/WarrantyRegistration">
+    <link rel="alternate" hreflang="de" href="https://www.draglab.com/DE/WarrantyRegistration">
+    <link rel="alternate" hreflang="x-default" href="https://www.draglab.com/EN/WarrantyRegistration">
+    </head>
 
-    <!-- Thumbnail Section -->
-    <div class="slide">
-        <div class="slide-text">
-            <h1><%= translations.slideTitle %></h1>
-            <p><%= translations.slideSubtitle %></p>
-        </div>
-        <img src="/assets/Imgs/Icons/products/contactus-BC.png" alt="Photo 1">
-    </div>
+    <body>
+        <!-- nav-bar -->
+        <%- include('../../includes/customer/navbar.ejs') %>
 
-    <!-- Technical service form -->
-    <section class="technical-service-section">
-        <h2><%= translations.formTitle %></h2>
-
-        <% if (req.query.success === 'true') { %>
-            <div class="success-message"><%= translations.success %></div>
-            <script>
-                gtag('event', 'conversion', {
-                    'send_to': 'AW-754782155/Km5ZCI6_qIQaEMuf9OcC',
-                    'value': 1.0,
-                    'currency': 'USD',
-                    'transaction_id': ''
-                });
-            </script>
-        <% } else if (req.query.success === 'false') { %>
-            <div class="error-message"><%= translations.error %></div>
-        <% } %>
-
-        <form id="demo-form" method="POST" action="/technical-service" class="form-container">
-
-            <!-- User Info Section -->
-            <div class="form-section">
-                <h3><%= translations.userSectionTitle %></h3>
-
-                <div class="checkbox-group">
-                    <input type="checkbox" name="privacyPolicy" required>
-                    <label for="privacyPolicy"><%= translations.agreeLabel %></label>
+            <!-- Thumbnail Section -->
+            <div class="slide">
+                <div class="slide-text">
+                    <h1>
+                        <%= translations.slideTitle %>
+                    </h1>
+                    <p>
+                        <%= translations.slideSubtitle %>
+                    </p>
                 </div>
-
-                <div class="checkbox-group">
-                    <label><%= translations.infoLabel %></label><br>
-                    <label><input type="radio" name="infoType" value="company" required> <%= translations.company %></label><br>
-                    <label><input type="radio" name="infoType" value="private" required> <%= translations.private %></label>
-                </div>
-
-                <div class="form-row">
-                    <div class="two-form-group">
-                        <div class="form-group">
-                            <label><%= translations.company %></label>
-                            <input type="text" name="company" placeholder="<%= translations.company %>" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Department</label>
-                            <input type="text" name="department" placeholder="Department">
-                        </div>
-                    </div>
-
-                    <div class="form-group checkbox-group">
-                        <label><%= translations.salutationLabel %></label><br>
-                        <label><input type="radio" name="salutation" value="Mrs/Ms" required> <%= translations.mrs %></label><br>
-                        <label><input type="radio" name="salutation" value="Mr" required> <%= translations.mr %></label>
-                    </div>
-
-                    <div class="three-form-group">
-                        <div class="form-group">
-                            <label><%= translations.firstName %></label>
-                            <input type="text" name="firstName" placeholder="<%= translations.firstName %>" required>
-                        </div>
-                        <div class="form-group">
-                            <label><%= translations.lastName %></label>
-                            <input type="text" name="lastName" placeholder="<%= translations.lastName %>" required>
-                        </div>
-                        <div class="form-group">
-                            <label><%= translations.postalTown %></label>
-                            <input type="text" name="postalTown" placeholder="<%= translations.postalTown %>">
-                        </div>
-                    </div>
-
-                    <div class="three-form-group">
-                        <div class="form-group">
-                            <label><%= translations.street %></label>
-                            <input type="text" name="street" placeholder="<%= translations.street %>">
-                        </div>
-                        <div class="form-group">
-                            <label><%= translations.country %></label>
-                            <input type="text" name="country" placeholder="<%= translations.country %>" required>
-                        </div>
-                        <div class="form-group">
-                            <label><%= translations.telephone %></label>
-                            <input type="text" name="telephone" placeholder="<%= translations.telephone %>">
-                        </div>
-                    </div>
-
-                    <div class="two-form-group">
-                        <div class="form-group">
-                            <label><%= translations.telefax %></label>
-                            <input type="text" name="telefax" placeholder="<%= translations.telefax %>">
-                        </div>
-                        <div class="form-group">
-                            <label><%= translations.email %></label>
-                            <input type="email" name="email" placeholder="<%= translations.email %>" required>
-                        </div>
-                    </div>
-                </div>
+                <img src="/assets/Imgs/Icons/products/contactus-BC.png" alt="Photo 1">
             </div>
 
-            <!-- Technical Issue Section -->
-            <div class="form-section">
-                <h3><%= translations.techSectionTitle %></h3>
-                <div class="form-row">
-                    <div class="three-form-group">
-                        <div class="form-group">
-                            <label><%= translations.failureDate %></label>
-                            <input type="date" name="failureDate" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="deviceCategory"><%= translations.deviceCategory %></label>
-                            <select id="deviceCategory" name="deviceCategory" required>
-                                <option value=""><%= translations.selectOption %></option>
-                                <% products.forEach(product => { %>
-                                    <option value="<%= product._id %>">
-                                        <%= product.Language[lang][0]?.ProductName || product.Language['EN'][0]?.ProductName %>
-                                    </option>
-                                <% }) %>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="deviceModel"><%= translations.deviceModel %></label>
-                            <select id="deviceModel" name="deviceModel" required>
-                                <option value=""><%= translations.selectOption %></option>
-                            </select>
-                        </div>
+            <!-- Technical service form -->
+            <section class="technical-service-section">
+                <h2>
+                    <%= translations.formTitle %>
+                </h2>
+
+                <% if (req.query.success==='true' ) { %>
+                    <div class="success-message">
+                        <%= translations.success %>
                     </div>
 
-                    <div class="two-form-group">
-                        <div class="form-group">
-                            <label><%= translations.serialNo %></label>
-                            <input type="text" name="serialNo" placeholder="<%= translations.serialNo %>" required>
+                    <% } else if (req.query.success==='false' ) { %>
+                        <div class="error-message">
+                            <%= translations.error %>
                         </div>
-                    </div>
+                        <% } %>
 
-                    <div class="form-group note-container">
-                        <label><%= translations.note %></label>
-                        <textarea name="note" placeholder="<%= translations.notePlaceholder %>"></textarea>
-                    </div>
-                </div>
-            </div>
+                            <form id="techServiceForm" method="POST" action="/technical-service" class="form-container">
 
-            <!-- Recaptcha -->
-            <div class="recaptcha">
-                <div class="g-recaptcha" data-sitekey="6LdBFQkrAAAAALGPy8986JpxndbqzY1_6kEDxH1s"></div>
-            </div>
+                                <!-- User Info Section -->
+                                <div class="form-section">
+                                    <h3>
+                                        <%= translations.userSectionTitle %>
+                                    </h3>
 
-            <!-- Submit Button -->
-            <div class="submit-button">
-                <button class="g-recaptcha" data-sitekey="6LdBFQkrAAAAALGPy8986JpxndbqzY1_6kEDxH1s"
-                    data-callback='onSubmit' data-action='submit' type="submit">
-                    <%= translations.sendBtn %>
-                </button>
-            </div>
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" name="privacyPolicy" required>
+                                        <label for="privacyPolicy">
+                                            <%= translations.agreeLabel %>
+                                        </label>
+                                    </div>
 
-            <script>
-                function onSubmit(token) {
-                    const form = document.getElementById("demo-form");
-                    if (form.checkValidity()) {
-                        form.submit();
-                    } else {
-                        form.reportValidity();
-                    }
-                }
-            </script>
-        </form>
-    </section>
+                                    <div class="checkbox-group">
+                                        <label>
+                                            <%= translations.infoLabel %>
+                                        </label><br>
+                                        <label><input type="radio" name="infoType" value="company" required>
+                                            <%= translations.company %>
+                                        </label><br>
+                                        <label><input type="radio" name="infoType" value="private" required>
+                                            <%= translations.private %>
+                                        </label>
+                                    </div>
 
-    <!-- Model Fetch Script -->
-    <script>
-        const lang = '<%= lang %>';
-        document.getElementById('deviceCategory').addEventListener('change', async function () {
-            const productId = this.value;
-            const modelSelect = document.getElementById('deviceModel');
-            modelSelect.innerHTML = '<option value=""><%= translations.selectOption %></option>';
+                                    <div class="form-row">
+                                        <div class="two-form-group">
+                                            <div class="form-group">
+                                                <label>
+                                                    <%= translations.company %>
+                                                </label>
+                                                <input type="text" name="company"
+                                                    placeholder="<%= translations.company %>" required>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Department</label>
+                                                <input type="text" name="department" placeholder="Department">
+                                            </div>
+                                        </div>
 
-            if (!productId) return;
+                                        <div class="form-group checkbox-group">
+                                            <label>
+                                                <%= translations.salutationLabel %>
+                                            </label><br>
+                                            <label><input type="radio" name="salutation" value="Mrs/Ms" required>
+                                                <%= translations.mrs %>
+                                            </label><br>
+                                            <label><input type="radio" name="salutation" value="Mr" required>
+                                                <%= translations.mr %>
+                                            </label>
+                                        </div>
 
-            try {
-                const res = await fetch(`/api/models/${productId}?lang=${lang}`);
-                const data = await res.json();
+                                        <div class="three-form-group">
+                                            <div class="form-group">
+                                                <label>
+                                                    <%= translations.firstName %>
+                                                </label>
+                                                <input type="text" name="firstName"
+                                                    placeholder="<%= translations.firstName %>" required>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>
+                                                    <%= translations.lastName %>
+                                                </label>
+                                                <input type="text" name="lastName"
+                                                    placeholder="<%= translations.lastName %>" required>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>
+                                                    <%= translations.postalTown %>
+                                                </label>
+                                                <input type="text" name="postalTown"
+                                                    placeholder="<%= translations.postalTown %>">
+                                            </div>
+                                        </div>
 
-                data.models.forEach(model => {
-                    const option = document.createElement('option');
-                    option.value = model._id;
-                    option.textContent = model.ModelName;
-                    modelSelect.appendChild(option);
-                });
-            } catch (err) {
-                console.error('Error fetching models:', err);
-            }
-        });
-    </script>
+                                        <div class="three-form-group">
+                                            <div class="form-group">
+                                                <label>
+                                                    <%= translations.street %>
+                                                </label>
+                                                <input type="text" name="street"
+                                                    placeholder="<%= translations.street %>">
+                                            </div>
+                                            <div class="form-group">
+                                                <label>
+                                                    <%= translations.country %>
+                                                </label>
+                                                <input type="text" name="country"
+                                                    placeholder="<%= translations.country %>" required>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>
+                                                    <%= translations.telephone %>
+                                                </label>
+                                                <input type="text" name="telephone"
+                                                    placeholder="<%= translations.telephone %>">
+                                            </div>
+                                        </div>
 
-    <!-- Footer -->
-    <%- include('../../includes/customer/footer.ejs') %>
-</body>
+                                        <div class="two-form-group">
+                                            <div class="form-group">
+                                                <label>
+                                                    <%= translations.telefax %>
+                                                </label>
+                                                <input type="text" name="telefax"
+                                                    placeholder="<%= translations.telefax %>">
+                                            </div>
+                                            <div class="form-group">
+                                                <label>
+                                                    <%= translations.email %>
+                                                </label>
+                                                <input type="email" name="email" placeholder="<%= translations.email %>"
+                                                    required>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
 
-<%- include('../../includes/customer/script.ejs') %>
-</html>
+                                <!-- Technical Issue Section -->
+                                <div class="form-section">
+                                    <h3>
+                                        <%= translations.techSectionTitle %>
+                                    </h3>
+                                    <div class="form-row">
+                                        <div class="three-form-group">
+                                            <div class="form-group">
+                                                <label>
+                                                    <%= translations.failureDate %>
+                                                </label>
+                                                <input type="date" name="failureDate" required>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="deviceCategory">
+                                                    <%= translations.deviceCategory %>
+                                                </label>
+                                                <select id="deviceCategory" name="deviceCategory" required>
+                                                    <option value="">
+                                                        <%= translations.selectOption %>
+                                                    </option>
+                                                    <% products.forEach(product=> { %>
+                                                        <option value="<%= product._id %>">
+                                                            <%= product.Language[lang][0]?.ProductName ||
+                                                                product.Language['EN'][0]?.ProductName %>
+                                                        </option>
+                                                        <% }) %>
+                                                </select>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="deviceModel">
+                                                    <%= translations.deviceModel %>
+                                                </label>
+                                                <select id="deviceModel" name="deviceModel" required>
+                                                    <option value="">
+                                                        <%= translations.selectOption %>
+                                                    </option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div class="two-form-group">
+                                            <div class="form-group">
+                                                <label>
+                                                    <%= translations.serialNo %>
+                                                </label>
+                                                <input type="text" name="serialNo"
+                                                    placeholder="<%= translations.serialNo %>" required>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group note-container">
+                                            <label>
+                                                <%= translations.note %>
+                                            </label>
+                                            <textarea name="note"
+                                                placeholder="<%= translations.notePlaceholder %>"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Recaptcha -->
+                                <!-- <div class="recaptcha">
+                                    <div class="g-recaptcha" data-sitekey="6LdBFQkrAAAAALGPy8986JpxndbqzY1_6kEDxH1s">
+                                    </div>
+                                </div> -->
+
+                                <!-- Submit Button -->
+
+                                <div class="submit-button">
+                                   <button id="techServiceSubmitBtn" type="button">
+  <%= translations.sendBtn || 'Submit' %>
+</button>
+
+                             
+                                </div>
+
+
+                            </form>
+                            
+            </section>
+
+
+
+            <!-- Footer -->
+            <%- include('../../includes/customer/footer.ejs') %>
+<script src="/js/technical-service.js" nonce="<%= nonce %>"></script>
+
+    </body>
+
+    </html>
