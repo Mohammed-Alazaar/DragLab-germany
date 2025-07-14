@@ -30,10 +30,10 @@ app.use(helmet());
 
 
 app.use((req, res, next) => {
-  const nonce = crypto.randomBytes(16).toString('base64');
-  res.locals.nonce = nonce;
+    const nonce = crypto.randomBytes(16).toString('base64');
+    res.locals.nonce = nonce;
 
-  const csp = `
+    const csp = `
     default-src 'self';
     script-src 'self' 'nonce-${nonce}' https://cdn.jsdelivr.net https://cdn.tiny.cloud https://www.termsfeed.com https://embed.tawk.to https://va.tawk.to https://client.tawk.to https://api.tawk.to https://www.googletagmanager.com https://www.clarity.ms https://www.google.com/recaptcha/ https://www.gstatic.com https://code.jquery.com https://www.googleadservices.com https://www.google-analytics.com;
     style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com https://cdn.tiny.cloud https://embed.tawk.to https://va.tawk.to https://client.tawk.to;
@@ -45,14 +45,9 @@ app.use((req, res, next) => {
     frame-ancestors 'self';
   `.replace(/\s+/g, ' ').trim();
 
-  // In production: strict CSP | In dev: report-only
-  if (process.env.NODE_ENV === 'production') {
-    res.setHeader('Content-Security-Policy', csp);
-  } else {
-    res.setHeader('Content-Security-Policy-Report-Only', csp);
-  }
 
-  next();
+    res.setHeader('Content-Security-Policy', csp);
+    next();
 });
 
 
