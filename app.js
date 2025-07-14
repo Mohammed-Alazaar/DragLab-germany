@@ -60,6 +60,7 @@ connect-src 'self'
   https://*.doubleclick.net
   https://www.google.com.tr
   https://c.clarity.ms
+  https://n.clarity.ms
   https://c.bing.com
   https://k.clarity.ms;    font-src 'self' https://fonts.gstatic.com https://embed.tawk.to https://va.tawk.to https://client.tawk.to data:;
     frame-src https://www.google.com https://www.youtube.com https://www.googletagmanager.com https://td.doubleclick.net https://embed.tawk.to https://va.tawk.to https://client.tawk.to;
