@@ -1,18 +1,16 @@
-window.onSubmit = function (token) {
-  const form = document.getElementById("contactus-form");
-  if (form.checkValidity()) {
-    form.submit();
-  } else {
-    form.reportValidity();
-  }
-};
+document.addEventListener('DOMContentLoaded', function () {
+  const form = document.getElementById('contactus-form');
 
+  if (!form) return;
 
-if (window.location.search.includes('success')) {
-  gtag('event', 'conversion', {
-    send_to: 'AW-754782155/Km5ZCI6_qIQaEMuf9OcC',
-    value: 1.0,
-    currency: 'USD',
-    transaction_id: ''
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    grecaptcha.enterprise.ready(function () {
+      grecaptcha.enterprise.execute('6LemaIMrAAAAABkGmvhvmbRSO5BbXQq7AsLB7NGU', { action: 'submit' }).then(function (token) {
+        form.querySelector('input[name="g-recaptcha-response"]').value = token;
+        form.submit();
+      });
+    });
   });
-}
+});

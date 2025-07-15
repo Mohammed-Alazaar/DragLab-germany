@@ -3,7 +3,7 @@
 
     <link rel="stylesheet" href="/css/customer/technical-service.css">
     <script
-        src="https://www.google.com/recaptcha/enterprise.js?render=6LdBFQkrAAAAALGPy8986JpxndbqzY1_6kEDxH1s"></script>
+        src="https://www.google.com/recaptcha/enterprise.js?render=6LemaIMrAAAAABkGmvhvmbRSO5BbXQq7AsLB7NGU"></script>
     <title>
         <%= t.pageTitle %> | DragLab
     </title>
@@ -56,7 +56,8 @@
                         </div>
                         <% } %>
 
-                            <form id="techServiceForm" method="POST" action="/technical-service" class="form-container">
+                            <form id="techServiceForm" method="POST" action="/technical-service?lang=<%= lang %>"
+                                class="form-container">
 
                                 <!-- User Info Section -->
                                 <div class="form-section">
@@ -72,9 +73,10 @@
                                     </div>
 
                                     <div class="checkbox-group">
-                                        <label>
+                                        <p>
                                             <%= translations.infoLabel %>
-                                        </label><br>
+                                        </p>
+                                        <br>
                                         <label><input type="radio" name="infoType" value="company" required>
                                             <%= translations.company %>
                                         </label><br>
@@ -238,32 +240,28 @@
                                     </div>
                                 </div>
 
-                                <!-- Recaptcha -->
-                                <!-- <div class="recaptcha">
-                                    <div class="g-recaptcha" data-sitekey="6LdBFQkrAAAAALGPy8986JpxndbqzY1_6kEDxH1s">
-                                    </div>
-                                </div> -->
+
 
                                 <!-- Submit Button -->
 
                                 <div class="submit-button">
-                                   <button id="techServiceSubmitBtn" type="button">
-  <%= translations.sendBtn || 'Submit' %>
-</button>
+                                    <button id="techServiceSubmitBtn" type="button">
+                                        <%= translations.sendBtn || 'Submit' %>
+                                    </button>
 
-                             
+
                                 </div>
 
 
                             </form>
-                            
+
             </section>
 
 
 
             <!-- Footer -->
             <%- include('../../includes/customer/footer.ejs') %>
-<script src="/js/technical-service.js" nonce="<%= nonce %>"></script>
+                <script src="/js/technical-service.js" nonce="<%= nonce %>"></script>
 
     </body>
 

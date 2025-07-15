@@ -10,6 +10,7 @@ const ContactUs = require('../models/contactUs');
 const CatalogCategory = require('../models/CatalogCategory'); // Add this line to import the order model
 
 const Slideshow = require('../models/slideshow'); // ✅ Make sure this is imported at the top
+const axios = require('axios'); // ✅ Import axios for HTTP requests
 
 
 exports.getHomePage = async (req, res, next) => {
@@ -534,39 +535,48 @@ exports.getContactus = (req, res, next) => {
                 req,
                 products,
                 categories: [],
-                path: `/${lang.toLowerCase()}/contactus`
+                path: `/${lang}/contactus`
             });
         })
         .catch(err => {
             console.error(err);
-            res.redirect('/EN/Contactus');
+            res.redirect(`/${lang}/contactus`);
         });
 };
 
 
+
 exports.postContactUs = async (req, res, next) => {
-    let fallbackLang = 'en'; // set a default early
+  let fallbackLang = req.body.lang?.toLowerCase() || 'en';
 
-    try {
-        if (req.body && typeof req.body.lang === 'string') {
-            fallbackLang = req.body.lang.toLowerCase();
-        }
+  try {
+    const token = req.body['g-recaptcha-response'];
 
-        const { firstName, lastName, subject, email, message } = req.body;
+    const secret = process.env.RECAPTCHA_SECRET_KEY; // v3 secret
+    const verifyUrl = `https://www.google.com/recaptcha/api/siteverify`;
 
-        await new ContactUs({
-            firstName,
-            lastName,
-            subject,
-            email,
-            message
-        }).save();
+    const response = await axios.post(verifyUrl, null, {
+      params: {
+        secret,
+        response: token,
+      },
+    });
 
-        res.redirect(`/${fallbackLang}/contactus?success=true`);
-    } catch (err) {
-        console.error(err);
-        res.redirect(`/${fallbackLang}/contactus?error=true`);
+    const { success, score } = response.data;
+
+    if (!success || score < 0.5) {
+      return res.redirect(`/${fallbackLang}/contactus?error=true`);
     }
+
+    const { firstName, lastName, subject, email, message } = req.body;
+
+    await new ContactUs({ firstName, lastName, subject, email, message }).save();
+
+    res.redirect(`/${fallbackLang}/contactus?success=true`);
+  } catch (err) {
+    console.error(err);
+    res.redirect(`/${fallbackLang}/contactus?error=true`);
+  }
 };
 
 
@@ -578,6 +588,7 @@ exports.geTechnicalservice = (req, res, next) => {
 
     const translations = {
         EN: {
+            agreeLabel: "I agree to the processing of my personal data in accordance with the Privacy Policy for the purpose of handling my technical support request.*",
             slideTitle: "Technical Support at Your Service.",
             slideSubtitle: "Quick and reliable solutions to your technical problems.",
             formTitle: "Technical Support Form",
@@ -610,6 +621,7 @@ exports.geTechnicalservice = (req, res, next) => {
             selectOption: "Select"
         },
         ES: {
+            agreeLabel: "Acepto el tratamiento de mis datos personales conforme a la política de privacidad para gestionar mi solicitud de soporte técnico.*",
             slideTitle: "Soporte técnico a su servicio.",
             slideSubtitle: "Soluciones rápidas y fiables a sus problemas técnicos.",
             formTitle: "Formulario de soporte técnico",
@@ -642,10 +654,11 @@ exports.geTechnicalservice = (req, res, next) => {
             selectOption: "Seleccionar"
         },
         DE: {
+            agreeLabel: "Ich stimme der Verarbeitung meiner persönlichen Daten gemäß der Datenschutzrichtlinie zur Bearbeitung meiner technischen Supportanfrage zu.*",
             slideTitle: "Technischer Support zu Ihren Diensten.",
             slideSubtitle: "Schnelle und zuverlässige Lösungen für Ihre technischen Probleme.",
             formTitle: "Technisches Support-Formular",
-            success: "✅ Ihre Anfrage wurde erfolDEeich übermittelt.",
+            success: "✅ Ihre Anfrage wurde erfolgreich übermittelt.",
             error: "❌ Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut.",
             userSectionTitle: "Technischer Support für Benutzer",
             aDEeeLabel: "Ich stimme der Verarbeitung meiner persönlichen Daten gemäß der Datenschutzrichtlinie zur Bearbeitung meiner Anfrage zu.*",
@@ -679,7 +692,7 @@ exports.geTechnicalservice = (req, res, next) => {
         .then(products => {
             res.render('customer/technical-service', {
                 pageTitle: translations[lang]?.formTitle || 'Technical Service',
-                path: '/technical-service',
+                path: `/technical-service/${lang}`,
                 products,
                 categories: [],
                 lang,
@@ -695,7 +708,6 @@ exports.geTechnicalservice = (req, res, next) => {
 };
 
 
-const axios = require('axios');
 
 exports.postTechnicalService = async (req, res) => {
     const lang = req.query.lang?.toUpperCase() || 'EN';
@@ -704,7 +716,7 @@ exports.postTechnicalService = async (req, res) => {
     // ✅ Check if token exists
     if (!token) {
         console.error("❌ Missing reCAPTCHA token");
-        return res.redirect(`/technical-service/${lang}?error=true`);
+        return res.redirect(`/${lang}/technical-service/?error=true`);
     }
 
     try {
@@ -721,7 +733,7 @@ exports.postTechnicalService = async (req, res) => {
 
         if (!success || score < 0.5) {
             console.error("❌ reCAPTCHA verification failed:", response.data);
-            return res.redirect(`/technical-service/${lang}?error=true`);
+            return res.redirect(`/${lang}/technical-service/?error=true`);
         }
 
         // ✅ Passed reCAPTCHA — proceed to save
@@ -752,10 +764,10 @@ exports.postTechnicalService = async (req, res) => {
             lang
         });
 
-        return res.redirect(`/technical-service/${lang}?success=true`);
+        return res.redirect(`/${lang}/technical-service/?success=true`);
     } catch (error) {
         console.error('❌ Error in TechnicalService submission:', error);
-        return res.redirect(`/technical-service/${lang}?error=true`);
+        return res.redirect(`/${lang}/technical-service/?error=true`);
     }
 };
 

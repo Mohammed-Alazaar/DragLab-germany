@@ -53,7 +53,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       grecaptcha.enterprise.ready(function () {
         grecaptcha.enterprise
-          .execute("6LdBFQkrAAAAALGPy8986JpxndbqzY1_6kEDxH1s", { action: "submit" })
+          .execute("6LemaIMrAAAAABkGmvhvmbRSO5BbXQq7AsLB7NGU", { action: "submit" })
           .then(function (token) {
             console.log("✅ Token received:", token);
 

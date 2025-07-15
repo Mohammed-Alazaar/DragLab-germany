@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (submitBtn) {
     submitBtn.addEventListener("click", function () {
       grecaptcha.enterprise.ready(function () {
-        grecaptcha.enterprise.execute('6LdBFQkrAAAAALGPy8986JpxndbqzY1_6kEDxH1s', { action: 'submit' }).then(function (token) {
+        grecaptcha.enterprise.execute('6LemaIMrAAAAABkGmvhvmbRSO5BbXQq7AsLB7NGU', { action: 'submit' }).then(function (token) {
           window.onRecaptchaSuccess(token);
         });
       });
