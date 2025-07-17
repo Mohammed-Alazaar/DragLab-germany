@@ -623,6 +623,7 @@ exports.postAddModel = async (req, res) => {
     const overviewThumbnail = req.files?.overviewThumbnail?.[0]
       ? await uploadToCloudinary(req.files.overviewThumbnail[0], 'overview')
       : '';
+    const modelSlug = slugify(req.body['ModelName_EN'], { lower: true, strict: true });
 
     for (const lang of languages) {
       const overviewData = [];
@@ -653,6 +654,7 @@ exports.postAddModel = async (req, res) => {
 
 
       // ✅ Industry
+
       for (let i = 0; i < 3; i++) {
         // 📝 Correctly fetching data from form body
         const industryName = req.body.industry[lang]?.[i]?.industryName || '';
@@ -721,7 +723,6 @@ exports.postAddModel = async (req, res) => {
         technicalSpecifications,
         downloads
       }];
-      const modelSlug = slugify(req.body['ModelName_EN'], { lower: true, strict: true });
 
     }
 
