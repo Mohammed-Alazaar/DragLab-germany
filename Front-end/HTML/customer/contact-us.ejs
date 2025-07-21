@@ -71,13 +71,13 @@
                         <label for="first">
                           <%= labels.first %>
                         </label>
-                        <input type="text" id="first" name="firstName" placeholder="<%= labels.first %>" required />
+                        <input type="text" id="first" name="firstName" placeholder="<%= labels.first %>" autocomplete="given-name" required />
                       </div>
                       <div class="field">
                         <label for="last">
                           <%= labels.last %>
                         </label>
-                        <input type="text" id="last" name="lastName" placeholder="<%= labels.last %>" required />
+                        <input type="text" id="last" name="lastName" placeholder="<%= labels.last %>" required autocomplete="family-name" />
                       </div>
                     </div>
                     <div class="row">
@@ -85,13 +85,13 @@
                         <label for="subject">
                           <%= labels.subject %>
                         </label>
-                        <input type="text" id="subject" name="subject" placeholder="<%= labels.subject %>" required />
+                        <input type="text" id="subject" name="subject" placeholder="<%= labels.subject %>" required autocomplete="off" />
                       </div>
                       <div class="field">
                         <label for="email">
                           <%= labels.email %>
                         </label>
-                        <input type="email" id="email" name="email" placeholder="<%= labels.email %>" required />
+                        <input type="email" id="email" name="email" placeholder="<%= labels.email %>" required autocomplete="email"/>
                       </div>
                     </div>
                     <div class="row">

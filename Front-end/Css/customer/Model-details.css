@@ -22,7 +22,7 @@
 }
 
 .slide img {
-    height: 80vh;
+    max-height: 90vh;
     width: calc(100% - 20px);
     object-position: center;
     position: relative;

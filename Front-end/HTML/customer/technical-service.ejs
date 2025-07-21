@@ -66,9 +66,13 @@
                                     </h3>
 
                                     <div class="checkbox-group">
-                                        <input type="checkbox" name="privacyPolicy" required>
+                                        <input type="checkbox" id="privacyPolicy" name="privacyPolicy" required>
                                         <label for="privacyPolicy">
-                                            <%= translations.agreeLabel %>
+                                            <%= translations.dataLabel %> &nbsp; <a id="highlighted-word-primary-color"
+                                                    href="/<%= lang %>/PrivacyPolicy">
+                                                    <%= translations.privacyPolicy %>
+                                                </a> &nbsp;
+                                                <%= translations.dataSuffix %>
                                         </label>
                                     </div>
 
@@ -77,10 +81,12 @@
                                             <%= translations.infoLabel %>
                                         </p>
                                         <br>
-                                        <label><input type="radio" name="infoType" value="company" required>
+                                        <label><input type="radio" name="infoType" value="company" autocomplete="off"
+                                                required>
                                             <%= translations.company %>
                                         </label><br>
-                                        <label><input type="radio" name="infoType" value="private" required>
+                                        <label><input type="radio" name="infoType" value="private" autocomplete="off"
+                                                required>
                                             <%= translations.private %>
                                         </label>
                                     </div>
@@ -88,15 +94,17 @@
                                     <div class="form-row">
                                         <div class="two-form-group">
                                             <div class="form-group">
-                                                <label>
+                                                <label for="company">
                                                     <%= translations.company %>
                                                 </label>
-                                                <input type="text" name="company"
-                                                    placeholder="<%= translations.company %>" required>
+                                                <input type="text" id="company" name="company"
+                                                    placeholder="<%= translations.company %>" autocomplete="company"
+                                                    required>
                                             </div>
                                             <div class="form-group">
-                                                <label>Department</label>
-                                                <input type="text" name="department" placeholder="Department">
+                                                <label for="department">Department</label>
+                                                <input type="text" id="department" name="department" placeholder="Department"
+                                                    autocomplete="organization-title">
                                             </div>
                                         </div>
 
@@ -104,76 +112,84 @@
                                             <label>
                                                 <%= translations.salutationLabel %>
                                             </label><br>
-                                            <label><input type="radio" name="salutation" value="Mrs/Ms" required>
+                                            <label for="salutationMrsMs"><input type="radio" id="salutationMrsMs" name="salutation" value="Mrs/Ms"
+                                                    autocomplete="off" required>
                                                 <%= translations.mrs %>
                                             </label><br>
-                                            <label><input type="radio" name="salutation" value="Mr" required>
+                                            <label for="salutationMr"><input type="radio" id="salutationMr" name="salutation" value="Mr" autocomplete="off"
+                                                    required>
                                                 <%= translations.mr %>
                                             </label>
                                         </div>
 
                                         <div class="three-form-group">
                                             <div class="form-group">
-                                                <label>
+                                                <label for="firstName">
                                                     <%= translations.firstName %>
                                                 </label>
-                                                <input type="text" name="firstName"
-                                                    placeholder="<%= translations.firstName %>" required>
+                                                <input type="text" id="firstName" name="firstName"
+                                                    placeholder="<%= translations.firstName %>"
+                                                    autocomplete="given-name" required>
                                             </div>
                                             <div class="form-group">
-                                                <label>
+                                                <label for="lastName">
                                                     <%= translations.lastName %>
                                                 </label>
-                                                <input type="text" name="lastName"
-                                                    placeholder="<%= translations.lastName %>" required>
+                                                <input type="text" id="lastName" name="lastName"
+                                                    placeholder="<%= translations.lastName %>"
+                                                    autocomplete="family-name" required>
                                             </div>
                                             <div class="form-group">
-                                                <label>
+                                                <label for="postalTown">
                                                     <%= translations.postalTown %>
                                                 </label>
-                                                <input type="text" name="postalTown"
-                                                    placeholder="<%= translations.postalTown %>">
+                                                <input type="text" id="postalTown" name="postalTown"
+                                                    placeholder="<%= translations.postalTown %>"
+                                                    autocomplete="postal-code" required>
                                             </div>
                                         </div>
 
                                         <div class="three-form-group">
                                             <div class="form-group">
-                                                <label>
+                                                <label for="street">
                                                     <%= translations.street %>
                                                 </label>
-                                                <input type="text" name="street"
-                                                    placeholder="<%= translations.street %>">
+                                                <input type="text" id="street" name="street"
+                                                    placeholder="<%= translations.street %>"
+                                                    autocomplete="street-address">
                                             </div>
                                             <div class="form-group">
-                                                <label>
+                                                <label for="country">
                                                     <%= translations.country %>
                                                 </label>
-                                                <input type="text" name="country"
-                                                    placeholder="<%= translations.country %>" required>
+                                                <input type="text" id="country" name="country"
+                                                    placeholder="<%= translations.country %>"
+                                                    autocomplete="country-name" required>
                                             </div>
                                             <div class="form-group">
-                                                <label>
+                                                <label for="telephone">
                                                     <%= translations.telephone %>
                                                 </label>
-                                                <input type="text" name="telephone"
-                                                    placeholder="<%= translations.telephone %>">
+                                                <input type="text" id="telephone" name="telephone"
+                                                    placeholder="<%= translations.telephone %>" autocomplete="tel"
+                                                    required>
                                             </div>
                                         </div>
 
                                         <div class="two-form-group">
                                             <div class="form-group">
-                                                <label>
+                                                <label for="telefax">
                                                     <%= translations.telefax %>
                                                 </label>
-                                                <input type="text" name="telefax"
-                                                    placeholder="<%= translations.telefax %>">
+                                                <input type="text" id="telefax" name="telefax"
+                                                    placeholder="<%= translations.telefax %>" autocomplete="fax">
                                             </div>
                                             <div class="form-group">
-                                                <label>
+                                                <label for="email">
                                                     <%= translations.email %>
                                                 </label>
-                                                <input type="email" name="email" placeholder="<%= translations.email %>"
-                                                    required>
+                                                <input type="email" id="email" name="email" placeholder="<%= translations.email %>"
+                                                    autocomplete="email" required>
                                             </div>
                                         </div>
                                     </div>
@@ -187,10 +203,10 @@
                                     <div class="form-row">
                                         <div class="three-form-group">
                                             <div class="form-group">
-                                                <label>
+                                                <label for="failureDate">
                                                     <%= translations.failureDate %>
                                                 </label>
-                                                <input type="date" name="failureDate" required>
+                                                <input type="date" id="failureDate" name="failureDate" autocomplete="off" required>
                                             </div>
                                             <div class="form-group">
                                                 <label for="deviceCategory">
@@ -222,10 +238,10 @@
 
                                         <div class="two-form-group">
                                             <div class="form-group">
-                                                <label>
+                                                <label for="serialNo">
                                                     <%= translations.serialNo %>
                                                 </label>
-                                                <input type="text" name="serialNo"
+                                                <input type="text" id="serialNo" name="serialNo"
                                                     placeholder="<%= translations.serialNo %>" required>
                                             </div>
                                         </div>

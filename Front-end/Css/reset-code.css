@@ -370,3 +370,7 @@ textarea:invalid {
 input[type="radio"] {
     accent-color: var(--primary-Color);
 }
+#highlighted-word-primary-color{
+    color: var(--primary-Color);
+    font-weight: 600;
+}

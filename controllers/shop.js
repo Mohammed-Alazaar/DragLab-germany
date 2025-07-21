@@ -13,6 +13,31 @@ const Slideshow = require('../models/slideshow'); // ✅ Make sure this is impor
 const axios = require('axios'); // ✅ Import axios for HTTP requests
 
 
+
+
+
+const seoData = require('../util/seoData'); // adjust path based on your folder
+
+exports.getStaticPage = (req, res) => {
+  const slug = req.params.slug || 'index'; // e.g. 'contact', 'company', 'incubator-di120-touch-screen'
+  const lang = req.query.lang?.toUpperCase() || 'EN';
+
+  const meta = seoData[slug] || {
+    title: 'DragLab | Laboratory Equipment',
+    description: 'Manufacturer of high-quality incubators, ovens, and water stills for global laboratories.'
+  };
+
+  res.render('customer/page', {
+    pageSlug: slug,
+    lang,
+    meta
+  });
+};
+
+
+
+
+
 exports.getHomePage = async (req, res, next) => {
     try {
         const lang = (req.params.lang || req.query.lang || 'EN').toUpperCase();
@@ -580,7 +605,7 @@ exports.postContactUs = async (req, res, next) => {
 };
 
 
-
+    
 
 
 exports.geTechnicalservice = (req, res, next) => {
@@ -588,7 +613,9 @@ exports.geTechnicalservice = (req, res, next) => {
 
     const translations = {
         EN: {
-            agreeLabel: "I agree to the processing of my personal data in accordance with the Privacy Policy for the purpose of handling my technical support request.*",
+            dataLabel: 'I agree to the processing of my personal data in accordance with the',
+            privacyPolicy: 'Privacy Policy',
+            dataSuffix: 'for the purpose of handling my Warranty Registration request.',
             slideTitle: "Technical Support at Your Service.",
             slideSubtitle: "Quick and reliable solutions to your technical problems.",
             formTitle: "Technical Support Form",
@@ -621,14 +648,15 @@ exports.geTechnicalservice = (req, res, next) => {
             selectOption: "Select"
         },
         ES: {
-            agreeLabel: "Acepto el tratamiento de mis datos personales conforme a la política de privacidad para gestionar mi solicitud de soporte técnico.*",
+            dataLabel: 'Acepto el tratamiento de mis datos personales de acuerdo con la',
+            privacyPolicy: 'Política de Privacidad',
+            dataSuffix: 'para gestionar mi solicitud de registro de garantía.',
             slideTitle: "Soporte técnico a su servicio.",
             slideSubtitle: "Soluciones rápidas y fiables a sus problemas técnicos.",
             formTitle: "Formulario de soporte técnico",
             success: "✅ Su solicitud de soporte técnico se ha enviado correctamente.",
             error: "❌ Algo salió mal. Por favor, inténtelo de nuevo.",
             userSectionTitle: "Soporte técnico de usuario",
-            aDEeeLabel: "Acepto el tratamiento de mis datos personales conforme a la política de privacidad para gestionar mi solicitud de soporte técnico.*",
             infoLabel: "Tipo de información:",
             company: "Empresa",
             private: "Persona particular",
@@ -654,14 +682,15 @@ exports.geTechnicalservice = (req, res, next) => {
             selectOption: "Seleccionar"
         },
         DE: {
-            agreeLabel: "Ich stimme der Verarbeitung meiner persönlichen Daten gemäß der Datenschutzrichtlinie zur Bearbeitung meiner technischen Supportanfrage zu.*",
+            dataLabel: 'Ich stimme der Verarbeitung meiner personenbezogenen Daten gemäß der',
+            privacyPolicy: 'Datenschutzerklärung',
+            dataSuffix: 'zum Zweck der Bearbeitung meiner Garantieregistrierung.',
             slideTitle: "Technischer Support zu Ihren Diensten.",
             slideSubtitle: "Schnelle und zuverlässige Lösungen für Ihre technischen Probleme.",
             formTitle: "Technisches Support-Formular",
             success: "✅ Ihre Anfrage wurde erfolgreich übermittelt.",
             error: "❌ Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut.",
             userSectionTitle: "Technischer Support für Benutzer",
-            aDEeeLabel: "Ich stimme der Verarbeitung meiner persönlichen Daten gemäß der Datenschutzrichtlinie zur Bearbeitung meiner Anfrage zu.*",
             infoLabel: "Informationstyp:",
             company: "Firma",
             private: "Privatperson",

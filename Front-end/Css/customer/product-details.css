@@ -22,7 +22,7 @@
 }
 
 .slide img {
-    height: 80vh;
+    max-height: 90vh;
     width: calc(100% - 20px);
     object-position: center;
     position: relative;
@@ -237,8 +237,9 @@ a.scroll-button {
         position: absolute;
         top: 10%;
     }
+
     .slide-text p {
-    width: 100%;
+        width: 100%;
     }
 }
 
