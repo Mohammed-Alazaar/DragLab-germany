@@ -1,0 +1,168 @@
+<%- include('../../includes/sellercompany/head.ejs') %>
+    <link rel="stylesheet" href="/css/sellercompany/addIndustry.css">
+    <%- include('../../includes/sellercompany/head-end.ejs') %>
+
+        <body>
+            <%- include('../../includes/sellercompany/navbar-dash.ejs') %>
+
+                <section class="sidebar-content-container">
+                    <section class="sidebar-container">
+                        <%- include('../../includes/sellercompany/sidebar.ejs') %>
+                    </section>
+
+                    <section class="content-container">
+                        <div class="container-head">
+                            <h1>
+                                <% if (editing) { %>
+                                    Edit Industry Page
+                                    <% } else { %>
+                                        Add Industry Page
+                                        <% } %>
+                            </h1>
+                        </div>
+
+                        <div class="add-industry-form-container">
+                            <% if (hasError) { %>
+                                <div class="alert alert-danger">
+                                    <strong>Error:</strong>
+                                    <%= errorMessage %>
+                                        <ul>
+                                            <% validationErrors.forEach(err=> { %>
+                                                <li>
+                                                    <%= err.msg %>
+                                                </li>
+                                                <% }); %>
+                                        </ul>
+                                </div>
+                                <% } %>
+
+                                    <form action="/admin/<%= editing ? 'edit-industry' : 'add-industry' %>"
+                                        method="POST" enctype="multipart/form-data">
+                                        <% if (editing && industry?._id) { %>
+                                            <input type="hidden" name="industryId" value="<%= industry._id %>">
+                                            <input type="hidden" name="slug" value="<%= industry.slug %>">
+                                            <% } %>
+                                                <!-- Shared Image Uploads (only in EN) -->
+                                                <div class="input-container">
+                                                    <label for="slideImage">Slide Image</label>
+                                                    <input type="file" name="slideImage" accept="image/*">
+                                                    <% if (industry?.sharedImages?.slideImage) { %>
+                                                        <img src="<%= industry.sharedImages.slideImage %>"
+                                                            style="max-width: 150px;">
+                                                        <p>Current image path: <%= industry.sharedImages.slideImage %>
+                                                        </p>
+                                                        <% } %>
+                                                </div>
+
+                                                <div class="input-container">
+                                                    <label for="introImage">Introduction Image</label>
+                                                    <input type="file" name="introImage" accept="image/*">
+                                                    <% if (industry?.sharedImages?.introImage) { %>
+                                                        <img src="<%= industry.sharedImages.introImage %>"
+                                                            style="max-width: 150px;">
+                                                        <p>Current image path: <%= industry.sharedImages.introImage %>
+                                                        </p>
+                                                        <% } %>
+                                                </div>
+
+                                                <% ['EN', 'ES' , 'DE' ].forEach(lang=> { %>
+                                                    <div class="language-section">
+                                                        <h2>Language: <%= lang %>
+                                                        </h2>
+
+                                                        <div class="input-container">
+                                                            <label for="slideTitle_<%= lang %>">Slide Title (<%= lang %>
+                                                                    )</label>
+                                                            <input type="text" name="slideTitle_<%= lang %>"
+                                                                value="<%= industry?.Language?.[lang]?.[0]?.slideTitle || '' %>">
+                                                        </div>
+
+                                                        <div class="input-container">
+                                                            <label for="slideSubTitle_<%= lang %>">Slide Subtitle (<%=
+                                                                    lang %>
+                                                                    )</label>
+                                                            <input type="text" name="slideSubTitle_<%= lang %>"
+                                                                value="<%= industry?.Language?.[lang]?.[0]?.slideSubTitle || '' %>">
+                                                        </div>
+
+                                                        <div class="input-container">
+                                                            <label for="slideDesc_<%= lang %>">Slide Description (<%=
+                                                                    lang %>
+                                                                    )</label>
+                                                            <textarea
+                                                                name="slideDesc_<%= lang %>"><%= industry?.Language?.[lang]?.[0]?.slideDesc || '' %></textarea>
+                                                        </div>
+
+                                                        <div class="input-container">
+                                                            <label for="introTitle_<%= lang %>">Introduction Title (<%=
+                                                                    lang %>
+                                                                    )</label>
+                                                            <input type="text" name="introTitle_<%= lang %>"
+                                                                value="<%= industry?.Language?.[lang]?.[0]?.introTitle || '' %>">
+                                                        </div>
+
+                                                        <div class="input-container">
+                                                            <label for="introDesc_<%= lang %>">Introduction Description
+                                                                (<%= lang %>)</label>
+                                                            <textarea
+                                                                name="introDesc_<%= lang %>"><%= industry?.Language?.[lang]?.[0]?.introDesc || '' %></textarea>
+                                                        </div>
+
+                                                        <h3>Feature Boxes (max 3)</h3>
+                                                        <% for (let i=0; i < 3; i++) { const
+                                                            feature=industry?.Language?.[lang]?.[0]?.features?.[i] ||
+                                                            {}; %>
+                                                            <div class="feature-box">
+                                                                <% if (lang==='EN' ) { %>
+                                                                    <% if (feature.FeatureImage) { %>
+                                                                        <img src="<%= feature.FeatureImage %>"
+                                                                            style="max-width: 100px;">
+                                                                        <% } %>
+                                                                            <input type="hidden"
+                                                                                name="OldFeatureImage_<%= lang %>[]"
+                                                                                value="<%= feature.FeatureImage || '' %>">
+
+                                                                            <label>Feature Image</label>
+                                                                            <input type="file"
+                                                                                name="FeatureImage_<%= lang %>[<%= i %>]"
+                                                                                accept="image/*">
+                                                                            <% } else { %>
+                                                                                <p style="color: #888;">* Image shared
+                                                                                    from EN
+                                                                                </p>
+                                                                                <input type="hidden"
+                                                                                    name="OldFeatureImage_<%= lang %>[]"
+                                                                                    value="">
+                                                                                <% } %>
+
+                                                                                    <label>Feature Name</label>
+                                                                                    <input type="text"
+                                                                                        name="FeatureName_<%= lang %>[]"
+                                                                                        value="<%= feature.FeatureName || '' %>">
+
+                                                                                    <label>Feature Description</label>
+                                                                                    <input type="text"
+                                                                                        name="FeatureDesc_<%= lang %>[]"
+                                                                                        value="<%= feature.FeatureDesc || '' %>">
+                                                            </div>
+                                                            <% } %>
+                                                    </div>
+                                                    <% }); %>
+
+                                                        <div class="btn-form-container">
+                                                            <button type="submit" class="btnsaveaddress">Publish
+                                                                Industry
+                                                                Page</button>
+                                                            <button type="submit" name="saveType" value="draft"
+                                                                class="btn btn-secondary">💾 Save as Draft</button>
+                                                            <a href="/admin/industry-pages" class="btnBack">Cancel</a>
+                                                        </div>
+                                    </form>
+                        </div>
+                    </section>
+                </section>
+        </body>
+
+        <script src="/assets/Js/nav-bar.js"></script>
+
+        </html>

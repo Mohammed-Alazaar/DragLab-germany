@@ -138,4 +138,15 @@ router.get('/contact-message/:id', isAuth, isAdminOrSeller, adminController.getC
 router.post('/mark-contactus-done', isAuth, isAdminOrSeller, adminController.postMarkContactUsDone);
 router.get('/contactus-pdf/:id', isAuth, isAdminOrSeller, adminController.exportContactUsToPDF);
 
+
+
+router.get('/add-industry', isAuth, isAdminOrSeller, adminController.getAddIndustry);
+router.post('/add-industry', uploadProductImages, isAuth, isAdminOrSeller, adminController.postAddIndustry);
+
+router.get('/edit-industry/:slug', isAuth, isAdminOrSeller, adminController.getEditIndustryPage);
+router.post('/edit-industry', uploadProductImages, isAuth, isAdminOrSeller, adminController.postEditIndustryPage);
+router.get('/industry-pages', isAuth, isAdminOrSeller, adminController.getMyIndustriesPage);
+router.post('/delete-industry', isAuth, isAdminOrSeller, adminController.postDeleteIndustry);
+
+
 module.exports = router;

@@ -6,6 +6,7 @@ const Article = require('../models/articles');
 const WarrantyRegistration = require('../models/warrantyRegistration'); // Add at the top
 const TechnicalService = require('../models/technicalService'); // make sure path is correct
 const ContactUs = require('../models/contactUs');
+const Industry = require('../models/IndustryPage');
 
 const CatalogCategory = require('../models/CatalogCategory'); // Add this line to import the order model
 
@@ -19,19 +20,19 @@ const axios = require('axios'); // ✅ Import axios for HTTP requests
 const seoData = require('../util/seoData'); // adjust path based on your folder
 
 exports.getStaticPage = (req, res) => {
-  const slug = req.params.slug || 'index'; // e.g. 'contact', 'company', 'incubator-di120-touch-screen'
-  const lang = req.query.lang?.toUpperCase() || 'EN';
+    const slug = req.params.slug || 'index'; // e.g. 'contact', 'company', 'incubator-di120-touch-screen'
+    const lang = req.query.lang?.toUpperCase() || 'EN';
 
-  const meta = seoData[slug] || {
-    title: 'DragLab | Laboratory Equipment',
-    description: 'Manufacturer of high-quality incubators, ovens, and water stills for global laboratories.'
-  };
+    const meta = seoData[slug] || {
+        title: 'DragLab | Laboratory Equipment',
+        description: 'Manufacturer of high-quality incubators, ovens, and water stills for global laboratories.'
+    };
 
-  res.render('customer/page', {
-    pageSlug: slug,
-    lang,
-    meta
-  });
+    res.render('customer/page', {
+        pageSlug: slug,
+        lang,
+        meta
+    });
 };
 
 
@@ -572,40 +573,40 @@ exports.getContactus = (req, res, next) => {
 
 
 exports.postContactUs = async (req, res, next) => {
-  let fallbackLang = req.body.lang?.toLowerCase() || 'en';
+    let fallbackLang = req.body.lang?.toLowerCase() || 'en';
 
-  try {
-    const token = req.body['g-recaptcha-response'];
+    try {
+        const token = req.body['g-recaptcha-response'];
 
-    const secret = process.env.RECAPTCHA_SECRET_KEY; // v3 secret
-    const verifyUrl = `https://www.google.com/recaptcha/api/siteverify`;
+        const secret = process.env.RECAPTCHA_SECRET_KEY; // v3 secret
+        const verifyUrl = `https://www.google.com/recaptcha/api/siteverify`;
 
-    const response = await axios.post(verifyUrl, null, {
-      params: {
-        secret,
-        response: token,
-      },
-    });
+        const response = await axios.post(verifyUrl, null, {
+            params: {
+                secret,
+                response: token,
+            },
+        });
 
-    const { success, score } = response.data;
+        const { success, score } = response.data;
 
-    if (!success || score < 0.5) {
-      return res.redirect(`/${fallbackLang}/contactus?error=true`);
+        if (!success || score < 0.5) {
+            return res.redirect(`/${fallbackLang}/contactus?error=true`);
+        }
+
+        const { firstName, lastName, subject, email, message } = req.body;
+
+        await new ContactUs({ firstName, lastName, subject, email, message }).save();
+
+        res.redirect(`/${fallbackLang}/contactus?success=true`);
+    } catch (err) {
+        console.error(err);
+        res.redirect(`/${fallbackLang}/contactus?error=true`);
     }
-
-    const { firstName, lastName, subject, email, message } = req.body;
-
-    await new ContactUs({ firstName, lastName, subject, email, message }).save();
-
-    res.redirect(`/${fallbackLang}/contactus?success=true`);
-  } catch (err) {
-    console.error(err);
-    res.redirect(`/${fallbackLang}/contactus?error=true`);
-  }
 };
 
 
-    
+
 
 
 exports.geTechnicalservice = (req, res, next) => {
@@ -2725,4 +2726,93 @@ exports.postWarrantyRegistration = async (req, res) => {
         console.error(err);
         res.redirect(`/${lang}/WarrantyRegistration?success=true`);
     }
+};
+
+
+
+
+
+
+exports.getIndustryPage = (req, res, next) => {
+    const supportedLangs = ['EN', 'ES', 'DE'];
+    const rawLang = req.params.lang?.toUpperCase() || 'EN';
+    const lang = supportedLangs.includes(rawLang) ? rawLang : 'EN';
+    Product.find()
+        .then(products => {
+            res.render('customer/industry', {
+                lang,
+                pageTitle: {
+                    EN: 'Industry Solutions',
+                    ES: 'Soluciones para la Industria',
+                    DE: 'Branchenspezifische Lösungen'
+                }[lang],
+                metaDescription: {
+                    EN: 'Read DragLab’s Industry Solutions and learn how we can help your business.',
+                    ES: 'Lea las Soluciones para la Industria de DragLab y descubra cómo podemos ayudar a su negocio.',
+                    DE: 'Lesen Sie die Branchenspezifischen Lösungen von DragLab und erfahren Sie, wie wir Ihnen helfen können.'
+                }[lang],
+                products,
+                lang,
+
+
+
+            });
+        })
+        .catch(err => {
+            console.error(err);
+            res.redirect('/EN');
+        });
+
+};
+
+
+exports.getIndustryDetails = async (req, res) => {
+  const lang = (req.params.lang || req.query.lang || 'EN').toUpperCase();
+  const slug = req.params.slug;
+
+  try {
+    const industry = await Industry.findOne({ slug });
+    if (!industry) {
+      return res.status(404).render('404', {
+        pageTitle: 'Not Found',
+        path: '/industry'
+      });
+    }
+
+    const products = await Product.find({ isDraft: false });
+
+    const langData = industry.Language?.[lang]?.[0] || industry.Language?.EN?.[0];
+
+    const translation = {
+      slideTitle: langData?.slideTitle,
+      subtitle: langData?.slideSubTitle, // ✅ mapped
+      description: langData?.slideDesc,  // ✅ mapped
+      introTitle: langData?.introTitle,
+      introDesc: langData?.introDesc,
+      features: (langData?.features || []).map(f => ({
+        featureTitle: f.FeatureName,
+        featureDesc: f.FeatureDesc,
+        featureImage: f.FeatureImage
+      }))
+    };
+
+    res.render('customer/industry-details', {
+      pageTitle: translation.slideTitle || 'Industry',
+      metaDescription: translation.description || '',
+      industry: {
+        sharedSlideImage: industry.sharedImages?.slideImage,
+        sharedIntroImage: industry.sharedImages?.introImage
+      },
+      translation,
+      lang,
+      products
+    });
+  } catch (err) {
+    console.error('❌ Error loading Industry Details:', err.message);
+    res.status(500).render('500', {
+      pageTitle: 'Server Error',
+      path: '/industry',
+      isAuthenticated: req.session?.isLoggedIn || false
+    });
+  }
 };

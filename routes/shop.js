@@ -40,6 +40,9 @@ router.get('/:lang/CodeofEthics', shopController.getCodeofEthics);
 router.get('/:lang/quality-policy', shopController.getQualitypolicy);
 router.get('/:lang/WarrantyRegistration', shopController.getWarrantyRegistration);
 router.post('/submit-warranty', shopController.postWarrantyRegistration);
+router.get('/:lang/Industry', shopController.getIndustryPage);
+router.get('/:lang/industry/:slug', shopController.getIndustryDetails);
+
 
 router.get('/api/models/:productId', async (req, res) => {
   const lang = req.query.lang || 'EN';

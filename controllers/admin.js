@@ -6,6 +6,7 @@ const TechnicalService = require('../models/technicalService');
 const WarrantyRegistration = require('../models/warrantyRegistration');
 const ContactUs = require('../models/contactUs');
 const Article = require('../models/articles');
+const IndustryPage = require('../models/IndustryPage');
 const PDFDocument = require('pdfkit');
 const cloudinary = require('../util/cloudinaryConfig'); // ✅ Import Cloudinary
 const sanitize = require('sanitize-filename');
@@ -2007,5 +2008,307 @@ exports.exportContactUsToPDF = async (req, res) => {
   } catch (err) {
     console.error('PDF export error:', err);
     res.redirect(`/admin/contact-message/${req.params.id}`);
+  }
+};
+
+
+exports.getAddIndustry = (req, res) => {
+  res.render('sellercompany/add-industry', {
+    pageTitle: 'Add Industry Page',
+    path: '/admin/add-industry',
+    editing: false,
+    hasError: false,
+    errorMessage: null,
+    validationErrors: [],
+    industry: null,
+    isAuthenticated: req.session.isLoggedIn
+  });
+};
+
+
+
+exports.postAddIndustry = async (req, res) => {
+  try {
+    const { saveType } = req.body;
+    const isDraft = saveType === 'draft';
+
+    const slideImage = req.files?.slideImage?.[0]?.cloudinaryUrl || '';
+    const introImage = req.files?.introImage?.[0]?.cloudinaryUrl || '';
+
+    const languages = ['EN', 'ES', 'DE'];
+    const languageData = {};
+    const validationErrors = [];
+
+    // ✅ Step 1: Build multilingual data
+    languages.forEach(lang => {
+      const slideTitle = req.body[`slideTitle_${lang}`] || '';
+      const slideSubTitle = req.body[`slideSubTitle_${lang}`] || '';
+      const slideDesc = req.body[`slideDesc_${lang}`] || '';
+      const introTitle = req.body[`introTitle_${lang}`] || '';
+      const introDesc = req.body[`introDesc_${lang}`] || '';
+      const featureNames = req.body[`FeatureName_${lang}`] || [];
+      const featureDescs = req.body[`FeatureDesc_${lang}`] || [];
+      const oldFeatureImages = req.body[`OldFeatureImage_${lang}`] || [];
+
+      const features = [];
+
+      for (let i = 0; i < 3; i++) {
+        let FeatureImage = '';
+        if (lang === 'EN') {
+          FeatureImage = req.files?.[`FeatureImage_${lang}[${i}]`]?.[0]?.cloudinaryUrl || oldFeatureImages[i] || '';
+        }
+
+        features.push({
+          FeatureName: featureNames[i] || '',
+          FeatureDesc: featureDescs[i] || '',
+          ...(lang === 'EN' ? { FeatureImage } : {})
+        });
+      }
+
+      languageData[lang] = [{
+        slideTitle, slideSubTitle, slideDesc, introTitle, introDesc, features
+      }];
+    });
+
+    // ✅ Step 2: Generate dynamic slug from EN slide title
+    const slug = slugify(req.body['slideTitle_EN'] || 'untitled-industry', {
+      lower: true,
+      strict: true
+    });
+
+    // ✅ Step 3: Check for existing page with the same slug
+    const existing = await IndustryPage.findOne({ slug });
+    if (existing) {
+      return res.status(422).render('admin/add-industry', {
+        pageTitle: 'Add Industry Page',
+        path: '/admin/add-industry',
+        editing: false,
+        hasError: true,
+        errorMessage: 'An industry page with this title already exists.',
+        validationErrors: [],
+        industry: null,
+        isAuthenticated: req.session.isLoggedIn
+      });
+    }
+
+    // ✅ Step 4: Save new page
+    const page = new IndustryPage({
+      slug,
+      sharedImages: {
+        slideImage,
+        introImage
+      },
+      Language: languageData,
+      isDraft
+    });
+
+    await page.save();
+
+    console.log('✅ Industry Page Saved Successfully');
+    res.redirect('/admin/industry-pages');
+
+  } catch (err) {
+    console.error('❌ Error saving Industry Page:', err);
+    res.status(500).send('Internal Server Error');
+  }
+};
+
+
+
+exports.getEditIndustryPage = async (req, res) => {
+  const slug = req.params.slug;
+
+  try {
+    const industry = await IndustryPage.findOne({ slug });
+    if (!industry) {
+      return res.status(404).render('404', {
+        pageTitle: 'Not Found',
+        path: '/sellercompany/industry-pages'
+      });
+    }
+
+    res.render('sellercompany/add-industry', {
+      pageTitle: 'Edit Industry Page',
+      path: '/admin/edit-industry',
+      editing: true,
+      hasError: false,
+      errorMessage: null,
+      validationErrors: [],
+      industry,
+      isAuthenticated: req.session.isLoggedIn
+    });
+  } catch (err) {
+    console.error('❌ Error loading Industry Page for edit:', err.message);
+    res.status(500).send('Internal Server Error');
+  }
+};
+
+
+exports.postEditIndustryPage = async (req, res) => {
+  try {
+    const { industryId, slug, saveType } = req.body;
+    const isDraft = saveType === 'draft';
+    const languages = ['EN', 'ES', 'DE'];
+    const validationErrors = [];
+    const languageData = {};
+
+    const slideImage = req.files?.slideImage?.[0]?.cloudinaryUrl || '';
+    const introImage = req.files?.introImage?.[0]?.cloudinaryUrl || '';
+
+    // ✅ Fetch the existing document
+    const industry = await IndustryPage.findById(industryId);
+    if (!industry) {
+      return res.status(404).send('Industry page not found.');
+    }
+
+    // ✅ Build language data
+    for (const lang of languages) {
+      const slideTitle = req.body[`slideTitle_${lang}`] || '';
+      const slideSubTitle = req.body[`slideSubTitle_${lang}`] || '';
+      const slideDesc = req.body[`slideDesc_${lang}`] || '';
+      const introTitle = req.body[`introTitle_${lang}`] || '';
+      const introDesc = req.body[`introDesc_${lang}`] || '';
+      const featureNames = req.body[`FeatureName_${lang}`] || [];
+      const featureDescs = req.body[`FeatureDesc_${lang}`] || [];
+      const oldFeatureImages = req.body[`OldFeatureImage_${lang}`] || [];
+
+      const features = [];
+
+      for (let i = 0; i < 3; i++) {
+        let FeatureImage = '';
+        if (lang === 'EN') {
+          const file = req.files?.[`FeatureImage_${lang}[${i}]`]?.[0];
+          FeatureImage = file?.cloudinaryUrl || oldFeatureImages[i] || '';
+        }
+
+        if (!isDraft && lang === 'EN') {
+          if (!featureNames[i]) {
+            validationErrors.push({
+              path: `FeatureName_${lang}_${i}`,
+              msg: `Feature Name ${i + 1} (${lang}) is required.`
+            });
+          }
+          if (!FeatureImage) {
+            validationErrors.push({
+              path: `FeatureImage_${lang}_${i}`,
+              msg: `Feature Image ${i + 1} (${lang}) is required.`
+            });
+          }
+        }
+
+        features.push({
+          FeatureName: featureNames[i] || '',
+          FeatureDesc: featureDescs[i] || '',
+          ...(lang === 'EN' ? { FeatureImage } : {})
+        });
+      }
+
+      languageData[lang] = [{
+        slideTitle,
+        slideSubTitle,
+        slideDesc,
+        introTitle,
+        introDesc,
+        features
+      }];
+    }
+
+    // ✅ Check shared images if required
+    if (!isDraft) {
+      if (!slideImage && !industry.sharedImages?.slideImage) {
+        validationErrors.push({ path: 'slideImage', msg: 'Slide Image is required.' });
+      }
+      if (!introImage && !industry.sharedImages?.introImage) {
+        validationErrors.push({ path: 'introImage', msg: 'Intro Image is required.' });
+      }
+    }
+
+    if (validationErrors.length > 0) {
+      return res.status(422).render('sellercompany/add-industry', {
+        pageTitle: 'Edit Industry Page',
+        path: '/admin/edit-industry',
+        editing: true,
+        hasError: true,
+        errorMessage: 'Please fix the errors below.',
+        validationErrors,
+        industry: {
+          _id: industryId,
+          slug: slug,
+          sharedImages: {
+            slideImage: slideImage || industry.sharedImages.slideImage,
+            introImage: introImage || industry.sharedImages.introImage
+          },
+          Language: languageData
+        },
+        isAuthenticated: req.session.isLoggedIn
+      });
+    }
+
+    // ✅ Update and save
+    industry.slug = slugify(req.body['slideTitle_EN'] || 'industry', {
+      lower: true,
+      strict: true
+    });
+
+    industry.sharedImages.slideImage = slideImage || industry.sharedImages.slideImage;
+    industry.sharedImages.introImage = introImage || industry.sharedImages.introImage;
+    industry.Language = languageData;
+    industry.isDraft = isDraft;
+
+    await industry.save();
+
+    console.log('✅ Industry page updated successfully.');
+    res.redirect('/admin/industry-pages');
+
+  } catch (err) {
+    console.error('❌ Error updating Industry Page:', err.message);
+    res.status(500).send('Internal Server Error');
+  }
+};
+
+
+
+exports.getMyIndustriesPage = async (req, res) => {
+  try {
+    const industries = await IndustryPage.find().sort({ createdAt: -1 });
+    res.render('sellercompany/my-industries', {
+      pageTitle: 'My Industries',
+      path: '/admin/industry-pages',
+      industries,
+      isAuthenticated: req.session.isLoggedIn
+    });
+  } catch (err) {
+    console.error('❌ Failed to load industries:', err.message);
+    res.status(500).render('500', {
+      pageTitle: 'Error',
+      path: '/500',
+      isAuthenticated: req.session.isLoggedIn
+    });
+  }
+};
+
+
+
+exports.postDeleteIndustry = async (req, res) => {
+  const industryId = req.body.industryId;
+
+  try {
+    const industry = await IndustryPage.findById(industryId);
+    if (!industry) {
+      return res.status(404).redirect('/admin/industry-pages');
+    }
+
+    // 🧹 Delete images from Cloudinary (if you saved public_ids)
+    const EN = industry.Language?.EN?.[0];
+    if (EN?.slideImageId) await cloudinary.uploader.destroy(EN.slideImageId);
+    if (EN?.heroImageId) await cloudinary.uploader.destroy(EN.heroImageId);
+
+    // Delete from DB
+    await IndustryPage.findByIdAndDelete(industryId);
+
+    res.redirect('/admin/industry-pages');
+  } catch (err) {
+    console.error('❌ Error deleting industry:', err.message);
+    res.status(500).redirect('/admin/industry-pages');
   }
 };

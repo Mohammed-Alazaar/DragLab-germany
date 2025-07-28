@@ -39,6 +39,49 @@
                 <img src="/assets/Imgs/Icons/products/contactus-BC.png" alt="Photo 1">
             </div>
 
+
+            <section class="technical-service-intro">
+                <h2>
+                    Our Technical Services Include:
+                </h2>
+                <ul>
+                    <li>
+                        <h3>Installation & User Training</h3>
+                        <p>
+                            Our engineers will be pleased to provide you full technical support for proper installation
+                            of equipment and have it operate efficiently, tailored to your own work space, including
+                            initial user training.
+                        </p>
+                    </li>
+                    <li>
+                        <h3>Installation & User Training</h3>
+                        <p>
+                            Our engineers will be pleased to provide you full technical support for proper installation
+                            of equipment and have it operate efficiently, tailored to your own work space, including
+                            initial user training.
+                        </p>
+                    </li>
+                    <li>
+                        <h3>Installation & User Training</h3>
+                        <p>
+                            Our engineers will be pleased to provide you full technical support for proper installation
+                            of equipment and have it operate efficiently, tailored to your own work space, including
+                            initial user training.
+                        </p>
+                    </li>
+
+                    <!-- <h2>
+                        <%= t.introTitle %>
+                    </h2>
+                    <p>
+                        <%= t.introDesc %>
+                    </p> -->
+                </ul>
+            </section>
+
+
+
+
             <!-- Technical service form -->
             <section class="technical-service-section">
                 <h2>
@@ -68,11 +111,14 @@
                                     <div class="checkbox-group">
                                         <input type="checkbox" id="privacyPolicy" name="privacyPolicy" required>
                                         <label for="privacyPolicy">
-                                            <%= translations.dataLabel %> &nbsp; <a id="highlighted-word-primary-color"
-                                                    href="/<%= lang %>/PrivacyPolicy">
-                                                    <%= translations.privacyPolicy %>
-                                                </a> &nbsp;
-                                                <%= translations.dataSuffix %>
+                                            <p>
+                                                <%= translations.dataLabel %> &nbsp; <a
+                                                        id="highlighted-word-primary-color"
+                                                        href="/<%= lang %>/PrivacyPolicy">
+                                                        <%= translations.privacyPolicy %>
+                                                    </a> &nbsp;
+                                                    <%= translations.dataSuffix %>
+                                            </p>
                                         </label>
                                     </div>
 
@@ -103,8 +149,8 @@
                                             </div>
                                             <div class="form-group">
                                                 <label for="department">Department</label>
-                                                <input type="text" id="department" name="department" placeholder="Department"
-                                                    autocomplete="organization-title">
+                                                <input type="text" id="department" name="department"
+                                                    placeholder="Department" autocomplete="organization-title">
                                             </div>
                                         </div>
 
@@ -112,12 +158,12 @@
                                             <label>
                                                 <%= translations.salutationLabel %>
                                             </label><br>
-                                            <label for="salutationMrsMs"><input type="radio" id="salutationMrsMs" name="salutation" value="Mrs/Ms"
-                                                    autocomplete="off" required>
+                                            <label for="salutationMrsMs"><input type="radio" id="salutationMrsMs"
+                                                    name="salutation" value="Mrs/Ms" autocomplete="off" required>
                                                 <%= translations.mrs %>
                                             </label><br>
-                                            <label for="salutationMr"><input type="radio" id="salutationMr" name="salutation" value="Mr" autocomplete="off"
-                                                    required>
+                                            <label for="salutationMr"><input type="radio" id="salutationMr"
+                                                    name="salutation" value="Mr" autocomplete="off" required>
                                                 <%= translations.mr %>
                                             </label>
                                         </div>
@@ -188,8 +234,9 @@
                                                 <label for="email">
                                                     <%= translations.email %>
                                                 </label>
-                                                <input type="email" id="email" name="email" placeholder="<%= translations.email %>"
-                                                    autocomplete="email" required>
+                                                <input type="email" id="email" name="email"
+                                                    placeholder="<%= translations.email %>" autocomplete="email"
+                                                    required>
                                             </div>
                                         </div>
                                     </div>
@@ -206,7 +253,8 @@
                                                 <label for="failureDate">
                                                     <%= translations.failureDate %>
                                                 </label>
-                                                <input type="date" id="failureDate" name="failureDate" autocomplete="off" required>
+                                                <input type="date" id="failureDate" name="failureDate"
+                                                    autocomplete="off" required>
                                             </div>
                                             <div class="form-group">
                                                 <label for="deviceCategory">

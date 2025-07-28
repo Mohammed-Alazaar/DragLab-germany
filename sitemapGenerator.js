@@ -1,46 +1,85 @@
+const mongoose = require('mongoose');
 const { SitemapStream, streamToPromise } = require('sitemap');
 const { createWriteStream } = require('fs');
+const path = require('path');
+require('dotenv').config(); // Load env variables
 
-// Replace with your domain
-const sitemap = new SitemapStream({ hostname: 'https://drag-lab.de/' });
-const writeStream = createWriteStream('./public/sitemap.xml');
+const MONGODB_URI = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@cluster0.yrit4.mongodb.net/${process.env.MONGO_DATABASE}?retryWrites=true&w=majority`;
 
-sitemap.pipe(writeStream);
+const Product = require('./models/product');
+const Article = require('./models/articles');
 
-// Static multilingual pages
-const staticPages = ['/', '/aboutus', '/products', '/news', '/contact'];
+(async () => {
+  await mongoose.connect(MONGODB_URI);
 
-const languages = ['EN', 'ES', 'DE'];
+  const sitemap = new SitemapStream({ hostname: 'http://167.86.119.23/' });
+  const writeStream = createWriteStream(path.join(__dirname, 'public', 'sitemap.xml'));
+  sitemap.pipe(writeStream);
 
-languages.forEach(lang => {
-  staticPages.forEach(page => {
-    sitemap.write({
-      url: `${page}/${lang}`,
-      changefreq: 'weekly',
-      priority: 0.9
-    });
-  });
-});
+  const staticPages = ['/', '/aboutus', '/products', '/news', '/contact'];
+  const languages = ['EN', 'ES', 'DE'];
 
-// Optionally: generate model/product links dynamically from your DB
-// Example:
-const productsFromDB = [
-  { slug: 'incubator-model-1' },
-  { slug: 'waterbath-model-2' },
-];
-
-productsFromDB.forEach(product => {
+  // ✅ Add static pages
   languages.forEach(lang => {
-    sitemap.write({
-      url: `/model/${lang}/${product.slug}`,
-      changefreq: 'weekly',
-      priority: 0.8
+    staticPages.forEach(page => {
+      sitemap.write({
+        url: `/${lang}${page}`,
+        changefreq: 'weekly',
+        priority: 0.9
+      });
     });
   });
-});
 
-sitemap.end();
+  // ✅ Add product and model pages from a single query
+  console.log('🔎 Fetching products...');
+  const products = await Product.find({ isDraft: false }, 'slug Models');
+  console.log('✅ Products found:', products.length);
 
-streamToPromise(sitemap).then(() => {
+  products.forEach(product => {
+    console.log(`➡️ Writing product: ${product.slug}`); // 👈 ADD THIS LINE
+    // Product pages
+    languages.forEach(lang => {
+      sitemap.write({
+        url: `/${lang}/products/${product.slug}`,
+        changefreq: 'weekly',
+        priority: 0.8
+      });
+    });
+
+    // Model pages
+    if (product.Models && product.Models.length > 0) {
+      product.Models.forEach(model => {
+        if (model.slug && model.isPublished) {
+          console.log(`🧩 Writing model: ${model.slug}`); // 👈 ADD THIS TOO
+
+          languages.forEach(lang => {
+            sitemap.write({
+              url: `/${lang}/products/${product.slug}/${model.slug}`,
+              changefreq: 'weekly',
+              priority: 0.7
+            });
+          });
+        }
+      });
+
+    }
+  });
+
+  // ✅ Optional: Add dynamic articles
+  const articles = await Article.find({ isPublished: true }, 'slug');
+  articles.forEach(article => {
+    languages.forEach(lang => {
+      sitemap.write({
+        url: `/${lang}/articles/${article.slug}`,
+        changefreq: 'monthly',
+        priority: 0.6
+      });
+    });
+  });
+
+  await streamToPromise(sitemap);
+  sitemap.end();
   console.log('✅ Sitemap created at public/sitemap.xml');
-});
+
+  mongoose.disconnect();
+})();

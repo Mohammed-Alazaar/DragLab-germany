@@ -1,0 +1,107 @@
+<%- include('../../includes/customer/head.ejs') %>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>
+    <%= pageTitle %> | DragLab
+  </title>
+  <meta name="description" content="<%= metaDescription %>" />
+  <link rel="stylesheet" href="/css/customer/industry-details.css">
+  </head>
+
+  <body>
+    <%- include('../../includes/customer/navbar.ejs') %>
+      <div class="slide">
+        <div class="slide-text">
+          <div class="slide-text-content">
+            <h1>
+              <%= translation?.slideTitle %>
+            </h1>
+            <h3>
+              <%= translation?.subtitle %>
+            </h3>
+            <p>
+              <%= translation?.description %>
+            </p>
+
+          </div>
+
+        </div>
+        <img src="<%= industry?.sharedSlideImage %>" alt=" <%= translation?.slideTitle %>" />
+
+      </div>
+      
+
+      <section class="introduction-section">
+        <h2>Industry Solutions</h2>
+        <div class="introduction-container">
+          <div class="introduction-text">
+            <h3>
+              <%= translation?.introTitle %>
+            </h3>
+            <p>
+              <%= translation?.introDesc %>
+            </p>
+          </div>
+          <div class="introduction-img">
+            <img src="<%= industry?.sharedIntroImage %>" alt="<%= translation?.slideTitle %>" />
+          </div>
+        </div>
+      </section>
+
+      <section class="features-section">
+        <h2 class="section-title">Typical Applications</h2>
+        <div class="features-container">
+          <% (translation?.features || []).forEach(f=> { %>
+            <div class="feature-box">
+              <img src="<%= f.featureImage %>" alt="<%= f.featureTitle %>" class="feature-icon" />
+              <h3 class="feature-title">
+                <%= f.featureTitle %>
+              </h3>
+              <p class="feature-text">
+                <%= f.featureDesc %>
+              </p>
+            </div>
+            <% }) %>
+        </div>
+      </section>
+
+      <% if (products.length) { %>
+        <div class="slideshow-container">
+          <h2>Featured Products</h2>
+          <div class="slides-wrapper" id="slidesWrapper">
+            <% products.forEach(product=> {
+              const prodLang = product.Language?.[lang]?.[0] || product.Language?.['EN']?.[0];
+              %>
+              <div class="product-slide">
+                <a href="/<%= lang %>/products/<%= product.slug %>" class="product-card-link">
+                  <div class="product-card">
+                    <div class="product-image-wrapper">
+                      <img loading="lazy" src="<%= product.ProductThumbnail %>" alt="<%= prodLang.ProductName %>">
+                      <div class="product-bg-overlay"></div>
+                    </div>
+                    <div class="product-card-information">
+                      <h4>
+                        <%= prodLang.ProductName %>
+                      </h4>
+                      <p>
+                        <%= prodLang.ProductDesc %>
+                      </p>
+                    </div>
+                    <button class="article-btn">View Details</button>
+                  </div>
+                </a>
+              </div>
+              <% }) %>
+          </div>
+          <button class="slideshow-btn prev-btn" data-dir="-1"><img src="/assets/Imgs/Icons/right-products-arrow.png"
+              alt="DragLab slideshow previous"></button>
+          <button class="slideshow-btn next-btn" data-dir="1"><img src="/assets/Imgs/Icons/left-products-arrow.png"
+              alt="DragLab slideshow next"></button>
+        </div>
+        <% } %>
+
+          <%- include('../../includes/customer/footer.ejs') %>
+            <script src="/js/index.js?v=1.0.1"></script>
+  </body>
+
+  </html>

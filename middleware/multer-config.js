@@ -32,7 +32,8 @@ const uploadFields = [
   { name: 'slideshowImage', maxCount: 1 },
   { name: 'thumbnail', maxCount: 1 },
   { name: 'catalogFile', maxCount: 1 },
-
+{ name: 'slideImage', maxCount: 1 },    // ✅ NEW
+{ name: 'introImage', maxCount: 1 }     
   
 
 ];
@@ -97,7 +98,7 @@ const uploadToCloudinaryRaw = async (buffer, filename) => {
 async function uploadToCloudinaryDirectly(req, res, next) {
   if (!req.files) return next();
   // Ensure these fields are processed
-const fieldsToUpload = ['productThumbnail', 'productSketch'];
+const fieldsToUpload = ['productThumbnail', 'productSketch', 'slideImage', 'introImage'];
 
 for (const field of fieldsToUpload) {
   const files = req.files[field];

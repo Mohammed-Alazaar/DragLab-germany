@@ -40,6 +40,8 @@
                 <img src="/assets/Imgs/Icons/products/contactus-BC.png" alt="Warranty Registration">
             </div>
 
+          
+
             <section class="warranty-registration-section">
                 <h2>
                     <%= t.formTitle %>
@@ -55,14 +57,18 @@
                         </div>
                         <% } %>
 
+
                             <form id="warranty-form" action="/submit-warranty" method="POST">
                                 <div class="checkbox-group">
                                     <input type="checkbox" name="Dataprocessing" required>
                                     <label for="Dataprocessing">
-                                        <%= t.dataLabel %> &nbsp; <a id="highlighted-word-primary-color" href="/<%= lang %>/PrivacyPolicy"> 
-                                                <%= t.privacyPolicy %>
-                                            </a>  &nbsp;
-                                            <%= t.dataSuffix %>
+                                        <p>
+                                            <%= t.dataLabel %> &nbsp; <a id="highlighted-word-primary-color"
+                                                    href="/<%= lang %>/PrivacyPolicy">
+                                                    <%= t.privacyPolicy %>
+                                                </a> &nbsp;
+                                                <%= t.dataSuffix %>
+                                        </p>
                                     </label>
                                 </div>
 
