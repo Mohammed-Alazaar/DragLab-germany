@@ -2012,17 +2012,30 @@ exports.exportContactUsToPDF = async (req, res) => {
 };
 
 
-exports.getAddIndustry = (req, res) => {
-  res.render('sellercompany/add-industry', {
-    pageTitle: 'Add Industry Page',
-    path: '/admin/add-industry',
-    editing: false,
-    hasError: false,
-    errorMessage: null,
-    validationErrors: [],
-    industry: null,
-    isAuthenticated: req.session.isLoggedIn
-  });
+
+exports.getAddIndustry = async (req, res) => {
+  try {
+    const allProducts = await Product.find({}, 'slug Language'); // only fetch necessary fields
+
+    res.render('sellercompany/add-industry', {
+      pageTitle: 'Add Industry Page',
+      path: '/admin/add-industry',
+      editing: false,
+      hasError: false,
+      errorMessage: null,
+      validationErrors: [],
+      industry: null,
+      allProducts, // ✅ send products to EJS
+      isAuthenticated: req.session.isLoggedIn
+    });
+  } catch (err) {
+    console.error('❌ Error loading Add Industry Page:', err);
+    res.status(500).render('500', {
+      pageTitle: 'Error!',
+      path: '/500',
+      isAuthenticated: req.session?.isLoggedIn || false
+    });
+  }
 };
 
 
@@ -2031,7 +2044,6 @@ exports.postAddIndustry = async (req, res) => {
   try {
     const { saveType } = req.body;
     const isDraft = saveType === 'draft';
-
     const slideImage = req.files?.slideImage?.[0]?.cloudinaryUrl || '';
     const introImage = req.files?.introImage?.[0]?.cloudinaryUrl || '';
 
@@ -2039,8 +2051,9 @@ exports.postAddIndustry = async (req, res) => {
     const languageData = {};
     const validationErrors = [];
 
-    // ✅ Step 1: Build multilingual data
-    languages.forEach(lang => {
+    const frequentlyUsedProducts = {}; // ✅ FIXED
+
+    for (const lang of languages) {
       const slideTitle = req.body[`slideTitle_${lang}`] || '';
       const slideSubTitle = req.body[`slideSubTitle_${lang}`] || '';
       const slideDesc = req.body[`slideDesc_${lang}`] || '';
@@ -2058,6 +2071,15 @@ exports.postAddIndustry = async (req, res) => {
           FeatureImage = req.files?.[`FeatureImage_${lang}[${i}]`]?.[0]?.cloudinaryUrl || oldFeatureImages[i] || '';
         }
 
+        if (!isDraft && lang === 'EN') {
+          if (!featureNames[i]) {
+            validationErrors.push({ path: `FeatureName_${lang}_${i}`, msg: `Feature Name ${i + 1} (${lang}) is required.` });
+          }
+          if (!FeatureImage) {
+            validationErrors.push({ path: `FeatureImage_${lang}_${i}`, msg: `Feature Image ${i + 1} (${lang}) is required.` });
+          }
+        }
+
         features.push({
           FeatureName: featureNames[i] || '',
           FeatureDesc: featureDescs[i] || '',
@@ -2065,45 +2087,75 @@ exports.postAddIndustry = async (req, res) => {
         });
       }
 
+      // ✅ Handle Frequently Used Products per language
+      frequentlyUsedProducts[lang] = [];
+      const productIds = req.body[`frequentlyUsedProductId_${lang}`] || [];
+      const productTexts = req.body[`frequentlyUsedProductText_${lang}`] || [];
+
+      for (let i = 0; i < productIds.length; i++) {
+        if (productIds[i] && productTexts[i]) {
+          frequentlyUsedProducts[lang].push({
+            productId: productIds[i],
+            text: productTexts[i]
+          });
+        }
+      }
+
       languageData[lang] = [{
         slideTitle, slideSubTitle, slideDesc, introTitle, introDesc, features
       }];
-    });
+    }
 
-    // ✅ Step 2: Generate dynamic slug from EN slide title
-    const slug = slugify(req.body['slideTitle_EN'] || 'untitled-industry', {
-      lower: true,
-      strict: true
-    });
+    // ✅ Validate shared images
+    if (!isDraft) {
+      if (!slideImage) {
+        validationErrors.push({ path: 'slideImage', msg: 'Slide Image is required.' });
+      }
+      if (!introImage) {
+        validationErrors.push({ path: 'introImage', msg: 'Intro Image is required.' });
+      }
+    }
 
-    // ✅ Step 3: Check for existing page with the same slug
+    // ✅ Generate slug
+    const slug = slugify(req.body['slideTitle_EN'] || 'untitled-industry', { lower: true, strict: true });
+
+    // ✅ Check for duplicate
     const existing = await IndustryPage.findOne({ slug });
     if (existing) {
-      return res.status(422).render('admin/add-industry', {
+      validationErrors.push({ path: 'slideTitle_EN', msg: 'An industry page with this title already exists.' });
+    }
+
+    if (validationErrors.length > 0) {
+      const allProducts = await Product.find({ isDraft: false });
+
+      return res.status(422).render('sellercompany/add-industry', {
         pageTitle: 'Add Industry Page',
         path: '/admin/add-industry',
         editing: false,
         hasError: true,
-        errorMessage: 'An industry page with this title already exists.',
-        validationErrors: [],
-        industry: null,
+        errorMessage: 'Please fix the errors below.',
+        validationErrors,
+        industry: {
+          slug,
+          sharedImages: { slideImage, introImage },
+          Language: languageData,
+          frequentlyUsedProducts
+        },
+        allProducts,
         isAuthenticated: req.session.isLoggedIn
       });
     }
 
-    // ✅ Step 4: Save new page
+    // ✅ Save
     const page = new IndustryPage({
       slug,
-      sharedImages: {
-        slideImage,
-        introImage
-      },
+      sharedImages: { slideImage, introImage },
       Language: languageData,
+      frequentlyUsedProducts,
       isDraft
     });
 
     await page.save();
-
     console.log('✅ Industry Page Saved Successfully');
     res.redirect('/admin/industry-pages');
 
@@ -2120,6 +2172,8 @@ exports.getEditIndustryPage = async (req, res) => {
 
   try {
     const industry = await IndustryPage.findOne({ slug });
+    const allProducts = await Product.find({}, 'slug ProductThumbnail Language');
+
     if (!industry) {
       return res.status(404).render('404', {
         pageTitle: 'Not Found',
@@ -2135,6 +2189,7 @@ exports.getEditIndustryPage = async (req, res) => {
       errorMessage: null,
       validationErrors: [],
       industry,
+      allProducts,
       isAuthenticated: req.session.isLoggedIn
     });
   } catch (err) {
@@ -2142,7 +2197,6 @@ exports.getEditIndustryPage = async (req, res) => {
     res.status(500).send('Internal Server Error');
   }
 };
-
 
 exports.postEditIndustryPage = async (req, res) => {
   try {
@@ -2160,8 +2214,11 @@ exports.postEditIndustryPage = async (req, res) => {
     if (!industry) {
       return res.status(404).send('Industry page not found.');
     }
+    const allProducts = await Product.find({ isDraft: false }); // ✅ FIX HERE
 
     // ✅ Build language data
+    const frequentlyUsedProducts = {};
+
     for (const lang of languages) {
       const slideTitle = req.body[`slideTitle_${lang}`] || '';
       const slideSubTitle = req.body[`slideSubTitle_${lang}`] || '';
@@ -2202,6 +2259,19 @@ exports.postEditIndustryPage = async (req, res) => {
           ...(lang === 'EN' ? { FeatureImage } : {})
         });
       }
+      // ✅ Save frequently used products for this language
+      const productIds = req.body[`frequentlyUsedProductId_${lang}`] || [];
+      const productTexts = req.body[`frequentlyUsedProductText_${lang}`] || [];
+      frequentlyUsedProducts[lang] = [];
+
+      for (let i = 0; i < productIds.length; i++) {
+        if (productIds[i] && productTexts[i]) {
+          frequentlyUsedProducts[lang].push({
+            productId: productIds[i],
+            text: productTexts[i]
+          });
+        }
+      }
 
       languageData[lang] = [{
         slideTitle,
@@ -2238,8 +2308,10 @@ exports.postEditIndustryPage = async (req, res) => {
             slideImage: slideImage || industry.sharedImages.slideImage,
             introImage: introImage || industry.sharedImages.introImage
           },
-          Language: languageData
+          Language: languageData,
+          frequentlyUsedProducts 
         },
+         allProducts, 
         isAuthenticated: req.session.isLoggedIn
       });
     }
@@ -2253,6 +2325,7 @@ exports.postEditIndustryPage = async (req, res) => {
     industry.sharedImages.slideImage = slideImage || industry.sharedImages.slideImage;
     industry.sharedImages.introImage = introImage || industry.sharedImages.introImage;
     industry.Language = languageData;
+    industry.frequentlyUsedProducts = frequentlyUsedProducts;
     industry.isDraft = isDraft;
 
     await industry.save();

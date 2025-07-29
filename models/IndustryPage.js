@@ -22,7 +22,21 @@ const industryPageSchema = new mongoose.Schema({
     ES: [{ slideTitle: String, slideSubTitle: String, slideDesc: String, introTitle: String, introDesc: String, features: [{ FeatureName: String, FeatureDesc: String }] }],
     DE: [{ slideTitle: String, slideSubTitle: String, slideDesc: String, introTitle: String, introDesc: String, features: [{ FeatureName: String, FeatureDesc: String }] }]
   },
+  frequentlyUsedProducts: {
+    EN: [{
+      productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
+      text: String
+    }],
+    ES: [{
+      productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
+      text: String
+    }],
+    DE: [{
+      productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
+      text: String
+    }]
+  },
   isDraft: Boolean
-});
+}, { timestamps: true, updateTimestamps: true });
 
 module.exports = mongoose.model('IndustryPage', industryPageSchema);

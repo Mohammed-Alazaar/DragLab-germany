@@ -9,7 +9,20 @@
   </head>
 
   <body>
+
+
+    <%
+  const usedProductsMap = {};
+  (usedProducts || []).forEach(p => {
+    if (p && p.productId) {
+      usedProductsMap[p.productId.toString()] = p;
+    }
+  });
+
+  const filteredProducts = (products || []).filter(p => usedProductsMap[p._id.toString()]);
+%>
     <%- include('../../includes/customer/navbar.ejs') %>
+
       <div class="slide">
         <div class="slide-text">
           <div class="slide-text-content">
@@ -65,40 +78,40 @@
         </div>
       </section>
 
-      <% if (products.length) { %>
-        <div class="slideshow-container">
-          <h2>Featured Products</h2>
-          <div class="slides-wrapper" id="slidesWrapper">
-            <% products.forEach(product=> {
-              const prodLang = product.Language?.[lang]?.[0] || product.Language?.['EN']?.[0];
-              %>
-              <div class="product-slide">
-                <a href="/<%= lang %>/products/<%= product.slug %>" class="product-card-link">
-                  <div class="product-card">
-                    <div class="product-image-wrapper">
-                      <img loading="lazy" src="<%= product.ProductThumbnail %>" alt="<%= prodLang.ProductName %>">
-                      <div class="product-bg-overlay"></div>
-                    </div>
-                    <div class="product-card-information">
-                      <h4>
-                        <%= prodLang.ProductName %>
-                      </h4>
-                      <p>
-                        <%= prodLang.ProductDesc %>
-                      </p>
-                    </div>
-                    <button class="article-btn">View Details</button>
-                  </div>
-                </a>
+<% if (products && products.length) { %>
+  <section class="slideshow-container">
+    <h2>Frequently Used Products</h2>
+    <div class="slides-wrapper" id="slidesWrapper">
+      <% products.forEach(product => {
+        const prodLang = product.Language?.[lang]?.[0] || product.Language?.['EN']?.[0];
+      %>
+        <div class="product-slide">
+          <a href="/<%= lang %>/products/<%= product.slug %>" class="product-card-link">
+            <div class="product-card">
+              <div class="product-image-wrapper">
+                <img loading="lazy" src="<%= product.ProductThumbnail %>" alt="<%= prodLang.ProductName %>">
+                <div class="product-bg-overlay"></div>
               </div>
-              <% }) %>
-          </div>
-          <button class="slideshow-btn prev-btn" data-dir="-1"><img src="/assets/Imgs/Icons/right-products-arrow.png"
-              alt="DragLab slideshow previous"></button>
-          <button class="slideshow-btn next-btn" data-dir="1"><img src="/assets/Imgs/Icons/left-products-arrow.png"
-              alt="DragLab slideshow next"></button>
+              <div class="product-card-information">
+                <h4><%= prodLang.ProductName %></h4>
+                <p><%= product.description || prodLang.ProductDesc %></p>
+              </div>
+              <button class="article-btn">View Details</button>
+            </div>
+          </a>
         </div>
-        <% } %>
+      <% }) %>
+    </div>
+
+    <button class="slideshow-btn prev-btn" data-dir="-1">
+      <img src="/assets/Imgs/Icons/right-products-arrow.png" alt="Prev">
+    </button>
+    <button class="slideshow-btn next-btn" data-dir="1">
+      <img src="/assets/Imgs/Icons/left-products-arrow.png" alt="Next">
+    </button>
+  </section>
+<% } %>
+
 
           <%- include('../../includes/customer/footer.ejs') %>
             <script src="/js/index.js?v=1.0.1"></script>

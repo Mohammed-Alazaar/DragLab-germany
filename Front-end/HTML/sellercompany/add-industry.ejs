@@ -146,15 +146,46 @@
                                                                                         value="<%= feature.FeatureDesc || '' %>">
                                                             </div>
                                                             <% } %>
+                                                                <h3>Frequently Used Products</h3>
+                                                                <% allProducts.forEach(product=> {
+                                                                    const productName =
+                                                                    product.Language?.[lang]?.[0]?.ProductName ||
+                                                                    product.slug;
+                                                                    const savedDesc =
+                                                                    industry?.frequentlyUsedProducts?.[lang]?.find(p =>
+                                                                    p.productId?.toString() === product._id.toString()
+                                                                    )?.text || '';
+                                                                    %>
+                                                                    <div class="product-desc-input">
+                                                                        <label
+                                                                            for="frequentlyUsedProduct_<%= lang %>_<%= product._id %>">
+                                                                            <%= productName %> (<%= lang %>)
+                                                                        </label>
+                                                                        <input type="hidden"
+                                                                            name="frequentlyUsedProductId_<%= lang %>[]"
+                                                                            value="<%= product._id %>">
+                                                                        <input type="text"
+                                                                            name="frequentlyUsedProductText_<%= lang %>[]"
+                                                                            id="frequentlyUsedProduct_<%= lang %>_<%= product._id %>"
+                                                                            value="<%= savedDesc %>">
+                                                                    </div>
+                                                                    <% }) %>
+
+
+                                                                     
                                                     </div>
                                                     <% }); %>
+
+
+
 
                                                         <div class="btn-form-container">
                                                             <button type="submit" class="btnsaveaddress">Publish
                                                                 Industry
                                                                 Page</button>
                                                             <button type="submit" name="saveType" value="draft"
-                                                                class="btn btn-secondary">💾 Save as Draft</button>
+                                                                class="btn btn-secondary">💾 Save as
+                                                                Draft</button>
                                                             <a href="/admin/industry-pages" class="btnBack">Cancel</a>
                                                         </div>
                                     </form>

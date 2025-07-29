@@ -2767,52 +2767,72 @@ exports.getIndustryPage = (req, res, next) => {
 
 
 exports.getIndustryDetails = async (req, res) => {
-  const lang = (req.params.lang || req.query.lang || 'EN').toUpperCase();
-  const slug = req.params.slug;
+    const lang = (req.params.lang || req.query.lang || 'EN').toUpperCase();
+    const slug = req.params.slug;
 
-  try {
-    const industry = await Industry.findOne({ slug });
-    if (!industry) {
-      return res.status(404).render('404', {
-        pageTitle: 'Not Found',
-        path: '/industry'
-      });
+    try {
+        const industry = await Industry.findOne({ slug });
+        if (!industry) {
+            return res.status(404).render('404', {
+                pageTitle: 'Not Found',
+                path: '/industry'
+            });
+        }
+
+        const allProducts = await Product.find({ isDraft: false });
+
+        // ✅ Select language-specific content
+        const langData = industry.Language?.[lang]?.[0] || industry.Language?.EN?.[0];
+        const translation = {
+            slideTitle: langData?.slideTitle,
+            subtitle: langData?.slideSubTitle,
+            description: langData?.slideDesc,
+            introTitle: langData?.introTitle,
+            introDesc: langData?.introDesc,
+            features: (langData?.features || []).map(f => ({
+                featureTitle: f.FeatureName,
+                featureDesc: f.FeatureDesc,
+                featureImage: f.FeatureImage
+            }))
+        };
+
+        // ✅ Get frequently used product descriptions (language-specific)
+        const frequentlyUsed = industry.frequentlyUsedProducts?.[lang] || [];
+
+        // ✅ Attach description to matching product
+        const featuredProducts = allProducts
+            .map(product => {
+                const match = frequentlyUsed.find(item => item.productId?.toString() === product._id.toString());
+                if (match) {
+                    return {
+                        ...product.toObject(),
+                        description: match.text
+                    };
+                }
+                return null; // no description = exclude product
+            })
+            .filter(p => p); // remove nulls (products without matching entry)
+
+        // ✅ Render page with all industry data
+        res.render('customer/industry-details', {
+            pageTitle: translation.slideTitle || 'Industry',
+            metaDescription: translation.description || '',
+            industry: {
+                sharedSlideImage: industry.sharedImages?.slideImage,
+                sharedIntroImage: industry.sharedImages?.introImage
+            },
+            translation,
+            lang,
+            products: featuredProducts, // ✅ products with a description
+            usedProducts: frequentlyUsed // ✅ FIX: needed in EJS logic
+        });
+
+    } catch (err) {
+        console.error('❌ Error loading Industry Details:', err.message);
+        res.status(500).render('500', {
+            pageTitle: 'Server Error',
+            path: '/industry',
+            isAuthenticated: req.session?.isLoggedIn || false
+        });
     }
-
-    const products = await Product.find({ isDraft: false });
-
-    const langData = industry.Language?.[lang]?.[0] || industry.Language?.EN?.[0];
-
-    const translation = {
-      slideTitle: langData?.slideTitle,
-      subtitle: langData?.slideSubTitle, // ✅ mapped
-      description: langData?.slideDesc,  // ✅ mapped
-      introTitle: langData?.introTitle,
-      introDesc: langData?.introDesc,
-      features: (langData?.features || []).map(f => ({
-        featureTitle: f.FeatureName,
-        featureDesc: f.FeatureDesc,
-        featureImage: f.FeatureImage
-      }))
-    };
-
-    res.render('customer/industry-details', {
-      pageTitle: translation.slideTitle || 'Industry',
-      metaDescription: translation.description || '',
-      industry: {
-        sharedSlideImage: industry.sharedImages?.slideImage,
-        sharedIntroImage: industry.sharedImages?.introImage
-      },
-      translation,
-      lang,
-      products
-    });
-  } catch (err) {
-    console.error('❌ Error loading Industry Details:', err.message);
-    res.status(500).render('500', {
-      pageTitle: 'Server Error',
-      path: '/industry',
-      isAuthenticated: req.session?.isLoggedIn || false
-    });
-  }
 };
