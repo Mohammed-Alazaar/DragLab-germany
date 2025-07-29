@@ -110,7 +110,7 @@ app.use(bodyParser.json({ limit: '1000mb' }));
 app.use(bodyParser.urlencoded({ limit: '1000mb', extended: true }));
 
 app.use('/assets', express.static(path.join(__dirname, 'Front-end', 'assets')));
-app.use('/css', express.static(path.join(__dirname, 'Front-end', 'Css')));
+app.use('/css', express.static(path.join(__dirname, 'Front-end', 'css')));
 app.use('/js', express.static(path.join(__dirname, 'Front-end', 'JS')));
 app.use('/includes', express.static(path.join(__dirname, 'Front-end', 'includes')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
