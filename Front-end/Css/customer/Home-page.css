@@ -409,7 +409,8 @@
   position: absolute;
   bottom: 0;
   width: 100%;
-    background: linear-gradient(rgb(41 60 149 / 7%) 0%, rgb(41 60 149 / 68%) 100%);  color: white;
+  background: linear-gradient(rgb(41 60 149 / 7%) 0%, rgb(41 60 149 / 68%) 100%);
+  color: white;
   text-align: center;
   padding: 20px 10px;
   display: flex;

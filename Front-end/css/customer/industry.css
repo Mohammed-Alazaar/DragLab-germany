@@ -258,6 +258,7 @@ a.scroll-button {
   padding: 0 10px 0px 10px;
   flex-direction: column;
   align-items: center;
+  position: relative;
 
 }
 
@@ -289,6 +290,7 @@ a.scroll-button {
   width: -webkit-fill-available;
   height: 100%;
   display: block;
+  object-fit: cover;
 }
 
 .overlay {
@@ -346,6 +348,75 @@ a.scroll-button {
   .industries-container {
     grid-template-columns: repeat(1, 1fr);
   }
+}
+
+
+
+
+.industry-slider-controls {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.industry-slideshow-btn {
+  background: transparent;
+  border: none;
+  font-size: 2rem;
+  cursor: pointer;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  cursor: pointer;
+  transition: 0.3s;
+  z-index: 10000;
+  opacity: 0;
+  pointer-events: none;
+}
+.industry-slideshow-btn:hover {
+  opacity: 1;
+}
+
+.industries-section:hover .industry-slideshow-btn {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.left-Btn {
+  right: 2%;
+}
+
+.right-Btn {
+  left: 2%;
+}
+
+.industry-slides-viewport {
+  overflow: hidden;
+  width: 100%;
+}
+
+.industries-container {
+  display: flex;
+  transition: transform 0.4s ease-in-out;
+  gap: 20px;
+}
+
+.industry-card {
+  flex: 0 0 calc(25% - 15px);
+  /* 4 per row with spacing */
+  overflow: hidden;
+  transition: transform 0.3s;
+}
+
+.industry-card img {
+  width: 100%;
+}
+
+.industry-card .overlay {
+  padding: 10px;
+  text-align: center;
 }
 
 /* industries section end */
@@ -440,3 +511,19 @@ a.scroll-button {
 }
 
 /* Download area section*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

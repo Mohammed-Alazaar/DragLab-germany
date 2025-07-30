@@ -929,63 +929,67 @@ exports.getaboutus = (req, res, next) => {
             featuresTitle: 'Feature Points',
             tabs: {
                 vision: {
-                    title: 'Innovative Excellence',
-                    subtitle: 'Pushing technology with superior design.',
-                    desc: 'We believe that the products and services we provide will enable our partners to be a global leader in laboratory and medical equipment, known for our innovation, quality, and customer-focused approach.'
+                    title: 'Vision',
+                    sectionHeading: 'Global Leadership',
+                    subtitle: `Innovation, quality, and customer-driven success.`,
+                    desc: 'To be the global partner of choice for laboratories by delivering innovative, high-quality, and cost-effective equipment where advanced technology meets modern design, with customer-focused approach across a diverse range of laboratory devices and medical equipment, driving scientific progress worldwide.'
                 },
                 mission: {
-                    title: 'Global Leadership',
+                    title: 'Mission',
+                    sectionHeading: 'Innovative Excellence',
                     subtitle: 'Innovation, quality, and customer-driven success.',
                     desc: 'We aim to empower professionals in science and healthcare with advanced, reliable, and user-friendly equipment, driving progress and improving outcomes.'
                 },
                 values: {
-                    title: 'Integrity and Responsibility',
+                    title: 'Value',
+                    sectionHeading: 'Integrity and Responsibility',
                     subtitle: 'Empowering change through ethical commitment.',
-                    desc: '<b>Innovation:</b> Continuously pushing the boundaries of technology to create cutting-edge solutions.<br><b>Quality:</b> Upholding the highest standards in product design, manufacturing, and performance.'
+                    desc: 'Integrity is upheld, innovation is driven, responsive support is provided, sustainability is prioritized, customer needs are carefully addressed, excellence is ensured, and an inclusive, collaborative culture is enriched all along with keeping the highest standards met.'
                 }
             },
             features: [
+
                 {
-                    title: 'Innovation of Lab Equipment',
-                    text: 'We leverage advanced technology trends and our professional expertise to develop innovative laboratory solutions, fulfilling our responsibility as a leading premium provider in the global market.',
-                    icon: 'innovation.png',
-                    alt: 'Lab equipment innovation icon'
+                    title: 'Ethics and Integrity',
+                    text: 'We are committed to upholding the highest ethical standards in all aspects of our business, with transparent communication, to strengthen trust and practice integrity with employees, customers, suppliers, competitors, and investors.',
+                    icon: 'Ethics-and-Integrity.svg',
+                    alt: 'Ethics and Integrity icon'
                 },
                 {
-                    title: 'Quality of the Products',
-                    text: 'Quality and reliability are our top priorities. All DragLab products are designed for durability and efficiency, backed by a strict quality control system to ensure the best customer experience.',
-                    icon: 'Quality.png',
-                    alt: 'Quality assurance icon'
-                },
-                {
-                    title: 'Certification & Standards',
-                    text: 'We meet ISO and European standards, offering full compliance and documentation for all exported equipment.',
-                    icon: 'Certification.png',
-                    alt: 'Certification compliance icon'
+                    title: 'Innovation and Relentless Development ',
+                    text: 'Innovation is about creating the highest value by transforming advancements in technology into our products and services to satisfy our customers. Our professional expertise drives innovation to serve our customer focused approach. We offer better solutions for an enhanced experience through our products and services.',
+                    icon: 'Innovation-and-Relentless-Development.svg',
+                    alt: 'Innovation and Relentless Development icon'
                 },
                 {
                     title: 'Fast and Perfect Response',
-                    text: 'DragLab is committed to fast response times, offering professional support through multiple communication channels.',
+                    text: 'DragLab is committed to responding quickly and reliably to the needs of our customers and partners through our multiple communication channels. Our commitment to providing tailored solutions through our team of professionals ensures minimal downtime, and convenient solutions for your needs.',
                     icon: 'response.png',
-                    alt: 'Fast customer response icon'
+                    alt: 'Fast and Perfect Response icon'
                 },
                 {
-                    title: 'Warranty & After Sales',
-                    text: 'All products come with a 2-year warranty and a 10-year spare parts guarantee, ensuring long-term satisfaction.',
-                    icon: 'WarrantyAfterSales.png',
-                    alt: 'Warranty and service icon'
-                },
-                {
-                    title: 'Sustainable Environment',
-                    text: 'DragLab follows eco-friendly practices in manufacturing and packaging, aligned with ISO 14001 and EU directives.',
+                    title: 'Responsibility and Sustainability',
+                    text: 'DragLab integrates sustainability into its operations by responsibly managing resources, adhering to ISO 14001 and EU standards, and contributing to a better, high-quality future for generations to come.',
                     icon: 'SustainableEnvironment.png',
+                    alt: 'Responsibility and Sustainability icon'
+                },
+                {
+                    title: 'Customer Focus and Service',
+                    text: 'We place customers at the heart of our business by adopting a customer-focused approach, listening carefully to their needs, and providing innovative solutions with exceptional service. Through trust-based, lasting partnerships.',
+                    icon: 'Customer-Focus-and-Service.svg',
+                    alt: 'Customer Focus and Service icon'
+                },
+                {
+                    title: 'Quality and Excellence',
+                    text: 'We stick to the highest standards of quality and excellence in all aspects of our business. Each of our products and services are rigorously tested and refined to satisfy and exceed customer expectations.',
+                    icon: 'Quality.png',
                     alt: 'Eco-friendly technology icon'
                 },
                 {
-                    title: 'Safety',
-                    text: 'Our devices feature electronic and mechanical safeguards, meeting German and European safety norms.',
-                    icon: 'Safety.png',
-                    alt: 'Safety standards icon'
+                    title: 'Teamwork and Inclusive Culture',
+                    text: 'We highly value teamwork throughout our culture where every voice is heard. By collaborating across all levels and embracing diversity, we empower our people to contribute their best, driving innovation and collective success.',
+                    icon: 'Teamwork-and-Inclusive-Culture.svg',
+                    alt: 'Teamwork and Inclusive Culture icon'
                 }
             ]
         },
@@ -1000,61 +1004,64 @@ exports.getaboutus = (req, res, next) => {
             featuresTitle: 'Besonderheiten',
             tabs: {
                 vision: {
-                    title: 'Innovative Exzellenz',
+                    title: 'Vision',
+                    sectionHeading: 'Globale Führungsrolle',
                     subtitle: 'Technologie vorantreiben mit überlegener Gestaltung.',
-                    desc: 'Wir glauben, dass unsere Produkte und Dienstleistungen unsere Partner zu einem globalen Marktführer in Labor- und Medizintechnik machen, bekannt für Innovation, Qualität und Kundenzufriedenheit.'
+                    desc: 'Unser Ziel ist es, der bevorzugte globale Partner für Labore zu sein – durch die Bereitstellung innovativer, hochwertiger und kosteneffizienter Geräte, bei denen fortschrittliche Technologie auf modernes Design trifft. Mit einem kundenorientierten Ansatz über ein vielfältiges Spektrum an Labor- und Medizingeräten treiben wir den wissenschaftlichen Fortschritt weltweit voran.'
                 },
                 mission: {
-                    title: 'Globale Führung',
-                    subtitle: 'Innovation, Qualität und kundenorientierter Erfolg.',
-                    desc: 'Wir wollen Fachkräfte in Wissenschaft und Gesundheitswesen mit zuverlässiger und benutzerfreundlicher Technik ausstatten, um Fortschritte zu erzielen und Ergebnisse zu verbessern.'
+                    title: 'Mission',
+                    sectionHeading: 'Innovative Spitzenleistung',
+                    subtitle: 'Technologie vorantreiben mit herausragendem Design.',
+                    desc: 'Fachkräfte in Laboren und verschiedensten Branchen – von der Chemie- und Lebensmittelindustrie bis hin zur Pharma-, Biotechnologie- und Umweltbranche – in Europa, dem Nahen Osten und Asien zu stärken, indem wir hochwertige, in Europa hergestellte Laborausrüstung mit innovativem, modernem Design und fortschrittlicher Technologie liefern – unterstützt durch wettbewerbsfähige Preise und engagierten Kundensupport.'
                 },
                 values: {
-                    title: 'Integrität und Verantwortung',
-                    subtitle: 'Veränderung durch ethisches Engagement.',
-                    desc: '<b>Innovation:</b> Wir gehen kontinuierlich an die Grenzen der Technologie.<br><b>Qualität:</b> Höchste Standards in Design, Fertigung und Leistung.'
+                    title: 'Werte',
+                    sectionHeading: 'Integrität und Verantwortung',
+                    subtitle: 'Veränderung fördern durch ethisches Engagement.',
+                    desc: 'Integrität wird gewahrt, Innovation gefördert, ein reaktionsschneller Support bereitgestellt, Nachhaltigkeit priorisiert, Kundenbedürfnisse sorgfältig berücksichtigt, Exzellenz sichergestellt und eine inklusive, kooperative Unternehmenskultur gestärkt – stets unter Einhaltung höchster Standards.'
                 }
             },
             features: [
                 {
-                    title: 'Innovation von Laborgeräten',
-                    text: 'Wir nutzen moderne Technologien und unsere Fachkenntnisse, um innovative Lösungen zu entwickeln.',
+                    title: 'Ethik und Integrität',
+                    text: 'Wir verpflichten uns, in allen Bereichen unseres Geschäfts die höchsten ethischen Standards einzuhalten und durch transparente Kommunikation Vertrauen zu stärken sowie Integrität gegenüber Mitarbeitenden, Kunden, Lieferanten, Wettbewerbern und Investoren zu wahren.',
                     icon: 'innovation.png',
-                    alt: 'Laborgeräte-Innovation Icon'
+                    alt: 'Ethik und Integrität'
                 },
                 {
-                    title: 'Produktqualität',
-                    text: 'Zuverlässigkeit und Langlebigkeit stehen im Mittelpunkt. Unsere Produkte durchlaufen strenge Qualitätskontrollen.',
+                    title: 'Innovation und Stetige Weiterentwicklung',
+                    text: 'Innovation bedeutet, den höchsten Mehrwert zu schaffen, indem technologische Fortschritte in unsere Produkte und Dienstleistungen integriert werden, um die Bedürfnisse unserer Kunden zu erfüllen. Unser professionelles Fachwissen treibt Innovation voran und unterstützt unseren kundenorientierten Ansatz. Wir bieten bessere Lösungen für ein optimiertes Erlebnis durch unsere Produkte und Dienstleistungen.',
                     icon: 'Quality.png',
                     alt: 'Qualitätssicherungs-Icon'
                 },
                 {
-                    title: 'Zertifizierungen & Standards',
-                    text: 'Unsere Geräte erfüllen ISO- und EU-Standards und sind vollständig dokumentiert.',
+                    title: 'Schnelle und Perfekte Reaktion',
+                    text: 'DragLab verpflichtet sich, schnell und zuverlässig auf die Bedürfnisse unserer Kunden und Partner über unsere vielfältigen Kommunikationskanäle zu reagieren. Unser Engagement für maßgeschneiderte Lösungen durch unser professionelles Team sorgt für minimale Ausfallzeiten und komfortable Lösungen für Ihre Anforderungen.',
                     icon: 'Certification.png',
                     alt: 'Zertifizierungsicon'
                 },
                 {
-                    title: 'Schnelle Reaktion',
-                    text: 'Schnelle Antwortzeiten und professionelle Unterstützung sind unsere Verpflichtung.',
+                    title: 'Verantwortung und Nachhaltigkeit',
+                    text: 'DragLab integriert Nachhaltigkeit in seine Geschäftstätigkeit durch einen verantwortungsvollen Umgang mit Ressourcen, die Einhaltung der ISO 14001 und EU-Normen und leistet damit einen Beitrag zu einer besseren und qualitativ hochwertigen Zukunft für kommende Generationen.',
                     icon: 'response.png',
                     alt: 'Schnelle Kundenreaktion Icon'
                 },
                 {
-                    title: 'Garantie & Service',
-                    text: '2 Jahre Garantie und 10 Jahre Ersatzteilverfügbarkeit sind garantiert.',
+                    title: 'Kundenorientierung und Service',
+                    text: 'Wir stellen unsere Kunden in den Mittelpunkt unseres Handelns, indem wir einen kundenorientierten Ansatz verfolgen, aufmerksam auf ihre Bedürfnisse hören und innovative Lösungen mit erstklassigem Service bieten. Dies erreichen wir durch vertrauensbasierte, langfristige Partnerschaften.',
                     icon: 'WarrantyAfterSales.png',
                     alt: 'Garantie Icon'
                 },
                 {
-                    title: 'Nachhaltige Umwelt',
-                    text: 'Wir produzieren umweltfreundlich gemäß ISO 14001.',
+                    title: 'Qualität und Exzellenz',
+                    text: 'Wir halten uns in allen Bereichen unseres Unternehmens an die höchsten Standards für Qualität und Exzellenz. Jedes unserer Produkte und Dienstleistungen wird streng geprüft und optimiert, um die Erwartungen unserer Kunden zu erfüllen und zu übertreffen.',
                     icon: 'SustainableEnvironment.png',
                     alt: 'Umweltschutz Icon'
                 },
                 {
-                    title: 'Sicherheit',
-                    text: 'Unsere Produkte erfüllen alle Sicherheitsnormen gemäß deutschem und europäischem Recht.',
+                    title: 'Teamarbeit und Inklusive Unternehmenskultur',
+                    text: 'Wir schätzen Teamarbeit als festen Bestandteil unserer Unternehmenskultur, in der jede Stimme zählt. Durch Zusammenarbeit auf allen Ebenen und die Wertschätzung von Vielfalt befähigen wir unsere Mitarbeitenden, ihr Bestes beizutragen – für Innovation und gemeinsamen Erfolg.',
                     icon: 'Safety.png',
                     alt: 'Sicherheitsicon'
                 }
@@ -1070,61 +1077,64 @@ exports.getaboutus = (req, res, next) => {
             featuresTitle: 'Puntos Destacados',
             tabs: {
                 vision: {
-                    title: 'Excelencia Innovadora',
+                    title: 'Visión',
+                    sectionHeading: 'Liderazgo Global',
                     subtitle: 'Impulsando la tecnología con diseño superior.',
-                    desc: 'Creemos que nuestros productos y servicios permitirán a nuestros socios convertirse en líderes globales en equipos de laboratorio y médicos, reconocidos por su innovación, calidad y enfoque centrado en el cliente.'
+                    desc: 'Ser el socio global preferido por los laboratorios, ofreciendo equipos innovadores, de alta calidad y rentables, donde la tecnología avanzada se une con el diseño moderno. Nuestra orientación al cliente abarca una amplia gama de dispositivos de laboratorio y equipos médicos, impulsando el progreso científico en todo el mundo.'
                 },
                 mission: {
-                    title: 'Liderazgo Global',
-                    subtitle: 'Innovación, calidad y éxito impulsado por el cliente.',
-                    desc: 'Nuestro objetivo es empoderar a los profesionales de la ciencia y la salud con equipos avanzados, confiables y fáciles de usar, impulsando el progreso y mejorando los resultados.'
+                    title: 'Misión',
+                    sectionHeading: 'Excelencia Innovadora',
+                    subtitle: 'Impulsando la tecnología con un diseño superior.',
+                    desc: 'Empoderar a los profesionales en laboratorios e industrias diversas —desde la química y alimentos y bebidas hasta la farmacéutica, biotecnología y medio ambiente— en Europa, Oriente Medio y Asia, mediante el suministro de equipos de laboratorio de alta calidad fabricados en Europa, con un diseño moderno e innovador y tecnología avanzada, respaldados por precios competitivos y un compromiso sólido con la atención al cliente.'
                 },
                 values: {
-                    title: 'Integridad y Responsabilidad',
-                    subtitle: 'Impulsando el cambio con compromiso ético.',
-                    desc: '<b>Innovación:</b> Superamos constantemente los límites de la tecnología para crear soluciones innovadoras.<br><b>Calidad:</b> Mantenemos los más altos estándares en diseño, fabricación y rendimiento.'
+                    title: 'Valores',
+                    sectionHeading: 'Integridad y Responsabilidad',
+                    subtitle: 'Impulsando el cambio a través del compromiso ético.',
+                    desc: 'Se mantiene la integridad, se impulsa la innovación, se brinda un soporte ágil, se prioriza la sostenibilidad, se atienden cuidadosamente las necesidades del cliente, se garantiza la excelencia y se enriquece una cultura inclusiva y colaborativa, todo ello cumpliendo con los más altos estándares.'
                 }
             },
             features: [
                 {
-                    title: 'Innovación en Equipos de Laboratorio',
-                    text: 'Aprovechamos las últimas tendencias tecnológicas y nuestra experiencia profesional para desarrollar soluciones de laboratorio innovadoras.',
+                    title: 'Ética e Integridad',
+                    text: 'Estamos comprometidos a mantener los más altos estándares éticos en todos los aspectos de nuestro negocio, con una comunicación transparente, para fortalecer la confianza y practicar la integridad con empleados, clientes, proveedores, competidores e inversores.',
                     icon: 'innovation.png',
                     alt: 'Icono de innovación de laboratorio'
                 },
                 {
-                    title: 'Calidad de los Productos',
-                    text: 'La calidad y la confiabilidad son nuestras principales prioridades. Todos los productos DragLab están diseñados para durar y ofrecer eficiencia.',
+                    title: 'Innovación y Desarrollo Constante',
+                    text: 'La innovación consiste en crear el máximo valor transformando los avances tecnológicos en nuestros productos y servicios para satisfacer a nuestros clientes. Nuestra experiencia profesional impulsa la innovación para respaldar nuestro enfoque centrado en el cliente. Ofrecemos mejores soluciones para una experiencia mejorada a través de nuestros productos y servicios.',
                     icon: 'Quality.png',
                     alt: 'Icono de garantía de calidad'
                 },
                 {
-                    title: 'Certificaciones y Normas',
-                    text: 'Cumplimos con las normas ISO y europeas, con documentación completa para todos los equipos exportados.',
+                    title: 'Respuesta Rápida y Perfecta',
+                    text: 'DragLab está comprometido a responder de manera rápida y confiable a las necesidades de nuestros clientes y socios a través de nuestros múltiples canales de comunicación. Nuestro compromiso de ofrecer soluciones personalizadas mediante nuestro equipo de profesionales garantiza un tiempo de inactividad mínimo y soluciones convenientes para sus necesidades.',
                     icon: 'Certification.png',
                     alt: 'Icono de cumplimiento de certificaciones'
                 },
                 {
-                    title: 'Respuesta Rápida y Eficiente',
-                    text: 'DragLab se compromete a ofrecer tiempos de respuesta rápidos y soporte profesional a través de múltiples canales de comunicación.',
+                    title: 'Responsabilidad y Sostenibilidad',
+                    text: 'DragLab integra la sostenibilidad en sus operaciones mediante una gestión responsable de los recursos, el cumplimiento de la norma ISO 14001 y los estándares de la UE, y contribuyendo a un futuro mejor y de alta calidad para las generaciones venideras.',
                     icon: 'response.png',
                     alt: 'Icono de respuesta rápida al cliente'
                 },
                 {
-                    title: 'Garantía y Postventa',
-                    text: 'Todos los productos tienen una garantía de 2 años y 10 años de disponibilidad de repuestos, asegurando satisfacción a largo plazo.',
+                    title: 'Enfoque en el Cliente y Servicio',
+                    text: 'Colocamos a los clientes en el centro de nuestro negocio mediante un enfoque centrado en sus necesidades, escuchándolos atentamente y ofreciendo soluciones innovadoras con un servicio excepcional. Todo ello a través de asociaciones duraderas basadas en la confianza.',
                     icon: 'WarrantyAfterSales.png',
                     alt: 'Icono de garantía y servicio'
                 },
                 {
-                    title: 'Entorno Sostenible',
-                    text: 'DragLab aplica prácticas ecológicas en la fabricación y embalaje, cumpliendo con la ISO 14001 y directivas de la UE.',
+                    title: 'Calidad y Excelencia',
+                    text: 'Nos adherimos a los más altos estándares de calidad y excelencia en todos los aspectos de nuestro negocio. Cada uno de nuestros productos y servicios es rigurosamente probado y perfeccionado para satisfacer y superar las expectativas de nuestros clientes.',
                     icon: 'SustainableEnvironment.png',
                     alt: 'Icono de tecnología ecológica'
                 },
                 {
-                    title: 'Seguridad',
-                    text: 'Nuestros dispositivos incluyen protecciones electrónicas y mecánicas, cumpliendo con las normas de seguridad alemanas y europeas.',
+                    title: 'Trabajo en Equipo y Cultura Inclusiva',
+                    text: 'Valoramos profundamente el trabajo en equipo dentro de nuestra cultura, donde cada voz es escuchada. Al colaborar en todos los niveles y abrazar la diversidad, empoderamos a nuestra gente para que aporte lo mejor de sí misma, impulsando la innovación y el éxito colectivo.',
                     icon: 'Safety.png',
                     alt: 'Icono de estándares de seguridad'
                 }
@@ -2205,6 +2215,8 @@ exports.getimprint = async (req, res, next) => {
                 managingPartner: "Managing Partner",
                 emailGeneral: "Email (General)",
                 website: "Website",
+                TrademarkOwnershipTitle: "Trademark Ownership",
+                TrademarkOwnership: `Nanodrag Technology GmbH is the legal owner of the registered trademarks "DragLab" and/or "DragLab Technologies", including all associated intellectual property rights and usage.`,
                 registrationCourt: "Registration Court",
                 registrationNumber: "Registration Number",
                 legalForm: "Legal Form",
@@ -2215,7 +2227,14 @@ exports.getimprint = async (req, res, next) => {
                 tel: "Tel",
                 fax: "Fax",
                 heroTitle: "Legal Notice (Imprint)",
-                pageHeading: "Company Legal Information"
+                pageHeading: "Company Legal Information",
+                Responsible: `Responsible for content according to § 55 Abs. 2 RStV:  <br>
+                                NANODRAG TECHNOLOGY GmbH<br>
+                                Alfred-Herrhausen-Allee 3-5  <br>
+                                D-65760 Eschborn  <br>
+                                Germany  <br>
+                                `
+
             },
             ES: {
                 companyName: "Nombre de la Empresa",
@@ -2224,6 +2243,8 @@ exports.getimprint = async (req, res, next) => {
                 managingPartner: "Socio Administrador",
                 emailGeneral: "Correo electrónico (general)",
                 website: "Sitio web",
+                TrademarkOwnershipTitle: "Propiedad de la Marca Registrada",
+                TrademarkOwnership: `Nanodrag Technology GmbH es el titular legal de las marcas registradas "DragLab" y/o "DragLab Technologies", incluyendo todos los derechos de propiedad intelectual y de uso asociados.`,
                 registrationCourt: "Juzgado de Registro",
                 registrationNumber: "Número de Registro",
                 legalForm: "Forma jurídica",
@@ -2234,7 +2255,9 @@ exports.getimprint = async (req, res, next) => {
                 tel: "Tel",
                 fax: "Fax",
                 heroTitle: "Aviso Legal",
-                pageHeading: "Información Legal de la Empresa"
+                pageHeading: "Información Legal de la Empresa",
+                Responsible: `Responsable del contenido según el § 55 párr. 2 RStV: <br> NANODRAG TECHNOLOGY GmbH<br> Alfred-Herrhausen-Allee 3-5 <br> D-65760 Eschborn <br> Alemania <br>
+                                `
             },
             DE: {
                 companyName: "Firmenname",
@@ -2243,6 +2266,8 @@ exports.getimprint = async (req, res, next) => {
                 managingPartner: "Geschäftsführender Gesellschafter",
                 emailGeneral: "E-Mail (Allgemein)",
                 website: "Webseite",
+                TrademarkOwnershipTitle: "Markeninhaberschaft",
+                TrademarkOwnership: `Die Nanodrag Technology GmbH ist der rechtmäßige Inhaber der eingetragenen Marken „DragLab“ und/oder „DragLab Technologies“, einschließlich aller damit verbundenen Rechte an geistigem Eigentum und Nutzungsrechte.`,
                 registrationCourt: "Registergericht",
                 registrationNumber: "Handelsregisternummer",
                 legalForm: "Rechtsform",
@@ -2253,7 +2278,8 @@ exports.getimprint = async (req, res, next) => {
                 tel: "Tel",
                 fax: "Fax",
                 heroTitle: "Impressum",
-                pageHeading: "Rechtliche Unternehmensinformationen"
+                pageHeading: "Rechtliche Unternehmensinformationen",
+                Responsible: `Verantwortlich für den Inhalt gemäß § 55 Abs. 2 RStV: <br> NANODRAG TECHNOLOGY GmbH<br> Alfred-Herrhausen-Allee 3-5 <br> D-65760 Eschborn <br> Deutschland <br>`
             }
         };
 
@@ -2733,36 +2759,47 @@ exports.postWarrantyRegistration = async (req, res) => {
 
 
 
-exports.getIndustryPage = (req, res, next) => {
-    const supportedLangs = ['EN', 'ES', 'DE'];
-    const rawLang = req.params.lang?.toUpperCase() || 'EN';
-    const lang = supportedLangs.includes(rawLang) ? rawLang : 'EN';
-    Product.find()
-        .then(products => {
-            res.render('customer/industry', {
-                lang,
-                pageTitle: {
-                    EN: 'Industry Solutions',
-                    ES: 'Soluciones para la Industria',
-                    DE: 'Branchenspezifische Lösungen'
-                }[lang],
-                metaDescription: {
-                    EN: 'Read DragLab’s Industry Solutions and learn how we can help your business.',
-                    ES: 'Lea las Soluciones para la Industria de DragLab y descubra cómo podemos ayudar a su negocio.',
-                    DE: 'Lesen Sie die Branchenspezifischen Lösungen von DragLab und erfahren Sie, wie wir Ihnen helfen können.'
-                }[lang],
-                products,
-                lang,
+exports.getIndustryPage = async (req, res, next) => {
+    try {
+        const supportedLangs = ['EN', 'ES', 'DE'];
+        const rawLang = req.params.lang?.toUpperCase() || 'EN';
+        const lang = supportedLangs.includes(rawLang) ? rawLang : 'EN';
 
+        const products = await Product.find({ isDraft: false });
 
+        const industries = await Industry.find({ isDraft: false });
 
-            });
-        })
-        .catch(err => {
-            console.error(err);
-            res.redirect('/EN');
+        // Extract title and introImage per industry
+        const industryCards = industries.map(industry => {
+            const langData = industry.Language?.[lang]?.[0];
+            const sharedImages = industry.sharedImages || {};
+            return {
+                slug: industry.slug,
+                title: langData?.slideTitle || '',
+                introImage: sharedImages.introImage || ''
+            };
         });
 
+        res.render('customer/industry', {
+            lang,
+            pageTitle: {
+                EN: 'Industry Solutions',
+                ES: 'Soluciones para la Industria',
+                DE: 'Branchenspezifische Lösungen'
+            }[lang],
+            metaDescription: {
+                EN: 'Read DragLab’s Industry Solutions and learn how we can help your business.',
+                ES: 'Lea las Soluciones para la Industria de DragLab y descubra cómo podemos ayudar a su negocio.',
+                DE: 'Lesen Sie die Branchenspezifischen Lösungen von DragLab und erfahren Sie, wie wir Ihnen helfen können.'
+            }[lang],
+            products,
+            industryCards
+        });
+
+    } catch (err) {
+        console.error(err);
+        res.redirect('/EN');
+    }
 };
 
 
@@ -2835,4 +2872,350 @@ exports.getIndustryDetails = async (req, res) => {
             isAuthenticated: req.session?.isLoggedIn || false
         });
     }
+};
+
+
+
+exports.getQualityPolicy = (req, res, next) => {
+    const supportedLangs = ['EN', 'ES', 'DE'];
+    const rawLang = req.params.lang?.toUpperCase() || 'EN';
+    const lang = supportedLangs.includes(rawLang) ? rawLang : 'EN';
+
+    const policyContent = {
+        EN: {
+            pageTitle: "Quality Policy",
+            metaDescription: "Read NanoDrag’s commitment to quality, compliance, safety, and continuous improvement.",
+            status: "Make It Right, Reliable, and Cost-Effective",
+            contactInfo: `NanoDrag Technology GmbH<br> Alfred-Herrhausen-Allee 3-5<br> D-65760 Eschborn Germany<br> Tel: +49 6196 400816<br> Email: <a href="mailto:info@drag-lab.de">info@drag-lab.de</a><br>`,
+            sections: [
+                {
+                    title: "Our Commitment",
+                    body: `At NANODRAG TECHNOLOGY GmbH, our commitment is to provide our customers with high-quality products that comply with international requirements and consistently meet or exceed expectations for performance, reliability, and safety — all while ensuring competitive cost-effectiveness.`
+                },
+                {
+                    title: "Continuous Improvement and Quality Standards",
+                    body: `To achieve this, we have established and continue to improve the effectiveness of our Quality Management System (QMS) in accordance with internationally recognized standards. We ensure that an adequate framework is in place for setting and reviewing quality objectives aligned with our strategic direction.`
+                },
+                {
+                    title: "Compliance and Responsibility",
+                    body: `We take great care in every aspect of our work to ensure the final products fully meet client, legal, and regulatory requirements. Our approach is built on awareness of best practices, continuous monitoring of industry innovations, and the adoption of advanced strategies to deliver outstanding products and services.`
+                },
+                {
+                    title: "Empowering Our Team",
+                    body: `We are relentlessly working to ensure that customer needs are always prioritized to be met in every project. We proactively invest in staff training and development, empowering our teams with the competencies needed to meet high standards of quality and performance.`
+                },
+                {
+                    title: "Open Communication and Trust",
+                    body: `We maintain transparency with our clients, promoting open communication and swift resolution of any challenges that may arise. This fosters trust and enhances collaboration throughout the customer journey.`
+                },
+                {
+                    title: "Culture of Excellence",
+                    body: `Excellence and innovation are appreciated and rewarded within our organization to encourage a strong, positive quality culture. By implementing clear internal standards, we collaboratively streamline processes, enhance efficiency, and deliver consistent satisfaction for our customers’ experiences.`
+                },
+                {
+                    title: "Review and Innovation",
+                    body: `Finally, we are continuously improving through regular reviews and feedback mechanisms, we enhance our processes, products, and services accordingly. We encourage innovation and embrace new technologies to stay ahead in the industry.`
+                }
+            ]
+        },
+        ES: {
+            pageTitle: "Política de Calidad",
+            metaDescription: "Lea el compromiso de NanoDrag con la calidad, el cumplimiento, la seguridad y la mejora continua.",
+            status: "Correcto, Fiable y Rentable",
+            contactInfo: `NanoDrag Technology GmbH<br> Alfred-Herrhausen-Allee 3-5<br> D-65760 Eschborn Alemania<br> Tel: +49 6196 400816<br> Correo electrónico: <a href="mailto:info@drag-lab.de">info@drag-lab.de</a><br>`,
+            sections: [
+                {
+                    title: "Nuestro Compromiso",
+                    body: `En NANODRAG TECHNOLOGY GmbH, nuestro compromiso es ofrecer a nuestros clientes productos de alta calidad que cumplan con los requisitos internacionales y superen de forma constante las expectativas en cuanto a rendimiento, fiabilidad y seguridad, manteniendo al mismo tiempo una rentabilidad competitiva.`
+                },
+                {
+                    title: "Mejora Continua y Estándares de Calidad",
+                    body: `Para lograr esto, hemos establecido y seguimos mejorando la eficacia de nuestro Sistema de Gestión de Calidad (SGC) conforme a normas reconocidas internacionalmente. Aseguramos un marco adecuado para definir y revisar objetivos de calidad alineados con nuestra dirección estratégica.`
+                },
+                {
+                    title: "Cumplimiento y Responsabilidad",
+                    body: `Cuidamos cada aspecto de nuestro trabajo para garantizar que los productos finales cumplan plenamente con los requisitos del cliente, legales y reglamentarios. Nuestro enfoque se basa en el conocimiento de las mejores prácticas, la supervisión continua de innovaciones del sector y la adopción de estrategias avanzadas para ofrecer productos y servicios excepcionales.`
+                },
+                {
+                    title: "Empoderamiento de Nuestro Equipo",
+                    body: `Trabajamos incansablemente para garantizar que las necesidades del cliente siempre sean una prioridad en cada proyecto. Invertimos proactivamente en formación y desarrollo del personal, dotando a nuestros equipos con las competencias necesarias para alcanzar altos estándares de calidad y rendimiento.`
+                },
+                {
+                    title: "Comunicación Abierta y Confianza",
+                    body: `Mantenemos la transparencia con nuestros clientes, promoviendo una comunicación abierta y una resolución rápida de cualquier problema que pueda surgir. Esto fomenta la confianza y mejora la colaboración a lo largo del proceso del cliente.`
+                },
+                {
+                    title: "Cultura de Excelencia",
+                    body: `La excelencia y la innovación son valoradas y recompensadas dentro de nuestra organización para fomentar una cultura de calidad fuerte y positiva. Al implementar normas internas claras, optimizamos procesos de forma colaborativa, mejoramos la eficiencia y ofrecemos una satisfacción constante a nuestros clientes.`
+                },
+                {
+                    title: "Revisión e Innovación",
+                    body: `Finalmente, mejoramos continuamente mediante revisiones regulares y mecanismos de retroalimentación. Mejoramos nuestros procesos, productos y servicios en consecuencia. Fomentamos la innovación y adoptamos nuevas tecnologías para mantenernos a la vanguardia del sector.`
+                }
+            ]
+        },
+        DE: {
+            pageTitle: "Qualitätspolitik",
+            metaDescription: "Lesen Sie NanoDrags Engagement für Qualität, Compliance, Sicherheit und kontinuierliche Verbesserung.",
+            status: "Richtig, Zuverlässig und Kosteneffizient",
+            contactInfo: `NanoDrag Technology GmbH<br> Alfred-Herrhausen-Allee 3-5<br> D-65760 Eschborn Deutschland<br> Tel: +49 6196 400816<br> E-Mail: <a href="mailto:info@drag-lab.de">info@drag-lab.de</a><br>`,
+            sections: [
+                {
+                    title: "Unser Engagement",
+                    body: `Bei NANODRAG TECHNOLOGY GmbH ist es unser Ziel, unseren Kunden hochwertige Produkte bereitzustellen, die internationalen Anforderungen entsprechen und die Erwartungen in Bezug auf Leistung, Zuverlässigkeit und Sicherheit konsequent erfüllen oder übertreffen – und dabei wirtschaftlich bleiben.`
+                },
+                {
+                    title: "Kontinuierliche Verbesserung und Qualitätsstandards",
+                    body: `Zu diesem Zweck haben wir ein Qualitätsmanagementsystem (QMS) gemäß international anerkannten Standards eingeführt und verbessern dessen Wirksamkeit kontinuierlich. Wir stellen sicher, dass ein geeigneter Rahmen für die Festlegung und Überprüfung von Qualitätszielen vorhanden ist, die mit unserer strategischen Ausrichtung übereinstimmen.`
+                },
+                {
+                    title: "Compliance und Verantwortung",
+                    body: `Wir achten in jeder Phase unserer Arbeit sorgfältig darauf, dass unsere Endprodukte sämtliche Kunden-, gesetzlichen und regulatorischen Anforderungen erfüllen. Unser Ansatz basiert auf bewährten Verfahren, ständiger Beobachtung von Branchentrends und dem Einsatz fortschrittlicher Strategien zur Lieferung herausragender Produkte und Dienstleistungen.`
+                },
+                {
+                    title: "Stärkung unseres Teams",
+                    body: `Wir arbeiten unermüdlich daran, die Bedürfnisse unserer Kunden in jedem Projekt stets zu priorisieren. Wir investieren proaktiv in Schulungen und die Weiterentwicklung unserer Mitarbeitenden, um die erforderlichen Kompetenzen für hohe Qualitäts- und Leistungsstandards sicherzustellen.`
+                },
+                {
+                    title: "Offene Kommunikation und Vertrauen",
+                    body: `Wir pflegen Transparenz gegenüber unseren Kunden, fördern eine offene Kommunikation und sorgen für die schnelle Lösung auftretender Herausforderungen. Dies stärkt das Vertrauen und verbessert die Zusammenarbeit über den gesamten Kundenprozess hinweg.`
+                },
+                {
+                    title: "Kultur der Exzellenz",
+                    body: `Exzellenz und Innovation werden in unserem Unternehmen geschätzt und gefördert, um eine starke, positive Qualitätskultur zu etablieren. Durch klare interne Standards optimieren wir gemeinsam Prozesse, steigern die Effizienz und gewährleisten durchgehend hohe Kundenzufriedenheit.`
+                },
+                {
+                    title: "Überprüfung und Innovation",
+                    body: `Durch regelmäßige Überprüfungen und Rückmeldemechanismen verbessern wir kontinuierlich unsere Prozesse, Produkte und Dienstleistungen. Wir fördern Innovationen und setzen neue Technologien ein, um in der Branche führend zu bleiben.`
+                }
+            ]
+        }
+
+    };
+
+    Product.find()
+        .then(products => {
+            res.render('customer/QualityPolicy', {
+                lang,
+                products, // ✅ ADD THIS
+                policyContent,
+                pageTitle: policyContent[lang].pageTitle,
+                metaDescription: policyContent[lang].metaDescription
+            });
+        })
+        .catch(err => {
+            console.error(err);
+            res.redirect('/EN');
+        });
+};
+
+
+
+
+exports.getSustainabilityPolicy = (req, res, next) => {
+    const supportedLangs = ['EN', 'ES', 'DE'];
+    const rawLang = req.params.lang?.toUpperCase() || 'EN';
+    const lang = supportedLangs.includes(rawLang) ? rawLang : 'EN';
+
+    const sustainabilityPolicyContent = {
+        EN: {
+            pageTitle: "Sustainability Policy",
+            metaDescription: "Read NanoDrag’s commitment to environmental protection and sustainability in accordance with ISO 14001:2015.",
+            status: "Make It Sustainable, Safe, and Responsible",
+            contactInfo: `NanoDrag Technology GmbH<br> Alfred-Herrhausen-Allee 3-5<br> D-65760 Eschborn Germany<br> Tel: +49 6196 400816<br> Email: <a href="mailto:info@drag-lab.de">info@drag-lab.de</a><br>`,
+            sections: [
+                {
+                    title: "Sustainability Policy",
+                    body: `We at NANODRAG TECHNOLOGY GmbH recognize our responsibility to protect the environment as a manufacturer and distributor of laboratory equipment. We acknowledge that our operations and products have environmental impacts, and we are committed to managing these impacts in an environmentally responsible manner while keeping the highest quality met for our products and services. This Environmental Policy aligns with the requirements of ISO 14001:2015 and reflects our dedication to integrating environmental considerations into our business strategy and daily operations.`
+                },
+                {
+                    title: "Commitment to Compliance and Continuous Improvement",
+                    body: `We are committed to protecting the environment and to full compliance with all applicable environmental laws, regulations, and other obligations. We strive to prevent pollution and minimize any negative impact by adopting best practices in waste management, efficient use of resources, and emission reduction. We aim to meet or exceed relevant environmental standards and continuously improve our processes to reduce our environmental footprint, thereby preserving natural resources for future generations.`
+                },
+                {
+                    title: "Shared Responsibility",
+                    body: `Environmental responsibility is a shared commitment across our organization. All members of our team and parties working on our behalf are expected to adhere to this policy and support it in their daily work. We provide training and resources to raise environmental awareness and empower our team to contribute ideas and actions for improvement.`
+                }
+            ]
+        },
+        ES: {
+            pageTitle: "Política de Sostenibilidad",
+            metaDescription: "Descubra el compromiso de NanoDrag con la protección ambiental y la sostenibilidad según la norma ISO 14001:2015.",
+            status: "Compromiso con la sostenibilidad ambiental",
+            contactInfo: `NanoDrag Technology GmbH<br> Alfred-Herrhausen-Allee 3-5<br> D-65760 Eschborn Alemania<br> Tel: +49 6196 400816<br> Correo electrónico: <a href="mailto:info@drag-lab.de">info@drag-lab.de</a><br>`,
+            sections: [
+                {
+                    title: "Política de Sostenibilidad",
+                    body: `En NANODRAG TECHNOLOGY GmbH reconocemos nuestra responsabilidad de proteger el medio ambiente como fabricante y distribuidor de equipos de laboratorio. Reconocemos que nuestras operaciones y productos tienen impactos ambientales y nos comprometemos a gestionarlos de manera responsable, garantizando al mismo tiempo los más altos estándares de calidad en nuestros productos y servicios. Esta Política Ambiental está alineada con los requisitos de la norma ISO 14001:2015 y refleja nuestro compromiso de integrar consideraciones ambientales en nuestra estrategia empresarial y operaciones diarias.`
+                },
+                {
+                    title: "Compromiso con el Cumplimiento y la Mejora Continua",
+                    body: `Estamos comprometidos con la protección del medio ambiente y con el cumplimiento total de todas las leyes, regulaciones y obligaciones ambientales aplicables. Nos esforzamos por prevenir la contaminación y minimizar cualquier impacto negativo adoptando las mejores prácticas en gestión de residuos, uso eficiente de los recursos y reducción de emisiones. Nuestro objetivo es cumplir o superar los estándares ambientales relevantes y mejorar continuamente nuestros procesos para reducir nuestra huella ecológica, preservando así los recursos naturales para las futuras generaciones.`
+                },
+                {
+                    title: "Responsabilidad Compartida",
+                    body: `La responsabilidad ambiental es un compromiso compartido en toda nuestra organización. Todos los miembros de nuestro equipo y las partes que actúan en nuestro nombre deben cumplir esta política y apoyarla en su trabajo diario. Proporcionamos formación y recursos para fomentar la conciencia ambiental y empoderar a nuestro equipo para que proponga ideas y acciones orientadas a la mejora.`
+                }
+            ]
+        },
+        DE: {
+            pageTitle: "Nachhaltigkeitspolitik",
+            metaDescription: "Erfahren Sie mehr über das Umweltengagement von NanoDrag gemäß ISO 14001:2015.",
+            status: "Engagement für ökologische Nachhaltigkeit",
+            contactInfo: `NanoDrag Technology GmbH<br> Alfred-Herrhausen-Allee 3-5<br> D-65760 Eschborn Deutschland<br> Tel: +49 6196 400816<br> E-Mail: <a href="mailto:info@drag-lab.de">info@drag-lab.de</a><br>`,
+            sections: [
+                {
+                    title: "Nachhaltigkeitspolitik",
+                    body: `Wir bei NANODRAG TECHNOLOGY GmbH erkennen unsere Verantwortung zum Schutz der Umwelt als Hersteller und Anbieter von Laborausrüstung an. Wir sind uns bewusst, dass unsere Tätigkeiten und Produkte Umweltauswirkungen haben, und verpflichten uns, diese Auswirkungen auf umweltverträgliche Weise zu steuern – bei gleichzeitiger Einhaltung höchster Qualitätsstandards für unsere Produkte und Dienstleistungen. Diese Umweltpolitik entspricht den Anforderungen der ISO 14001:2015 und spiegelt unser Bestreben wider, Umweltaspekte in unsere Geschäftsstrategie und täglichen Abläufe zu integrieren.`
+                },
+                {
+                    title: "Engagement für Einhaltung und kontinuierliche Verbesserung",
+                    body: `Wir verpflichten uns zum Umweltschutz und zur vollständigen Einhaltung aller geltenden Umweltgesetze, -vorschriften und sonstigen Anforderungen. Wir streben an, Umweltverschmutzung zu verhindern und negative Auswirkungen zu minimieren, indem wir bewährte Praktiken im Abfallmanagement, in der Ressourcennutzung und bei der Emissionsminderung anwenden. Unser Ziel ist es, relevante Umweltstandards zu erfüllen oder zu übertreffen und unsere Prozesse kontinuierlich zu verbessern, um unseren ökologischen Fußabdruck zu verringern und natürliche Ressourcen für kommende Generationen zu bewahren.`
+                },
+                {
+                    title: "Geteilte Verantwortung",
+                    body: `Umweltverantwortung ist ein gemeinsames Engagement in unserem gesamten Unternehmen. Alle Mitglieder unseres Teams sowie Parteien, die in unserem Namen arbeiten, sind verpflichtet, diese Richtlinie einzuhalten und sie in ihrer täglichen Arbeit zu unterstützen. Wir stellen Schulungen und Ressourcen bereit, um das Umweltbewusstsein zu stärken und unser Team zu befähigen, Ideen und Maßnahmen zur Verbesserung beizutragen.`
+                }
+            ]
+        }
+
+    };
+
+    Product.find()
+        .then(products => {
+            res.render('customer/SustainabilityPolicy', {
+                lang,
+                products,
+                sustainabilityPolicyContent,
+                pageTitle: sustainabilityPolicyContent[lang].pageTitle,
+                metaDescription: sustainabilityPolicyContent[lang].metaDescription
+            });
+        })
+        .catch(err => {
+            console.error(err);
+            res.redirect('/EN');
+        });
+};
+
+
+
+
+exports.getQualifications = (req, res, next) => {
+    const supportedLangs = ['EN', 'ES', 'DE'];
+    const rawLang = req.params.lang?.toUpperCase() || 'EN';
+    const lang = supportedLangs.includes(rawLang) ? rawLang : 'EN';
+
+    const qualificationsContent = {
+        EN: {
+            pageTitle: "Qualifications",
+            metaDescription: "Learn about DragLab's quality certifications, compliance, technical expertise, after-sales support, and global partnerships.",
+            status: "Certified, Compliant, Experienced",
+            contactInfo: `NanoDrag Technology GmbH<br> Alfred-Herrhausen-Allee 3-5<br> D-65760 Eschborn Germany<br> Tel: +49 6196 400816<br> Email: <a href="mailto:info@drag-lab.de">info@drag-lab.de</a><br>`,
+            sections: [
+                {
+                    title: "Quality Assurance & Certifications",
+                    body: `Quality is central to our operations at Nanodrag Technology GmbH. Our quality management system is certified adhering to the ISO 9001 and ISO 14001 standards, ensuring strong quality and environmental management systems. Each DragLab product undergoes strict quality control checks to meet international standards. In collaboration with third-party audits, we do regular checks to confirm our compliance, while continuous employee training promotes a strong culture of quality across all levels.`
+                },
+                {
+                    title: "Compliance & International Standards",
+                    body: `All our products are designed and manufactured in compliance with European directives. We ensure that our equipment meets both European and global regulatory requirements, providing customers with safe, certified, and globally accepted solutions for their laboratories.`
+                },
+                {
+                    title: "Technical Expertise & Experience",
+                    body: `With over 20 years of experience in the laboratory equipment industry, DragLab Technologies prides itself on deep technical expertise and innovation. Our team of highly qualified scientists and engineers brings decades of combined experience, ensuring that every solution we provide—from laboratory incubators to drying ovens and centrifuges—is backed by profound knowledge and proven know-how. This rich experience and specialization allow us to understand our customers’ needs and exceed their expectations in reliability and performance.`
+                },
+                {
+                    title: "Warranty & After Sales",
+                    body: `At DragLab Technologies, we stand behind the reliability of our products with a clear warranty policy and responsive after-sales support. Our devices, whether it's a centrifuge, drying oven, water distillation, or hotplate magnetic stirrer, are covered by a standard manufacturer’s warranty, ensuring high customer care and long-term performance. In addition, our dedicated service team provides prompt technical assistance, spare parts, and maintenance solutions to minimize downtime and enhance customer satisfaction. We aim to build lasting relationships by offering comprehensive support well beyond the point of sale.`
+                },
+                {
+                    title: "Global Presence & Trusted Partnerships",
+                    body: `With a growing global distribution network and long-standing partnerships in Europe, Middle East, Asia, and beyond, DragLab Technologies is recognized as a reliable partner in the laboratory equipment sector. Our international presence allows us to support clients worldwide with consistent quality and service.`
+                },
+                {
+                    title: "Commitment to Training & Support",
+                    body: `We offer professional training programs and technical documentation to ensure our partners and customers can take full advantage of all our products’ features. Whether through on-site training, remote support, or user manuals, we equip our clients with the knowledge and confidence to operate and maintain their devices.`
+                }
+            ]
+        }, ES: {
+            pageTitle: "Cualificaciones",
+            metaDescription: "Conozca las certificaciones de calidad, el cumplimiento, la experiencia técnica, el soporte posventa y las alianzas globales de DragLab.",
+            status: "Certificado, Conforme, Experimentado",
+            contactInfo: `NanoDrag Technology GmbH<br> Alfred-Herrhausen-Allee 3-5<br> D-65760 Eschborn Alemania<br> Tel: +49 6196 400816<br> Correo electrónico: <a href="mailto:info@drag-lab.de">info@drag-lab.de</a><br>`,
+            sections: [
+                {
+                    title: "Garantía de Calidad y Certificaciones",
+                    body: `La calidad es fundamental en nuestras operaciones en Nanodrag Technology GmbH. Nuestro sistema de gestión de calidad está certificado según las normas ISO 9001 e ISO 14001, lo que garantiza sólidos sistemas de gestión de calidad y medio ambiente. Cada producto de DragLab pasa por estrictos controles de calidad para cumplir con estándares internacionales. A través de auditorías externas, realizamos verificaciones periódicas para confirmar nuestro cumplimiento, mientras que la formación continua de los empleados promueve una sólida cultura de calidad en todos los niveles.`
+                },
+                {
+                    title: "Cumplimiento y Normas Internacionales",
+                    body: `Todos nuestros productos están diseñados y fabricados conforme a las directivas europeas. Nos aseguramos de que nuestro equipo cumpla con los requisitos reglamentarios tanto europeos como globales, ofreciendo soluciones seguras, certificadas y aceptadas internacionalmente para laboratorios.`
+                },
+                {
+                    title: "Experiencia Técnica y Especialización",
+                    body: `Con más de 20 años de experiencia en la industria de equipos de laboratorio, DragLab Technologies se enorgullece de su profunda experiencia técnica e innovación. Nuestro equipo de científicos e ingenieros altamente calificados aporta décadas de experiencia combinada, asegurando que cada solución —desde incubadoras hasta estufas de secado y centrífugas— esté respaldada por conocimientos sólidos y experiencia comprobada. Esta experiencia nos permite comprender las necesidades de nuestros clientes y superar sus expectativas en fiabilidad y rendimiento.`
+                },
+                {
+                    title: "Garantía y Soporte Posventa",
+                    body: `En DragLab Technologies respaldamos la fiabilidad de nuestros productos con una política de garantía clara y soporte posventa receptivo. Nuestros dispositivos, ya sean centrífugas, estufas de secado, sistemas de destilación de agua o agitadores magnéticos calefactores, están cubiertos por una garantía estándar del fabricante. Además, nuestro equipo de servicio brinda asistencia técnica, repuestos y mantenimiento oportuno para minimizar el tiempo de inactividad y mejorar la satisfacción del cliente. Nuestro objetivo es construir relaciones duraderas a través de un soporte integral más allá de la venta.`
+                },
+                {
+                    title: "Presencia Global y Alianzas Confiables",
+                    body: `Con una red de distribución en crecimiento y alianzas duraderas en Europa, Medio Oriente, Asia y más allá, DragLab Technologies es reconocida como un socio confiable en el sector de equipos de laboratorio. Nuestra presencia internacional nos permite ofrecer calidad y servicio constante a clientes en todo el mundo.`
+                },
+                {
+                    title: "Compromiso con la Formación y el Soporte",
+                    body: `Ofrecemos programas de formación profesional y documentación técnica para garantizar que nuestros socios y clientes aprovechen todas las funcionalidades de nuestros productos. Ya sea mediante formación presencial, soporte remoto o manuales de usuario, capacitamos a nuestros clientes con el conocimiento y la confianza necesarios para operar y mantener sus dispositivos.`
+                }
+            ]
+        },
+        DE: {
+            pageTitle: "Qualifikationen",
+            metaDescription: "Erfahren Sie mehr über DragLabs Qualitätszertifikate, Compliance, technische Kompetenz, After-Sales-Service und globale Partnerschaften.",
+            status: "Zertifiziert, Konform, Erfahren",
+            contactInfo: `NanoDrag Technology GmbH<br> Alfred-Herrhausen-Allee 3-5<br> D-65760 Eschborn Deutschland<br> Tel: +49 6196 400816<br> E-Mail: <a href="mailto:info@drag-lab.de">info@drag-lab.de</a><br>`,
+            sections: [
+                {
+                    title: "Qualitätssicherung und Zertifizierungen",
+                    body: `Qualität steht im Zentrum unserer Arbeit bei Nanodrag Technology GmbH. Unser Qualitätsmanagementsystem ist nach ISO 9001 und ISO 14001 zertifiziert und gewährleistet starke Qualitäts- und Umweltmanagementsysteme. Jedes DragLab-Produkt durchläuft strenge Qualitätskontrollen, um internationalen Standards zu entsprechen. Durch unabhängige Audits führen wir regelmäßige Prüfungen durch, um unsere Konformität zu bestätigen. Gleichzeitig fördert die kontinuierliche Schulung unserer Mitarbeiter eine starke Qualitätskultur auf allen Ebenen.`
+                },
+                {
+                    title: "Konformität und Internationale Standards",
+                    body: `Alle unsere Produkte werden gemäß den europäischen Richtlinien entwickelt und hergestellt. Wir stellen sicher, dass unsere Geräte sowohl den europäischen als auch den globalen regulatorischen Anforderungen entsprechen und bieten sichere, zertifizierte und international anerkannte Lösungen für Labore.`
+                },
+                {
+                    title: "Technisches Fachwissen und Erfahrung",
+                    body: `Mit über 20 Jahren Erfahrung in der Laborgerätebranche steht DragLab Technologies für fundiertes technisches Know-how und Innovation. Unser Team aus hochqualifizierten Wissenschaftlern und Ingenieuren bringt jahrzehntelange kombinierte Erfahrung mit und stellt sicher, dass jede von uns angebotene Lösung – von Inkubatoren bis hin zu Trockenschränken und Zentrifugen – auf profundem Wissen basiert. Diese Spezialisierung ermöglicht es uns, die Bedürfnisse unserer Kunden zu verstehen und ihre Erwartungen in puncto Zuverlässigkeit und Leistung zu übertreffen.`
+                },
+                {
+                    title: "Garantie und Kundendienst",
+                    body: `Bei DragLab Technologies stehen wir hinter der Zuverlässigkeit unserer Produkte mit einer klaren Garantiepolitik und einem reaktionsschnellen Kundendienst. Unsere Geräte – egal ob Zentrifuge, Trockenschrank, Wasseraufbereitung oder Magnetrührer – sind durch eine Standardgarantie des Herstellers abgedeckt. Unser engagiertes Serviceteam bietet zudem schnelle technische Unterstützung, Ersatzteile und Wartungslösungen, um Ausfallzeiten zu minimieren und die Kundenzufriedenheit zu erhöhen. Wir streben langfristige Beziehungen durch umfassenden Support weit über den Verkaufszeitpunkt hinaus an.`
+                },
+                {
+                    title: "Globale Präsenz und Vertrauensvolle Partnerschaften",
+                    body: `Mit einem wachsenden internationalen Vertriebsnetz und langjährigen Partnerschaften in Europa, dem Nahen Osten, Asien und darüber hinaus gilt DragLab Technologies als zuverlässiger Partner im Bereich Labortechnik. Unsere weltweite Präsenz ermöglicht es uns, Kunden weltweit mit gleichbleibender Qualität und Service zu unterstützen.`
+                },
+                {
+                    title: "Engagement für Schulung und Support",
+                    body: `Wir bieten professionelle Schulungsprogramme und technische Dokumentationen an, damit unsere Partner und Kunden alle Funktionen unserer Produkte optimal nutzen können. Ob vor Ort, per Fernsupport oder durch Benutzerhandbücher – wir statten unsere Kunden mit dem nötigen Wissen und Vertrauen aus, um ihre Geräte effizient zu bedienen und zu warten.`
+                }
+            ]
+        }
+
+    };
+
+    Product.find()
+        .then(products => {
+            res.render('customer/Qualifications', {
+                lang,
+                products,
+                qualificationsContent,
+                pageTitle: qualificationsContent[lang].pageTitle,
+                metaDescription: qualificationsContent[lang].metaDescription
+            });
+        })
+        .catch(err => {
+            console.error(err);
+            res.redirect('/EN');
+        });
 };

@@ -68,66 +68,32 @@
 
 
             <section class="industries-section" id="target-section">
-                <h2>
-                    Industries
-                </h2>
+                <h2>Industries</h2>
 
-                <div class="industries-container">
+                    <button class="industry-slideshow-btn right-Btn" data-dir="-1"><img
+                            src="/assets/Imgs/Icons/right-products-arrow.png" alt=""></button>
+                    <button class="industry-slideshow-btn left-Btn" data-dir="1"><img
+                            src="/assets/Imgs/Icons/left-products-arrow.png" alt=""></button>
 
-
-                    <div class="industry-card">
-                        <a href="#ChemicalIndustry">
-                            <img loading="lazy" src="/assets/Imgs/Icons/products/Chemical-industry.webp"
-                                alt="Chemical industry" />
-                            <div class="overlay">
-
-                                <h3>
-                                    Chemical industry
-                                </h3>
-
+                <div class="industry-slides-viewport">
+                    <div class="industries-container" id="industrySlidesWrapper">
+                        <% industryCards.forEach(ind=> { %>
+                            <div class="industry-card">
+                                <a href="/<%= lang %>/industry/<%= ind.slug %>">
+                                    <img loading="lazy" src="<%= ind.introImage %>" alt="<%= ind.title %>" />
+                                    <div class="overlay">
+                                        <h3>
+                                            <%= ind.title %>
+                                        </h3>
+                                    </div>
+                                </a>
                             </div>
-                        </a>
-                    </div>
-                    <div class="industry-card">
-                        <a href="#FoodandBeverageIndustry">
-                            <img loading="lazy" src="/assets/Imgs/Icons/products/FoodandBeverageIndustry.webp"
-                                alt="Food and Beverage industry" />
-                            <div class="overlay">
-
-                                <h3>
-                                    Food and Beverage Industry
-
-                                </h3>
-                            </div>
-                        </a>
-                    </div>
-                    <div class="industry-card">
-                        <a href="#BiotechnologyandLifeSciences">
-                            <img loading="lazy" src="/assets/Imgs/Icons/products/BiotechnologyandLifeSciences.webp"
-                                alt="Biotech industry" />
-                            <div class="overlay">
-
-                                <h3>
-                                    Biotechnology and Life Sciences
-                                </h3>
-                            </div>
-                        </a>
-                    </div>
-                    <div class="industry-card">
-                        <a href="#PharmaceuticalIndustry">
-                            <img loading="lazy" src="/assets/Imgs/Icons/products/pharmaceutical.webp"
-                                alt="Pharmaceutical industry" />
-                            <div class="overlay">
-
-                                <h3>
-                                    Sterilization and Cleaning.
-                                </h3>
-                            </div>
-                        </a>
+                            <% }) %>
                     </div>
                 </div>
-
             </section>
+
+
 
 
 
@@ -174,6 +140,7 @@
             </section>
 
             <%- include('../../includes/customer/footer.ejs') %>
+                <script src="/js/industry.js?v=1.0.1"></script>
 
     </body>
 

@@ -42,6 +42,9 @@ router.get('/:lang/WarrantyRegistration', shopController.getWarrantyRegistration
 router.post('/submit-warranty', shopController.postWarrantyRegistration);
 router.get('/:lang/Industry', shopController.getIndustryPage);
 router.get('/:lang/industry/:slug', shopController.getIndustryDetails);
+router.get('/:lang/QualityPolicy', shopController.getQualityPolicy);
+router.get('/:lang/SustainabilityPolicy', shopController.getSustainabilityPolicy);
+router.get('/:lang/Qualifications', shopController.getQualifications);
 
 
 router.get('/api/models/:productId', async (req, res) => {

@@ -35,7 +35,7 @@
   top: 35%;
   display: flex;
   gap: 1rem;
-  left: 10%;
+  left: 7%;
   flex-direction: column;
   z-index: 3;
 }

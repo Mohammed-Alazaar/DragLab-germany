@@ -37,302 +37,301 @@
 
 
 
-        <body>
+    <body>
+        <!-- nav-bar -->
+        <!-- nav-bar -->
+
+
+        <%- include('../../includes/customer/navbar.ejs') %>
             <!-- nav-bar -->
+
+            <!-- slideshow -->
+
+
+
             <!-- nav-bar -->
 
+            <!-- slideshow -->
 
-            <%- include('../../includes/customer/navbar.ejs') %>
-                <!-- nav-bar -->
+            <section id="slideshow">
+                <% slides.forEach((slide, index)=> { %>
+                    <div class="slide <%= index === 0 ? 'show' : '' %>">
+                        <% if (slide.image) { %>
+                            <img loading="lazy" loading="lazy" src="<%=slide.image %>" alt="Slide <%= index + 1 %>">
+                            <% } %>
+                                <div class="slide-text">
+                                    <h3>
+                                        <%= slide.title %>
+                                    </h3>
+                                    <p>
+                                        <%= slide.desc %>
+                                    </p>
+                                </div>
+                    </div>
+                    <% }) %>
 
-                <!-- slideshow -->
+                        <div class="slideshow-dots">
+                            <% slides.forEach((_, index)=> { %>
+                                <span class="dot <%= index === 0 ? 'activedot' : '' %>"></span>
+                                <% }) %>
+                        </div>
+            </section>
+            <!-- slideshow -->
+
+            <!-- slideshow -->
 
 
 
-                <!-- nav-bar -->
 
-                <!-- slideshow -->
+            <!-- slideshow -->
+            <!-- products slideshow start -->
 
-                <section id="slideshow">
-                    <% slides.forEach((slide, index)=> { %>
-                        <div class="slide <%= index === 0 ? 'show' : '' %>">
-                            <% if (slide.image) { %>
-                                <img loading="lazy" loading="lazy" src="<%=slide.image %>" alt="Slide <%= index + 1 %>">
-                                <% } %>
-                                    <div class="slide-text">
-                                        <h3>
-                                            <%= slide.title %>
-                                        </h3>
+            <div class="slideshow-container">
+                <h2>
+                    <%= t.featured %>
+                </h2>
+                <div class="slides-wrapper" id="slidesWrapper">
+                    <% products .filter(product=> !product.isDraft)
+                        .forEach(product => {
+                        const translation = product.Language[lang]?.[0] || product.Language['EN']?.[0];
+                        if (!translation) return;
+                        %>
+
+                        <div class="product-slide">
+                            <a href="/<%= lang %>/products/<%= product.slug %>" class="product-card-link">
+
+                                <div class="product-card">
+                                    <div class="product-image-wrapper">
+                                        <img loading="lazy" loading="lazy" src="<%=product.ProductThumbnail %>"
+                                            alt="<%= translation.ProductName %>">
+                                        <div class="product-bg-overlay"></div>
+                                    </div>
+
+                                    <div class="product-card-information">
+                                        <h4>
+                                            <%= translation.ProductName %>
+                                        </h4>
                                         <p>
-                                            <%= slide.desc %>
+                                            <%= translation.ProductDesc %>
                                         </p>
                                     </div>
+                                    <button class="article-btn">View Details</button>
+                                </div>
+                            </a>
                         </div>
                         <% }) %>
-
-                            <div class="slideshow-dots">
-                                <% slides.forEach((_, index)=> { %>
-                                    <span class="dot <%= index === 0 ? 'activedot' : '' %>"></span>
-                                    <% }) %>
-                            </div>
-                </section>
-                <!-- slideshow -->
-
-                <!-- slideshow -->
-
-
-
-
-                <!-- slideshow -->
-                <!-- products slideshow start -->
-
-                <div class="slideshow-container">
-                    <h2>
-                        <%= t.featured %>
-                    </h2>
-                    <div class="slides-wrapper" id="slidesWrapper">
-                        <% products .filter(product=> !product.isDraft)
-                            .forEach(product => {
-                            const translation = product.Language[lang]?.[0] || product.Language['EN']?.[0];
-                            if (!translation) return;
-                            %>
-
-                            <div class="product-slide">
-                                <a href="/<%= lang %>/products/<%= product.slug %>" class="product-card-link">
-
-                                    <div class="product-card">
-                                        <div class="product-image-wrapper">
-                                            <img loading="lazy" loading="lazy" src="<%=product.ProductThumbnail %>"
-                                                alt="<%= translation.ProductName %>">
-                                            <div class="product-bg-overlay"></div>
-                                        </div>
-
-                                        <div class="product-card-information">
-                                            <h4>
-                                                <%= translation.ProductName %>
-                                            </h4>
-                                            <p>
-                                                <%= translation.ProductDesc %>
-                                            </p>
-                                        </div>
-                                        <button class="article-btn">View Details</button>
-                                    </div>
-                                </a>
-                            </div>
-                            <% }) %>
-                    </div>
-
-
-                    <button class="slideshow-btn prev-btn" data-dir="-1"><img
-                            src="/assets/Imgs/Icons/right-products-arrow.png" alt=""></button>
-                    <button class="slideshow-btn next-btn" data-dir="1"><img
-                            src="/assets/Imgs/Icons/left-products-arrow.png" alt=""></button>
                 </div>
 
-          
+
+                <button class="slideshow-btn prev-btn" data-dir="-1"><img
+                        src="/assets/Imgs/Icons/right-products-arrow.png" alt=""></button>
+                <button class="slideshow-btn next-btn" data-dir="1"><img
+                        src="/assets/Imgs/Icons/left-products-arrow.png" alt=""></button>
+            </div>
 
 
-                <!-- products slideshow end -->
 
 
-                <!-- industry section -->
-
-                <section class="industries-section">
-                    <h2>
-                        <%= t.industries %>
-                    </h2>
-
-                    <div class="industries-container">
+            <!-- products slideshow end -->
 
 
-                        <div class="industry-card">
-                            <img loading="lazy" src="/assets/Imgs/Icons/products/Chemical-industry.webp"
-                                alt="Chemical industry" />
-                            <div class="overlay">
-                                <div class="icon-wrapper">
-                                    <img loading="lazy" src="/assets/Imgs/Icons/products/Chemical-industry.png"
-                                        alt="Chemical industry Icon" class="icon" />
-                                </div>
-                                <h3>
-                                    <%= t.industriesList.chemical %>
-                                </h3>
+            <!-- industry section -->
 
+            <section class="industries-section">
+                <h2>
+                    <%= t.industries %>
+                </h2>
+
+                <div class="industries-container">
+
+
+                    <div class="industry-card">
+                        <img loading="lazy" src="/assets/Imgs/Icons/products/Chemical-industry.webp"
+                            alt="Chemical industry" />
+                        <div class="overlay">
+                            <div class="icon-wrapper">
+                                <img loading="lazy" src="/assets/Imgs/Icons/products/Chemical-industry.png"
+                                    alt="Chemical industry Icon" class="icon" />
                             </div>
-                        </div>
-                        <div class="industry-card">
-                            <img loading="lazy" src="/assets/Imgs/Icons/products/FoodandBeverageIndustry.webp"
-                                alt="Food and Beverage industry" />
-                            <div class="overlay">
-                                <div class="icon-wrapper">
-                                    <img loading="lazy" src="/assets/Imgs/Icons/products/Food-Beverage-Industry.png"
-                                        alt="Food and Beverage Industry Icon" class="icon" />
-                                </div>
-                                <h3>
-                                    <%= t.industriesList.food %>
-                                </h3>
-                            </div>
-                        </div>
-                        <div class="industry-card">
-                            <img loading="lazy" src="/assets/Imgs/Icons/products/BiotechnologyandLifeSciences.webp"
-                                alt="Biotech industry" />
-                            <div class="overlay">
-                                <div class="icon-wrapper">
-                                    <img loading="lazy"
-                                        src="/assets/Imgs/Icons/products/Biotechnology-Life-Sciences.png"
-                                        alt="Biotechnology and Life Sciences Icon" class="icon" />
-                                </div>
-                                <h3>
-                                    <%= t.industriesList.biotech %>
-                                </h3>
-                            </div>
-                        </div>
-                        <div class="industry-card">
-                            <img loading="lazy" src="/assets/Imgs/Icons/products/pharmaceutical.webp"
-                                alt="Pharmaceutical industry" />
-                            <div class="overlay">
-                                <div class="icon-wrapper">
-                                    <img loading="lazy" src="/assets/Imgs/Icons/products/Pharmaceutical-industry.png"
-                                        alt="Pharmaceutical industry" class="icon" />
-                                </div>
-                                <h3>
-                                    <%= t.industriesList.pharma %>
-                                </h3>
-                            </div>
+                            <h3>
+                                <%= t.industriesList.chemical %>
+                            </h3>
+
                         </div>
                     </div>
-                </section>
-
-
-                <!-- industry section -->
-
-
-                <!-- article slideshow -->
-
-                <div class="article-slideshow-container" id="articleSlideshow">
-                    <h2>
-                        <%= t.articles %>
-                    </h2>
-                    <div class="article-slides-wrapper" id="articleSlidesWrapper">
-                        <% articles.forEach(article=> { %>
-                            <div class="article-slide">
-                                <a href="/<%= lang %>/articles/<%= article.slug %>" class="article-card">
-                                    <img loading="lazy" src="<%=article.thumbnail %>" alt="<%= article.title %>">
-                                    <div class="article-card-information">
-                                        <h4>
-                                            <%= article.title %>
-                                        </h4>
-
-                                    </div>
-                                </a>
+                    <div class="industry-card">
+                        <img loading="lazy" src="/assets/Imgs/Icons/products/FoodandBeverageIndustry.webp"
+                            alt="Food and Beverage industry" />
+                        <div class="overlay">
+                            <div class="icon-wrapper">
+                                <img loading="lazy" src="/assets/Imgs/Icons/products/Food-Beverage-Industry.png"
+                                    alt="Food and Beverage Industry Icon" class="icon" />
                             </div>
-                            <% }) %>
+                            <h3>
+                                <%= t.industriesList.food %>
+                            </h3>
+                        </div>
                     </div>
+                    <div class="industry-card">
+                        <img loading="lazy" src="/assets/Imgs/Icons/products/BiotechnologyandLifeSciences.webp"
+                            alt="Biotech industry" />
+                        <div class="overlay">
+                            <div class="icon-wrapper">
+                                <img loading="lazy" src="/assets/Imgs/Icons/products/Biotechnology-Life-Sciences.png"
+                                    alt="Biotechnology and Life Sciences Icon" class="icon" />
+                            </div>
+                            <h3>
+                                <%= t.industriesList.biotech %>
+                            </h3>
+                        </div>
+                    </div>
+                    <div class="industry-card">
+                        <img loading="lazy" src="/assets/Imgs/Icons/products/pharmaceutical.webp"
+                            alt="Pharmaceutical industry" />
+                        <div class="overlay">
+                            <div class="icon-wrapper">
+                                <img loading="lazy" src="/assets/Imgs/Icons/products/Pharmaceutical-industry.png"
+                                    alt="Pharmaceutical industry" class="icon" />
+                            </div>
+                            <h3>
+                                <%= t.industriesList.pharma %>
+                            </h3>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
 
-                    <button class="article-slideshow-btn article-prev-btn" data-article-dir="-1">
-                        <img loading="lazy" src="/assets/Imgs/Icons/right-products-arrow.png" alt="Previous">
-                    </button>
-                    <button class="article-slideshow-btn article-next-btn" data-article-dir="1">
-                        <img loading="lazy" src="/assets/Imgs/Icons/left-products-arrow.png" alt="Next">
-                    </button>
+            <!-- industry section -->
+
+
+            <!-- article slideshow -->
+
+            <div class="article-slideshow-container" id="articleSlideshow">
+                <h2>
+                    <%= t.articles %>
+                </h2>
+                <div class="article-slides-wrapper" id="articleSlidesWrapper">
+                    <% articles.forEach(article=> { %>
+                        <div class="article-slide">
+                            <a href="/<%= lang %>/articles/<%= article.slug %>" class="article-card">
+                                <img loading="lazy" src="<%=article.thumbnail %>" alt="<%= article.title %>">
+                                <div class="article-card-information">
+                                    <h4>
+                                        <%= article.title %>
+                                    </h4>
+
+                                </div>
+                            </a>
+                        </div>
+                        <% }) %>
                 </div>
 
-          
+
+                <button class="article-slideshow-btn article-prev-btn" data-article-dir="-1">
+                    <img loading="lazy" src="/assets/Imgs/Icons/right-products-arrow.png" alt="Previous">
+                </button>
+                <button class="article-slideshow-btn article-next-btn" data-article-dir="1">
+                    <img loading="lazy" src="/assets/Imgs/Icons/left-products-arrow.png" alt="Next">
+                </button>
+            </div>
 
 
-                <!-- about us  -->
 
-                <section class="about-section">
-                    <h2 style="text-align:center; font-size: 2rem; margin-bottom: 30px;">
-                        <%= t.about %>
-                    </h2>
-                    <div class="about-container">
-                        <div class="about-image" id="about-img">
-                            <img loading="lazy" src="/assets/Imgs/Icons/products/img-vision.png" alt="About Image">
+
+            <!-- about us  -->
+
+            <section class="about-section">
+                <h2 style="text-align:center; font-size: 2rem; margin-bottom: 30px;">
+                    <%= t.about %>
+                </h2>
+                <div class="about-container">
+                    <div class="about-image" id="about-img">
+                        <img loading="lazy" src="/assets/Imgs/Icons/products/img-vision.png" alt="About Image">
+                    </div>
+                    <div class="about-content">
+                        <div class="about-tabs">
+                            <div class="about-tab active" data-tab="vision"
+                                data-icon-default="/assets/Imgs/Icons/products/vision.png"
+                                data-icon-active="/assets/Imgs/Icons/products/vision-active.png">
+                                <img loading="lazy" src="/assets/Imgs/Icons/products/vision-active.png" class="tab-icon"
+                                    alt="<%= t.vision %>">
+                                <%= t.vision %>
+                            </div>
+                            <div class="about-tab" data-tab="mission"
+                                data-icon-default="/assets/Imgs/Icons/products/mission.png"
+                                data-icon-active="/assets/Imgs/Icons/products/mission-active.png">
+                                <img loading="lazy" src="/assets/Imgs/Icons/products/mission.png" class="tab-icon"
+                                    alt=" <%= t.mission %>">
+                                <%= t.mission %>
+                            </div>
+                            <div class="about-tab" data-tab="values"
+                                data-icon-default="/assets/Imgs/Icons/products/values.png"
+                                data-icon-active="/assets/Imgs/Icons/products/values-active.png">
+                                <img loading="lazy" src="/assets/Imgs/Icons/products/values.png" class="tab-icon"
+                                    alt="<%= t.values %>">
+                                <%= t.values %>
+                            </div>
                         </div>
-                        <div class="about-content">
-                            <div class="about-tabs">
-                                <div class="about-tab active" data-tab="vision"
-                                    data-icon-default="/assets/Imgs/Icons/products/vision.png"
-                                    data-icon-active="/assets/Imgs/Icons/products/vision-active.png">
+                        <div class="about-text" id="about-text">
+                            <div class="title-icon">
+                                <div class="tab-icon-bg">
                                     <img loading="lazy" src="/assets/Imgs/Icons/products/vision-active.png"
                                         class="tab-icon" alt="<%= t.vision %>">
-                                    <%= t.vision %>
                                 </div>
-                                <div class="about-tab" data-tab="mission"
-                                    data-icon-default="/assets/Imgs/Icons/products/mission.png"
-                                    data-icon-active="/assets/Imgs/Icons/products/mission-active.png">
-                                    <img loading="lazy" src="/assets/Imgs/Icons/products/mission.png" class="tab-icon"
-                                        alt=" <%= t.mission %>">
-                                    <%= t.mission %>
-                                </div>
-                                <div class="about-tab" data-tab="values"
-                                    data-icon-default="/assets/Imgs/Icons/products/values.png"
-                                    data-icon-active="/assets/Imgs/Icons/products/values-active.png">
-                                    <img loading="lazy" src="/assets/Imgs/Icons/products/values.png" class="tab-icon"
-                                        alt="<%= t.values %>">
-                                    <%= t.values %>
-                                </div>
+                                <h3>
+                                    <%= t.tab1Title %>
+                                </h3>
                             </div>
-                            <div class="about-text" id="about-text">
-                                <div class="title-icon">
-                                    <div class="tab-icon-bg">
-                                        <img loading="lazy" src="/assets/Imgs/Icons/products/vision-active.png"
-                                            class="tab-icon" alt="<%= t.vision %>">
-                                    </div>
-                                    <h3>
-                                        <%= t.tab1Title %>
-                                    </h3>
-                                </div>
 
-                                <h4>
-                                    <%= t.tab1Subtitle %>
-                                </h4>
-                                <p>
-                                    <%- t.tab1Desc %>
-                                </p>
-                            </div>
+                            <h4>
+                                <%= t.tab1Subtitle %>
+                            </h4>
+                            <p>
+                                <%- t.tab1Desc %>
+                            </p>
                         </div>
                     </div>
-                </section>
+                </div>
+            </section>
 
 
 
-                <!-- about us  -->
+            <!-- about us  -->
 
 
 
 
 
 
-                <%- include('../../includes/customer/footer.ejs') %>
-                    <script src="/js/index.js?v=1.0.1"></script>
-<!-- after all HTML and just before </body> -->
-<script nonce="<%= nonce %>">
-  window.tabsData = <%- JSON.stringify({
-    vision: {
-      title: t.tab1Title,
-      subtitle: t.tab1Subtitle,
-      desc: t.tab1Desc.replace(/\n/g, '<br>')
-    },
-    mission: {
-      title: t.tab2Title,
-      subtitle: t.tab2Subtitle,
-      desc: t.tab2Desc.replace(/\n/g, '<br>')
-    },
-    values: {
-      title: t.tab3Title,
-      subtitle: t.tab3Subtitle,
-      desc: t.tab3Desc.replace(/\n/g, '<br>')
-    }
-  }) %>;
-</script>
+            <%- include('../../includes/customer/footer.ejs') %>
+                <script src="/js/index.js?v=1.0.1"></script>
+                <!-- after all HTML and just before </body> -->
+                <script nonce="<%= nonce %>">
+                    window.tabsData = <% - JSON.stringify({
+                        vision: {
+                            title: t.tab1Title,
+                            subtitle: t.tab1Subtitle,
+                            desc: t.tab1Desc.replace(/\n/g, '<br>')
+                        },
+                        mission: {
+                            title: t.tab2Title,
+                            subtitle: t.tab2Subtitle,
+                            desc: t.tab2Desc.replace(/\n/g, '<br>')
+                        },
+                        values: {
+                            title: t.tab3Title,
+                            subtitle: t.tab3Subtitle,
+                            desc: t.tab3Desc.replace(/\n/g, '<br>')
+                        }
+                    }) %>;
+                </script>
 
-<script src="/js/about-us.js" nonce="<%= nonce %>"></script>
+                <script src="/js/about-us.js" nonce="<%= nonce %>"></script>
 
 
-        </body>
-        <%- include('../../includes/customer/script.ejs') %>
-        
+    </body>
+    <%- include('../../includes/customer/script.ejs') %>
 
-            </html>
+
+        </html>

@@ -1,0 +1,60 @@
+<%- include('../../includes/customer/head.ejs') %>
+    <link rel="stylesheet" href="/css/customer/PrivacyPolicy.css">
+    <meta property="og:title" content="<%= pageTitle %> | DragLab">
+    <meta property="og:description" content="<%= metaDescription %>">
+    <meta property="og:url" content="https://www.draglab.com/<%= lang %>/QualityPolicy">
+    <meta name="twitter:card" content="summary">
+    <title>
+        <%= pageTitle %> | DragLab
+    </title>
+    <meta name="description" content="<%= metaDescription %>">
+    <link rel="canonical" href="https://www.draglab.com/<%= lang %>/QualityPolicy">
+    <link rel="alternate" hreflang="en" href="https://www.draglab.com/EN/QualityPolicy">
+    <link rel="alternate" hreflang="es" href="https://www.draglab.com/ES/QualityPolicy">
+    <link rel="alternate" hreflang="de" href="https://www.draglab.com/DE/QualityPolicy">
+    </head>
+
+    <body>
+        <%- include('../../includes/customer/navbar.ejs') %>
+
+            <main>
+                <div class="slide">
+                    <div class="slide-text">
+                        <h1>
+                            <%= pageTitle %>
+                        </h1>
+                        <p><strong>
+                                <%= policyContent[lang].status %>
+                            </strong> </p>
+                    </div>
+                    <img src="/assets/Imgs/Icons/products/contactus-BC.png" alt="Header Image">
+                </div>
+
+                <div class="PrivacyPolicycontainer">
+                    <h1>
+                        <%= pageTitle %>
+                    </h1>
+                    <p><strong>
+                            <%= policyContent[lang].status %>
+                        </strong> </p>
+                    <div class="contact">
+                        <strong>Company Info:</strong><br>
+                        <%- policyContent[lang].contactInfo %>
+                    </div>
+
+                    <% policyContent[lang].sections.forEach(section=> { %>
+                        <div class="section">
+                            <h2>
+                                <%= section.title %>
+                            </h2>
+                            <p><%- section.body %></p>
+                        </div>
+                        <% }); %>
+                </div>
+            </main>
+
+            <%- include('../../includes/customer/footer.ejs') %>
+    </body>
+    <%- include('../../includes/customer/script.ejs') %>
+
+        </html>
