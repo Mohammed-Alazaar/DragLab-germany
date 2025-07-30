@@ -435,7 +435,7 @@ a.scroll-button {
   cursor: pointer;
   font-weight: 600;
   position: absolute;
-  bottom: 50%;
+  bottom: 60%;
   right: 40%;
   font-size: 35px;
   display: none;

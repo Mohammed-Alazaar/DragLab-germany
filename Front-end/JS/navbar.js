@@ -95,6 +95,10 @@ document.addEventListener('DOMContentLoaded', () => {
             '/aboutus': `/${lang}/aboutus`,
             '/Articles': `/${lang}/Articles`,
             '/Contactus': `/${lang}/Contactus`,
+            '/imprint': `/${lang}/imprint`,
+            '/industry': `/${lang}/industry`,
+            '/SustainabilityPolicy': `/${lang}/SustainabilityPolicy`,
+            '/Qualifications': `/${lang}/Qualifications`,
             '/': `/${lang}`
         };
 
