@@ -40,7 +40,7 @@
                 <img src="/assets/Imgs/Icons/products/contactus-BC.png" alt="Warranty Registration">
             </div>
 
-          
+
 
             <section class="warranty-registration-section">
                 <h2>
@@ -59,18 +59,7 @@
 
 
                             <form id="warranty-form" action="/submit-warranty" method="POST">
-                                <div class="checkbox-group">
-                                    <input type="checkbox" name="Dataprocessing" required>
-                                    <label for="Dataprocessing">
-                                        <p>
-                                            <%= t.dataLabel %> &nbsp; <a id="highlighted-word-primary-color"
-                                                    href="/<%= lang %>/PrivacyPolicy">
-                                                    <%= t.privacyPolicy %>
-                                                </a> &nbsp;
-                                                <%= t.dataSuffix %>
-                                        </p>
-                                    </label>
-                                </div>
+
 
                                 <div class="form-row">
                                     <div class="two-form-group">
@@ -151,7 +140,18 @@
                                 </div>
 
                                 <input type="hidden" name="lang" value="<%= lang %>">
-
+                                <div class="checkbox-group">
+                                    <input type="checkbox" name="Dataprocessing" required>
+                                    <label for="Dataprocessing">
+                                        <p>
+                                            <%= t.dataLabel %> &nbsp; <a id="highlighted-word-primary-color"
+                                                    href="/<%= lang %>/PrivacyPolicy">
+                                                    <%= t.privacyPolicy %>
+                                                </a> &nbsp;
+                                                <%= t.dataSuffix %>
+                                        </p>
+                                    </label>
+                                </div>
 
                                 <div class="submit-button">
                                     <button id="submit-btn" type="button">

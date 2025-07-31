@@ -45,6 +45,27 @@ router.get('/:lang/industry/:slug', shopController.getIndustryDetails);
 router.get('/:lang/QualityPolicy', shopController.getQualityPolicy);
 router.get('/:lang/SustainabilityPolicy', shopController.getSustainabilityPolicy);
 router.get('/:lang/Qualifications', shopController.getQualifications);
+const NewsletterSubscriber = require('../models/newsletter');
+
+router.post('/subscribe', async (req, res) => {
+  try {
+    const { email, language } = req.body;
+
+    if (!email) return res.status(400).json({ message: 'Email is required' });
+
+    await NewsletterSubscriber.findOneAndUpdate(
+      { email },
+      { email, language: language || 'EN' },
+      { upsert: true, new: true }
+    );
+
+    return res.status(200).json({ message: 'Subscribed successfully' });
+  } catch (err) {
+    console.error('❌ Newsletter Subscription Error:', err);
+    return res.status(500).json({ message: 'Server error' });
+  }
+});
+
 
 
 router.get('/api/models/:productId', async (req, res) => {

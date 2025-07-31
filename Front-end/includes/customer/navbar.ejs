@@ -21,14 +21,14 @@
                     <ul class="dropdown-menu">
                         <li><a href="/aboutus">&#8226; <%= lang==='DE' ? 'Über Uns' : lang==='ES' ? 'Sobre Nosotros'
                                     : 'About Us' %></a></li>
-                        <li><a href="/QualityPolicy">&#8226; <%= lang==='DE' ? 'Qualitätspolitik' : lang==='ES'
-                                    ? 'Política de Calidad' : 'Quality Policy' %></a></li>
-                        <li><a href="/SustainabilityPolicy">&#8226; <%= lang==='DE' ? 'Nachhaltigkeit' : lang==='ES'
-                                    ? 'Sostenibilidad' : 'Sustainability' %></a></li>
-                        <li><a href="/Qualifications">&#8226; <%= lang==='DE' ? 'Qualifikationen' : lang==='ES'
-                                    ? 'Calificaciones' : 'Qualifications' %></a></li>
-                        <li><a href="/PrivacyPolicy">&#8226; <%= lang==='DE' ? 'Datenschutzerklärung' : lang==='ES'
-                                    ? 'Política de Privacidad' : 'Privacy Policy' %></a></li>
+                        <li><a href="/<%= lang %>/QualityPolicy">&#8226; <%= lang==='DE' ? 'Qualitätspolitik' :
+                                    lang==='ES' ? 'Política de Calidad' : 'Quality Policy' %></a></li>
+                        <li><a href="/<%= lang %>/SustainabilityPolicy">&#8226; <%= lang==='DE' ? 'Nachhaltigkeit' :
+                                    lang==='ES' ? 'Sostenibilidad' : 'Sustainability' %></a></li>
+                        <li><a href="/<%= lang %>/Qualifications">&#8226; <%= lang==='DE' ? 'Qualifikationen' :
+                                    lang==='ES' ? 'Calificaciones' : 'Qualifications' %></a></li>
+                        <li><a href="/<%= lang %>/PrivacyPolicy">&#8226; <%= lang==='DE' ? 'Datenschutzerklärung' :
+                                    lang==='ES' ? 'Política de Privacidad' : 'Privacy Policy' %></a></li>
 
                         <!-- <li><a href="/imprint">&#8226; <%= lang==='DE' ? 'Impressum' : lang==='ES'
                                     ? 'Impreso' : 'Imprint' %></a></li> -->
@@ -126,6 +126,10 @@
                     <ul class="dropdown-menu">
                         <li><a href="/<%= lang %>/support">&#8226; <%= lang==='DE' ? 'Support' : lang==='ES' ? 'Soporte'
                                     : 'Support' %></a></li>
+                        <li><a href="/<%= lang %>/Downloads">&#8226; <%= lang==='DE' ? 'Downloads' : lang==='ES'
+                                    ? 'Descargas' : 'Downloads' %></a></li>
+                        <li><a href="/industry">&#8226; <%= lang==='DE' ? 'Branche & Anwendungen' : lang==='ES'
+                                    ? 'Industria & Aplicaciones' : 'Industries & Applications' %></a></li>
                         <li><a href="/<%= lang %>/technical-service">&#8226; <%= lang==='DE' ? 'Technischer Service' :
                                     lang==='ES' ? 'Servicio Técnico' : 'Technical Services' %></a></li>
                         <li><a href="/<%= lang %>/WarrantyRegistration">&#8226; <%= lang==='DE'
@@ -133,10 +137,8 @@
                                     : 'Warranty Registration' %></a></li>
                         <li><a href="/TermCondition">&#8226; <%= lang==='DE' ? 'AGB' : lang==='ES'
                                     ? 'Términos y Condiciones' : 'Terms & Condition' %></a></li>
-                        <li><a href="/industry">&#8226; <%= lang==='DE' ? 'Branche' : lang==='ES'
-                                    ? 'Industria' : 'Industry' %></a></li>
-                        <li><a href="/<%= lang %>/Downloads">&#8226; <%= lang==='DE' ? 'Downloads' : lang==='ES'
-                                    ? 'Descargas' : 'Downloads' %></a></li>
+
+
                     </ul>
 
                 </li>
@@ -226,8 +228,8 @@
                     <img src="/assets/Imgs/Icons/Down-arrow-blue.png" alt="">
             </li>
             <li data-goto-page="supportPage">
-                <%= lang==='DE' ? 'Support' : lang==='ES' ? 'Soporte' : 'Support' %>
-                    <img src="/assets/Imgs/Icons/Down-arrow-blue.png" alt="">
+                <%= lang==='DE' ? 'Dienstleistungen' : lang==='ES' ? 'Servicios' : 'Services' %></span> <img
+                        src="/assets/Imgs/Icons/Down-arrow-blue.png" alt="">
             </li>
             <li><a href="/<%= lang %>/Articles">
                     <%= lang==='DE' ? 'Artikel' : lang==='ES' ? 'Artículos' : 'Articles' %>
@@ -261,6 +263,15 @@
                 </a></li>
             <li><a href="/<%= lang %>/TermCondition">
                     <%= lang==='DE' ? 'AGB' : lang==='ES' ? 'Términos y Condiciones' : 'Terms & Condition' %>
+                </a></li>
+            <li><a href="/<%= lang %>/QualityPolicy">
+                    <%= lang==='DE' ? 'Qualitätspolitik' : lang==='ES' ? 'Política de Calidad' : 'Quality Policy' %>
+                </a></li>
+            <li><a href="/<%= lang %>/SustainabilityPolicy">
+                    <%= lang==='DE' ? 'Nachhaltigkeit' : lang==='ES' ? 'Sostenibilidad' : 'Sustainability' %>
+                </a></li>
+            <li><a href="/<%= lang %>/Qualifications">
+                    <%= lang==='DE' ? 'Qualifikationen' : lang==='ES' ? 'Calificaciones' : 'Qualifications' %>
                 </a></li>
             <li><a href="/<%= lang %>/PrivacyPolicy">
                     <%= lang==='DE' ? 'Datenschutzerklärung' : lang==='ES' ? 'Política de Privacidad' : 'Privacy Policy'
@@ -347,12 +358,21 @@
             <div class="menu-page" id="supportPage">
                 <div class="top-bar">
                     <span class="back" data-go-back-parent><img src="/assets/Imgs/Icons/backarrow.png" alt=""></span>
-                    <span class="page-title">Support</span>
+                    <span class="page-title">
+                        <%= lang==='DE' ? 'Dienstleistungen' : lang==='ES' ? 'Servicios' : 'Services' %>
+                    </span>
                     <span class="close-menu">&#10005;</span>
                 </div>
                 <ul>
                     <li><a href="/<%= lang %>/support">
                             <%= lang==='DE' ? 'Support' : lang==='ES' ? 'Soporte' : 'Support' %>
+                        </a></li>
+                    <li><a href="/<%= lang %>/Downloads">
+                            <%= lang==='DE' ? 'Downloads' : lang==='ES' ? 'Descargas' : 'Downloads' %>
+                        </a></li>
+                    <li><a href="/industry">
+                            <%= lang==='DE' ? 'Branche & Anwendungen' : lang==='ES' ? 'Industria & Aplicaciones'
+                                : 'Industries & Applications' %>
                         </a></li>
                     <li><a href="/<%= lang %>/technical-service">
                             <%= lang==='DE' ? 'Technischer Service' : lang==='ES' ? 'Servicio Técnico'
@@ -362,9 +382,11 @@
                             <%= lang==='DE' ? 'Garantieregistrierung' : lang==='ES' ? 'Registro de Garantía'
                                 : 'Warranty Registration' %>
                         </a></li>
-                    <li><a href="/<%= lang %>/Downloads">
-                            <%= lang==='DE' ? 'Downloads' : lang==='ES' ? 'Descargas' : 'Downloads' %>
+                    <li><a href="/TermCondition">
+                            <%= lang==='DE' ? 'AGB' : lang==='ES' ? 'Términos y Condiciones' : 'Terms & Condition' %>
                         </a></li>
+
+
 
                 </ul>
             </div>

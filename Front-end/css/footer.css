@@ -1,7 +1,7 @@
 .footer {
     background-color: #f6f7ff;
-    padding: 40px 20px 20px;
-    margin: 20px 0 0 0;
+    padding: 0px 10px 20px 10px;
+    margin: 0 0 0 0;
     color: #000;
 }
 
@@ -59,7 +59,7 @@
     text-decoration: none;
     font-size: 17px;
     line-height: 150%;
-    
+
 }
 
 .footer-column ul li a:hover {
@@ -74,8 +74,7 @@
 }
 
 .footer-legal,
-.footer-legal2
- {
+.footer-legal2 {
     margin-bottom: 10px;
     font-size: 14px;
 }
@@ -88,6 +87,7 @@
 .footer-legal a:hover {
     text-decoration: underline;
 }
+
 .footer-legal2 a:hover {
     text-decoration: underline;
 }
@@ -136,8 +136,63 @@
 .contactusFooter a:hover {
     color: var(--primary-Color);
 }
+
 .highlighted {
     color: var(--primary-Color);
     font-weight: bold;
 }
 
+
+.newsletter-banner {
+    background: linear-gradient(90deg, #2c3e94, #0d143e);
+    padding: 30px 40px;
+    color: white;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    width: 100%;
+    margin: 0 0 20px 0;
+}
+
+.newsletter-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.newsletter-content h2 {
+    font-size: 1.6rem;
+    font-weight: 600;
+    margin: 0;
+    flex: 1;
+}
+
+.newsletter-form {
+    display: flex;
+    gap: 10px;
+    flex-shrink: 0;
+    gap: 20px;
+}
+
+.newsletter-form input[type="email"] {
+    padding: 12px 15px;
+    font-size: 1rem;
+    border: none;
+    border-radius: 3px;
+    width: 250px;
+}
+
+.newsletter-form button {
+    padding: 12px 20px;
+    background-color: white;
+    color: #2c3e94;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: background 0.3s ease;
+}
+
+.newsletter-form button:hover {
+    background-color: #f0f0f0;
+}

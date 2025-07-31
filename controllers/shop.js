@@ -626,7 +626,7 @@ exports.geTechnicalservice = (req, res, next) => {
             aDEeeLabel: "I aDEee to the processing of my personal data in accordance with the Privacy Policy for the purpose of handling my technical support request.*",
             infoLabel: "Information info:",
             company: "Company",
-            private: "Private Citizen",
+            private: "Personal",
             salutationLabel: "Salutation:",
             mrs: "Mrs/Ms",
             mr: "Mr",

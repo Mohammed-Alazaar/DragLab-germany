@@ -1,56 +1,121 @@
 <footer class="footer">
+
+    <div class="newsletter-banner">
+        <div class="newsletter-content">
+            <h2>Join our newsletter to stay up to date on new releases</h2>
+
+        </div>
+        <div class="newsletter-form">
+            <form id="newsletterForm">
+                <input type="email" name="email" id="newsletterEmail" placeholder="Enter Your Email" required />
+                <input type="hidden" name="language" id="newsletterLang" value="<%= lang %>" />
+                <button type="submit">Submit</button>
+            </form>
+
+            <p id="newsletterMessage" style="margin-top: 10px;"></p>
+
+
+        </div>
+    </div>
+    <!-- <div class="footer-newsletter">
+        <div class="footer-newsletter-text">
+            <p>Join our newsletter to stay up to date on new releases</p>
+        </div>
+        <div class="footer-newsletter-input">
+            <input type="search" placeholder="Enter your email address">    
+            <button><%= lang === 'DE' ? 'Abonnieren' : lang === 'ES' ? 'Suscribirse' : 'Subscribe' %></button>
+        </div>
+    </div> -->
     <div class="footer-container">
         <div class="footer-left">
             <img src="/assets/Imgs/logo/DragLab-Logo.png" alt="DragLab Logo" class="footer-logo">
             <p>
-                <%= lang === 'DE' 
-                    ? 'DragLab ist ein Hersteller und globaler Anbieter von allgemeiner Laborausrüstung für Forschungseinrichtungen, industrielle Labore und Gesundheitseinrichtungen. Unsere Produkte sind darauf ausgelegt, Laborexperten mit Präzision und Zuverlässigkeit zu unterstützen.' 
-                    : lang === 'ES' 
-                    ? 'DragLab es un fabricante y proveedor global de equipos de laboratorio general para instituciones de investigación, laboratorios industriales y centros de atención médica. Nuestros productos están diseñados para respaldar a los profesionales de laboratorio con precisión y fiabilidad.' 
-                    : 'DragLab is a manufacturer and global supplier of general laboratory equipment for research institutions, industrial laboratories, and healthcare facilities. Our products are designed to support laboratory professionals with precision and reliability.' 
-                %>
+                <%= lang==='DE'
+                    ? 'DragLab ist ein Hersteller und globaler Anbieter von allgemeiner Laborausrüstung für Forschungseinrichtungen, industrielle Labore und Gesundheitseinrichtungen. Unsere Produkte sind darauf ausgelegt, Laborexperten mit Präzision und Zuverlässigkeit zu unterstützen.'
+                    : lang==='ES'
+                    ? 'DragLab es un fabricante y proveedor global de equipos de laboratorio general para instituciones de investigación, laboratorios industriales y centros de atención médica. Nuestros productos están diseñados para respaldar a los profesionales de laboratorio con precisión y fiabilidad.'
+                    : 'DragLab is a manufacturer and global supplier of general laboratory equipment for research institutions, industrial laboratories, and healthcare facilities. Our products are designed to support laboratory professionals with precision and reliability.'
+                    %>
             </p>
         </div>
 
         <div class="footer-links">
             <div class="footer-column">
-                <h4><%= lang === 'DE' ? 'Neuigkeiten & Veranstaltungen' : lang === 'ES' ? 'Noticias y Eventos' : 'News & Events' %></h4>
+                <h4>
+                    <%= lang==='DE' ? 'Neuigkeiten & Veranstaltungen' : lang==='ES' ? 'Noticias y Eventos'
+                        : 'News & Events' %>
+                </h4>
                 <ul>
-                    <li><a href="/<%= lang %>/Articles"><%= lang === 'DE' ? 'Neuigkeiten' : lang === 'ES' ? 'Noticias' : 'News' %></a></li>
-                    <li><a href="/<%= lang %>/Articles"><%= lang === 'DE' ? 'Artikel' : lang === 'ES' ? 'Artículos' : 'Articles' %></a></li>
-                    <li><a href="/<%= lang %>/Articles"><%= lang === 'DE' ? 'Veranstaltungen' : lang === 'ES' ? 'Eventos' : 'Events' %></a></li>
+                    <li><a href="/<%= lang %>/Articles">
+                            <%= lang==='DE' ? 'Neuigkeiten' : lang==='ES' ? 'Noticias' : 'News' %>
+                        </a></li>
+                    <li><a href="/<%= lang %>/Articles">
+                            <%= lang==='DE' ? 'Artikel' : lang==='ES' ? 'Artículos' : 'Articles' %>
+                        </a></li>
+                    <li><a href="/<%= lang %>/Articles">
+                            <%= lang==='DE' ? 'Veranstaltungen' : lang==='ES' ? 'Eventos' : 'Events' %>
+                        </a></li>
                 </ul>
             </div>
 
             <div class="footer-column">
-                <h4><%= lang === 'DE' ? 'Über Uns' : lang === 'ES' ? 'Sobre Nosotros' : 'About Us' %></h4>
+                <h4>
+                    <%= lang==='DE' ? 'Über Uns' : lang==='ES' ? 'Sobre Nosotros' : 'About Us' %>
+                </h4>
                 <ul>
-                    <li><a href="/<%= lang %>/quality-policy"><%= lang === 'DE' ? 'Qualitätspolitik' : lang === 'ES' ? 'Política de Calidad' : 'Quality Policy' %></a></li>
-                    <li><a href="/<%= lang %>/Downloads"><%= lang === 'DE' ? 'Zertifikate' : lang === 'ES' ? 'Certificados' : 'Certificates' %></a></li>
-                    <li><a href="/<%= lang %>/aboutus"><%= lang === 'DE' ? 'Über Uns' : lang === 'ES' ? 'Sobre Nosotros' : 'About Us' %></a></li>
+                    <li><a href="/<%= lang %>/quality-policy">
+                            <%= lang==='DE' ? 'Qualitätspolitik' : lang==='ES' ? 'Política de Calidad'
+                                : 'Quality Policy' %>
+                        </a></li>
+                    <li><a href="/<%= lang %>/Downloads">
+                            <%= lang==='DE' ? 'Zertifikate' : lang==='ES' ? 'Certificados' : 'Certificates' %>
+                        </a></li>
+                    <li><a href="/<%= lang %>/aboutus">
+                            <%= lang==='DE' ? 'Über Uns' : lang==='ES' ? 'Sobre Nosotros' : 'About Us' %>
+                        </a></li>
                 </ul>
             </div>
 
             <div class="footer-column">
-                <h4><%= lang === 'DE' ? 'Support' : lang === 'ES' ? 'Soporte' : 'Support' %></h4>
+                <h4>
+                    <%= lang==='DE' ? 'Support' : lang==='ES' ? 'Soporte' : 'Support' %>
+                </h4>
                 <ul>
-                    <li><a href="/<%= lang %>/technical-service"><%= lang === 'DE' ? 'Technischer Service' : lang === 'ES' ? 'Servicio Técnico' : 'Technical Service' %></a></li>
-                    <li><a href="/<%= lang %>/Contactus"><%= lang === 'DE' ? 'Kontakt' : lang === 'ES' ? 'Contáctanos' : 'Contact Us' %></a></li>
-                    <li><a href="/<%= lang %>/Downloads"><%= lang === 'DE' ? 'Download-Center' : lang === 'ES' ? 'Centro de Descargas' : 'Download Center' %></a></li>
+                    <li><a href="/<%= lang %>/technical-service">
+                            <%= lang==='DE' ? 'Technischer Service' : lang==='ES' ? 'Servicio Técnico'
+                                : 'Technical Service' %>
+                        </a></li>
+                    <li><a href="/<%= lang %>/Contactus">
+                            <%= lang==='DE' ? 'Kontakt' : lang==='ES' ? 'Contáctanos' : 'Contact Us' %>
+                        </a></li>
+                    <li><a href="/<%= lang %>/Downloads">
+                            <%= lang==='DE' ? 'Download-Center' : lang==='ES' ? 'Centro de Descargas'
+                                : 'Download Center' %>
+                        </a></li>
                 </ul>
             </div>
 
             <div class="footer-column contactusFooter">
-                <h4><%= lang === 'DE' ? 'Kontakt' : lang === 'ES' ? 'Contáctanos' : 'Contact Us' %></h4>
+                <h4>
+                    <%= lang==='DE' ? 'Kontakt' : lang==='ES' ? 'Contáctanos' : 'Contact Us' %>
+                </h4>
                 <ul>
-                    <li><span class="highlighted"><%= lang === 'DE' ? 'Adresse:' : lang === 'ES' ? 'Dirección:' : 'Address:' %></span> 
+                    <li><span class="highlighted">
+                            <%= lang==='DE' ? 'Adresse:' : lang==='ES' ? 'Dirección:' : 'Address:' %>
+                        </span>
                         <a href="https://maps.app.goo.gl/AEP5y3Gwv7ejRwa48" target="_blank">
                             Alfred-Herrhausen-Allee<br>3-5 D-65760 Eschborn Germany
                         </a>
                     </li>
-                    <li><span class="highlighted"><%= lang === 'DE' ? 'Telefon:' : lang === 'ES' ? 'Teléfono:' : 'Phone :' %></span> +49 6196 400816</li>
-                    <li><span class="highlighted"><%= lang === 'DE' ? 'Fax:' : lang === 'ES' ? 'Fax:' : 'Fax :' %></span> +49 6196 400910</li>
-                    <li><span class="highlighted"><%= lang === 'DE' ? 'E-Mail:' : lang === 'ES' ? 'Correo electrónico:' : 'Email:' %></span> 
+                    <li><span class="highlighted">
+                            <%= lang==='DE' ? 'Telefon:' : lang==='ES' ? 'Teléfono:' : 'Phone :' %>
+                        </span> +49 6196 400816</li>
+                    <li><span class="highlighted">
+                            <%= lang==='DE' ? 'Fax:' : lang==='ES' ? 'Fax:' : 'Fax :' %>
+                        </span> +49 6196 400910</li>
+                    <li><span class="highlighted">
+                            <%= lang==='DE' ? 'E-Mail:' : lang==='ES' ? 'Correo electrónico:' : 'Email:' %>
+                        </span>
                         <a href="mailto:info@drag-lab.de">info@drag-lab.de</a>
                     </li>
                 </ul>
@@ -60,27 +125,41 @@
 
     <div class="footer-bottom">
         <div class="footer-legal">
-            <a href="/<%= lang %>/PrivacyPolicy"><%= lang === 'DE' ? 'Datenschutzerklärung' : lang === 'ES' ? 'Política de Privacidad' : 'Privacy Policy' %></a>
-            | <a href="#" id="open_preferences_center"><%= lang === 'DE' ? 'Cookie-Einstellungen aktualisieren' : lang === 'ES' ? 'Actualizar preferencias de cookies' : 'Update cookies preferences' %></a>
-            | <a href="/<%= lang %>/TermCondition"><%= lang === 'DE' ? 'Allgemeine Geschäftsbedingungen' : lang === 'ES' ? 'Términos y Condiciones' : 'Terms & Conditions' %></a>
+            <a href="/<%= lang %>/PrivacyPolicy">
+                <%= lang==='DE' ? 'Datenschutzerklärung' : lang==='ES' ? 'Política de Privacidad' : 'Privacy Policy' %>
+            </a>
+            | <a href="#" id="open_preferences_center">
+                <%= lang==='DE' ? 'Cookie-Einstellungen aktualisieren' : lang==='ES'
+                    ? 'Actualizar preferencias de cookies' : 'Update cookies preferences' %>
+            </a>
+            | <a href="/<%= lang %>/TermCondition">
+                <%= lang==='DE' ? 'Allgemeine Geschäftsbedingungen' : lang==='ES' ? 'Términos y Condiciones'
+                    : 'Terms & Conditions' %>
+            </a>
         </div>
         <div class="footer-legal2">
-            <a href="/<%= lang %>/CodeofEthics"><%= lang === 'DE' ? 'Verhaltenskodex' : lang === 'ES' ? 'Código de Ética' : 'Code of Ethics' %></a>
-            | <a href="/<%= lang %>/imprint"><%= lang === 'DE' ? 'Impressum' : lang === 'ES' ? 'Aviso Legal' : 'Imprint' %></a>
-            | <a href="/<%= lang %>/DataProtection"><%= lang === 'DE' ? 'Datenschutz' : lang === 'ES' ? 'Protección de Datos' : 'Data Protection' %></a>
+            <a href="/<%= lang %>/CodeofEthics">
+                <%= lang==='DE' ? 'Verhaltenskodex' : lang==='ES' ? 'Código de Ética' : 'Code of Ethics' %>
+            </a>
+            | <a href="/<%= lang %>/imprint">
+                <%= lang==='DE' ? 'Impressum' : lang==='ES' ? 'Aviso Legal' : 'Imprint' %>
+            </a>
+            | <a href="/<%= lang %>/DataProtection">
+                <%= lang==='DE' ? 'Datenschutz' : lang==='ES' ? 'Protección de Datos' : 'Data Protection' %>
+            </a>
         </div>
         <div class="footer-social">
-            <a href="https://www.linkedin.com/in/ra%C3%9Fan-h-bosch-a014b8183/"><img src="/assets/Imgs/Icons/products/LinkedIn.png" alt="LinkedIn"></a>
-            <a href="https://www.facebook.com/draglabde/"><img src="/assets/Imgs/Icons/products/facebook.png" alt="Facebook"></a>
-            <a href="https://www.youtube.com/channel/UC5TffQfcaIONbKBBxKpyxag"><img src="/assets/Imgs/Icons/products/youtube.png" alt="YouTube"></a>
+            <a href="https://www.linkedin.com/in/ra%C3%9Fan-h-bosch-a014b8183/"><img
+                    src="/assets/Imgs/Icons/products/LinkedIn.png" alt="LinkedIn"></a>
+            <a href="https://www.facebook.com/draglabde/"><img src="/assets/Imgs/Icons/products/facebook.png"
+                    alt="Facebook"></a>
+            <a href="https://www.youtube.com/channel/UC5TffQfcaIONbKBBxKpyxag"><img
+                    src="/assets/Imgs/Icons/products/youtube.png" alt="YouTube"></a>
         </div>
         <div class="footer-copy">
-            <%= lang === 'DE' 
-                ? '© Copyright DragLab. Alle Rechte vorbehalten.' 
-                : lang === 'ES' 
-                ? '© Copyright DragLab. Todos los derechos reservados.' 
-                : '© Copyright DragLab. All Rights Reserved' 
-            %>
+            <%= lang==='DE' ? '© Copyright DragLab. Alle Rechte vorbehalten.' : lang==='ES'
+                ? '© Copyright DragLab. Todos los derechos reservados.' : '© Copyright DragLab. All Rights Reserved' %>
         </div>
     </div>
 </footer>
+<script src="/js/footer.js" defer nonce="<%= nonce %>"></script>

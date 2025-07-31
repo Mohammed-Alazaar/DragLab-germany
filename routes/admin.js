@@ -149,4 +149,10 @@ router.get('/industry-pages', isAuth, isAdminOrSeller, adminController.getMyIndu
 router.post('/delete-industry', isAuth, isAdminOrSeller, adminController.postDeleteIndustry);
 
 
+
+router.get('/newsletter', isAuth, isAdminOrSeller, adminController.getNewsletterList);
+router.post('/newsletter/export/all', adminController.exportAllSubscribers);
+router.post('/newsletter/export/new', adminController.exportNewSubscribers);
+
+
 module.exports = router;

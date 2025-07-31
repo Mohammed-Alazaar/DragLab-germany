@@ -1,0 +1,65 @@
+<%- include('../../includes/sellercompany/head.ejs') %>
+
+    <link rel="stylesheet" href="/css/sellercompany/NewsletterSubscribers.css">
+    <%- include('../../includes/sellercompany/head-end.ejs') %>
+
+        <body>
+            <!-- nav-bar -->
+            <%- include('../../includes/sellercompany/navbar-dash.ejs') %>
+                <!-- nav-bar -->
+
+                <section class="sidebar-content-container">
+                    <section class="sidebar-container">
+                        <%- include('../../includes/sellercompany/sidebar.ejs') %>
+                    </section>
+
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Email</th>
+                                <th>Language</th>
+                                <th>Subscribed At</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% subscribers.forEach(sub=> { %>
+                                <tr>
+                                    <td>
+                                        <%= sub.email %>
+                                    </td>
+                                    <td>
+                                        <%= sub.language %>
+                                    </td>
+                                    <td>
+                                        <%= sub.subscribedAt.toLocaleString() %>
+                                    </td>
+                                    <td>
+                                        <%= sub.isExtracted ? '✅ Done' : '🕓 Pending' %>
+                                    </td>
+                                </tr>
+                                <% }) %>
+                        </tbody>
+                    </table>
+
+                    <form method="POST" action="/admin/newsletter/export/all">
+                        <button type="submit">📁 Export All</button>
+                    </form>
+
+                    <form method="POST" action="/admin/newsletter/export/new">
+                        <button type="submit">📁 Export New</button>
+                    </form>
+
+
+                </section>
+
+
+
+
+
+                <script src="/js/my-products.js" defer nonce="<%= nonce %>"></script>
+
+        </body>
+
+        </html>

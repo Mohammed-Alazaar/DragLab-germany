@@ -7,6 +7,7 @@ const WarrantyRegistration = require('../models/warrantyRegistration');
 const ContactUs = require('../models/contactUs');
 const Article = require('../models/articles');
 const IndustryPage = require('../models/IndustryPage');
+const NewsletterSubscriber  = require('../models/newsletter.js');
 const PDFDocument = require('pdfkit');
 const cloudinary = require('../util/cloudinaryConfig'); // ✅ Import Cloudinary
 const sanitize = require('sanitize-filename');
@@ -2385,3 +2386,49 @@ exports.postDeleteIndustry = async (req, res) => {
     res.status(500).redirect('/admin/industry-pages');
   }
 };
+
+
+
+exports.getNewsletterList = async (req, res) => {
+  const subscribers = await NewsletterSubscriber.find().sort({ subscribedAt: -1 });
+  res.render('sellercompany/newsletter-list', {
+    pageTitle: 'Newsletter Subscribers',
+    path: '/admin/newsletter',
+    subscribers
+  });
+};
+
+
+const ExcelJS = require('exceljs');
+
+async function exportSubscribers(res, filter, markExtracted = false) {
+  const subscribers = await NewsletterSubscriber.find(filter);
+  const workbook = new ExcelJS.Workbook();
+  const sheet = workbook.addWorksheet('Subscribers');
+
+  sheet.columns = [
+    { header: 'Email', key: 'email', width: 30 },
+    { header: 'Language', key: 'language', width: 10 },
+    { header: 'Subscribed At', key: 'subscribedAt', width: 25 }
+  ];
+
+  subscribers.forEach(sub => {
+    sheet.addRow({
+      email: sub.email,
+      language: sub.language,
+      subscribedAt: sub.subscribedAt.toLocaleString()
+    });
+  });
+
+  if (markExtracted) {
+    await NewsletterSubscriber.updateMany(filter, { isExtracted: true });
+  }
+
+  res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  res.setHeader('Content-Disposition', 'attachment; filename=newsletter.xlsx');
+  await workbook.xlsx.write(res);
+  res.end();
+}
+
+exports.exportAllSubscribers = (req, res) => exportSubscribers(res, {});
+exports.exportNewSubscribers = (req, res) => exportSubscribers(res, { isExtracted: false }, true);

@@ -69,19 +69,7 @@
                                         <%= translations.userSectionTitle %>
                                     </h3>
 
-                                    <div class="checkbox-group">
-                                        <input type="checkbox" id="privacyPolicy" name="privacyPolicy" required>
-                                        <label for="privacyPolicy">
-                                            <p>
-                                                <%= translations.dataLabel %> &nbsp; <a
-                                                        id="highlighted-word-primary-color"
-                                                        href="/<%= lang %>/PrivacyPolicy">
-                                                        <%= translations.privacyPolicy %>
-                                                    </a> &nbsp;
-                                                    <%= translations.dataSuffix %>
-                                            </p>
-                                        </label>
-                                    </div>
+
 
                                     <div class="checkbox-group">
                                         <p>
@@ -265,7 +253,18 @@
                                     </div>
                                 </div>
 
-
+                                <div class="checkbox-group">
+                                    <input type="checkbox" id="privacyPolicy" name="privacyPolicy" required>
+                                    <label for="privacyPolicy">
+                                        <p>
+                                            <%= translations.dataLabel %> &nbsp; <a id="highlighted-word-primary-color"
+                                                    href="/<%= lang %>/PrivacyPolicy">
+                                                    <%= translations.privacyPolicy %>
+                                                </a> &nbsp;
+                                                <%= translations.dataSuffix %>
+                                        </p>
+                                    </label>
+                                </div>
 
                                 <!-- Submit Button -->
 
