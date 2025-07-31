@@ -7,7 +7,7 @@ const WarrantyRegistration = require('../models/warrantyRegistration');
 const ContactUs = require('../models/contactUs');
 const Article = require('../models/articles');
 const IndustryPage = require('../models/IndustryPage');
-const NewsletterSubscriber  = require('../models/newsletter.js');
+const NewsletterSubscriber = require('../models/newsletter.js');
 const PDFDocument = require('pdfkit');
 const cloudinary = require('../util/cloudinaryConfig'); // ✅ Import Cloudinary
 const sanitize = require('sanitize-filename');
@@ -2310,9 +2310,9 @@ exports.postEditIndustryPage = async (req, res) => {
             introImage: introImage || industry.sharedImages.introImage
           },
           Language: languageData,
-          frequentlyUsedProducts 
+          frequentlyUsedProducts
         },
-         allProducts, 
+        allProducts,
         isAuthenticated: req.session.isLoggedIn
       });
     }
@@ -2409,14 +2409,20 @@ async function exportSubscribers(res, filter, markExtracted = false) {
   sheet.columns = [
     { header: 'Email', key: 'email', width: 30 },
     { header: 'Language', key: 'language', width: 10 },
-    { header: 'Subscribed At', key: 'subscribedAt', width: 25 }
+    { header: 'Subscribed At', key: 'subscribedAt', width: 25 },
+    { header: 'IP Address', key: 'ipAddress', width: 20 },
+    { header: 'Country', key: 'country', width: 15 },
+    { header: 'City', key: 'city', width: 15 }
   ];
 
   subscribers.forEach(sub => {
     sheet.addRow({
       email: sub.email,
       language: sub.language,
-      subscribedAt: sub.subscribedAt.toLocaleString()
+      subscribedAt: sub.subscribedAt.toLocaleString(),
+      ipAddress: sub.ipAddress || '-',
+      country: sub.geoLocation?.country || '-',
+      city: sub.geoLocation?.city || '-'
     });
   });
 

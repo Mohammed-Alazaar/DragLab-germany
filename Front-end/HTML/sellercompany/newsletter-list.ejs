@@ -21,6 +21,9 @@
                                 <th>Language</th>
                                 <th>Subscribed At</th>
                                 <th>Status</th>
+                                <th>IP</th>
+                                <th>Country</th>
+                                <th>City</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -38,6 +41,16 @@
                                     <td>
                                         <%= sub.isExtracted ? '✅ Done' : '🕓 Pending' %>
                                     </td>
+                                    <td>
+                                        <%= sub.ipAddress || '-' %>
+                                    </td>
+                                    <td>
+                                        <%= sub.geoLocation?.country || '-' %>
+                                    </td>
+                                    <td>
+                                        <%= sub.geoLocation?.city || '-' %>
+                                    </td>
+
                                 </tr>
                                 <% }) %>
                         </tbody>

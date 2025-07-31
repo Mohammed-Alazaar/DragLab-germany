@@ -47,15 +47,30 @@ router.get('/:lang/SustainabilityPolicy', shopController.getSustainabilityPolicy
 router.get('/:lang/Qualifications', shopController.getQualifications);
 const NewsletterSubscriber = require('../models/newsletter');
 
+const geoip = require('geoip-lite');
+
 router.post('/subscribe', async (req, res) => {
   try {
     const { email, language } = req.body;
 
-    if (!email) return res.status(400).json({ message: 'Email is required' });
+    const ip =
+      req.headers['x-forwarded-for']?.split(',')[0] || req.connection.remoteAddress;
+
+    const geo = geoip.lookup(ip); // e.g., { country: 'US', region: 'CA', city: 'San Francisco', ... }
 
     await NewsletterSubscriber.findOneAndUpdate(
       { email },
-      { email, language: language || 'EN' },
+      {
+        email,
+        language: language || 'EN',
+        ipAddress: ip,
+        geoLocation: {
+          country: geo?.country || null,
+          region: geo?.region || null,
+          city: geo?.city || null,
+          isp: geo?.org || null
+        }
+      },
       { upsert: true, new: true }
     );
 
@@ -65,6 +80,7 @@ router.post('/subscribe', async (req, res) => {
     return res.status(500).json({ message: 'Server error' });
   }
 });
+
 
 
 
