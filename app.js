@@ -47,7 +47,7 @@ app.use((req, res, next) => {
     script-src 'self' 'nonce-${nonce}' 'unsafe-inline' https://cdn.jsdelivr.net https://cdn.tiny.cloud https://www.termsfeed.com https://embed.tawk.to https://va.tawk.to https://client.tawk.to https://api.tawk.to https://www.googletagmanager.com https://www.google-analytics.com https://www.google.com https://www.gstatic.com https://www.clarity.ms https://h.clarity.ms https://c.clarity.ms https://k.clarity.ms https://n.clarity.ms https://www.googleadservices.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://*.doubleclick.net;
     style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com https://cdn.tiny.cloud https://embed.tawk.to https://va.tawk.to https://client.tawk.to;
     img-src 'self' data: blob: https://s3.amazonaws.com https://cdn.draglab.com https://res.cloudinary.com https://cdn.jsdelivr.net https://*.googleusercontent.com https://sp.tinymce.com https://embed.tawk.to https://va.tawk.to https://client.tawk.to https://api.tawk.to https://www.google-analytics.com https://www.googleadservices.com https://www.googletagmanager.com https://www.google.com https://www.google.com.tr https://c.clarity.ms https://k.clarity.ms https://n.clarity.ms https://h.clarity.ms https://c.bing.com https://td.doubleclick.net https://www.gstatic.com https://pagead2.googlesyndication.com https://*.doubleclick.net;
-    connect-src 'self' https://www.clarity.ms https://j.clarity.ms https://v.clarity.ms https://cdn.tiny.cloud https://embed.tawk.to https://va.tawk.to https://client.tawk.to https://api.tawk.to https://*.tawk.to wss://embed.tawk.to wss://va.tawk.to wss://client.tawk.to wss://*.tawk.to https://www.google-analytics.com https://www.googleadservices.com https://www.googletagmanager.com https://www.google.com https://google.com https://google.com/pagead/ https://googleads.g.doubleclick.net https://pagead2.googlesyndication.com https://*.doubleclick.net https://www.google.com.tr https://c.clarity.ms https://n.clarity.ms https://k.clarity.ms https://h.clarity.ms https://c.bing.com;
+    connect-src 'self' https://www.clarity.ms https://j.clarity.ms https://v.clarity.ms https://b.clarity.ms https://cdn.tiny.cloud https://embed.tawk.to https://va.tawk.to https://client.tawk.to https://api.tawk.to https://*.tawk.to wss://embed.tawk.to wss://va.tawk.to wss://client.tawk.to wss://*.tawk.to https://www.google-analytics.com https://www.googleadservices.com https://www.googletagmanager.com https://www.google.com https://google.com https://google.com/pagead/ https://googleads.g.doubleclick.net https://pagead2.googlesyndication.com https://*.doubleclick.net https://www.google.com.tr https://c.clarity.ms https://n.clarity.ms https://k.clarity.ms https://h.clarity.ms https://c.bing.com;
     font-src 'self' https://fonts.gstatic.com https://embed.tawk.to https://va.tawk.to https://client.tawk.to data:;
     frame-src https://fonts.googleapis.com https://www.google.com https://www.youtube.com https://www.googletagmanager.com https://td.doubleclick.net https://embed.tawk.to https://va.tawk.to https://client.tawk.to https://www.gstatic.com https://recaptcha.google.com https://www.googleadservices.com https://*.doubleclick.net;
     object-src 'none';
@@ -85,9 +85,9 @@ app.use(helmet.crossOriginResourcePolicy({ policy: 'same-origin' }));
 
 
 
-const MONGODB_URI = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@cluster0.yrit4.mongodb.net/${process.env.MONGO_DATABASE}?retryWrites=true&w=majority&ssl=true`;
+// const MONGODB_URI = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@cluster0.yrit4.mongodb.net/${process.env.MONGO_DATABASE}?retryWrites=true&w=majority&ssl=true`;
 
-// const MONGODB_URI = `mongodb+srv://mhmdalazr:7NRgpPYqQ3HZs3mH@cluster0.r8u1rna.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
+const MONGODB_URI = `mongodb+srv://mhmdalazr:7NRgpPYqQ3HZs3mH@cluster0.r8u1rna.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 const store = new MongoDBStore({
     uri: MONGODB_URI,
     collection: 'sessions'

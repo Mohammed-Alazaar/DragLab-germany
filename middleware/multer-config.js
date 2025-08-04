@@ -3,6 +3,8 @@ const sanitize = require('sanitize-filename');
 const cheerio = require('cheerio');
 const cloudinary = require('../util/cloudinaryConfig');
 const { file } = require('pdfkit');
+const path = require('path');
+
 
 // ✅ Use memoryStorage (no need for destination or filename)
 const storage = multer.memoryStorage();
@@ -32,9 +34,9 @@ const uploadFields = [
   { name: 'slideshowImage', maxCount: 1 },
   { name: 'thumbnail', maxCount: 1 },
   { name: 'catalogFile', maxCount: 1 },
-{ name: 'slideImage', maxCount: 1 },    // ✅ NEW
-{ name: 'introImage', maxCount: 1 }     
-  
+  { name: 'slideImage', maxCount: 1 },    // ✅ NEW
+  { name: 'introImage', maxCount: 1 }
+
 
 ];
 
@@ -58,22 +60,49 @@ exports.uploadMixed = uploadMixed;
 
 
 // Cloudinary upload helper
-const uploadToCloudinary = async (buffer, filename) => {
+const uploadToCloudinary = async (file, folder) => {
+  if (!file || !file.buffer) {
+    console.warn(`⚠️ No file provided for upload.`);
+    return null;
+  }
+
+  const ext = path.extname(file.originalname).toLowerCase(); // e.g., '.jpg'
+  const baseName = sanitize(path.basename(file.originalname, ext))
+    .replace(/\s+/g, '-')
+    .replace(/[^\w\-]/g, '')
+    .slice(0, 40);
+  const uniqueId = `${baseName}-${Date.now()}-${uuidv4()}`;
+
+  const isImage = ext === '.jpg' || ext === '.jpeg' || ext === '.png';
+  const isPdf = ext === '.pdf';
+
+  const uploadOptions = {
+    folder: folder,
+    public_id: uniqueId,
+    use_filename: false,
+    unique_filename: false,
+    resource_type: isPdf ? 'raw' : 'image',
+  };
+
+  // Add compression and webp format only for JPEG/PNG
+  if (isImage) {
+    uploadOptions.format = 'webp';
+    uploadOptions.quality = 'auto'; // Let Cloudinary optimize compression
+  }
+
   return new Promise((resolve, reject) => {
-    cloudinary.uploader.upload_stream(
-      {
-        resource_type: 'image',
-        folder: 'draglab/products',
-        public_id: filename,
-        format: 'webp',
-      },
-      (error, result) => {
-        if (error) reject(error);
-        else resolve(result.secure_url);
+    cloudinary.uploader.upload_stream(uploadOptions, (error, result) => {
+      if (error) {
+        console.error(`❌ Cloudinary upload error for ${uniqueId}:`, error.message);
+        reject(error);
+      } else {
+        console.log(`✅ Uploaded ${uniqueId}: ${result.secure_url}`);
+        resolve(result.secure_url);
       }
-    ).end(buffer);
+    }).end(file.buffer);
   });
 };
+
 
 // ✅ Cloudinary upload helper for raw files (e.g., PDFs, DOCX, ZIP)
 const uploadToCloudinaryRaw = async (buffer, filename) => {
@@ -97,64 +126,39 @@ const uploadToCloudinaryRaw = async (buffer, filename) => {
 // ✅ Image upload to Cloudinary without compression
 async function uploadToCloudinaryDirectly(req, res, next) {
   if (!req.files) return next();
-  // Ensure these fields are processed
-const fieldsToUpload = ['productThumbnail', 'productSketch', 'slideImage', 'introImage'];
 
-for (const field of fieldsToUpload) {
-  const files = req.files[field];
-  if (files && files.length > 0) {
-    const file = files[0];
-    const originalName = sanitize(file.originalname).slice(0, 50);
-
-    try {
-      console.log(`📌 Uploading ${field} to Cloudinary...`);
-      const cloudUrl = await new Promise((resolve, reject) => {
-        cloudinary.uploader.upload_stream(
-          {
-            resource_type: 'image',
-            folder: 'draglab/products',
-            public_id: originalName,
-          },
-          (error, result) => {
-            if (error) {
-              console.error(`❌ Cloudinary upload error for ${originalName}:`, error.message);
-              reject(error);
-            } else {
-              console.log(`✅ Successfully uploaded ${field} to Cloudinary: ${result.secure_url}`);
-              resolve(result.secure_url);
-            }
-          }
-        ).end(file.buffer);
-      });
-
-      // ✅ Set the URL for usage in postEditProduct
-      file.cloudinaryUrl = cloudUrl;
-    } catch (err) {
-      console.warn(`⚠ Skipping upload: ${originalName} - ${err.message}`);
-    }
-  }
-}
-
-
+  // 🔼 Moved here to avoid reference error
   const processImage = async (file) => {
-    const originalName = sanitize(file.originalname).slice(0, 50);
+    const originalName = sanitize(file.originalname).slice(0, 50); // ✅ ADD THIS LINE
+    const ext = path.extname(file.originalname).toLowerCase();
+    const baseName = sanitize(path.basename(file.originalname, ext))
+      .replace(/\s+/g, '-')
+      .replace(/[^\w\-]/g, '')
+      .replace(/\.(jpg|jpeg|png)$/i, '')  // <- remove .jpg/.png
+      .slice(0, 40);
+
+    const isJpgOrPng = ['.jpg', '.jpeg', '.png'].includes(ext);
+
     try {
       console.log(`📌 Uploading image to Cloudinary: ${file.fieldname}`);
-      
-      // ✅ Directly upload the buffer to Cloudinary without Sharp
+
       const cloudUrl = await new Promise((resolve, reject) => {
         cloudinary.uploader.upload_stream(
           {
             resource_type: 'image',
             folder: 'draglab/products',
-            public_id: originalName,
+            public_id: baseName,
+            ...(isJpgOrPng && {
+              format: 'webp',
+              quality: 'auto'
+            })
           },
           (error, result) => {
             if (error) {
-              console.error(`❌ Cloudinary upload error for ${originalName}:`, error.message);
+              console.error(`❌ Cloudinary upload error for ${originalName}:`, error.message); // ✅ FIXED
               reject(error);
             } else {
-              console.log(`✅ Successfully uploaded ${file.fieldname} to Cloudinary: ${result.secure_url}`);
+              console.log(`✅ Successfully uploaded ${file.fieldname}: ${result.secure_url}`);
               resolve(result.secure_url);
             }
           }
@@ -164,37 +168,48 @@ for (const field of fieldsToUpload) {
       file.cloudinaryUrl = cloudUrl;
       return cloudUrl;
     } catch (err) {
-      console.warn(`⚠ Skipping upload: ${originalName} - ${err.message}`);
+      console.warn(`⚠ Skipping upload: ${originalName} - ${err.message}`); // ✅ FIXED
       return '';
     }
   };
 
-  try {
-    // ✅ Handle multilingual feature images
-    const languages = ['EN', 'ES', 'DE'];
-    for (const lang of languages) {
-      for (let i = 0; i < 4; i++) {
-        const files = req.files[`FeatureImage_${lang}[${i}]`];
-        if (files && files.length > 0) {
-          const file = files[0];
-          const cloudUrl = await processImage(file);
-          if (cloudUrl) {
-            console.log(`✅ Successfully uploaded ${file.fieldname}: ${cloudUrl}`);
-            file.cloudinaryUrl = cloudUrl;
-          } else {
-            console.error(`❌ Cloudinary URL missing for ${file.fieldname}`);
-          }
+
+  // ✅ Upload common fields like productSketch and productThumbnail
+  const fieldsToUpload = ['productThumbnail', 'productSketch', 'slideImage', 'introImage'];
+  for (const field of fieldsToUpload) {
+    const files = req.files[field];
+    if (files && files.length > 0) {
+      const file = files[0];
+      const cloudUrl = await processImage(file);
+      if (cloudUrl) {
+        console.log(`✅ Successfully uploaded ${field}: ${cloudUrl}`);
+        file.cloudinaryUrl = cloudUrl;
+      } else {
+        console.warn(`⚠️ Failed to upload ${field}`);
+      }
+    }
+  }
+
+  // ✅ Upload multilingual FeatureImage fields
+  const languages = ['EN', 'ES', 'DE'];
+  for (const lang of languages) {
+    for (let i = 0; i < 4; i++) {
+      const files = req.files[`FeatureImage_${lang}[${i}]`];
+      if (files && files.length > 0) {
+        const file = files[0];
+        const cloudUrl = await processImage(file);
+        if (cloudUrl) {
+          console.log(`✅ Successfully uploaded ${file.fieldname}: ${cloudUrl}`);
+          file.cloudinaryUrl = cloudUrl;
+        } else {
+          console.error(`❌ Cloudinary URL missing for ${file.fieldname}`);
         }
       }
     }
-
-    next();
-  } catch (err) {
-    console.error('🔥 Error processing images:', err.message);
-    return res.status(500).send('Error processing images');
   }
-}
 
+  next();
+}
 
 
 

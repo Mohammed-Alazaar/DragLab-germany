@@ -43,11 +43,8 @@ exports.getHomePage = async (req, res, next) => {
     try {
         const lang = (req.params.lang || req.query.lang || 'EN').toUpperCase();
 
-        const [products, slides, articles] = await Promise.all([
-            Product.find({ isDraft: false }),
-            Slideshow.find({ $or: [{ language: lang }, { language: 'ALL' }] }),
-            Article.find({ $or: [{ language: lang }, { language: 'ALL' }] }).sort({ createdAt: -1 }).limit(10)
-        ]);
+
+
 
         const t = {
             EN: {
@@ -127,6 +124,33 @@ exports.getHomePage = async (req, res, next) => {
             }
         };
 
+
+        const [products, slides, articles] = await Promise.all([
+            Product.find({ isDraft: false }),
+            Slideshow.find({ $or: [{ language: lang }, { language: 'ALL' }] })
+                .sort({ createdAt: -1 }),
+            Article.find({ $or: [{ language: lang }, { language: 'ALL' }] })
+                .sort({ createdAt: -1 })
+                .limit(10),
+        ]);
+
+        const rawIndustries = await Industry.find({ isDraft: false })
+            .sort({ createdAt: 1 })
+            .limit(4);
+
+
+        const industryCards = rawIndustries.map(ind => {
+            const langData = ind.Language?.[lang]?.[0] || {}; // ← FIXED HERE
+            return {
+                slug: ind.slug,
+                image: ind.sharedImages?.introImage || '/assets/Imgs/default.jpg',
+                title: langData.slideTitle || ind.slug,
+                description: langData.slideDesc || ''
+            };
+        });
+
+
+
         res.render('customer/Home-page', {
             pageTitle: 'Home',
             path: '/',
@@ -134,6 +158,7 @@ exports.getHomePage = async (req, res, next) => {
             slides,
             articles,
             lang,
+            industryCards,
             t: t[lang] || t.EN
         });
 
@@ -3223,35 +3248,35 @@ exports.getQualifications = (req, res, next) => {
 
 
 exports.getLicensePage = async (req, res, next) => {
-  const lang = (req.params.lang || req.query.lang || 'EN').toUpperCase();
+    const lang = (req.params.lang || req.query.lang || 'EN').toUpperCase();
 
-  const meta = {
-    EN: {
-      pageTitle: 'Licenses & Attributions',
-      description: 'View the licenses and attributions for images, icons, and third-party assets used on DragLab\'s website.',
-    },
-    ES: {
-      pageTitle: 'Licencias y Atribuciones',
-      description: 'Consulta las licencias y atribuciones de imágenes, iconos y recursos de terceros utilizados en el sitio web de DragLab.',
-    },
-    DE: {
-      pageTitle: 'Lizenzen & Quellenangaben',
-      description: 'Sehen Sie sich die Lizenzen und Quellenangaben für Bilder, Symbole und Drittanbieterressourcen auf der DragLab-Website an.',
+    const meta = {
+        EN: {
+            pageTitle: 'Licenses & Attributions',
+            description: 'View the licenses and attributions for images, icons, and third-party assets used on DragLab\'s website.',
+        },
+        ES: {
+            pageTitle: 'Licencias y Atribuciones',
+            description: 'Consulta las licencias y atribuciones de imágenes, iconos y recursos de terceros utilizados en el sitio web de DragLab.',
+        },
+        DE: {
+            pageTitle: 'Lizenzen & Quellenangaben',
+            description: 'Sehen Sie sich die Lizenzen und Quellenangaben für Bilder, Symbole und Drittanbieterressourcen auf der DragLab-Website an.',
+        }
+    };
+
+    const selectedMeta = meta[lang] || meta.EN;
+
+    try {
+        const products = await Product.find().lean(); // ✅ for navbar
+
+        res.render('customer/license', {
+            lang,
+            pageTitle: selectedMeta.pageTitle,
+            metaDescription: selectedMeta.description,
+            products
+        });
+    } catch (err) {
+        next(err);
     }
-  };
-
-  const selectedMeta = meta[lang] || meta.EN;
-
-  try {
-    const products = await Product.find().lean(); // ✅ for navbar
-
-    res.render('customer/license', {
-      lang,
-      pageTitle: selectedMeta.pageTitle,
-      metaDescription: selectedMeta.description,
-      products
-    });
-  } catch (err) {
-    next(err);
-  }
 };

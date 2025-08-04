@@ -12,6 +12,7 @@ const PDFDocument = require('pdfkit');
 const cloudinary = require('../util/cloudinaryConfig'); // ✅ Import Cloudinary
 const sanitize = require('sanitize-filename');
 const slugify = require('slugify');
+const { v4: uuidv4 } = require('uuid');
 
 const exp = require('constants');
 const express = require('express');
@@ -567,41 +568,58 @@ exports.getEditModel = (req, res, next) => {
 };
 
 // Controller for adding a model
-const { v4: uuidv4 } = require('uuid');
 
-const uploadToCloudinary = async (file, folder) => {
+const uploadToCloudinary = async (file, folder, fileFieldName = '', bodyFileName = '') => {
   if (!file || !file.buffer) {
     console.warn(`⚠️ No file provided for upload.`);
     return null;
   }
 
-  const ext = path.extname(file.originalname); // e.g., '.jpg'
-  const baseName = sanitize(path.basename(file.originalname, ext))
+ const ext = path.extname(file.originalname).toLowerCase();
+const isPdf = ext === '.pdf';
+const isImage = ['.jpg', '.jpeg', '.png'].includes(ext);
+
+const baseName = sanitize(path.basename(file.originalname, ext))
+  .replace(/\s+/g, '-')
+  .replace(/[^\w\-]/g, '')
+  .replace(/\.(jpg|jpeg|png|pdf)$/i, '')
+  .slice(0, 40);
+
+let downloadBaseName = baseName;
+if (fileFieldName.startsWith('downloadFiles_') && bodyFileName) {
+  downloadBaseName = sanitize(bodyFileName)
     .replace(/\s+/g, '-')
     .replace(/[^\w\-]/g, '')
     .slice(0, 40);
+}
 
-  const uniqueId = `${baseName}-${Date.now()}-${uuidv4()}`;
+const extension = isPdf ? '.pdf' : '';
+const uniqueId = `${downloadBaseName}-${Date.now()}-${uuidv4()}${extension}`;
+
+
+  const uploadOptions = {
+    folder: folder,
+    public_id: uniqueId,
+    use_filename: false,
+    unique_filename: false,
+    resource_type: isPdf ? 'raw' : 'image'
+  };
+
+  if (isImage) {
+    uploadOptions.format = 'webp';        // Convert to webp
+    uploadOptions.quality = 'auto';       // Compress smartly
+  }
 
   return new Promise((resolve, reject) => {
-    cloudinary.uploader.upload_stream(
-      {
-        resource_type: 'image',
-        folder: folder,
-        public_id: uniqueId,
-        use_filename: false,
-        unique_filename: false
-      },
-      (error, result) => {
-        if (error) {
-          console.error(`❌ Cloudinary upload error for ${uniqueId}:`, error.message);
-          reject(error);
-        } else {
-          console.log(`✅ Uploaded ${uniqueId}: ${result.secure_url}`);
-          resolve(result.secure_url);
-        }
+    cloudinary.uploader.upload_stream(uploadOptions, (error, result) => {
+      if (error) {
+        console.error(`❌ Cloudinary upload error for ${uniqueId}:`, error.message);
+        reject(error);
+      } else {
+        console.log(`✅ Uploaded ${uniqueId}: ${result.secure_url}`);
+        resolve(result.secure_url);
       }
-    ).end(file.buffer);
+    }).end(file.buffer);
   });
 };
 
@@ -776,38 +794,62 @@ exports.postEditModel = async (req, res) => {
     const sanitize = require('sanitize-filename');
     const { v4: uuidv4 } = require('uuid');
 
-    const uploadToCloudinary = async (file, folder, resourceType = 'image') => {
+    const uploadToCloudinary = async (file, folder, fileFieldName = '', bodyFileName = '') => {
       if (!file || !file.buffer) {
-        console.log(`⚠️ Skipping Cloudinary upload for missing file.`);
+        console.warn(`⚠️ Skipping Cloudinary upload for missing file.`);
         return null;
       }
 
-      const ext = path.extname(file.originalname);
+      const ext = path.extname(file.originalname).toLowerCase();
+      const isPdf = ext === '.pdf';
+      const isImage = ['.jpg', '.jpeg', '.png'].includes(ext);
+
       const baseName = sanitize(path.basename(file.originalname, ext))
         .replace(/\s+/g, '-')
         .replace(/[^\w\-]/g, '')
+        .replace(/\.(jpg|jpeg|png|pdf)$/i, '')
         .slice(0, 40);
 
-      const uniqueId = `${baseName}-${Date.now()}-${uuidv4()}`;
+      let downloadBaseName = baseName;
+      if (fileFieldName.startsWith('downloadFiles_') && bodyFileName) {
+        downloadBaseName = sanitize(bodyFileName)
+          .replace(/\s+/g, '-')
+          .replace(/[^\w\-]/g, '')
+          .slice(0, 40);
+      }
 
-      const result = await new Promise((resolve, reject) => {
-        cloudinary.uploader.upload_stream(
-          {
-            resource_type: resourceType,
-            folder,
-            public_id: uniqueId,
-            use_filename: false,
-            unique_filename: false
-          },
-          (error, result) => {
-            if (error) reject(error);
-            else resolve(result);
+      const extension = isPdf ? '.pdf' : '';
+      const uniqueId = `${downloadBaseName}-${Date.now()}-${uuidv4()}${extension}`;
+
+
+
+
+      const uploadOptions = {
+        folder,
+        public_id: uniqueId,
+        use_filename: false,
+        unique_filename: false,
+        resource_type: isPdf ? 'raw' : 'image'
+      };
+
+      if (isImage) {
+        uploadOptions.format = 'webp';
+        uploadOptions.quality = 'auto';
+      }
+
+      return new Promise((resolve, reject) => {
+        cloudinary.uploader.upload_stream(uploadOptions, (error, result) => {
+          if (error) {
+            console.error(`❌ Cloudinary upload error for ${uniqueId}:`, error.message);
+            reject(error);
+          } else {
+            console.log(`✅ Uploaded ${uniqueId}: ${result.secure_url}`);
+            resolve(result.secure_url);
           }
-        ).end(file.buffer);
+        }).end(file.buffer);
       });
-
-      return result.secure_url;
     };
+
 
 
 
@@ -899,7 +941,11 @@ exports.postEditModel = async (req, res) => {
 
         for (let i = 0; i < req.files[`downloadFiles_${lang}`].length; i++) {
           const file = req.files[`downloadFiles_${lang}`][i];
-          const filePath = await uploadToCloudinary(file, `draglab/models/downloads/${lang}`);
+          const fieldName = `downloadFiles_${lang}`;
+          const fileName = fileNames[i] || file.originalname;
+
+          const filePath = await uploadToCloudinary(file, `draglab/models/downloads/${lang}`, fieldName, fileName);
+
 
           downloads.push({
             fileName: fileNames[i] || file.originalname,
@@ -997,7 +1043,7 @@ exports.postAddSlide = async (req, res) => {
     }
 
     console.log("🌐 Uploading image to Cloudinary...");
-    const image = await uploadToCloudinary(file, 'slideshow');
+    const image = await uploadToCloudinary(file, 'slideshow', 'slideshowImage');
 
     if (!image) {
       console.error("❌ Failed to upload image to Cloudinary.");

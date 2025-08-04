@@ -364,7 +364,6 @@
 }
 
 
-
 /* industries section */
 
 .industries-section {
@@ -372,6 +371,7 @@
   padding: 0 10px 0px 10px;
   flex-direction: column;
   align-items: center;
+  position: relative;
 
 }
 
@@ -396,25 +396,27 @@
 .industry-card {
   position: relative;
   overflow: hidden;
-
+  min-height: 23rem;
 }
 
 .industry-card img {
   width: -webkit-fill-available;
   height: 100%;
   display: block;
+  object-fit: cover;
 }
 
 .overlay {
   position: absolute;
   bottom: 0;
   width: 100%;
-  background: linear-gradient(rgb(41 60 149 / 7%) 0%, rgb(41 60 149 / 68%) 100%);
   color: white;
   text-align: center;
   padding: 20px 10px;
+  background: linear-gradient(rgb(41 60 149 / 7%) 0%, rgba(41, 60, 149, .9) 100%);
+  height: 100%;
   display: flex;
-  flex-direction: column;
+  justify-content: center;
   align-items: center;
 }
 
@@ -444,9 +446,9 @@
 
 
 .overlay h3 {
-  font-size: 24.2px;
+  font-size: 38px;
   margin: 0;
-  font-weight: 300;
+  font-weight: 600;
 }
 
 @media (max-width: 1250px) {
@@ -461,7 +463,77 @@
   }
 }
 
+
+
+
+.industry-slider-controls {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.industry-slideshow-btn {
+  background: transparent;
+  border: none;
+  font-size: 2rem;
+  cursor: pointer;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  cursor: pointer;
+  transition: 0.3s;
+  z-index: 10000;
+  opacity: 0;
+  pointer-events: none;
+}
+.industry-slideshow-btn:hover {
+  opacity: 1;
+}
+
+.industries-section:hover .industry-slideshow-btn {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.left-Btn {
+  right: 2%;
+}
+
+.right-Btn {
+  left: 2%;
+}
+
+.industry-slides-viewport {
+  overflow: hidden;
+  width: 100%;
+}
+
+.industries-container {
+  display: flex;
+  transition: transform 0.4s ease-in-out;
+  gap: 20px;
+}
+
+.industry-card {
+  flex: 0 0 calc(25% - 15px);
+  /* 4 per row with spacing */
+  overflow: hidden;
+  transition: transform 0.3s;
+}
+
+.industry-card img {
+  width: 100%;
+}
+
+.industry-card .overlay {
+  padding: 10px;
+  text-align: center;
+}
+
 /* industries section end */
+
 
 
 /* article section */

@@ -144,61 +144,23 @@
 
                 <div class="industries-container">
 
+                    <% industryCards.forEach(industry=> { %>
+                        <div class="industry-card">
+                            <a href="/<%= lang %>/industry/<%= industry.slug %>">
+                                <img loading="lazy" src="<%= industry.image %>" alt="<%= industry.title %>" />
+                                <div class="overlay">
+                                    <h3>
+                                        <%= industry.title %>
+                                    </h3>
+                                </div>
+                            </a>
+                        </div>
 
-                    <div class="industry-card">
-                        <img loading="lazy" src="/assets/Imgs/Icons/products/Chemical-industry.webp"
-                            alt="Chemical industry" />
-                        <div class="overlay">
-                            <div class="icon-wrapper">
-                                <img loading="lazy" src="/assets/Imgs/Icons/products/Chemical-industry.png"
-                                    alt="Chemical industry Icon" class="icon" />
-                            </div>
-                            <h3>
-                                <%= t.industriesList.chemical %>
-                            </h3>
 
-                        </div>
-                    </div>
-                    <div class="industry-card">
-                        <img loading="lazy" src="/assets/Imgs/Icons/products/FoodandBeverageIndustry.webp"
-                            alt="Food and Beverage industry" />
-                        <div class="overlay">
-                            <div class="icon-wrapper">
-                                <img loading="lazy" src="/assets/Imgs/Icons/products/Food-Beverage-Industry.png"
-                                    alt="Food and Beverage Industry Icon" class="icon" />
-                            </div>
-                            <h3>
-                                <%= t.industriesList.food %>
-                            </h3>
-                        </div>
-                    </div>
-                    <div class="industry-card">
-                        <img loading="lazy" src="/assets/Imgs/Icons/products/BiotechnologyandLifeSciences.webp"
-                            alt="Biotech industry" />
-                        <div class="overlay">
-                            <div class="icon-wrapper">
-                                <img loading="lazy" src="/assets/Imgs/Icons/products/Biotechnology-Life-Sciences.png"
-                                    alt="Biotechnology and Life Sciences Icon" class="icon" />
-                            </div>
-                            <h3>
-                                <%= t.industriesList.biotech %>
-                            </h3>
-                        </div>
-                    </div>
-                    <div class="industry-card">
-                        <img loading="lazy" src="/assets/Imgs/Icons/products/pharmaceutical.webp"
-                            alt="Pharmaceutical industry" />
-                        <div class="overlay">
-                            <div class="icon-wrapper">
-                                <img loading="lazy" src="/assets/Imgs/Icons/products/Pharmaceutical-industry.png"
-                                    alt="Pharmaceutical industry" class="icon" />
-                            </div>
-                            <h3>
-                                <%= t.industriesList.pharma %>
-                            </h3>
-                        </div>
-                    </div>
+                        <% }) %>
                 </div>
+            </section>
+            </div>
             </section>
 
 
@@ -307,25 +269,29 @@
             <%- include('../../includes/customer/footer.ejs') %>
                 <script src="/js/index.js?v=1.0.1"></script>
                 <!-- after all HTML and just before </body> -->
-                <script nonce="<%= nonce %>">
-                    window.tabsData = <% - JSON.stringify({
-                        vision: {
-                            title: t.tab1Title,
-                            subtitle: t.tab1Subtitle,
-                            desc: t.tab1Desc.replace(/\n/g, '<br>')
-                        },
-                        mission: {
-                            title: t.tab2Title,
-                            subtitle: t.tab2Subtitle,
-                            desc: t.tab2Desc.replace(/\n/g, '<br>')
-                        },
-                        values: {
-                            title: t.tab3Title,
-                            subtitle: t.tab3Subtitle,
-                            desc: t.tab3Desc.replace(/\n/g, '<br>')
-                        }
-                    }) %>;
-                </script>
+       <script nonce="<%= nonce %>">
+  window.tabsData = <%- JSON.stringify({
+    vision: {
+      title: t.tab1Title,
+      sectionHeading: t.tab1Title,
+      subtitle: t.tab1Subtitle,
+      desc: String(t.tab1Desc).replace(/\n/g, '<br>')
+    },
+    mission: {
+      title: t.tab2Title,
+      sectionHeading: t.tab2Title,
+      subtitle: t.tab2Subtitle,
+      desc: String(t.tab2Desc).replace(/\n/g, '<br>')
+    },
+    values: {
+      title: t.tab3Title,
+      sectionHeading: t.tab3Title,
+      subtitle: t.tab3Subtitle,
+      desc: String(t.tab3Desc).replace(/\n/g, '<br>')
+    }
+  }) %>;
+</script>
+
 
                 <script src="/js/about-us.js" nonce="<%= nonce %>"></script>
 
