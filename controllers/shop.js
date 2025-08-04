@@ -3219,3 +3219,39 @@ exports.getQualifications = (req, res, next) => {
             res.redirect('/EN');
         });
 };
+
+
+
+exports.getLicensePage = async (req, res, next) => {
+  const lang = (req.params.lang || req.query.lang || 'EN').toUpperCase();
+
+  const meta = {
+    EN: {
+      pageTitle: 'Licenses & Attributions',
+      description: 'View the licenses and attributions for images, icons, and third-party assets used on DragLab\'s website.',
+    },
+    ES: {
+      pageTitle: 'Licencias y Atribuciones',
+      description: 'Consulta las licencias y atribuciones de imágenes, iconos y recursos de terceros utilizados en el sitio web de DragLab.',
+    },
+    DE: {
+      pageTitle: 'Lizenzen & Quellenangaben',
+      description: 'Sehen Sie sich die Lizenzen und Quellenangaben für Bilder, Symbole und Drittanbieterressourcen auf der DragLab-Website an.',
+    }
+  };
+
+  const selectedMeta = meta[lang] || meta.EN;
+
+  try {
+    const products = await Product.find().lean(); // ✅ for navbar
+
+    res.render('customer/license', {
+      lang,
+      pageTitle: selectedMeta.pageTitle,
+      metaDescription: selectedMeta.description,
+      products
+    });
+  } catch (err) {
+    next(err);
+  }
+};

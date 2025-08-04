@@ -5,6 +5,9 @@ const router = express.Router();
 const isAuth = require('../middleware/is-auth');
 const WarrantyRegistration = require('../models/warrantyRegistration'); // Add at the top
 const Product = require('../models/product');
+const NewsletterSubscriber = require('../models/newsletter');
+
+const geoip = require('geoip-lite');
 
 //shop/getting all products => GET
 router.get('/Products', shopController.getProducts);
@@ -45,9 +48,7 @@ router.get('/:lang/industry/:slug', shopController.getIndustryDetails);
 router.get('/:lang/QualityPolicy', shopController.getQualityPolicy);
 router.get('/:lang/SustainabilityPolicy', shopController.getSustainabilityPolicy);
 router.get('/:lang/Qualifications', shopController.getQualifications);
-const NewsletterSubscriber = require('../models/newsletter');
-
-const geoip = require('geoip-lite');
+router.get('/:lang/licenses', shopController.getLicensePage);
 
 router.post('/subscribe', async (req, res) => {
   try {

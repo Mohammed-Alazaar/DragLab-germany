@@ -115,6 +115,7 @@ app.use('/js', express.static(path.join(__dirname, 'Front-end', 'JS')));
 app.use('/includes', express.static(path.join(__dirname, 'Front-end', 'includes')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(session({ secret: ' my secret', resave: false, saveUninitialized: false, store: store }));
+app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(flash());
 
