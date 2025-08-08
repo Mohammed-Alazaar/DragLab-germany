@@ -197,3 +197,42 @@
 .newsletter-form button:hover {
     background-color: #f0f0f0;
 }
+
+@media screen and (max-width: 768px) {
+    .newsletter-banner {
+        background: linear-gradient(90deg, #2c3e94, #0d143e);
+        padding: 30px 20px;
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        margin: 0 0 20px 0;
+        flex-direction: column;
+    }
+
+    form#newsletterForm {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .newsletter-banner {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .newsletter-content h2 {
+        margin-bottom: 15px;
+    }
+
+    .newsletter-form {
+        flex-direction: column;
+        width: 100%;
+        align-items: center;
+    }
+
+    .newsletter-form input[type="email"] {
+        width: 100%;
+        max-width: 300px;
+    }
+}
