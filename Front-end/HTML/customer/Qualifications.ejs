@@ -1,19 +1,67 @@
 <%- include('../../includes/customer/head.ejs') %>
 
+<%
+  const langLc = (lang || 'EN').toLowerCase(); // en|es|de
+  const title = (pageTitle || 'Qualifications') + ' | DragLab';
+  const desc = (metaDescription || 'Company qualifications, certifications, and compliance details from DragLab.')
+                .toString().replace(/<\/?[^>]+>/g,'').replace(/\s+/g,' ').trim().slice(0,160);
+  const base = 'https://www.drag-lab.de';
+  const canonicalUrl = `${base}/${langLc}/qualifications`;
+  const ogImage = `${base}/assets/Imgs/og/downloads-og.jpg`; // replace with a real hero for this page
+%>
+
 <link rel="stylesheet" href="/css/customer/PrivacyPolicy.css">
-<meta property="og:title" content="<%= pageTitle %> | DragLab">
-<meta property="og:description" content="<%= metaDescription %>">
-<meta property="og:url" content="https://www.draglab.com/<%= lang %>/Qualifications">
-<meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="<%= pageTitle %> | DragLab">
-<meta name="twitter:description" content="<%= metaDescription %>">
-<title><%= pageTitle %> | DragLab</title>
-<meta name="description" content="<%= metaDescription %>">
-<link rel="canonical" href="https://www.draglab.com/<%= lang %>/Qualifications">
-<link rel="alternate" hreflang="en" href="https://www.draglab.com/EN/Qualifications">
-<link rel="alternate" hreflang="es" href="https://www.draglab.com/ES/Qualifications">
-<link rel="alternate" hreflang="de" href="https://www.draglab.com/DE/Qualifications">
-<link rel="alternate" hreflang="x-default" href="https://www.draglab.com/EN/Qualifications">
+
+<title><%= title %></title>
+<meta name="description" content="<%= desc %>">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="<%= canonicalUrl %>">
+
+<!-- hreflang (lowercase locale + path) -->
+<link rel="alternate" hreflang="x-default" href="https://www.drag-lab.de/en/qualifications">
+<link rel="alternate" hreflang="en" href="https://www.drag-lab.de/en/qualifications">
+<link rel="alternate" hreflang="es" href="https://www.drag-lab.de/es/qualifications">
+<link rel="alternate" hreflang="de" href="https://www.drag-lab.de/de/qualifications">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="DragLab">
+<meta property="og:title" content="<%= title %>">
+<meta property="og:description" content="<%= desc %>">
+<meta property="og:url" content="<%= canonicalUrl %>">
+<meta property="og:locale" content="<%= langLc==='es' ? 'es_ES' : (langLc==='de' ? 'de_DE' : 'en_US') %>">
+<meta property="og:image" content="<%= ogImage %>">
+<meta property="og:image:alt" content="DragLab Qualifications">
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="<%= title %>">
+<meta name="twitter:description" content="<%= desc %>">
+<meta name="twitter:image" content="<%= ogImage %>">
+
+<!-- JSON-LD: WebPage + Breadcrumbs -->
+<script type="application/ld+json" nonce="<%= nonce %>">
+<%= JSON.stringify({
+  "@context":"https://schema.org",
+  "@type":"WebPage",
+  "name": pageTitle || "Qualifications",
+  "url": canonicalUrl,
+  "inLanguage": langLc,
+  "description": desc,
+  "isPartOf": { "@type":"WebSite", "name":"DragLab", "url":"https://www.drag-lab.de" }
+}, null, 2) %>
+</script>
+
+<script type="application/ld+json" nonce="<%= nonce %>">
+<%= JSON.stringify({
+  "@context":"https://schema.org",
+  "@type":"BreadcrumbList",
+  "itemListElement":[
+    { "@type":"ListItem", "position":1, "name": (langLc==='es'?'Inicio':(langLc==='de'?'Startseite':'Home')), "item": `https://www.drag-lab.de/${langLc}` },
+    { "@type":"ListItem", "position":2, "name": (pageTitle || "Qualifications"), "item": canonicalUrl }
+  ]
+}, null, 2) %>
+</script>
 </head>
 
 <body>

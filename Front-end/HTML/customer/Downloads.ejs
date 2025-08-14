@@ -1,92 +1,181 @@
 <%- include('../../includes/customer/head.ejs') %>
 
-<!-- SEO Meta -->
-<title><%= translations.pageTitle %> | DragLab</title>
-<meta name="description" content="<%= translations.metaDescription %>">
-<meta property="og:title" content="<%= translations.pageTitle %> | DragLab">
-<meta property="og:description" content="<%= translations.ogDescription %>">
-<link rel="canonical" href="https://draglab.com/<%= lang.toLowerCase() %>/Downloads" />
-<link rel="alternate" hreflang="en" href="https://draglab.com/en/Downloads" />
-<link rel="alternate" hreflang="es" href="https://draglab.com/es/Downloads" />
-<link rel="alternate" hreflang="de" href="https://draglab.com/de/Downloads" />
+  <!-- SEO Meta -->
+  <title>
+    <%= translations.pageTitle %> | DragLab
+  </title>
+  <meta name="description" content="<%= translations.metaDescription %>">
+  <meta name="robots" content="index,follow">
 
-<link rel="stylesheet" href="/css/customer/Downloads.css">
+  <!-- Canonical + hreflang (lowercase paths, consistent domain) -->
+  <link rel="canonical" href="https://www.drag-lab.de/<%= lang.toLowerCase() %>/downloads">
+  <link rel="alternate" hreflang="x-default" href="https://www.drag-lab.de/en/downloads">
+  <link rel="alternate" hreflang="en" href="https://www.drag-lab.de/en/downloads">
+  <link rel="alternate" hreflang="es" href="https://www.drag-lab.de/es/downloads">
+  <link rel="alternate" hreflang="de" href="https://www.drag-lab.de/de/downloads">
 
-<body>
-  <!-- nav-bar -->
-  <%- include('../../includes/customer/navbar.ejs') %>
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="DragLab">
+  <meta property="og:title" content="<%= translations.pageTitle %> | DragLab">
+  <meta property="og:description" content="<%= translations.ogDescription %>">
+  <meta property="og:url" content="https://www.drag-lab.de/<%= lang.toLowerCase() %>/downloads">
+  <meta property="og:locale" content="<%= lang === 'EN' ? 'en_US' : (lang === 'ES' ? 'es_ES' : 'de_DE') %>">
+  <meta property="og:image" content="https://www.drag-lab.de/assets/Imgs/og/downloads-og.jpg">
+  <meta property="og:image:alt" content="DragLab Downloads – catalogs, manuals, certificates">
 
-  <!-- Downloads thumbnail -->
-  <div class="slide">
-    <div class="slide-text">
-      <h1><%= translations.heroTitle %></h1>
-    </div>
-    <img src="/assets/Imgs/Icons/products/contactus-BC.png" alt="Downloads Banner">
-  </div>
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="<%= translations.pageTitle %> | DragLab">
+  <meta name="twitter:description" content="<%= translations.ogDescription %>">
+  <meta name="twitter:image" content="https://www.drag-lab.de/assets/Imgs/og/downloads-og.jpg">
 
-  <!-- Filter Buttons -->
-  <div class="catalog-filter-bar">
-    <button class="filter-button active-category" data-category="all"><%= translations.allLabel %></button>
+  <!-- Preload CSS for faster paint -->
+  <link rel="preload" href="/css/customer/Downloads.css" as="style">
+  <link rel="stylesheet" href="/css/customer/Downloads.css">
 
-    <% if (productNames && productNames.length && productNames[0] !== 'No Products Available') { %>
-      <% productNames.forEach(name => { %>
-        <button class="filter-button" data-category="<%= name.toLowerCase().replace(/\s+/g, '-') %>">
-          <%= name %>
-        </button>
-      <% }) %>
-    <% } else { %>
-      <p><%= translations.noProducts %></p>
-    <% } %>
+  <!-- JSON-LD: WebPage + Breadcrumbs -->
+  <script type="application/ld+json" nonce="<%= nonce %>">
+<%= JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": translations.pageTitle + " | DragLab",
+  "inLanguage": lang.toLowerCase(),
+  "url": `https://www.drag-lab.de/${lang.toLowerCase()}/downloads`,
+  "description": translations.metaDescription,
+  "breadcrumb": {
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": lang === 'EN' ? 'Home' : (lang === 'ES' ? 'Inicio' : 'Startseite'), "item": `https://www.drag-lab.de/${lang.toLowerCase()}` },
+      { "@type": "ListItem", "position": 2, "name": translations.pageTitle, "item": `https://www.drag-lab.de/${lang.toLowerCase()}/downloads` }
+    ]
+  }
+}, null, 2) %>
+</script>
+  </head>
 
-    <% if (catalogCategoryNames && catalogCategoryNames.length && catalogCategoryNames[0] !== 'No Categories Available') { %>
-      <% catalogCategoryNames.forEach(name => { %>
-        <button class="filter-button" data-category="<%= name.toLowerCase().replace(/\s+/g, '-') %>">
-          <%= name %>
-        </button>
-      <% }) %>
-    <% } else { %>
-      <p><%= translations.noCategories %></p>
-    <% } %>
-  </div>
+  <body>
+    <%- include('../../includes/customer/navbar.ejs') %>
 
-  <!-- Downloads Grid -->
-  <div class="catalog-section">
-    <div class="catalog-list" id="catalog-grid">
-      <% downloads.forEach(file => {
-          const normalizedCategory = (file.fileProductCategory || file.fileCategory || '').toLowerCase().replace(/\s+/g, '-');
-      %>
-        <div class="catalog-item" data-category="<%= normalizedCategory %>">
-          <div class="cataloge-info-container">
-            <div class="catalog-title">
-              <%= file.fileName %>
-            </div>
-            <div class="catalog-meta">
-              <div class="catalog-meta-lang">
-                <%= lang %>
-              </div>
-              <div class="catalog-meta-size">
-                <%= file.fileSize %>
-              </div>
-            </div>
-          </div>
-          <a class="download-icon" 
-             href="<%= file.filePath.includes('cloudinary.com') ? file.filePath.replace('/upload/', '/upload/fl_attachment/') : file.filePath %>" 
-             download 
-             onclick="trackDownload()">
-            <img src="/assets/Imgs/Icons/products/download-icon.png" alt="Download">
-          </a>
+      <!-- Downloads Hero -->
+      <header class="slide">
+        <div class="slide-text">
+          <h1>
+            <%= translations.heroTitle %>
+          </h1>
+          <p class="hero-sub">
+            <%= translations.heroIntro
+              || 'Find catalogs, manuals, certificates, and technical documents for DragLab Products.' %>
+          </p>
         </div>
-      <% }) %>
-    </div>
-  </div>
+        <img src="/assets/Imgs/Icons/products/contactus-BC.png" width="1600" height="420" loading="eager"
+          decoding="async" alt="<%= translations.heroTitle %> – catalogs, manuals, certificates">
+      </header>
 
-  <!-- JS Scripts -->
+      <!-- Filter Buttons -->
+      <nav class="catalog-filter-bar" aria-label="Downloads filters">
+        <button class="filter-button active-category" data-category="all">
+          <%= translations.allLabel %>
+        </button>
+        <% if (productNames && productNames.length && productNames[0] !=='No Products Available' ) { %>
+          <% productNames.forEach(name=> { const slug = name.toLowerCase().replace(/\s+/g,'-'); %>
+            <button class="filter-button" data-category="<%= slug %>">
+              <%= name %>
+            </button>
+            <% }) %>
+              <% } %>
+                <% if (catalogCategoryNames && catalogCategoryNames.length && catalogCategoryNames[0]
+                  !=='No Categories Available' ) { %>
+                  <% catalogCategoryNames.forEach(name=> { const slug = name.toLowerCase().replace(/\s+/g,'-'); %>
+                    <button class="filter-button" data-category="<%= slug %>">
+                      <%= name %>
+                    </button>
+                    <% }) %>
+                      <% } %>
+      </nav>
+
+      <!-- Downloads Grid -->
+      <section class="catalog-section" aria-labelledby="downloads-list">
+        <h2 id="downloads-list" class="visually-hidden">
+          <%= translations.pageTitle %>
+        </h2>
+        <div class="catalog-list" id="catalog-grid">
+          <% downloads.forEach(file=> {
+            const normalizedCategory = (file.fileProductCategory || file.fileCategory || '')
+            .toLowerCase()
+            .replace(/\s+/g, '-');
+
+            const fname = file.fileName || 'Download';
+            const encodedName = encodeURIComponent(fname); // keep extension
+            const furl = file.filePath && file.filePath.includes('cloudinary.com')
+            ? file.filePath.replace('/upload/', `/upload/fl_attachment:${encodedName}/`)
+            : file.filePath;
+
+            const ext = (fname.split('.').pop() || '').toLowerCase();
+            %>
+            <article class="catalog-item" data-category="<%= normalizedCategory %>" itemscope
+              itemtype="https://schema.org/DigitalDocument">
+              <div class="cataloge-info-container">
+                <h3 class="catalog-title" itemprop="name">
+                  <%= fname %>
+                </h3>
+                <div class="catalog-meta">
+                  <span class="catalog-meta-lang">
+                    <%= lang %>
+                  </span>
+                  <span class="catalog-meta-size">
+                    <%= file.fileSize %>
+                  </span>
+                  <% if (ext) { %><span class="catalog-meta-type" style="display:none;">
+                      <%= ext.toUpperCase() %>
+                    </span>
+                    <% } %>
+                </div>
+              </div>
+              <a class="download-icon" href="<%= furl %>" itemprop="contentUrl" download rel="noopener"
+                aria-label="Download <%= fname %>">
+                <img src="/assets/Imgs/Icons/products/download-icon.png" width="28" height="28" loading="lazy"
+                  alt="Download <%= fname %>">
+              </a>
+            </article>
+            <% }) %>
+
+        </div>
+      </section>
+      <script type="application/ld+json" nonce="<%= nonce %>">
+<%
+  const itemList = (downloads || []).slice(0, 50).map((file, idx) => {
+    const name = file.fileName || 'Download';
+    const encodedName = encodeURIComponent(name);
+    const contentUrl = file.filePath && file.filePath.includes('cloudinary.com')
+      ? file.filePath.replace('/upload/', `/upload/fl_attachment:${encodedName}/`)
+      : file.filePath;
+    return {
+      "@type": "ListItem",
+      "position": idx + 1,
+      "item": {
+        "@type": "DigitalDocument",
+        "name": name,
+        "inLanguage": lang.toLowerCase(),
+        "encodingFormat": (name.split('.').pop() || 'pdf').toLowerCase(),
+        "contentUrl": contentUrl
+      }
+    };
+  });
+%>
+<%= JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "name": translations.pageTitle + " – Downloads",
+  "itemListElement": itemList
+}, null, 2) %>
+</script>
 
 
-  <!-- Footer -->
-  <%- include('../../includes/customer/footer.ejs') %>
-  <script src="/js/downloads.js" nonce="<%= nonce %>"></script>
 
-</body>
 
-<%- include('../../includes/customer/script.ejs') %>
+      <%- include('../../includes/customer/footer.ejs') %>
+        <script src="/js/downloads.js" nonce="<%= nonce %>"></script>
+  </body>
+
+  <%- include('../../includes/customer/script.ejs') %>

@@ -10,18 +10,22 @@
     const thumbnail = product.ProductThumbnail?.startsWith('http')
     ? product.ProductThumbnail
     : product.ProductThumbnail
-    ? `https://www.draglab.com${product.ProductThumbnail}`
-    : 'https://www.draglab.com/assets/Imgs/logo/logo.png';
-    const canonicalUrl = `https://www.draglab.com/${lang}/products/${product.slug}`;
+    ? `https://www.drag-lab.de${product.ProductThumbnail}`
+    : 'https://www.drag-lab.de/assets/Imgs/logo/logo.png';
+    const canonicalUrl = `https://www.drag-lab.de/${lang}/products/${product.slug}`;
     %>
 
     <title>
       <%= productName %> | DragLab
     </title>
-    <meta property="og:locale" content="<%= lang === 'EN' ? 'en_US' : lang === 'ES' ? 'es_ES' : 'el_DE' %>">
+    <meta property="og:locale" content="<%= lang === 'EN' ? 'en_US' : lang === 'ES' ? 'es_ES' : 'de_DE' %>">
     <meta name="description" content="<%= cleanDesc %>">
     <meta name="robots" content="index, follow">
     <link rel="canonical" href="<%= canonicalUrl %>">
+    <link rel="alternate" hreflang="x-default" href="https://www.drag-lab.de/en/products/<%= product.slug %>">
+    <link rel="alternate" hreflang="en" href="https://www.drag-lab.de/en/products/<%= product.slug %>">
+    <link rel="alternate" hreflang="es" href="https://www.drag-lab.de/es/products/<%= product.slug %>">
+    <link rel="alternate" hreflang="de" href="https://www.drag-lab.de/de/products/<%= product.slug %>">
 
     <!-- 🔹 Open Graph / Facebook -->
     <meta property="og:title" content="<%= productName %> | DragLab">
@@ -29,6 +33,13 @@
     <meta property="og:image" content="<%= thumbnail %>">
     <meta property="og:url" content="<%= canonicalUrl %>">
     <meta name="twitter:card" content="summary_large_image">
+    <meta property="og:type" content="product">
+    <meta property="og:site_name" content="DragLab">
+    <meta name="twitter:title" content="<%= productName %> | DragLab">
+    <meta name="twitter:description" content="<%= cleanDesc %>">
+    <meta name="twitter:image" content="<%= thumbnail %>">
+    <meta name="keywords" content="<%= productName %>, laboratory equipment, DragLab, <%= lang %>">
+
 
     <!-- 🔹 Structured Data: Product -->
     <script type="application/ld+json">
@@ -49,7 +60,7 @@
     "@type": "Offer",
     "priceCurrency": "USD",
     "availability": "https://schema.org/InStock",
-    "price": "0.00"
+    "price": "Contact us"
   }
 }) %>
 </script>
@@ -60,8 +71,8 @@
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
   "itemListElement": [
-    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://www.draglab.com" },
-    { "@type": "ListItem", "position": 2, "name": "Products", "item": `https://www.draglab.com/${lang}/products`},
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://www.drag-lab.de" },
+    { "@type": "ListItem", "position": 2, "name": "Products", "item": `https://www.drag-lab.de/${lang}/products`},
     { "@type": "ListItem", "position": 3, "name": productName, "item": canonicalUrl }
   ]
 }) %>
@@ -101,13 +112,13 @@
 
           </div>
           <% if (product.ProductThumbnail) { %>
-            <img src="<%=product.ProductThumbnail %>" alt="<%= translation.ProductName %>">
+            <img src="<%=product.ProductThumbnail %>" alt="<%= translation.ProductName %>" loading="lazy">
             <% } %>
 
         </div>
 
 
-        <SECtion class="introduction-section">
+        <section class="introduction-section">
           <h2>Introduction</h2>
           <div class="introduction-container">
 
@@ -122,7 +133,7 @@
             </div>
             <div class="introduction-img">
               <% if (product.ProductSketch) { %>
-                <img src="<%=product.ProductSketch %>" alt="<%= translation.ProductName %>">
+                <img src="<%=product.ProductSketch %>" alt="<%= translation.ProductName %>" loading="lazy">
                 <% } %>
             </div>
           </div>
@@ -137,7 +148,8 @@
             <% translation.features.forEach((feature, i)=> { %>
               <div class="feature-card">
                 <img class="feature-img"
-                  src="<%= feature.FeatureImage || product.Language.EN[0].features[i]?.FeatureImage %>" alt="">
+                  src="<%= feature.FeatureImage || product.Language.EN[0].features[i]?.FeatureImage %>"
+                  alt="<%= feature.FeatureName %>" loading="lazy">
                 <div class="feature-content">
                   <h3>
                     <%= feature.FeatureName %>
@@ -163,7 +175,7 @@
 
             <% models.forEach(model=> { %>
               <div class="model-row">
-                <img src="<%=model.ModelPhotos %>" alt="<%= model.Language[lang][0].ModelName %>">
+                <img src="<%=model.ModelPhotos %>" alt="<%= model.Language[lang][0].ModelName %>" loading="lazy">
                 <div class="model-info">
                   <%= model.Language[lang][0].ModelName %>
                 </div>
@@ -183,9 +195,9 @@
                     const modelImage = model.ModelPhotos?.[0]?.startsWith('http')
                     ? model.ModelPhotos[0]
                     : model.ModelPhotos[0]
-                    ? `https://www.draglab.com${model.ModelPhotos[0]}`
+                    ? `https://www.drag-lab.de${model.ModelPhotos[0]}`
                     : thumbnail;
-                    const modelUrl = `https://www.draglab.com/${lang}/products/${product.slug}/${model.slug}`;
+                    const modelUrl = `https://www.drag-lab.de/${lang}/products/${product.slug}/${model.slug}`;
                     %>
                     <script type="application/ld+json">
 <%= JSON.stringify({

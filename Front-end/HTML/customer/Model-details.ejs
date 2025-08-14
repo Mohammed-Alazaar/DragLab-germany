@@ -1,98 +1,131 @@
 <%- include('../../includes/customer/head.ejs') %>
 
-    <% const canonicalUrl=`https://www.draglab.com/${lang}/product/${productId}/model/${modelId}`; const
-        cleanDesc=ModelDesc?.replace(/(<([^>]+)>)/gi, '').slice(0, 160) || '';
-        const fullImageUrl = modelThumbnail?.startsWith('http')
-        ? modelThumbnail
-        : modelThumbnail
-        ? `https://www.draglab.com${modelThumbnail}`
-        : 'https://www.draglab.com/assets/Imgs/logo/logo.png';
-        %>
+<%
+  // --------- Canonical & meta text ----------
+  const langLc = (lang || 'EN').toLowerCase(); // 'en' | 'es' | 'de'
+  // Always prefer slugs for canonical/hreflang:
+  const canonicalUrl = `https://www.drag-lab.de/${langLc}/product/${productSlug}/model/${modelSlug}`;
 
-        <link rel="stylesheet" href="/css/customer/Model-details.css">
-        <title>
-            <%= ModelName %> | DragLab
-        </title>
-        <meta name="description" content="<%= cleanDesc %>">
-        <meta name="robots" content="index, follow">
-        <link rel="canonical" href="<%= canonicalUrl %>">
+  const rawDesc = (ModelDesc || '').toString();
+  const cleanDesc = rawDesc
+    .replace(/<\/?[^>]+(>|$)/g, '')   // strip HTML
+    .replace(/\s+/g, ' ')             // collapse whitespace
+    .trim()
+    .slice(0, 160);
 
-        <!-- Hreflang for multilingual SEO -->
-        <% ['EN', 'ES' , 'DE' ].forEach(code=> { %>
-            <link rel="alternate" hreflang="<%= code.toLowerCase() %>"
-                href="https://www.draglab.com/<%= code %>/product/<%= productSlug %>/model/<%= modelSlug %>" />
-            <% }) %>
-                <link rel="alternate" hreflang="x-default"
-                    href="https://www.draglab.com/EN/product/<%= productSlug %>/model/<%= modelSlug %>" />
+  // Title: Model – Product | Brand  (keeps within ~60 chars if possible)
+  const pageTitle = `${ModelName}${productName ? ' – ' + productName : ''} | DragLab`;
 
-                <!-- Open Graph -->
-                <meta property="og:title" content="<%= ModelName %> | DragLab">
-                <meta property="og:description" content="<%= cleanDesc %>">
-                <meta property="og:image" content="<%= fullImageUrl %>">
-                <meta property="og:url" content="<%= canonicalUrl %>">
-                <meta property="og:locale" content="<%= lang === 'EN' ? 'en_US' : lang === 'ES' ? 'es_ES' : 'de_DE' %>">
-                <meta name="twitter:card" content="summary_large_image">
+  // Full image URL (absolute)
+  const fullImageUrl = (modelThumbnail && modelThumbnail.startsWith('http'))
+    ? modelThumbnail
+    : (modelThumbnail ? `https://www.drag-lab.de${modelThumbnail}` : 'https://www.drag-lab.de/assets/Imgs/logo/logo.png');
 
+  // Localized Home label for breadcrumbs
+  const homeLabel = (lang === 'ES') ? 'Inicio' : (lang === 'DE' ? 'Startseite' : 'Home');
 
-                <!-- ✅ Structured Data: Product -->
-                <script type="application/ld+json">
+  // Optional: If you know image dimensions, set them (improves OG rendering)
+  const ogImageWidth = 1200;   // put real width if known
+  const ogImageHeight = 630;   // put real height if known
+
+  // Build additionalProperty from specs
+  const additionalProperty = [];
+  if (Array.isArray(specs)) {
+    specs.forEach(section => {
+      if (!section || !Array.isArray(section.rows)) return;
+      section.rows.forEach(row => {
+        const k = (row?.title || '').toString().trim();
+        const v = (row?.value || '').toString().trim();
+        if (k && v) {
+          additionalProperty.push({
+            "@type": "PropertyValue",
+            "name": k,
+            "value": v
+          });
+        }
+      });
+    });
+  }
+%>
+
+<link rel="stylesheet" href="/css/customer/Model-details.css">
+
+<title><%= pageTitle %></title>
+<meta name="description" content="<%= cleanDesc %>">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="<%= canonicalUrl %>">
+
+<!-- Hreflang (self + alternates; lowercase codes, slug paths) -->
+<link rel="alternate" hreflang="x-default" href="https://www.drag-lab.de/en/product/<%= productSlug %>/model/<%= modelSlug %>">
+<link rel="alternate" hreflang="en" href="https://www.drag-lab.de/en/product/<%= productSlug %>/model/<%= modelSlug %>">
+<link rel="alternate" hreflang="es" href="https://www.drag-lab.de/es/product/<%= productSlug %>/model/<%= modelSlug %>">
+<link rel="alternate" hreflang="de" href="https://www.drag-lab.de/de/product/<%= productSlug %>/model/<%= modelSlug %>">
+
+<!-- Open Graph -->
+<meta property="og:type" content="product">
+<meta property="og:site_name" content="DragLab">
+<meta property="og:title" content="<%= pageTitle %>">
+<meta property="og:description" content="<%= cleanDesc %>">
+<meta property="og:url" content="<%= canonicalUrl %>">
+<meta property="og:locale" content="<%= lang === 'EN' ? 'en_US' : (lang === 'ES' ? 'es_ES' : 'de_DE') %>">
+<meta property="og:image" content="<%= fullImageUrl %>">
+<meta property="og:image:alt" content="<%= ModelName %>">
+<meta property="og:image:width" content="<%= ogImageWidth %>">
+<meta property="og:image:height" content="<%= ogImageHeight %>">
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="<%= pageTitle %>">
+<meta name="twitter:description" content="<%= cleanDesc %>">
+<meta name="twitter:image" content="<%= fullImageUrl %>">
+<!-- Optional if you have it: <meta name="twitter:site" content="@your_handle"> -->
+
+<!-- JSON-LD: Product -->
+<script type="application/ld+json" nonce="<%= nonce %>">
 <%= JSON.stringify({
   "@context": "https://schema.org",
   "@type": "Product",
   "name": ModelName,
-  "description": ModelDesc,
-  "image": fullImageUrl,
-  "brand": {
-    "@type": "Organization",
-    "name": "DragLab"
-  },
+  "description": cleanDesc,
+  "image": [fullImageUrl],
+  "brand": { "@type": "Organization", "name": "DragLab" },
   "category": "Laboratory Equipment",
-  "releaseDate": new Date().toISOString(),
-  "isAccessibleForFree": true,
-  "offers": {
-    "@type": "Offer",
-    "priceCurrency": "USD",
-    "availability": "https://schema.org/InStock",
-    "price": "0.00"
-  }
-}) %>
+  "url": canonicalUrl,
+  "inLanguage": langLc,
+  ...(additionalProperty.length ? { "additionalProperty": additionalProperty } : {})
+}, null, 2) %>
 </script>
 
-                <!-- ✅ Structured Data: ProductModel Variant -->
-                <script type="application/ld+json">
+<!-- JSON-LD: ProductModel (variant of Product) -->
+<script type="application/ld+json" nonce="<%= nonce %>">
 <%= JSON.stringify({
   "@context": "https://schema.org",
   "@type": "ProductModel",
   "name": ModelName,
-  "description": ModelDesc,
+  "description": cleanDesc,
+  "url": canonicalUrl,
+  "inLanguage": langLc,
   "isVariantOf": {
     "@type": "Product",
-    "name": productName
+    "name": productName || "DragLab Product",
+    "url": `https://www.drag-lab.de/${langLc}/product/${productSlug}`
   }
-}) %>
+}, null, 2) %>
 </script>
 
-                <!-- ✅ Structured Data: Breadcrumb -->
-                <script type="application/ld+json">
+<!-- JSON-LD: Breadcrumb -->
+<script type="application/ld+json" nonce="<%= nonce %>">
 <%= JSON.stringify({
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
   "itemListElement": [
-    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://www.draglab.com" },
-    { "@type": "ListItem", "position": 2, "name": "Products", "item": "https://www.draglab.com/products" },
+    { "@type": "ListItem", "position": 1, "name": homeLabel, "item": `https://www.drag-lab.de/${langLc}` },
+    { "@type": "ListItem", "position": 2, "name": (productName || "Products"), "item": `https://www.drag-lab.de/${langLc}/product/${productSlug}` },
     { "@type": "ListItem", "position": 3, "name": ModelName, "item": canonicalUrl }
   ]
-}) %>
+}, null, 2) %>
 </script>
-
-                <!-- ✅ OpenGraph & Twitter Cards -->
-                <meta property="og:title" content="<%= ModelName %> | DragLab">
-                <meta property="og:description" content="<%= cleanDesc %>">
-                <meta property="og:image" content="<%= fullImageUrl %>">
-                <meta property="og:url" content="<%= canonicalUrl %>">
-                <meta name="twitter:card" content="summary_large_image">
-
-                </head>
+</head>
 
 
 
@@ -231,24 +264,34 @@
                                 </h2>
                                 <div class="download-cards-container">
                                     <% if (downloads && downloads.length) { %>
-                                        <% downloads.forEach(download=> { %>
+                                        <% downloads.forEach(download=> {
+                                            const fname = download.fileName || 'Download';
+                                            const encodedName = encodeURIComponent(fname);
+                                            const isCloud = (download.filePath || '').includes('cloudinary.com');
+                                            const href = isCloud
+                                            ? download.filePath.replace('/upload/',
+                                            `/upload/fl_attachment:${encodedName}/`)
+                                            : download.filePath;
+                                            %>
                                             <div class="download-card">
                                                 <div class="download-info">
                                                     <div class="download-title">
-                                                        <%= download.fileName %>
+                                                        <%= fname %>
                                                     </div>
                                                     <div class="download-meta">
                                                         <div>
                                                             <%= download.fileCategory || 'General' %>
                                                         </div>
-
                                                         <div>
                                                             <%= download.fileSize %>
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <a href="<%= download.filePath %>" target="_blank" class="download-link"
-                                                    download="true" title="Download">
+
+                                                <!-- Use filename-aware href; supply download attribute as a fallback name -->
+                                                <a href="<%= href %>" class="download-link" download="<%= fname %>"
+                                                    target="_blank" rel="noopener noreferrer"
+                                                    title="Download <%= fname %>">
                                                     <p>Download</p>
                                                     <svg class="download-icon" xmlns="http://www.w3.org/2000/svg"
                                                         viewBox="0 0 24 24">

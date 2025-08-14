@@ -13,6 +13,7 @@ const cloudinary = require('../util/cloudinaryConfig'); // ✅ Import Cloudinary
 const sanitize = require('sanitize-filename');
 const slugify = require('slugify');
 const { v4: uuidv4 } = require('uuid');
+const crypto = require('crypto'); // ✅ Node built-in module
 
 const exp = require('constants');
 const express = require('express');
@@ -522,6 +523,23 @@ exports.postDeleteModel = async (req, res, next) => {
   }
 };
 
+// ✅ ADD: sanitize + ensure extension
+function buildDesiredName(inputName, extFallback, originalExt) {
+  const ext = (originalExt || '').toLowerCase();
+  const fallback = (extFallback || '.pdf').toLowerCase();
+
+  const baseRaw = (inputName || '').trim() || 'draglab-file';
+  const base = sanitize(baseRaw)
+    .replace(/\s+/g, '-')          // spaces -> dashes
+    .replace(/[^\w.-]+/g, '')      // keep only word, dot, dash
+    .replace(/-+/g, '-')           // collapse multiple dashes
+    .replace(/^[-.]+|[-.]+$/g, '') // trim leading/trailing dots/dashes
+    .slice(0, 80);                 // keep short and tidy
+
+  // Use provided extension if it looks valid, otherwise fallback
+  const finalExt = ext && ext !== '.webp' ? ext : fallback;
+  return base.toLowerCase().endsWith(finalExt) ? base : `${base}${finalExt}`;
+}
 
 
 
@@ -569,61 +587,80 @@ exports.getEditModel = (req, res, next) => {
 
 // Controller for adding a model
 
-const uploadToCloudinary = async (file, folder, fileFieldName = '', bodyFileName = '') => {
+async function uploadToCloudinary(file, {
+  folder,
+  desiredFileName,     // << pass admin-entered name you want to save as
+  treatAsDownload = false, // raw for PDFs & docs
+} = {}) {
   if (!file || !file.buffer) {
-    console.warn(`⚠️ No file provided for upload.`);
+    console.warn('⚠️ No file provided for upload.');
     return null;
   }
 
- const ext = path.extname(file.originalname).toLowerCase();
-const isPdf = ext === '.pdf';
-const isImage = ['.jpg', '.jpeg', '.png'].includes(ext);
+  // Detect type from original name
+  const ext = path.extname(file.originalname).toLowerCase();
+  const isPdf = ext === '.pdf';
+  const isImage = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.tif', '.tiff'].includes(ext);
 
-const baseName = sanitize(path.basename(file.originalname, ext))
-  .replace(/\s+/g, '-')
-  .replace(/[^\w\-]/g, '')
-  .replace(/\.(jpg|jpeg|png|pdf)$/i, '')
-  .slice(0, 40);
+  // For downloads: ensure .pdf if admin forgets an extension
+  // For images: we'll force to .webp in Cloudinary anyway
+  const desiredNameForSave = buildDesiredName(
+    desiredFileName || path.basename(file.originalname, ext),
+    isPdf ? '.pdf' : (isImage ? '.webp' : (ext || '.pdf')),
+    ext
+  );
 
-let downloadBaseName = baseName;
-if (fileFieldName.startsWith('downloadFiles_') && bodyFileName) {
-  downloadBaseName = sanitize(bodyFileName)
-    .replace(/\s+/g, '-')
-    .replace(/[^\w\-]/g, '')
-    .slice(0, 40);
-}
+  // Keep assets unique but readable by appending a tiny hash from content
+  const shortHash = crypto.createHash('md5').update(file.buffer).digest('hex').slice(0, 6);
+  const nameNoExt = desiredNameForSave.replace(/\.[^.]+$/, '');
+  const finalPublicIdBase = `${nameNoExt}--${shortHash}`; // e.g. 'incubator-manual--a1b2c3'
 
-const extension = isPdf ? '.pdf' : '';
-const uniqueId = `${downloadBaseName}-${Date.now()}-${uuidv4()}${extension}`;
-
-
+  // Cloudinary upload options
   const uploadOptions = {
-    folder: folder,
-    public_id: uniqueId,
+    folder,                          // e.g. 'draglab/models/downloads/EN'
+    public_id: finalPublicIdBase,    // NO extension here; Cloudinary adds format
     use_filename: false,
     unique_filename: false,
-    resource_type: isPdf ? 'raw' : 'image'
+    overwrite: false,
+    resource_type: treatAsDownload ? 'raw' : (isImage ? 'image' : 'auto'),
   };
 
-  if (isImage) {
-    uploadOptions.format = 'webp';        // Convert to webp
-    uploadOptions.quality = 'auto';       // Compress smartly
+  // Images: convert to webp & compress
+  if (isImage && !treatAsDownload) {
+    uploadOptions.format = 'webp';
+    uploadOptions.quality = 'auto';
   }
 
+  // Upload via stream
   return new Promise((resolve, reject) => {
     cloudinary.uploader.upload_stream(uploadOptions, (error, result) => {
       if (error) {
-        console.error(`❌ Cloudinary upload error for ${uniqueId}:`, error.message);
+        console.error(`❌ Cloudinary upload error for ${finalPublicIdBase}:`, error.message);
         reject(error);
       } else {
-        console.log(`✅ Uploaded ${uniqueId}: ${result.secure_url}`);
-        resolve(result.secure_url);
+        // e.g. result.format is 'pdf' or 'webp'
+        resolve({
+          url: result.secure_url,
+          public_id: result.public_id,
+          format: result.format,
+          savedName: `${finalPublicIdBase}.${result.format}`, // final asset name in Cloudinary
+        });
       }
     }).end(file.buffer);
   });
-};
+}
 
 
+/**
+ * ✅ REPLACE your entire postAddModel with this.
+ * 
+ * Changes:
+ * - Uses the unified upload helper.
+ * - For downloads, **saves** Mongo `downloads[].fileName` exactly as admin intended
+ *   (with a valid extension), AND stores the Cloudinary URL.
+ * - Keeps your 4 overview & 3 industry entries structure.
+ * - Images → webp; PDFs → raw.
+ */
 exports.postAddModel = async (req, res) => {
   const productId = req.params.productId;
   const languages = ['EN', 'ES', 'DE'];
@@ -631,128 +668,146 @@ exports.postAddModel = async (req, res) => {
   const isDraft = req.body.action === 'draft';
 
   try {
-    // ✅ Cloudinary paths for images
+    // === Top-level images ===
     const ModelThumbnail = req.files?.ModelThumbnail?.[0]
-      ? await uploadToCloudinary(req.files.ModelThumbnail[0], 'thumbnails')
+      ? (await uploadToCloudinary(req.files.ModelThumbnail[0], {
+          folder: 'draglab/models/thumbnails',
+          desiredFileName: req.body['ModelName_EN'] ? `${req.body['ModelName_EN']}-thumbnail.webp` : 'model-thumbnail.webp',
+          treatAsDownload: false,
+        }))?.url || ''
       : '';
 
     const ModelPhotos = req.files?.ModelPhotos
-      ? await Promise.all(req.files.ModelPhotos.map(file => uploadToCloudinary(file, 'photos')))
+      ? await Promise.all(
+          req.files.ModelPhotos.map(async (f, idx) => {
+            const uploaded = await uploadToCloudinary(f, {
+              folder: 'draglab/models/photos',
+              desiredFileName: `photo-${idx + 1}.webp`,
+              treatAsDownload: false,
+            });
+            return uploaded?.url || '';
+          })
+        )
       : [];
 
     const overviewThumbnail = req.files?.overviewThumbnail?.[0]
-      ? await uploadToCloudinary(req.files.overviewThumbnail[0], 'overview')
+      ? (await uploadToCloudinary(req.files.overviewThumbnail[0], {
+          folder: 'draglab/models/overview',
+          desiredFileName: 'overview-thumbnail.webp',
+          treatAsDownload: false,
+        }))?.url || ''
       : '';
-    const modelSlug = slugify(req.body['ModelName_EN'], { lower: true, strict: true });
 
+    // Generate slug from EN name (keep your behavior)
+    const modelSlug = slugify(req.body['ModelName_EN'] || 'model', { lower: true, strict: true });
+
+    // === Per-language content ===
     for (const lang of languages) {
       const overviewData = [];
       const industryData = [];
       const downloads = [];
       const technicalSpecifications = [];
-      console.log('📝 Full Form Data:', req.body);
 
-      // ✅ Overview
-      // ✅ Overview
+      // ---- Overview (max 4) ----
       for (let i = 0; i < 4; i++) {
-        // 📝 Fetching the data properly from form body
-        const overviewName = req.body.overview[lang]?.[i]?.overviewName || '';
-        const overviewDesc = req.body.overview[lang]?.[i]?.overviewDesc || '';
+        const overviewName = req.body.overview?.[lang]?.[i]?.overviewName || '';
+        const overviewDesc = req.body.overview?.[lang]?.[i]?.overviewDesc || '';
 
-        console.log(`📌 Overview Name: ${overviewName}, Description: ${overviewDesc}`);
-
-        const overviewImage = req.files[`overviewImages_${lang}[${i}]`]?.[0]
-          ? await uploadToCloudinary(req.files[`overviewImages_${lang}[${i}]`][0], `overview/${lang}`)
+        const overviewImageFile = req.files?.[`overviewImages_${lang}[${i}]`]?.[0];
+        const overviewImage = overviewImageFile
+          ? (await uploadToCloudinary(overviewImageFile, {
+              folder: `draglab/models/overview/${lang}`,
+              desiredFileName: `${modelSlug}-overview-${i + 1}.webp`,
+              treatAsDownload: false,
+            }))?.url || ''
           : '';
 
-        overviewData.push({
-          overviewName,
-          overviewDesc,
-          overviewImage
-        });
+        overviewData.push({ overviewName, overviewDesc, overviewImage });
       }
 
-
-      // ✅ Industry
-
+      // ---- Industry (max 3) ----
       for (let i = 0; i < 3; i++) {
-        // 📝 Correctly fetching data from form body
-        const industryName = req.body.industry[lang]?.[i]?.industryName || '';
+        const industryName = req.body.industry?.[lang]?.[i]?.industryName || '';
 
-        console.log(`📌 Industry Name: ${industryName}`);
+        const industryImageFile = req.files?.[`industryImages_${lang}[${i}]`]?.[0];
+        const industryLogoFile  = req.files?.[`industryLogos_${lang}[${i}]`]?.[0];
 
-        const industryImage = req.files[`industryImages_${lang}[${i}]`]?.[0]
-          ? await uploadToCloudinary(req.files[`industryImages_${lang}[${i}]`][0], `industry/${lang}`)
+        const industryImage = industryImageFile
+          ? (await uploadToCloudinary(industryImageFile, {
+              folder: `draglab/models/industry/${lang}`,
+              desiredFileName: `${modelSlug}-industry-image-${i + 1}.webp`,
+              treatAsDownload: false,
+            }))?.url || ''
           : '';
 
-        const industryLogo = req.files[`industryLogos_${lang}[${i}]`]?.[0]
-          ? await uploadToCloudinary(req.files[`industryLogos_${lang}[${i}]`][0], `industry/${lang}`)
+        const industryLogo = industryLogoFile
+          ? (await uploadToCloudinary(industryLogoFile, {
+              folder: `draglab/models/industry/${lang}`,
+              desiredFileName: `${modelSlug}-industry-logo-${i + 1}.webp`,
+              treatAsDownload: false,
+            }))?.url || ''
           : '';
 
-        industryData.push({
-          industryName,
-          industryImage,
-          industryLogo
-        });
+        industryData.push({ industryName, industryImage, industryLogo });
       }
 
-
-
-      // ✅ Technical Specifications
-      if (req.body.technicalSpecifications && req.body.technicalSpecifications[lang]) {
-        req.body.technicalSpecifications[lang].forEach((section, index) => {
-          const sectionTitle = section.sectionTitle;
-          const rows = section.rows.map(row => ({
-            title: row.title,
-            value: row.value
-          }));
-
-          technicalSpecifications.push({
-            sectionTitle,
-            rows
+      // ---- Technical Specifications (dynamic) ----
+      if (req.body.technicalSpecifications?.[lang]) {
+        const langSpecs = req.body.technicalSpecifications[lang];
+        if (Array.isArray(langSpecs)) {
+          langSpecs.forEach(section => {
+            const rows = Array.isArray(section.rows)
+              ? section.rows.map(r => ({ title: r.title || '', value: r.value || '' }))
+              : [];
+            technicalSpecifications.push({ sectionTitle: section.sectionTitle || '', rows });
           });
-        });
+        }
       }
 
-      // ✅ Downloads
-      // ✅ Downloads
-      if (req.files[`downloadFiles_${lang}`]) {
+      // ---- Downloads (FILES + NAMES) ----
+      if (req.files?.[`downloadFiles_${lang}`]) {
         const fileNames = req.body[`downloadFileNames_${lang}`] || [];
         const categories = req.body[`downloadCategories_${lang}`] || [];
 
         for (let i = 0; i < req.files[`downloadFiles_${lang}`].length; i++) {
           const file = req.files[`downloadFiles_${lang}`][i];
-          const filePath = await uploadToCloudinary(file, `downloads/${lang}`);
+
+          // Build final saved filename based on admin name + original extension (default .pdf)
+          const originalExt = path.extname(file.originalname).toLowerCase() || '.pdf';
+          const adminName = (fileNames[i] || path.basename(file.originalname, originalExt));
+          const desiredNameForSave = buildDesiredName(adminName, '.pdf', originalExt); // e.g. 'incubator-manual.pdf'
+
+          const uploaded = await uploadToCloudinary(file, {
+            folder: `draglab/models/downloads/${lang}`,
+            desiredFileName: desiredNameForSave,
+            treatAsDownload: true, // raw for docs
+          });
 
           downloads.push({
-            fileName: fileNames[i] || file.originalname,  // ✅ Use the custom name if available
-            filePath,
+            fileName: desiredNameForSave,         // << what gets saved in Mongo (what admin named it)
+            filePath: uploaded?.url || '',        // Cloudinary HTTPS URL
             fileSize: `${(file.size / (1024 * 1024)).toFixed(2)} MB`,
-            fileCategory: categories[i] || 'Uncategorized', // ✅ Use the category if available
+            fileCategory: categories[i] || 'Uncategorized',
+            fileProductCategory: '',              // set if you need it
           });
         }
       }
 
-
+      // Collect per-language payload
       languageData[lang] = [{
-        ModelName: req.body[`ModelName_${lang}`],
+        ModelName:     req.body[`ModelName_${lang}`],
         ModelNameDesc: req.body[`ModelNameDesc_${lang}`],
-        ModelDesc: req.body[`ModelDesc_${lang}`],
+        ModelDesc:     req.body[`ModelDesc_${lang}`],
         overview: overviewData,
         industry: industryData,
         technicalSpecifications,
         downloads
       }];
-
     }
 
-    // ✅ Final model structure
-    // Create a new subdocument using the schema path
+    // === Persist under product.Models ===
     const product = await Product.findById(productId);
-    if (!product) {
-      console.error('❌ Product not found');
-      return res.redirect('/admin/Myproduct');
-    }
+    if (!product) return res.redirect('/admin/Myproduct');
 
     const newModel = product.Models.create({
       slug: modelSlug,
@@ -764,21 +819,29 @@ exports.postAddModel = async (req, res) => {
       isPublished: !isDraft,
     });
 
-    // ✅ Push to the product in MongoDB
     product.Models.push(newModel);
     await product.save();
 
     console.log('✅ Model successfully added!');
     res.redirect('/admin/Myproduct');
   } catch (err) {
-    console.error('🔥 Error adding model:', err.message);
+    console.error('🔥 Error adding model:', err);
     res.redirect('/admin/Myproduct');
   }
 };
 
 
 
+
 // Controller for editing a model
+/**
+ * ✅ REPLACE your entire postEditModel with this.
+ * 
+ * Changes:
+ * - Reuses the unified upload helper.
+ * - Preserves existing data when fields/files are not updated.
+ * - Updates downloads using admin-entered names (saved in DB), keeps old downloads if none uploaded.
+ */
 exports.postEditModel = async (req, res) => {
   const { productId, modelId } = req.params;
   const languages = ['EN', 'ES', 'DE'];
@@ -790,180 +853,147 @@ exports.postEditModel = async (req, res) => {
     const model = product.Models.id(modelId);
     if (!model) return res.redirect('/admin/Myproduct');
 
-    const path = require('path');
-    const sanitize = require('sanitize-filename');
-    const { v4: uuidv4 } = require('uuid');
-
-    const uploadToCloudinary = async (file, folder, fileFieldName = '', bodyFileName = '') => {
-      if (!file || !file.buffer) {
-        console.warn(`⚠️ Skipping Cloudinary upload for missing file.`);
-        return null;
-      }
-
-      const ext = path.extname(file.originalname).toLowerCase();
-      const isPdf = ext === '.pdf';
-      const isImage = ['.jpg', '.jpeg', '.png'].includes(ext);
-
-      const baseName = sanitize(path.basename(file.originalname, ext))
-        .replace(/\s+/g, '-')
-        .replace(/[^\w\-]/g, '')
-        .replace(/\.(jpg|jpeg|png|pdf)$/i, '')
-        .slice(0, 40);
-
-      let downloadBaseName = baseName;
-      if (fileFieldName.startsWith('downloadFiles_') && bodyFileName) {
-        downloadBaseName = sanitize(bodyFileName)
-          .replace(/\s+/g, '-')
-          .replace(/[^\w\-]/g, '')
-          .slice(0, 40);
-      }
-
-      const extension = isPdf ? '.pdf' : '';
-      const uniqueId = `${downloadBaseName}-${Date.now()}-${uuidv4()}${extension}`;
-
-
-
-
-      const uploadOptions = {
-        folder,
-        public_id: uniqueId,
-        use_filename: false,
-        unique_filename: false,
-        resource_type: isPdf ? 'raw' : 'image'
-      };
-
-      if (isImage) {
-        uploadOptions.format = 'webp';
-        uploadOptions.quality = 'auto';
-      }
-
-      return new Promise((resolve, reject) => {
-        cloudinary.uploader.upload_stream(uploadOptions, (error, result) => {
-          if (error) {
-            console.error(`❌ Cloudinary upload error for ${uniqueId}:`, error.message);
-            reject(error);
-          } else {
-            console.log(`✅ Uploaded ${uniqueId}: ${result.secure_url}`);
-            resolve(result.secure_url);
-          }
-        }).end(file.buffer);
-      });
-    };
-
-
-
-
-    model.ModelThumbnail = req.files?.ModelThumbnail?.[0]
-      ? await uploadToCloudinary(req.files.ModelThumbnail[0], `DragLab/products/${productId}`)
+    // === Top-level images (preserve if not re-uploaded) ===
+    const newModelThumb = req.files?.ModelThumbnail?.[0]
+      ? (await uploadToCloudinary(req.files.ModelThumbnail[0], {
+          folder: `draglab/models/thumbnails`,
+          desiredFileName: `${model.slug || 'model'}-thumbnail.webp`,
+          treatAsDownload: false,
+        }))?.url
       : model.ModelThumbnail;
 
-    model.ModelPhotos = req.files?.ModelPhotos
-      ? await Promise.all(req.files.ModelPhotos.map(file => uploadToCloudinary(file, `DragLab/products/${productId}`)))
-      : model.ModelPhotos;
-
-    model.overviewThumbnail = req.files?.overviewThumbnail?.[0]
-      ? await uploadToCloudinary(req.files.overviewThumbnail[0], `DragLab/products/${productId}`)
+    const newOverviewThumb = req.files?.overviewThumbnail?.[0]
+      ? (await uploadToCloudinary(req.files.overviewThumbnail[0], {
+          folder: `draglab/models/overview`,
+          desiredFileName: `${model.slug || 'model'}-overview-thumb.webp`,
+          treatAsDownload: false,
+        }))?.url
       : model.overviewThumbnail;
 
+    const newPhotos = req.files?.ModelPhotos
+      ? await Promise.all(
+          req.files.ModelPhotos.map(async (f, idx) => {
+            const uploaded = await uploadToCloudinary(f, {
+              folder: `draglab/models/photos`,
+              desiredFileName: `${model.slug || 'model'}-photo-${idx + 1}.webp`,
+              treatAsDownload: false,
+            });
+            return uploaded?.url || '';
+          })
+        )
+      : model.ModelPhotos;
+
+    model.ModelThumbnail = newModelThumb;
+    model.overviewThumbnail = newOverviewThumb;
+    model.ModelPhotos = newPhotos;
     model.modelcapacity = req.body.modelcapacity || model.modelcapacity;
 
+    // === Per-language updates ===
     for (const lang of languages) {
+      const prev = model.Language?.[lang]?.[0] || {};
       const overviewData = [];
       const industryData = [];
       const downloads = [];
       const technicalSpecifications = [];
 
-      // === Overview ===
+      // ---- Overview (max 4) ----
       for (let i = 0; i < 4; i++) {
-        const newFile = req.files[`overviewImages_${lang}[${i}]`]?.[0];
-        const oldImage = req.body[`oldOverviewImages_${lang}_${i}`] || model.Language[lang][0]?.overview?.[i]?.overviewImage || '';
+        const newOverviewFile = req.files?.[`overviewImages_${lang}[${i}]`]?.[0];
 
-        const overviewImage = newFile
-          ? await uploadToCloudinary(newFile, `draglab/models/overview/${lang}`)
-          : oldImage;
+        const overviewImage = newOverviewFile
+          ? (await uploadToCloudinary(newOverviewFile, {
+              folder: `draglab/models/overview/${lang}`,
+              desiredFileName: `${model.slug || 'model'}-overview-${i + 1}.webp`,
+              treatAsDownload: false,
+            }))?.url || ''
+          : (prev.overview?.[i]?.overviewImage || '');
 
         overviewData.push({
-          overviewName: req.body.overview?.[lang]?.[i]?.overviewName || model.Language[lang][0]?.overview?.[i]?.overviewName || '',
-          overviewDesc: req.body.overview?.[lang]?.[i]?.overviewDesc || model.Language[lang][0]?.overview?.[i]?.overviewDesc || '',
+          overviewName: req.body.overview?.[lang]?.[i]?.overviewName || prev.overview?.[i]?.overviewName || '',
+          overviewDesc: req.body.overview?.[lang]?.[i]?.overviewDesc || prev.overview?.[i]?.overviewDesc || '',
           overviewImage
         });
       }
 
-      // === Industry ===
+      // ---- Industry (max 3) ----
       for (let i = 0; i < 3; i++) {
-        const imageFile = req.files[`industryImages_${lang}[${i}]`]?.[0];
-        const logoFile = req.files[`industryLogos_${lang}[${i}]`]?.[0];
+        const newImageFile = req.files?.[`industryImages_${lang}[${i}]`]?.[0];
+        const newLogoFile  = req.files?.[`industryLogos_${lang}[${i}]`]?.[0];
 
-        const industryImage = imageFile
-          ? await uploadToCloudinary(imageFile, `draglab/models/industry/${lang}`)
-          : model.Language[lang][0]?.industry?.[i]?.industryImage || '';
+        const industryImage = newImageFile
+          ? (await uploadToCloudinary(newImageFile, {
+              folder: `draglab/models/industry/${lang}`,
+              desiredFileName: `${model.slug || 'model'}-industry-image-${i + 1}.webp`,
+              treatAsDownload: false,
+            }))?.url || ''
+          : (prev.industry?.[i]?.industryImage || '');
 
-        const industryLogo = logoFile
-          ? await uploadToCloudinary(logoFile, `draglab/models/industry/${lang}`)
-          : model.Language[lang][0]?.industry?.[i]?.industryLogo || '';
+        const industryLogo = newLogoFile
+          ? (await uploadToCloudinary(newLogoFile, {
+              folder: `draglab/models/industry/${lang}`,
+              desiredFileName: `${model.slug || 'model'}-industry-logo-${i + 1}.webp`,
+              treatAsDownload: false,
+            }))?.url || ''
+          : (prev.industry?.[i]?.industryLogo || '');
 
         industryData.push({
-          industryName: req.body.industry?.[lang]?.[i]?.industryName || model.Language[lang][0]?.industry?.[i]?.industryName || '',
+          industryName: req.body.industry?.[lang]?.[i]?.industryName || prev.industry?.[i]?.industryName || '',
           industryImage,
           industryLogo
         });
       }
 
-      // === Technical Specifications ===
-      if (req.body.technicalSpecifications && req.body.technicalSpecifications[lang]) {
+      // ---- Technical Specifications ----
+      if (req.body.technicalSpecifications?.[lang]) {
         const langSpecs = req.body.technicalSpecifications[lang];
-
         if (Array.isArray(langSpecs)) {
-          langSpecs.forEach((section) => {
+          langSpecs.forEach(section => {
             const rows = Array.isArray(section.rows)
-              ? section.rows.map(row => ({
-                title: row.title || '',
-                value: row.value || ''
-              }))
+              ? section.rows.map(r => ({ title: r.title || '', value: r.value || '' }))
               : [];
-
-            technicalSpecifications.push({
-              sectionTitle: section.sectionTitle || '',
-              rows
-            });
+            technicalSpecifications.push({ sectionTitle: section.sectionTitle || '', rows });
           });
-        } else {
-          console.warn(`⚠️ Expected technicalSpecifications[${lang}] to be an array.`);
         }
+      } else if (prev.technicalSpecifications) {
+        // keep old if not posted
+        technicalSpecifications.push(...prev.technicalSpecifications);
       }
 
-
-
-      // === Downloads ===
-      if (req.files[`downloadFiles_${lang}`]) {
+      // ---- Downloads ----
+      if (req.files?.[`downloadFiles_${lang}`]) {
         const fileNames = req.body[`downloadFileNames_${lang}`] || [];
         const categories = req.body[`downloadCategories_${lang}`] || [];
 
         for (let i = 0; i < req.files[`downloadFiles_${lang}`].length; i++) {
           const file = req.files[`downloadFiles_${lang}`][i];
-          const fieldName = `downloadFiles_${lang}`;
-          const fileName = fileNames[i] || file.originalname;
+          const originalExt = path.extname(file.originalname).toLowerCase() || '.pdf';
+          const adminName = (fileNames[i] || path.basename(file.originalname, originalExt));
+          const desiredNameForSave = buildDesiredName(adminName, '.pdf', originalExt);
 
-          const filePath = await uploadToCloudinary(file, `draglab/models/downloads/${lang}`, fieldName, fileName);
-
+          const uploaded = await uploadToCloudinary(file, {
+            folder: `draglab/models/downloads/${lang}`,
+            desiredFileName: desiredNameForSave,
+            treatAsDownload: true,
+          });
 
           downloads.push({
-            fileName: fileNames[i] || file.originalname,
-            filePath,
+            fileName: desiredNameForSave,          // << admin-intended name (normalized)
+            filePath: uploaded?.url || '',
             fileSize: `${(file.size / (1024 * 1024)).toFixed(2)} MB`,
             fileCategory: categories[i] || 'Uncategorized',
-            fileProductCategory: '' // Add this if needed
+            fileProductCategory: prev.fileProductCategory || ''
           });
         }
-      } else {
-        downloads.push(...(model.Language[lang][0]?.downloads || []));
+      } else if (prev.downloads) {
+        // keep old downloads if none uploaded now
+        downloads.push(...prev.downloads);
       }
 
-      // === Update Model Language ===
+      // ---- Commit per-language
       model.Language[lang] = [{
-        ModelName: req.body[`ModelName_${lang}`] || model.Language[lang][0]?.ModelName || '',
-        ModelNameDesc: req.body[`ModelNameDesc_${lang}`] || model.Language[lang][0]?.ModelNameDesc || '',
-        ModelDesc: req.body[`ModelDesc_${lang}`] || model.Language[lang][0]?.ModelDesc || '',
+        ModelName:     req.body[`ModelName_${lang}`]     || prev.ModelName     || '',
+        ModelNameDesc: req.body[`ModelNameDesc_${lang}`] || prev.ModelNameDesc || '',
+        ModelDesc:     req.body[`ModelDesc_${lang}`]     || prev.ModelDesc     || '',
         overview: overviewData,
         industry: industryData,
         technicalSpecifications,
@@ -975,11 +1005,10 @@ exports.postEditModel = async (req, res) => {
     console.log('✅ Model successfully updated!');
     res.redirect('/admin/Myproduct');
   } catch (err) {
-    console.error('Error updating model:', err.message);
+    console.error('Error updating model:', err);
     res.redirect('/admin/Myproduct');
   }
 };
-
 
 
 
@@ -1222,47 +1251,43 @@ exports.getAddArticle = (req, res) => {
 };
 
 // POST: Add New Article
+
 exports.postAddArticle = async (req, res) => {
-  const { title, author, body, language } = req.body;
+  const { title, author, body, language, summary, category } = req.body;
+  // tags as comma-separated -> array
+  const tags = (req.body.tags || '')
+    .split(',')
+    .map(t => t.trim())
+    .filter(Boolean);
+
   const slug = slugify(title || 'untitled-article', { lower: true, strict: true });
 
   const file = req.files?.thumbnail?.[0];
   let thumbnail = '';
 
-  // ✅ Upload to Cloudinary if file exists
   if (file) {
     try {
       const result = await new Promise((resolve, reject) => {
         cloudinary.uploader.upload_stream(
-          {
-            resource_type: 'image',
-            folder: 'draglab/articles',
-            public_id: file.originalname.split('.')[0],
-            format: 'webp',
-          },
-          (error, result) => {
-            if (error) reject(error);
-            else resolve(result.secure_url);
-          }
+          { resource_type: 'image', folder: 'draglab/articles', public_id: file.originalname.split('.')[0], format: 'webp' },
+          (error, r) => error ? reject(error) : resolve(r.secure_url)
         ).end(file.buffer);
       });
-
       thumbnail = result;
-      console.log('Cloudinary URL:', thumbnail);
     } catch (err) {
       console.error('Cloudinary upload error:', err.message);
       return res.status(500).send('Failed to upload thumbnail');
     }
   }
 
-  const newArticle = new Article({ title, author, body, language, thumbnail, slug });
-
-  newArticle.save()
-    .then(() => {
-      console.log('Article added successfully!');
-      res.redirect('/admin/articles');
-    })
-    .catch(err => console.error('Error adding article:', err));
+  try {
+    const newArticle = new Article({ title, author, body, language, thumbnail, slug, summary, category, tags });
+    await newArticle.save();
+    res.redirect('/admin/articles');
+  } catch (err) {
+    console.error('Error adding article:', err);
+    res.status(500).send('Error adding article');
+  }
 };
 
 // GET: Edit Article Form
@@ -1287,61 +1312,49 @@ exports.getEditArticle = (req, res) => {
 
 // POST: Edit Article
 exports.postEditArticle = async (req, res) => {
-  const { title, author, body, language } = req.body;
+  const { title, author, body, language, summary, category } = req.body;
+  const tags = (req.body.tags || '')
+    .split(',')
+    .map(t => t.trim())
+    .filter(Boolean);
   const file = req.files?.thumbnail?.[0];
 
-  Article.findById(req.params.articleId)
-    .then(async (article) => {
-      if (!article) return res.redirect('/admin/articles');
+  try {
+    const article = await Article.findById(req.params.articleId);
+    if (!article) return res.redirect('/admin/articles');
 
-      article.title = title;
-      article.author = author;
-      article.body = body;
-      article.language = language;
+    article.title = title;
+    article.author = author;
+    article.body = body;
+    article.language = language;
+    article.summary = summary;
+    article.category = category || article.category;
+    article.tags = tags;
 
-      if (file) {
-        // ✅ Delete the old thumbnail from Cloudinary
-        if (article.thumbnail) {
-          const publicId = article.thumbnail.split('/draglab/articles/')[1].replace('.webp', '');
-          try {
-            const result = await cloudinary.uploader.destroy(`draglab/articles/${publicId}`);
-            console.log('Old thumbnail deleted from Cloudinary:', result);
-          } catch (err) {
-            console.error('Failed to delete old image:', err.message);
-          }
-        }
-
-        // ✅ Upload new thumbnail to Cloudinary
-        try {
-          const result = await new Promise((resolve, reject) => {
-            cloudinary.uploader.upload_stream(
-              {
-                resource_type: 'image',
-                folder: 'draglab/articles',
-                public_id: file.originalname.split('.')[0],
-                format: 'webp',
-              },
-              (error, result) => {
-                if (error) reject(error);
-                else resolve(result.secure_url);
-              }
-            ).end(file.buffer);
-          });
-
-          article.thumbnail = result;
-        } catch (err) {
-          console.error('Cloudinary upload error:', err.message);
-          return res.status(500).send('Failed to upload new thumbnail');
+    if (file) {
+      // delete old from Cloudinary
+      if (article.thumbnail) {
+        const publicId = article.thumbnail.split('/draglab/articles/')[1]?.replace('.webp', '');
+        if (publicId) {
+          try { await cloudinary.uploader.destroy(`draglab/articles/${publicId}`); } catch {}
         }
       }
+      // upload new
+      const uploaded = await new Promise((resolve, reject) => {
+        cloudinary.uploader.upload_stream(
+          { resource_type: 'image', folder: 'draglab/articles', public_id: file.originalname.split('.')[0], format: 'webp' },
+          (error, r) => error ? reject(error) : resolve(r.secure_url)
+        ).end(file.buffer);
+      });
+      article.thumbnail = uploaded;
+    }
 
-      return article.save();
-    })
-    .then(() => {
-      console.log('Article updated successfully!');
-      res.redirect('/admin/articles');
-    })
-    .catch(err => console.log(err));
+    await article.save();
+    res.redirect('/admin/articles');
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error updating article');
+  }
 };
 
 
@@ -1464,7 +1477,7 @@ exports.getDashboard = async (req, res, next) => {
       isAuthenticated: req.session.isLoggedIn,
       faqSchema: {
         EN: {
-          url: "https://www.draglab.com/EN"
+          url: "https://www.drag-lab.de/EN"
         }
       }
     });

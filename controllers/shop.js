@@ -511,6 +511,8 @@ exports.getModelDetailsPage = async (req, res, next) => {
 
 exports.getContactus = (req, res, next) => {
     const lang = req.params.lang?.toUpperCase() || req.query.lang?.toUpperCase() || 'EN';
+    const CDN_BASE = 'https://www.drag-lab.de';
+    const DEFAULT_OG = `${CDN_BASE}/assets/Imgs/SEO/contact-us.jpg`;
 
     const translations = {
         EN: {
@@ -518,7 +520,7 @@ exports.getContactus = (req, res, next) => {
             metaDescription: 'Have a question or need help? Contact DragLab for fast support and expert assistance. We’re here to help you.',
             ogTitle: 'Contact Us | DragLab',
             ogDescription: 'Need assistance with laboratory equipment or service inquiries? Contact DragLab Technologies today.',
-            ogImage: 'https://yourdomain.com/assets/Imgs/SEO/contact-us.jpg',
+            ogImage: DEFAULT_OG,
             sectionHeading: 'Contact Us',
             sectionSub: 'Have a question or need help? Reach out!',
             successMessage: '✅ Thank you! We have received your message.',
@@ -538,7 +540,7 @@ exports.getContactus = (req, res, next) => {
             metaDescription: 'Haben Sie Fragen oder benötigen Sie Hilfe? Kontaktieren Sie DragLab für schnelle Unterstützung und kompetente Beratung.',
             ogTitle: 'Kontakt | DragLab',
             ogDescription: 'Benötigen Sie Hilfe mit Laborgeräten oder technischen Anfragen? Kontaktieren Sie DragLab Technologies noch heute.',
-            ogImage: 'https://yourdomain.com/assets/Imgs/SEO/contact-us.jpg',
+            ogImage: DEFAULT_OG,
             sectionHeading: 'Kontaktieren Sie uns',
             sectionSub: 'Haben Sie Fragen oder benötigen Sie Hilfe? Kontaktieren Sie uns!',
             successMessage: '✅ Vielen Dank! Wir haben Ihre Nachricht erhalten.',
@@ -558,7 +560,7 @@ exports.getContactus = (req, res, next) => {
             metaDescription: '¿Tienes preguntas o necesitas ayuda? Contacta con DragLab para asistencia rápida y especializada.',
             ogTitle: 'Contacto | DragLab',
             ogDescription: '¿Necesitas soporte o tienes dudas sobre nuestros productos? Contáctanos y recibe asistencia inmediata.',
-            ogImage: 'https://yourdomain.com/assets/Imgs/SEO/contact-us.jpg',
+            ogImage: DEFAULT_OG,
             sectionHeading: 'Contáctanos',
             sectionSub: '¿Tienes preguntas o necesitas ayuda? ¡Escríbenos!',
             successMessage: '✅ ¡Gracias! Hemos recibido tu mensaje.',
@@ -576,6 +578,13 @@ exports.getContactus = (req, res, next) => {
     };
 
     const t = translations[lang] || translations.EN;
+    // ✅ compute noindex for “state” URLs like ?success=1 or ?error=1
+    const noindex = !!(req.query && (req.query.success || req.query.error));
+
+    // (optional) provide a canonical URL to keep logic out of the view
+    const canonicalUrl = `${CDN_BASE}/${lang}/contactus`;
+    // (optional) also send an X‑Robots‑Tag header for extra safety
+    if (noindex) res.set('X-Robots-Tag', 'noindex, follow');
 
     Product.find()
         .then(products => {
@@ -586,12 +595,15 @@ exports.getContactus = (req, res, next) => {
                 req,
                 products,
                 categories: [],
-                path: `/${lang}/contactus`
+                path: `/${lang}/contactus`,
+                noindex,          // 👈 use this in EJS
+                canonicalUrl,     // 👈 use this in EJS
+                ogImage: t.ogImage
             });
         })
         .catch(err => {
             console.error(err);
-            res.redirect(`/${lang}/contactus`);
+            return res.status(303).redirect(`/${fallbackLang}/contactus?success=true`);
         });
 };
 
@@ -1273,6 +1285,7 @@ exports.getDownloads = async (req, res, next) => {
         EN: {
             pageTitle: 'Downloads',
             heroTitle: 'Downloads',
+            heroIntro: 'Find catalogs, manuals, certificates, and technical documents for DragLab Products.',
             noProducts: 'No Products Available',
             noCategories: 'No Categories Available',
             allLabel: 'All',
@@ -1280,6 +1293,7 @@ exports.getDownloads = async (req, res, next) => {
         ES: {
             pageTitle: 'Descargas',
             heroTitle: 'Descargas',
+            heroIntro: 'Encuentra catálogos, manuales, certificados y documentos técnicos para productos DragLab.',
             noProducts: 'No hay productos disponibles',
             noCategories: 'No hay categorías disponibles',
             allLabel: 'Todos',
@@ -1287,6 +1301,7 @@ exports.getDownloads = async (req, res, next) => {
         DE: {
             pageTitle: 'Downloads',
             heroTitle: 'Downloads',
+            heroIntro: 'Finden Sie Kataloge, Handbücher, Zertifikate und technische Dokumente für DragLab-Produkte.',
             noProducts: 'Keine Produkte verfügbar',
             noCategories: 'Keine Kategorien verfügbar',
             allLabel: 'Alle',

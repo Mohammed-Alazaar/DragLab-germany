@@ -22,36 +22,66 @@
                     <form action="<%= editing ? '/admin/articles/edit/' + article._id : '/admin/articles/add' %>"
                         method="POST" enctype="multipart/form-data">
 
+                        <!-- Language -->
                         <label for="language">Article Language</label>
                         <select name="language" required>
                             <option value="EN" <%=article?.language==='EN' ? 'selected' : '' %>>English</option>
                             <option value="ES" <%=article?.language==='ES' ? 'selected' : '' %>>Spanish</option>
-                            <option value="DE" <%=article?.language==='DE' ? 'selected' : '' %>>Germany</option>
+                            <option value="DE" <%=article?.language==='DE' ? 'selected' : '' %>>German</option>
                         </select>
 
+                        <!-- Title -->
                         <label>Title</label>
                         <input type="text" name="title" value="<%= article?.title || '' %>" required>
 
+                        <!-- Author -->
                         <label>Author Name</label>
                         <input type="text" name="author" value="<%= article?.author || '' %>" required>
 
+                        <!-- Summary for Meta Description -->
+                        <label>Summary (used for meta description)</label>
+                        <textarea name="summary" rows="3" maxlength="300"><%= article?.summary || '' %></textarea>
+
+                        <!-- Category (article:section) -->
+                        <label>Category</label>
+                        <select name="category">
+                            <option value="News" <%=article?.category==='News' ? 'selected' : '' %>>News</option>
+                            <option value="Products" <%=article?.category==='Products' ? 'selected' : '' %>>Products
+                            </option>
+                            <option value="Industries" <%=article?.category==='Industries' ? 'selected' : '' %>
+                                >Industries</option>
+                            <option value="Company" <%=article?.category==='Company' ? 'selected' : '' %>>Company
+                            </option>
+                            <option value="Tutorials" <%=article?.category==='Tutorials' ? 'selected' : '' %>>Tutorials
+                            </option>
+                            <option value="Scientific" <%=article?.category==='Scientific' ? 'selected' : '' %>>Scientific
+                            </option>
+                            <option value="Other" <%=article?.category==='Other' ? 'selected' : '' %>>Other</option>
+                        </select>
+
+                        <!-- Tags (article:tag) -->
+                        <label>Tags (comma-separated)</label>
+                        <input type="text" name="tags" value="<%= (article?.tags || []).join(', ') %>"
+                            placeholder="Water Bath, ISO, Research">
+
+                        <!-- Thumbnail -->
                         <label>Thumbnail Image</label>
                         <% if (article?.thumbnail) { %>
-                            <img src="<%=article.thumbnail %>" width="150" />
+                            <img src="<%= article.thumbnail %>" width="150" />
                             <% } %>
                                 <input type="file" name="thumbnail">
 
+                                <!-- Body -->
                                 <label>Body</label>
                                 <textarea id="articleBody" name="body"><%= article?.body || '' %></textarea>
 
-
+                                <!-- Buttons -->
                                 <div class="form-buttons">
                                     <button type="submit">
                                         <%= editing ? "Update Article" : "Add Article" %>
                                     </button>
                                     <a href="/admin/articles" class="cancel-button">Cancel</a>
                                 </div>
-
                     </form>
                 </div>
             </section>

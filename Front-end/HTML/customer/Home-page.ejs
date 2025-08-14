@@ -2,11 +2,13 @@
 
     <link rel="stylesheet" href="/css/customer/Home-page.css">
 
-    <meta property="og:locale" content="<%= lang === 'EN' ? 'en_US' : lang === 'ES' ? 'es_ES' : 'el_DE' %>">
-    <link rel="alternate" hreflang="en" href="https://www.draglab.com/EN">
-    <link rel="alternate" hreflang="es" href="https://www.draglab.com/ES">
-    <link rel="alternate" hreflang="el" href="https://www.draglab.com/DE">
+    <meta property="og:locale" content="<%= lang === 'EN' ? 'en_US' : lang === 'ES' ? 'es_ES' : 'de_DE' %>">
 
+    <!-- hreflang (use .de and correct codes) -->
+    <link rel="alternate" hreflang="x-default" href="https://www.drag-lab.de/EN">
+    <link rel="alternate" hreflang="en" href="https://www.drag-lab.de/EN">
+    <link rel="alternate" hreflang="es" href="https://www.drag-lab.de/ES">
+    <link rel="alternate" hreflang="de" href="https://www.drag-lab.de/DE">
 
     <title>DragLab – Scientific Equipment for Modern Labs</title>
     <meta name="description"
@@ -16,20 +18,22 @@
     <meta property="og:title" content="DragLab – Scientific Equipment for Modern Labs">
     <meta property="og:description"
         content="Explore cutting-edge lab instruments, scientific articles, and industry solutions at DragLab.">
-    <meta property="og:image" content="https://www.draglab.com/assets/Imgs/logo/logo.png">
-    <meta property="og:url" content="https://www.draglab.com/<%= lang %>">
-    <link rel="canonical" href="https://www.draglab.com/<%= lang %>">
+    <meta property="og:image" content="https://www.drag-lab.de/assets/Imgs/logo/logo.png">
+    <meta property="og:url" content="https://www.drag-lab.de/<%= lang %>">
+    <link rel="canonical" href="https://www.drag-lab.de/<%= lang %>">
 
-    <script type="application/ld+json">
-<%= JSON.stringify({
+    <!-- ✅ JSON-LD must be UNESCAPED and carry nonce -->
+    <script type="application/ld+json" nonce="<%= nonce %>">
+<%- JSON.stringify({
   "@context": "https://schema.org",
   "@type": "Organization",
   "name": "DragLab",
-  "url": "https://www.draglab.com",
-  "logo": "https://www.draglab.com/assets/Imgs/logo/logo.png",
-  "sameAs": ["https://www.linkedin.com/company/draglab", "https://www.instagram.com/draglab"]
+  "url": "https://www.drag-lab.de/",
+  "logo": "https://www.drag-lab.de/assets/Imgs/logo/logo.png",
+
 }) %>
 </script>
+
 
 
 
@@ -269,28 +273,28 @@
             <%- include('../../includes/customer/footer.ejs') %>
                 <script src="/js/index.js?v=1.0.1"></script>
                 <!-- after all HTML and just before </body> -->
-       <script nonce="<%= nonce %>">
-  window.tabsData = <%- JSON.stringify({
-    vision: {
-      title: t.tab1Title,
-      sectionHeading: t.tab1Title,
-      subtitle: t.tab1Subtitle,
-      desc: String(t.tab1Desc).replace(/\n/g, '<br>')
-    },
-    mission: {
-      title: t.tab2Title,
-      sectionHeading: t.tab2Title,
-      subtitle: t.tab2Subtitle,
-      desc: String(t.tab2Desc).replace(/\n/g, '<br>')
-    },
-    values: {
-      title: t.tab3Title,
-      sectionHeading: t.tab3Title,
-      subtitle: t.tab3Subtitle,
-      desc: String(t.tab3Desc).replace(/\n/g, '<br>')
-    }
-  }) %>;
-</script>
+                <script nonce="<%= nonce %>">
+                    window.tabsData = <%- JSON.stringify({
+                        vision: {
+                            title: t.tab1Title,
+                            sectionHeading: t.tab1Title,
+                            subtitle: t.tab1Subtitle,
+                            desc: String(t.tab1Desc).replace(/\n/g, '<br>')
+                        },
+                        mission: {
+                            title: t.tab2Title,
+                            sectionHeading: t.tab2Title,
+                            subtitle: t.tab2Subtitle,
+                            desc: String(t.tab2Desc).replace(/\n/g, '<br>')
+                        },
+                        values: {
+                            title: t.tab3Title,
+                            sectionHeading: t.tab3Title,
+                            subtitle: t.tab3Subtitle,
+                            desc: String(t.tab3Desc).replace(/\n/g, '<br>')
+                        }
+                    }) %>;
+                </script>
 
 
                 <script src="/js/about-us.js" nonce="<%= nonce %>"></script>

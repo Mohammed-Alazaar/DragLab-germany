@@ -1,33 +1,70 @@
 <%- include('../../includes/customer/head.ejs') %>
 
-<link rel="stylesheet" href="/css/customer/PrivacyPolicy.css">
-
-<%- include('../../includes/customer/header-end.ejs') %>
-
-<!-- ✅ Metadata -->
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title><%= pageTitle %></title>
-<meta name="description" content="<%= metaDescription %>">
+<%
+  // Build common URLs (match your site's uppercase language segment + route casing)
+  const base = 'https://www.drag-lab.de';
+  const pagePath = '/' + lang + '/CodeofEthics';
+  const pageUrl = base + pagePath;
 
-<link rel="canonical" href="https://yourdomain.com/<%= lang.toLowerCase() %>/codeofethics" />
-<link rel="alternate" hreflang="en" href="https://yourdomain.com/en/codeofethics" />
-<link rel="alternate" hreflang="de" href="https://yourdomain.com/de/codeofethics" />
-<link rel="alternate" hreflang="es" href="https://yourdomain.com/es/codeofethics" />
+  // Fallbacks
+  const desc = (metaDescription || '').trim() || (
+    lang === 'ES' ? 'Código de Ética de DragLab.' :
+    lang === 'DE' ? 'Verhaltenskodex von DragLab.' :
+    'DragLab Code of Ethics.'
+  );
+  const ogTitleSafe = ogTitle || pageTitle;
+  const ogDescSafe  = ogDescription || desc;
+  const ogImgSafe   = (ogImage && ogImage.startsWith('http')) ? ogImage : (base + '/assets/Imgs/logo/logo.png');
+%>
 
-<meta property="og:title" content="<%= ogTitle %>" />
-<meta property="og:description" content="<%= ogDescription %>" />
-<meta property="og:image" content="<%= ogImage %>" />
-<meta property="og:url" content="https://yourdomain.com/<%= lang.toLowerCase() %>/codeofethics" />
-<meta property="og:type" content="website" />
+<meta name="description" content="<%= desc %>">
 
+<!-- Canonical & hreflang -->
+<link rel="canonical" href="<%= pageUrl %>">
+<link rel="alternate" hreflang="en" href="https://www.drag-lab.de/EN/CodeofEthics">
+<link rel="alternate" hreflang="es" href="https://www.drag-lab.de/ES/CodeofEthics">
+<link rel="alternate" hreflang="de" href="https://www.drag-lab.de/DE/CodeofEthics">
+<link rel="alternate" hreflang="x-default" href="https://www.drag-lab.de/EN/CodeofEthics">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="<%= ogTitleSafe %>">
+<meta property="og:description" content="<%= ogDescSafe %>">
+<meta property="og:image" content="<%= ogImgSafe %>">
+<meta property="og:url" content="<%= pageUrl %>">
+
+<!-- Twitter -->
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="<%= ogTitle %>">
-<meta name="twitter:description" content="<%= ogDescription %>">
-<meta name="twitter:image" content="<%= ogImage %>">
+<meta name="twitter:title" content="<%= ogTitleSafe %>">
+<meta name="twitter:description" content="<%= ogDescSafe %>">
+<meta name="twitter:image" content="<%= ogImgSafe %>">
 
-<link rel="icon" href="/favicon.ico" type="image/x-icon" />
-<link rel="stylesheet" href="/css/customer/PrivacyPolicy.css" />
+<link rel="stylesheet" href="/css/customer/PrivacyPolicy.css"><!-- single include -->
+
+<!-- Breadcrumbs JSON-LD -->
+<script type="application/ld+json" nonce="<%= nonce %>">
+<%- JSON.stringify({
+  "@context":"https://schema.org",
+  "@type":"BreadcrumbList",
+  "itemListElement":[
+    {"@type":"ListItem","position":1,"name": (lang==='EN'?'Home':lang==='ES'?'Inicio':'Startseite'), "item": base + '/' + lang + '/'},
+    {"@type":"ListItem","position":2,"name": (lang==='EN'?'Code of Ethics':lang==='ES'?'Código de Ética':'Verhaltenskodex'), "item": pageUrl}
+  ]
+}) %>
+</script>
+
+<!-- WebPage JSON-LD -->
+<script type="application/ld+json" nonce="<%= nonce %>">
+<%- JSON.stringify({
+  "@context":"https://schema.org",
+  "@type":"WebPage",
+  "name": pageTitle,
+  "url": pageUrl,
+  "inLanguage": (lang==='EN'?'en':lang==='ES'?'es':'de'),
+  "description": desc
+}) %>
+</script>
 </head>
 
 <body>
@@ -37,27 +74,30 @@
     <div class="slide-text">
       <h1><%= sectionHeading %></h1>
     </div>
-    <img src="/assets/Imgs/Icons/products/contactus-BC.png" alt="Code of Ethics Cover">
+    <img src="/assets/Imgs/Icons/products/contactus-BC.png"
+         alt="<%= lang==='ES'?'Portada del Código de Ética':lang==='DE'?'Titelbild Verhaltenskodex':'Code of Ethics cover' %>">
   </div>
 
   <div class="PrivacyPolicycontainer">
     <h1><%= sectionHeading %></h1>
-    
-    <% sections.forEach(section => { %>
-      <div class="section">
-        <% if (section.title) { %>
-          <h2><%= section.title %></h2>
-        <% } %>
-        <p><%- section.text %></p>
-      </div>
-    <% }) %>
+
+    <% if (sections && sections.length) { %>
+      <% sections.forEach(function(section){ %>
+        <div class="section">
+          <% if (section.title) { %><h2><%= section.title %></h2><% } %>
+          <!-- If content is trusted HTML from CMS, keep unescaped: -->
+          <p><%- section.text %></p>
+          <!-- If NOT trusted, use escaped: <p><%= section.text %></p> -->
+        </div>
+      <% }) %>
+    <% } %>
 
     <div class="section">
-<p><strong><%= closingStatementBold %></strong><%= closingStatement %></p>
+      <p><strong><%= closingStatementBold %></strong><%= closingStatement %></p>
     </div>
   </div>
 
   <%- include('../../includes/customer/footer.ejs') %>
+  <%- include('../../includes/customer/script.ejs') %>
 </body>
-<%- include('../../includes/customer/script.ejs') %>
 </html>

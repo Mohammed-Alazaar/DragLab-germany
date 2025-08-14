@@ -46,9 +46,9 @@ app.use((req, res, next) => {
     default-src 'self';
     script-src 'self' 'nonce-${nonce}' https://*.clarity.ms https://cdn.jsdelivr.net https://cdn.tiny.cloud https://www.termsfeed.com https://embed.tawk.to https://va.tawk.to https://client.tawk.to https://api.tawk.to https://www.googletagmanager.com https://www.google-analytics.com https://www.google.com https://www.gstatic.com https://www.googleadservices.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://*.doubleclick.net;
     style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com https://cdn.tiny.cloud https://embed.tawk.to https://va.tawk.to https://client.tawk.to;
-    img-src 'self' data: blob: https://*.clarity.ms https://c.bing.com https://s3.amazonaws.com https://cdn.draglab.com https://res.cloudinary.com https://cdn.jsdelivr.net https://*.googleusercontent.com https://sp.tinymce.com https://embed.tawk.to https://va.tawk.to https://client.tawk.to https://api.tawk.to https://www.google-analytics.com https://www.googleadservices.com https://www.googletagmanager.com https://www.google.com https://www.google.com.tr https://www.gstatic.com https://pagead2.googlesyndication.com https://*.doubleclick.net;
-    connect-src 'self' https://*.clarity.ms wss://*.clarity.ms https://c.bing.com https://cdn.tiny.cloud https://embed.tawk.to https://va.tawk.to https://client.tawk.to https://api.tawk.to https://*.tawk.to wss://embed.tawk.to wss://va.tawk.to wss://client.tawk.to wss://*.tawk.to https://www.google-analytics.com https://www.googleadservices.com https://www.googletagmanager.com https://www.google.com https://google.com https://googleads.g.doubleclick.net https://pagead2.googlesyndication.com https://*.doubleclick.net https://www.google.com.tr;
-    font-src 'self' https://fonts.gstatic.com https://embed.tawk.to https://va.tawk.to https://client.tawk.to data:;
+    img-src 'self' data: blob: https://*.clarity.ms https://c.bing.com https://s3.amazonaws.com https://cdn.drag-lab.de https://res.cloudinary.com https://cdn.jsdelivr.net https://*.googleusercontent.com https://sp.tinymce.com https://embed.tawk.to https://va.tawk.to https://client.tawk.to https://api.tawk.to https://www.google-analytics.com https://www.googleadservices.com https://www.googletagmanager.com https://www.google.com https://www.google.com.tr https://www.gstatic.com https://pagead2.googlesyndication.com https://*.doubleclick.net;
+    connect-src 'self' https://region1.google-analytics.com https://*.clarity.ms wss://*.clarity.ms https://c.bing.com https://cdn.tiny.cloud https://embed.tawk.to https://va.tawk.to https://client.tawk.to https://api.tawk.to https://*.tawk.to wss://embed.tawk.to wss://va.tawk.to wss://client.tawk.to wss://*.tawk.to https://www.google-analytics.com https://www.googleadservices.com https://www.googletagmanager.com https://www.google.com https://google.com https://googleads.g.doubleclick.net https://pagead2.googlesyndication.com https://*.doubleclick.net https://www.google.com.tr;
+    font-src 'self' https://cdn.tiny.cloud https://api.tiny.cloud https://fonts.gstatic.com https://embed.tawk.to https://va.tawk.to https://client.tawk.to data:;
     frame-src https://www.google.com https://www.youtube.com https://www.googletagmanager.com https://td.doubleclick.net https://embed.tawk.to https://va.tawk.to https://client.tawk.to https://www.gstatic.com https://recaptcha.google.com https://www.googleadservices.com https://*.doubleclick.net;
     object-src 'none';
     frame-ancestors 'self';
@@ -147,9 +147,9 @@ app.use((req, res, next) => {
 app.use((req, res, next) => {
     res.locals.lang = (req.params.lang || req.query.lang || 'EN').toUpperCase();
     res.locals.faqSchema = {
-        EN: { url: "https://www.draglab.com/EN" },
-        ES: { url: "https://www.draglab.com/ES" },
-        DE: { url: "https://www.draglab.com/DE" }
+        EN: { url: "https://www.drag-lab.de/EN" },
+        ES: { url: "https://www.drag-lab.de/ES" },
+        DE: { url: "https://www.drag-lab.de/DE" }
     };
     next();
 });
@@ -163,6 +163,8 @@ app.use('/admin', adminRoutes);
 app.use(shopRoutes);
 app.use(authRoutes);
 app.use(accountRoutes);
+const feedRoutes = require('./routes/feed');
+app.use('/', feedRoutes);
 
 
 app.use(errorController.get404);

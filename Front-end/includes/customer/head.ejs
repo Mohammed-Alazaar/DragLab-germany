@@ -1,23 +1,29 @@
 <!DOCTYPE html>
-<html lang="<%= lang %>">
+<html lang="<%= lang.toLowerCase() %>">
+
 <head>
   <link rel="stylesheet" href="/css/reset-code.css">
   <link rel="stylesheet" href="/css/nav-bar.css">
   <link rel="stylesheet" href="/css/footer.css">
   <script src="/js/navbar.js" defer></script>
-  <script src="https://www.termsfeed.com/public/cookie-consent/4.2.0/cookie-consent.js" nonce="<%= nonce %>" defer></script>
+  <script src="https://www.termsfeed.com/public/cookie-consent/4.2.0/cookie-consent.js" nonce="<%= nonce %>"
+    defer></script>
   <script src="/js/termsfeed-init.js" defer nonce="<%= nonce %>"></script>
   <script type="text/plain" data-cookie-consent="strictly-necessary" src="/js/tawkto-init.js" defer></script>
-<!-- In your head.ejs -->
-<script src="/js/clarity.js" defer nonce="<%= nonce %>"></script>
+  <!-- In your head.ejs -->
+  <script src="/js/clarity.js" defer nonce="<%= nonce %>"></script>
   <script type="text/plain" data-cookie-consent="tracking" async
     src="https://www.googletagmanager.com/gtag/js?id=G-6HXYVZ8CMN"></script>
   <script type="text/plain" data-cookie-consent="tracking" src="/js/gtag-config.js" defer></script>
   <link rel="icon" type="image/png" href="/assets/Imgs/logo/favicon.png">
+  <link rel="preconnect" href="https://res.cloudinary.com" crossorigin>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="index, follow">
   <meta name="theme-color" content="#005bac">
   <meta name="author" content="DragLab">
+  <meta name="twitter:site" content="@DraglabGermany">
+  <meta property="og:locale" content="<%= lang === 'EN' ? 'en_US' : lang === 'ES' ? 'es_ES' : 'de_DE' %>">
+
   <% const metaKeywords={
     EN: "DragLab, laboratory equipment, medical equipment, incubators, ovens, distillers, water baths, drying ovens, quality policy, privacy policy, code of ethics, terms and conditions, contact us, technical service, warranty registration, download center, multilingual support, global distribution, ISO certified, CE compliant, quality assurance, customer support, research equipment, healthcare devices, lab technology, lab instruments, medical instruments, scientific equipment, biotech equipment, lab solutions, medical supplies, laboratory solutions provider"
     ,
@@ -32,3 +38,26 @@
     <!-- speed up 3rd-party requests -->
     <%- include('./faqSchema.ejs', { lang, faqSchema }) %>
       <!-- FAQ Schema (JSON-LD Structured Data) For the SEO -->
+      <% const sameAsLinks=[ "https://www.linkedin.com/company/draglab-technologies"
+        , "https://www.facebook.com/draglabde/" , "https://www.youtube.com/channel/UC5TffQfcaIONbKBBxKpyxag" ]; %>
+
+        <script type="application/ld+json" nonce="<%= nonce %>">
+<%- JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "DragLab",
+  "url": "https://www.drag-lab.de/",
+  "logo": "https://www.drag-lab.de/assets/Imgs/logo/logo.png",
+  "sameAs": sameAsLinks
+}) %>
+</script>
+
+<link rel="alternate" type="application/rss+xml"
+      title="DragLab Articles (EN)"
+      href="https://www.drag-lab.de/EN/feed.xml">
+<link rel="alternate" type="application/rss+xml"
+      title="DragLab Articles (ES)"
+      href="https://www.drag-lab.de/ES/feed.xml">
+<link rel="alternate" type="application/rss+xml"
+      title="DragLab Articles (DE)"
+      href="https://www.drag-lab.de/DE/feed.xml">
