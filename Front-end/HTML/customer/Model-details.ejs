@@ -2,31 +2,34 @@
 
 <%
   // --------- Canonical & meta text ----------
-  const langLc = (lang || 'EN').toLowerCase(); // 'en' | 'es' | 'de'
-  // Always prefer slugs for canonical/hreflang:
+  const langLc = String(lang || 'EN').toLowerCase(); // 'en' | 'es' | 'de'
+
+  // Always prefer slugs for canonical/hreflang
   const canonicalUrl = `https://www.drag-lab.de/${langLc}/product/${productSlug}/model/${modelSlug}`;
 
-  const rawDesc = (ModelDesc || '').toString();
-  const cleanDesc = rawDesc
-    .replace(/<\/?[^>]+(>|$)/g, '')   // strip HTML
+  // Clean description: strip HTML, collapse spaces, trim, then slice
+  const rawDesc = String(ModelDesc || '')
+    .replace(/<\/?[^>]+(>|$)/g, ' ')  // strip HTML
     .replace(/\s+/g, ' ')             // collapse whitespace
-    .trim()
-    .slice(0, 160);
+    .trim();
+  const cleanDesc = rawDesc.slice(0, 160);
 
-  // Title: Model – Product | Brand  (keeps within ~60 chars if possible)
+  // Title: Model – Product | Brand
   const pageTitle = `${ModelName}${productName ? ' – ' + productName : ''} | DragLab`;
 
   // Full image URL (absolute)
   const fullImageUrl = (modelThumbnail && modelThumbnail.startsWith('http'))
     ? modelThumbnail
-    : (modelThumbnail ? `https://www.drag-lab.de${modelThumbnail}` : 'https://www.drag-lab.de/assets/Imgs/logo/logo.png');
+    : (modelThumbnail
+        ? `https://www.drag-lab.de${modelThumbnail}`
+        : 'https://www.drag-lab.de/assets/Imgs/logo/logo.png');
 
   // Localized Home label for breadcrumbs
   const homeLabel = (lang === 'ES') ? 'Inicio' : (lang === 'DE' ? 'Startseite' : 'Home');
 
-  // Optional: If you know image dimensions, set them (improves OG rendering)
-  const ogImageWidth = 1200;   // put real width if known
-  const ogImageHeight = 630;   // put real height if known
+  // OG image dimensions (set real values if you know them)
+  const ogImageWidth = 1200;
+  const ogImageHeight = 630;
 
   // Build additionalProperty from specs
   const additionalProperty = [];
@@ -34,8 +37,8 @@
     specs.forEach(section => {
       if (!section || !Array.isArray(section.rows)) return;
       section.rows.forEach(row => {
-        const k = (row?.title || '').toString().trim();
-        const v = (row?.value || '').toString().trim();
+        const k = String(row?.title || '').trim();
+        const v = String(row?.value || '').trim();
         if (k && v) {
           additionalProperty.push({
             "@type": "PropertyValue",
@@ -48,40 +51,47 @@
   }
 %>
 
-<link rel="stylesheet" href="/css/customer/Model-details.css">
 
-<title><%= pageTitle %></title>
-<meta name="description" content="<%= cleanDesc %>">
-<meta name="robots" content="index, follow">
-<link rel="canonical" href="<%= canonicalUrl %>">
+        <link rel="stylesheet" href="/css/customer/Model-details.css">
 
-<!-- Hreflang (self + alternates; lowercase codes, slug paths) -->
-<link rel="alternate" hreflang="x-default" href="https://www.drag-lab.de/en/product/<%= productSlug %>/model/<%= modelSlug %>">
-<link rel="alternate" hreflang="en" href="https://www.drag-lab.de/en/product/<%= productSlug %>/model/<%= modelSlug %>">
-<link rel="alternate" hreflang="es" href="https://www.drag-lab.de/es/product/<%= productSlug %>/model/<%= modelSlug %>">
-<link rel="alternate" hreflang="de" href="https://www.drag-lab.de/de/product/<%= productSlug %>/model/<%= modelSlug %>">
+        <title>
+            <%= pageTitle %>
+        </title>
+        <meta name="description" content="<%= cleanDesc %>">
+        <meta name="robots" content="index, follow">
+        <link rel="canonical" href="<%= canonicalUrl %>">
 
-<!-- Open Graph -->
-<meta property="og:type" content="product">
-<meta property="og:site_name" content="DragLab">
-<meta property="og:title" content="<%= pageTitle %>">
-<meta property="og:description" content="<%= cleanDesc %>">
-<meta property="og:url" content="<%= canonicalUrl %>">
-<meta property="og:locale" content="<%= lang === 'EN' ? 'en_US' : (lang === 'ES' ? 'es_ES' : 'de_DE') %>">
-<meta property="og:image" content="<%= fullImageUrl %>">
-<meta property="og:image:alt" content="<%= ModelName %>">
-<meta property="og:image:width" content="<%= ogImageWidth %>">
-<meta property="og:image:height" content="<%= ogImageHeight %>">
+        <!-- Hreflang (self + alternates; lowercase codes, slug paths) -->
+        <link rel="alternate" hreflang="x-default"
+            href="https://www.drag-lab.de/en/product/<%= productSlug %>/model/<%= modelSlug %>">
+        <link rel="alternate" hreflang="en"
+            href="https://www.drag-lab.de/en/product/<%= productSlug %>/model/<%= modelSlug %>">
+        <link rel="alternate" hreflang="es"
+            href="https://www.drag-lab.de/es/product/<%= productSlug %>/model/<%= modelSlug %>">
+        <link rel="alternate" hreflang="de"
+            href="https://www.drag-lab.de/de/product/<%= productSlug %>/model/<%= modelSlug %>">
 
-<!-- Twitter -->
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="<%= pageTitle %>">
-<meta name="twitter:description" content="<%= cleanDesc %>">
-<meta name="twitter:image" content="<%= fullImageUrl %>">
-<!-- Optional if you have it: <meta name="twitter:site" content="@your_handle"> -->
+        <!-- Open Graph -->
+        <meta property="og:type" content="product">
+        <meta property="og:site_name" content="DragLab">
+        <meta property="og:title" content="<%= pageTitle %>">
+        <meta property="og:description" content="<%= cleanDesc %>">
+        <meta property="og:url" content="<%= canonicalUrl %>">
+        <meta property="og:locale" content="<%= lang === 'EN' ? 'en_US' : (lang === 'ES' ? 'es_ES' : 'de_DE') %>">
+        <meta property="og:image" content="<%= fullImageUrl %>">
+        <meta property="og:image:alt" content="<%= ModelName %>">
+        <meta property="og:image:width" content="<%= ogImageWidth %>">
+        <meta property="og:image:height" content="<%= ogImageHeight %>">
 
-<!-- JSON-LD: Product -->
-<script type="application/ld+json" nonce="<%= nonce %>">
+        <!-- Twitter -->
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:title" content="<%= pageTitle %>">
+        <meta name="twitter:description" content="<%= cleanDesc %>">
+        <meta name="twitter:image" content="<%= fullImageUrl %>">
+        <!-- Optional if you have it: <meta name="twitter:site" content="@your_handle"> -->
+
+        <!-- JSON-LD: Product -->
+        <script type="application/ld+json" nonce="<%= nonce %>">
 <%= JSON.stringify({
   "@context": "https://schema.org",
   "@type": "Product",
@@ -96,8 +106,8 @@
 }, null, 2) %>
 </script>
 
-<!-- JSON-LD: ProductModel (variant of Product) -->
-<script type="application/ld+json" nonce="<%= nonce %>">
+        <!-- JSON-LD: ProductModel (variant of Product) -->
+        <script type="application/ld+json" nonce="<%= nonce %>">
 <%= JSON.stringify({
   "@context": "https://schema.org",
   "@type": "ProductModel",
@@ -113,8 +123,8 @@
 }, null, 2) %>
 </script>
 
-<!-- JSON-LD: Breadcrumb -->
-<script type="application/ld+json" nonce="<%= nonce %>">
+        <!-- JSON-LD: Breadcrumb -->
+        <script type="application/ld+json" nonce="<%= nonce %>">
 <%= JSON.stringify({
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
@@ -125,202 +135,183 @@
   ]
 }, null, 2) %>
 </script>
-</head>
+        </head>
+
+<body>
+    <!-- nav-bar -->
+
+    <%- include('../../includes/customer/navbar.ejs') %>
+
+
+        <!-- nav-bar -->
+        <main>
+            <!-- Product Details -->
+            <div class="slide">
+                <div class="slide-text">
+                    <!-- <h1>Water Still Series</h1> -->
+                    <div class="slide-text-content">
+                        <h1>
+                            <%= ModelName %> – &nbsp;
+                        </h1>
+                        <h3>
+                            <%= ModelNameDesc %>
+                        </h3>
+                    </div>
+
+                    <p>
+                        <%= ModelDesc %>
+                    </p>
+                </div>
+                <img src="<%=modelThumbnail %>" alt="<%= pageTitle %>">
+            </div>
 
 
 
 
-                <body>
-                    <!-- nav-bar -->
+            <section class="model-overview section">
+                <h2 class="section-title">
+                    <%= t.overviewTitle %>
+                </h2>
+                <div class="model-overview-container">
 
-                    <%- include('../../includes/customer/navbar.ejs') %>
+                    <% if (overview && overview.length) { %>
 
+                        <div class="model-overview-img">
+                            <img src="<%=overviewThumbnail%>" alt="<%= pageTitle %>">
+                        </div>
+                        <div class="features-wrapper">
 
-                        <!-- nav-bar -->
-                        <main>
-                            <!-- Product Details -->
-                            <div class="slide">
-                                <div class="slide-text">
-                                    <!-- <h1>Water Still Series</h1> -->
-                                    <div class="slide-text-content">
-                                        <h1>
-                                            <%= ModelName %> – &nbsp;
-                                        </h1>
-                                        <h3>
-                                            <%= ModelNameDesc %>
-                                        </h3>
+                            <div class="features-grid">
+                                <% overview.forEach(o=> { %>
+                                    <div class="feature-card">
+                                        <img class="feature-img" src="<%= o.overviewImage %>"
+                                            alt="<%= o.overviewName %>">
+                                        <div class="feature-content">
+                                            <h3>
+                                                <%= o.overviewName %>
+                                            </h3>
+                                            <p>
+                                                <%= o.overviewDesc %>
+                                            </p>
+                                        </div>
                                     </div>
-
-                                    <p>
-                                        <%= ModelDesc %>
-                                    </p>
-                                </div>
-                                <img src="<%=modelThumbnail %>" alt="<%= pageTitle %>">
+                                    <% }) %>
                             </div>
+                            <% } %>
 
+                        </div>
+                </div>
+            </section>
 
-
-
-                            <section class="model-overview section">
-                                <h2 class="section-title">
-                                    <%= t.overviewTitle %>
-                                </h2>
-                                <div class="model-overview-container">
-
-                                    <% if (overview && overview.length) { %>
-
-                                        <div class="model-overview-img">
-                                            <img src="<%=overviewThumbnail%>" alt="<%= pageTitle %>">
-                                        </div>
-                                        <div class="features-wrapper">
-
-                                            <div class="features-grid">
-                                                <% overview.forEach(o=> { %>
-                                                    <div class="feature-card">
-                                                        <img class="feature-img" src="<%= o.overviewImage %>"
-                                                            alt="<%= o.overviewName %>">
-                                                        <div class="feature-content">
-                                                            <h3>
-                                                                <%= o.overviewName %>
-                                                            </h3>
-                                                            <p>
-                                                                <%= o.overviewDesc %>
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                    <% }) %>
-                                            </div>
-                                            <% } %>
-
-                                        </div>
-                                </div>
-                            </section>
-
-                            <section class="industries-section">
-                                <h2>
-                                    <%= t.industriesTitle %>
-                                </h2>
-                                <% if (industry && industry.length) { %>
-                                    <div class="industries-container">
-                                        <% industry.forEach(i=> { %>
-                                            <div class="industry-card">
-                                                <img class="industry-img" src="<%= i.industryImage %>"
-                                                    alt="<%= i.industryName %>" />
-                                                <div class="overlay">
-                                                    <div class="icon-wrapper">
-                                                        <img src="<%=i.industryLogo %>" class="icon"
-                                                            alt="<%= i.industryName %> Logo" />
-                                                    </div>
-                                                    <h3>
-                                                        <%= i.industryName %>
-                                                    </h3>
-                                                </div>
-                                            </div>
-                                            <% }) %>
+            <section class="industries-section">
+                <h2>
+                    <%= t.industriesTitle %>
+                </h2>
+                <% if (industry && industry.length) { %>
+                    <div class="industries-container">
+                        <% industry.forEach(i=> { %>
+                            <div class="industry-card">
+                                <img class="industry-img" src="<%= i.industryImage %>" alt="<%= i.industryName %>" />
+                                <div class="overlay">
+                                    <div class="icon-wrapper">
+                                        <img src="<%=i.industryLogo %>" class="icon" alt="<%= i.industryName %> Logo" />
                                     </div>
-                                    <% } %>
-
-                            </section>
-
-                            <!-- model table section  -->
-
-                            <section class="model-table-section">
-                                <h2>
-                                    <%= t.specsTitle %>
-                                </h2>
-
-                                <% if (specs && specs.length) { %>
-                                    <% specs.forEach(section=> { %>
-                                        <div class="table-section-title">
-                                            <%= section.sectionTitle %>
-                                        </div>
-                                        <table>
-                                            <% section.rows.forEach(row=> { %>
-                                                <tr>
-                                                    <td class="title">
-                                                        <%= row.title %>
-                                                    </td>
-                                                    <td class="value">
-                                                        <%= row.value %>
-                                                    </td>
-                                                </tr>
-                                                <% }) %>
-                                        </table>
-                                        <% }) %>
-                                            <% } %>
-
-
-
-
-                            </section>
-                            <!-- model table section  -->
-
-
-                            <!-- model download center section  -->
-
-                            <section class="download-centercontainer">
-                                <h2>
-                                    <%= t.downloadsTitle %>
-                                </h2>
-                                <div class="download-cards-container">
-                                    <% if (downloads && downloads.length) { %>
-                                        <% downloads.forEach(download=> {
-                                            const fname = download.fileName || 'Download';
-                                            const encodedName = encodeURIComponent(fname);
-                                            const isCloud = (download.filePath || '').includes('cloudinary.com');
-                                            const href = isCloud
-                                            ? download.filePath.replace('/upload/',
-                                            `/upload/fl_attachment:${encodedName}/`)
-                                            : download.filePath;
-                                            %>
-                                            <div class="download-card">
-                                                <div class="download-info">
-                                                    <div class="download-title">
-                                                        <%= fname %>
-                                                    </div>
-                                                    <div class="download-meta">
-                                                        <div>
-                                                            <%= download.fileCategory || 'General' %>
-                                                        </div>
-                                                        <div>
-                                                            <%= download.fileSize %>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <!-- Use filename-aware href; supply download attribute as a fallback name -->
-                                                <a href="<%= href %>" class="download-link" download="<%= fname %>"
-                                                    target="_blank" rel="noopener noreferrer"
-                                                    title="Download <%= fname %>">
-                                                    <p>Download</p>
-                                                    <svg class="download-icon" xmlns="http://www.w3.org/2000/svg"
-                                                        viewBox="0 0 24 24">
-                                                        <path d="M5 20h14v-2H5v2zm7-18l-5 5h3v6h4v-6h3l-5-5z" />
-                                                    </svg>
-                                                </a>
-                                            </div>
-                                            <% }) %>
-                                                <% } else { %>
-                                                    <p style="padding: 1rem;">
-                                                        <%= t.noDownloads %>
-                                                    </p>
-                                                    <% } %>
+                                    <h3>
+                                        <%= i.industryName %>
+                                    </h3>
                                 </div>
-                            </section>
+                            </div>
+                            <% }) %>
+                    </div>
+                    <% } %>
+
+            </section>
+
+            <!-- model table section  -->
+
+            <section class="model-table-section">
+                <h2>
+                    <%= t.specsTitle %>
+                </h2>
+
+                <% if (specs && specs.length) { %>
+                    <% specs.forEach(section=> { %>
+                        <div class="table-section-title">
+                            <%= section.sectionTitle %>
+                        </div>
+                        <table>
+                            <% section.rows.forEach(row=> { %>
+                                <tr>
+                                    <td class="title">
+                                        <%= row.title %>
+                                    </td>
+                                    <td class="value">
+                                        <%= row.value %>
+                                    </td>
+                                </tr>
+                                <% }) %>
+                        </table>
+                        <% }) %>
+                            <% } %>
 
 
-                            <!-- model download center section  -->
 
 
-                        </main>
-
-                        <!-- Footer -->
-
-                        <%- include('../../includes/customer/footer.ejs') %>
+            </section>
+            <!-- model table section  -->
 
 
-                </body>
-                <%- include('../../includes/customer/script.ejs') %>
+            <!-- model download center section  -->
+
+            <section class="download-centercontainer">
+                <h2>
+                    <%= t.downloadsTitle %>
+                </h2>
+                <div class="download-cards-container">
+                    <% if (downloads && downloads.length) { %>
+                        <% downloads.forEach(download=> { %> <div class="download-card">
+                                <div class="download-info">
+                                    <div class="download-title">
+                                        <%= download.fileName %>
+                                    </div>
+                                    <div class="download-meta">
+                                        <div>
+                                            <%= download.fileCategory || 'General' %>
+                                        </div>
+                                        <div>
+                                            <%= download.fileSize %>
+                                        </div>
+                                    </div>
+                                </div> <a href="<%= download.filePath %>" target="_blank" class="download-link"
+                                    download="true" title="Download">
+                                    <p>Download</p> <svg class="download-icon" xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 24 24">
+                                        <path d="M5 20h14v-2H5v2zm7-18l-5 5h3v6h4v-6h3l-5-5z" />
+                                    </svg>
+                                </a>
+                            </div>
+                            <% }) %>
+                                <% } else { %>
+                                    <p style="padding: 1rem;">
+                                        <%= t.noDownloads %>
+                                    </p>
+                                    <% } %>
+                </div>
+            </section>
 
 
-                    </html>
+            <!-- model download center section  -->
+
+
+        </main>
+
+        <!-- Footer -->
+
+        <%- include('../../includes/customer/footer.ejs') %>
+
+
+</body>
+<%- include('../../includes/customer/script.ejs') %>
+
+
+    </html>

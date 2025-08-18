@@ -498,6 +498,7 @@ exports.getModelDetailsPage = async (req, res, next) => {
             productName: productLangData?.ProductName || "Unknown Product",
             productSlug,
             modelSlug
+            
         });
 
     } catch (err) {

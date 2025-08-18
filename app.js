@@ -81,8 +81,6 @@ app.use(
     })
 );
 
-// CORP (Cross-Origin Resource Policy)
-app.use(helmet.crossOriginResourcePolicy({ policy: 'same-origin' }));
 
 
 
