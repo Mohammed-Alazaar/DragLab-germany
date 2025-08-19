@@ -95,54 +95,55 @@
       </nav>
 
       <!-- Downloads Grid -->
-      <section class="catalog-section" aria-labelledby="downloads-list">
-        <h2 id="downloads-list" class="visually-hidden">
-          <%= translations.pageTitle %>
-        </h2>
-        <div class="catalog-list" id="catalog-grid">
-          <% downloads.forEach(file=> {
-            const normalizedCategory = (file.fileProductCategory || file.fileCategory || '')
-            .toLowerCase()
-            .replace(/\s+/g, '-');
+      <% function toDownloadUrl(filePath, fileName) { if (!filePath) return '#' ; const
+        encoded=encodeURIComponent(fileName || 'download' ); if (filePath.includes('/upload/fl_attachment:')) return
+        filePath; return filePath.replace('/upload/', `/upload/fl_attachment:${encoded}/`); } %>
+        <section class="catalog-section" aria-labelledby="downloads-list">
+          <h2 id="downloads-list" class="visually-hidden">
+            <%= translations.pageTitle %>
+          </h2>
+          <div class="catalog-list" id="catalog-grid">
 
-            const fname = file.fileName || 'Download';
-            const encodedName = encodeURIComponent(fname); // keep extension
-            const furl = file.filePath && file.filePath.includes('cloudinary.com')
-            ? file.filePath.replace('/upload/', `/upload/fl_attachment:${encodedName}/`)
-            : file.filePath;
+            <% downloads.forEach(file=> {
+              const normalizedCategory = (file.fileProductCategory || file.fileCategory || '')
+              .toLowerCase()
+              .replace(/\s+/g, '-');
 
-            const ext = (fname.split('.').pop() || '').toLowerCase();
-            %>
-            <article class="catalog-item" data-category="<%= normalizedCategory %>" itemscope
-              itemtype="https://schema.org/DigitalDocument">
-              <div class="cataloge-info-container">
-                <h3 class="catalog-title" itemprop="name">
-                  <%= fname %>
-                </h3>
-                <div class="catalog-meta">
-                  <span class="catalog-meta-lang">
-                    <%= lang %>
-                  </span>
-                  <span class="catalog-meta-size">
-                    <%= file.fileSize %>
-                  </span>
-                  <% if (ext) { %><span class="catalog-meta-type" style="display:none;">
-                      <%= ext.toUpperCase() %>
+              const fname = file.fileName || 'Download';
+              const ext = (fname.split('.').pop() || '').toLowerCase();
+              const furl = toDownloadUrl(file.filePath, fname);
+
+              %>
+              <article class="catalog-item" data-category="<%= normalizedCategory %>" itemscope
+                itemtype="https://schema.org/DigitalDocument">
+                <div class="cataloge-info-container">
+                  <h3 class="catalog-title" itemprop="name">
+                    <%= fname %>
+                  </h3>
+                  <div class="catalog-meta">
+                    <span class="catalog-meta-lang">
+                      <%= lang %>
                     </span>
-                    <% } %>
+                    <span class="catalog-meta-size">
+                      <%= file.fileSize %>
+                    </span>
+                    <% if (ext) { %><span class="catalog-meta-type" style="display:none;">
+                        <%= ext.toUpperCase() %>
+                      </span>
+                      <% } %>
+                  </div>
                 </div>
-              </div>
-              <a class="download-icon" href="<%= furl %>" itemprop="contentUrl" download rel="noopener"
-                aria-label="Download <%= fname %>">
-                <img src="/assets/Imgs/Icons/products/download-icon.png" width="28" height="28" loading="lazy"
-                  alt="Download <%= fname %>">
-              </a>
-            </article>
-            <% }) %>
+                <a class="download-icon" href="<%= file.filePath %>" itemprop="contentUrl" download="<%= fname %>"
+                  rel="noopener" aria-label="Download <%= fname %>" download target="_blank">
+                  <img src="/assets/Imgs/Icons/products/download-icon.png" width="28" height="28" loading="lazy"
+                    alt="Download <%= fname %>">
+                </a>
+              </article>
+              <% }) %>
 
-        </div>
-      </section>
-      <script type="application/ld+json" nonce="<%= nonce %>">
+          </div>
+        </section>
+        <script type="application/ld+json" nonce="<%= nonce %>">
 <%
   const itemList = (downloads || []).slice(0, 50).map((file, idx) => {
     const name = file.fileName || 'Download';
@@ -174,8 +175,8 @@
 
 
 
-      <%- include('../../includes/customer/footer.ejs') %>
-        <script src="/js/downloads.js" nonce="<%= nonce %>"></script>
+        <%- include('../../includes/customer/footer.ejs') %>
+          <script src="/js/downloads.js" nonce="<%= nonce %>"></script>
   </body>
 
   <%- include('../../includes/customer/script.ejs') %>

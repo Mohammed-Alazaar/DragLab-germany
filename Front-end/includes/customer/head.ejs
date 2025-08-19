@@ -15,7 +15,9 @@
   <script type="text/plain" data-cookie-consent="tracking" async
     src="https://www.googletagmanager.com/gtag/js?id=G-6HXYVZ8CMN"></script>
   <script type="text/plain" data-cookie-consent="tracking" src="/js/gtag-config.js" defer></script>
-  <link rel="icon" type="image/png" href="/assets/Imgs/logo/favicon.png">
+  <link rel="icon" href="/assets/Imgs/logo/favicon.ico" type="image/x-icon">
+  <link rel="icon" href="/assets/Imgs/logo/favicon.png" type="image/png" sizes="32x32">
+  <link rel="apple-touch-icon" href="/assets/Imgs/logo/favicon-180.png" sizes="180x180">
   <link rel="preconnect" href="https://res.cloudinary.com" crossorigin>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="index, follow">
@@ -51,13 +53,70 @@
   "sameAs": sameAsLinks
 }) %>
 </script>
+        <script type="application/ld+json" nonce="<%= nonce %>">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "DragLab",
+  "url": "https://www.drag-lab.de",
+  "logo": "https://www.drag-lab.de/assets/Imgs/logo/favicon.png"
+}
+</script>
+        <link rel="alternate" type="application/rss+xml" title="DragLab Articles (EN)"
+          href="https://www.drag-lab.de/EN/feed.xml">
+        <link rel="alternate" type="application/rss+xml" title="DragLab Articles (ES)"
+          href="https://www.drag-lab.de/ES/feed.xml">
+        <link rel="alternate" type="application/rss+xml" title="DragLab Articles (DE)"
+          href="https://www.drag-lab.de/DE/feed.xml">
 
-<link rel="alternate" type="application/rss+xml"
-      title="DragLab Articles (EN)"
-      href="https://www.drag-lab.de/EN/feed.xml">
-<link rel="alternate" type="application/rss+xml"
-      title="DragLab Articles (ES)"
-      href="https://www.drag-lab.de/ES/feed.xml">
-<link rel="alternate" type="application/rss+xml"
-      title="DragLab Articles (DE)"
-      href="https://www.drag-lab.de/DE/feed.xml">
+        <style nonce="<%= nonce %>">
+          /* Hide until loader marks ready (prevents LCP) */
+          #cc--main,
+          .cc-window {
+            visibility: hidden;
+          }
+
+          .cookie-ready #cc--main,
+          .cookie-ready .cc-window {
+            visibility: visible;
+          }
+
+          /* Bottom-center layout */
+          #cc--main .cc-window {
+            position: fixed !important;
+            left: 50% !important;
+            bottom: 16px !important;
+            transform: translateX(-50%) !important;
+            z-index: 2147483647 !important;
+            max-width: 680px !important;
+            width: calc(100% - 32px) !important;
+            /* gutters on mobile */
+            box-shadow: 0 10px 30px rgba(0, 0, 0, .15);
+            border-radius: 12px;
+          }
+
+          /* Make sure it doesn’t block clicks behind outside its box */
+          #cc--main {
+            pointer-events: none;
+          }
+
+          #cc--main .cc-window {
+            pointer-events: auto;
+          }
+
+          /* Mobile tweaks */
+          @media (max-width: 480px) {
+            #cc--main .cc-window {
+              bottom: 12px !important;
+              max-width: 560px !important;
+              border-radius: 10px;
+            }
+          }
+        </style>
+        <!-- Preload the actual hero image that becomes LCP -->
+        <link rel="preload" as="image" href="/assets/hero/hero@1x.webp"
+          imagesrcset="/assets/hero/hero@1x.webp 1x, /assets/hero/hero@2x.webp 2x" fetchpriority="high">
+
+        <% if (typeof slides !=='undefined' && slides.length && slides[0].image) { %>
+          <link rel="preload" as="image" href="<%= slides[0].image %>" fetchpriority="high">
+          <% } %>
