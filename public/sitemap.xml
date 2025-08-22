@@ -8,6 +8,9 @@
         <loc>https://www.drag-lab.de/EN/</loc>
         <changefreq>weekly</changefreq>
         <priority>0.9</priority>
+        <image:image>
+            <image:loc>https://www.drag-lab.de/assets/Imgs/logo/logo.png</image:loc>
+        </image:image>
     </url>
     <url>
         <loc>https://www.drag-lab.de/EN/aboutus</loc>
@@ -93,6 +96,9 @@
         <loc>https://www.drag-lab.de/ES/</loc>
         <changefreq>weekly</changefreq>
         <priority>0.9</priority>
+        <image:image>
+            <image:loc>https://www.drag-lab.de/assets/Imgs/logo/logo.png</image:loc>
+        </image:image>
     </url>
     <url>
         <loc>https://www.drag-lab.de/ES/aboutus</loc>
@@ -178,6 +184,9 @@
         <loc>https://www.drag-lab.de/DE/</loc>
         <changefreq>weekly</changefreq>
         <priority>0.9</priority>
+        <image:image>
+            <image:loc>https://www.drag-lab.de/assets/Imgs/logo/logo.png</image:loc>
+        </image:image>
     </url>
     <url>
         <loc>https://www.drag-lab.de/DE/aboutus</loc>
@@ -763,6 +772,40 @@
         <changefreq>weekly</changefreq>
         <priority>0.7</priority>
     </url>
+    <url>
+        <loc>https://www.drag-lab.de/EN/products/centrifuge</loc>
+        <changefreq>weekly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>https://www.drag-lab.de/ES/products/centrifuge</loc>
+        <changefreq>weekly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>https://www.drag-lab.de/DE/products/centrifuge</loc>
+        <changefreq>weekly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>
+            https://www.drag-lab.de/EN/products/centrifuge/centrifuge-df-12-digital-display</loc>
+        <changefreq>weekly</changefreq>
+        <priority>0.7</priority>
+    </url>
+    <url>
+        <loc>
+            https://www.drag-lab.de/ES/products/centrifuge/centrifuge-df-12-digital-display</loc>
+        <changefreq>weekly</changefreq>
+        <priority>0.7</priority>
+    </url>
+    <url>
+        <loc>
+            https://www.drag-lab.de/DE/products/centrifuge/centrifuge-df-12-digital-display</loc>
+        <changefreq>weekly</changefreq>
+        <priority>0.7</priority>
+    </url>
+
     <url>
         <loc>https://www.drag-lab.de/EN/articles/choosing-the-right-drying-oven-for-your-laboratory</loc>
         <changefreq>monthly</changefreq>

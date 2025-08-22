@@ -120,8 +120,9 @@
     }
 
     .footer-links {
-        flex-direction: column;
+        flex-direction: column !important;
         align-items: center;
+        height: max-content;
     }
 
     .footer-column {
@@ -235,4 +236,123 @@
         width: 100%;
         max-width: 300px;
     }
+}
+
+
+/* 1) Let flex items actually shrink on Safari */
+.footer-left,
+.footer-column {
+    min-width: 0;
+}
+
+/* critical for Safari flex */
+
+/* 2) Force wrapping in the Contact Us column */
+.contactusFooter li,
+.contactusFooter a {
+    overflow-wrap: anywhere;
+    /* modern wrap */
+    word-break: break-word;
+    /* fallback */
+    -webkit-hyphens: auto;
+    hyphens: auto;
+    /* break long hyphenated words */
+    line-height: 1.5;
+    display: inline-block;
+    /* makes wrap rules more reliable in <a> */
+    max-width: 100%;
+}
+
+/* 3) Prevent columns from stretching apart on iOS */
+.footer-links {
+    align-items: flex-start;
+}
+
+/* instead of center */
+
+/* 4) Tighten the Contact Us column so it doesn't dominate the row */
+.contactusFooter {
+    max-width: 320px;
+}
+
+/* tweak 280–340 as you like */
+
+/* Mobile: ensure single-column stack */
+@media (max-width: 768px) {
+    .footer-container {
+        flex-direction: column;
+    }
+
+    .footer-links {
+        flex-direction: column;
+        align-items: stretch;
+        text-align: center;
+    }
+
+    .footer-column {
+        width: 100%;
+    }
+
+}
+
+
+/* --- iOS-safe mobile stack for footer --- */
+@media (max-width: 768px) {
+
+    /* Stop using flex on mobile to avoid Safari wrap quirks */
+    .footer-container {
+        display: block !important;
+    }
+
+    .footer-left {
+        width: 100% !important;
+        text-align: center;
+    }
+
+    .footer-links {
+        display: block !important;
+        width: 100% !important;
+        margin: 0 auto;
+    }
+
+    .footer-column,
+    .contactusFooter {
+        display: block !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        flex: none !important;
+        /* overrides flex: 1 1 150px */
+        min-width: 0 !important;
+        /* let long lines wrap */
+    }
+
+    /* spacing between stacked sections */
+    .footer-column+.footer-column {
+        margin-top: 18px;
+    }
+
+    /* make long address/links actually wrap */
+    .contactusFooter li,
+    .contactusFooter a {
+        overflow-wrap: anywhere;
+        word-break: break-word;
+        -webkit-hyphens: auto;
+        hyphens: auto;
+        line-height: 1.5;
+    }
+
+    .footer-column ul {
+
+        list-style: none;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .footer-column ul li a {
+        display: inline;
+    }
+
 }
