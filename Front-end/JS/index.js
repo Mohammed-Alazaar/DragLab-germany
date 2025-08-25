@@ -1,3 +1,17 @@
+document.addEventListener("DOMContentLoaded", () => {
+  const dropdown = document.querySelector(".dropdown-menu-products");
+
+  if (!dropdown) return; // exit if not found
+
+  window.addEventListener("scroll", () => {
+    if (window.scrollY > 0) {
+      dropdown.style.display = "none"; // hide when user scrolls
+    } else {
+      dropdown.style.display = ""; // show again when back at top
+    }
+  });
+});
+
 //      slideshow autoplay  
 document.addEventListener("DOMContentLoaded", function () {
     let slideIndex = 0;
