@@ -65,169 +65,202 @@
 
 
 
-                                        <% ['EN', 'ES' , 'DE' ].forEach(lang=> { %>
-                                            <div class="language-section">
-                                                <h3>Language: <%= lang %>
+                                        <% ['EN', 'ES' , 'DE' , 'TR' , 'FR' ].forEach(lang=> { %>
+                                            <div class="language-section" data-collapsible>
+                                                <h3 class="language-header">
+                                                    <button class="language-toggle" type="button" aria-expanded="false">
+                                                        Language: <%= lang %> <span class="chev"
+                                                                aria-hidden="true">▸</span>
+                                                    </button>
                                                 </h3>
-                                                <div class="input-container">
-                                                    <label>Model Name</label>
-                                                    <input type="text" name="ModelName_<%= lang %>"
-                                                        class="<%= validationErrors.find(e => e.path === `ModelName_${lang}`) ? 'is-invalid' : '' %>"
-                                                        value="<%= model?.Language?.[lang]?.[0]?.ModelName || '' %>">
+                                                <div class="language-body">
 
-                                                    <% const err=validationErrors.find(e=> e.path ===
-                                                        `ModelName_${lang}`); %>
-                                                        <% if (err) { %>
-                                                            <div class="form-error">
-                                                                <%= err.msg %>
+                                                    <div class="input-container">
+                                                        <label>Model Name</label>
+                                                        <input type="text" name="ModelName_<%= lang %>"
+                                                            class="<%= validationErrors.find(e => e.path === `ModelName_${lang}`) ? 'is-invalid' : '' %>"
+                                                            value="<%= model?.Language?.[lang]?.[0]?.ModelName || '' %>">
+
+                                                        <% const err=validationErrors.find(e=> e.path ===
+                                                            `ModelName_${lang}`); %>
+                                                            <% if (err) { %>
+                                                                <div class="form-error">
+                                                                    <%= err.msg %>
+                                                                </div>
+                                                                <% } %>
+                                                    </div>
+                                                    <div class="input-container">
+                                                        <label>Short Description</label>
+                                                        <input type="text" name="ModelNameDesc_<%= lang %>"
+                                                            value="<%= model?.Language?.[lang]?.[0]?.ModelNameDesc || '' %>">
+                                                    </div>
+                                                    <div class="input-container">
+                                                        <label>Description</label>
+                                                        <input type="text" name="ModelDesc_<%= lang %>"
+                                                            value="<%= model?.Language?.[lang]?.[0]?.ModelDesc || '' %>">
+                                                    </div>
+                                                    <!-- Fixed Overview Inputs -->
+                                                    <div class="overview-section">
+                                                        <h4>Overview</h4>
+                                                        <% for (let i=0; i < 4; i++) { %>
+                                                            <div class="overview-item">
+                                                                <input type="text"
+                                                                    name="overview[<%= lang %>][<%= i %>][overviewName]"
+                                                                    placeholder="Name"
+                                                                    value="<%= model?.Language?.[lang]?.[0]?.overview?.[i]?.overviewName || '' %>">
+                                                                <input type="text"
+                                                                    name="overview[<%= lang %>][<%= i %>][overviewDesc]"
+                                                                    placeholder="Description"
+                                                                    value="<%= model?.Language?.[lang]?.[0]?.overview?.[i]?.overviewDesc || '' %>">
+
+                                                                <% if (lang==='EN' ) { %>
+                                                                    <% const
+                                                                        imgPath=model?.Language?.[lang]?.[0]?.overview?.[i]?.overviewImage;
+                                                                        %>
+                                                                        <% if (imgPath) { %>
+                                                                            <img src="<%= imgPath %>"
+                                                                                style="max-width: 100px;">
+                                                                            <input type="hidden"
+                                                                                name="oldOverviewImages_<%= i %>"
+                                                                                value="<%= imgPath %>">
+                                                                            <% } %>
+                                                                                <input type="file"
+                                                                                    name="overviewImages_EN[<%= i %>]"
+                                                                                    accept="image/*">
+                                                                                <% } %>
                                                             </div>
                                                             <% } %>
-                                                </div>
-                                                <div class="input-container">
-                                                    <label>Short Description</label>
-                                                    <input type="text" name="ModelNameDesc_<%= lang %>"
-                                                        value="<%= model?.Language?.[lang]?.[0]?.ModelNameDesc || '' %>">
-                                                </div>
-                                                <div class="input-container">
-                                                    <label>Description</label>
-                                                    <input type="text" name="ModelDesc_<%= lang %>"
-                                                        value="<%= model?.Language?.[lang]?.[0]?.ModelDesc || '' %>">
-                                                </div>
-                                                <!-- Fixed Overview Inputs -->
-                                                <div class="overview-section">
-                                                    <h4>Overview</h4>
-                                                    <% for (let i=0; i < 4; i++) { %>
-                                                        <div class="overview-item">
-                                                            <input type="text"
-                                                                name="overview[<%= lang %>][<%= i %>][overviewName]"
-                                                                placeholder="Name"
-                                                                value="<%= model?.Language?.[lang]?.[0]?.overview?.[i]?.overviewName || '' %>">
-                                                            <input type="text"
-                                                                name="overview[<%= lang %>][<%= i %>][overviewDesc]"
-                                                                placeholder="Description"
-                                                                value="<%= model?.Language?.[lang]?.[0]?.overview?.[i]?.overviewDesc || '' %>">
+                                                    </div>
 
-                                                            <% if (lang==='EN' ) { %>
-                                                                <% const
-                                                                    imgPath=model?.Language?.[lang]?.[0]?.overview?.[i]?.overviewImage;
-                                                                    %>
-                                                                    <% if (imgPath) { %>
-                                                                        <img src="<%= imgPath %>"
-                                                                            style="max-width: 100px;">
-                                                                        <input type="hidden"
-                                                                            name="oldOverviewImages_<%= i %>"
-                                                                            value="<%= imgPath %>">
-                                                                        <% } %>
-                                                                            <input type="file"
-                                                                                name="overviewImages_EN[<%= i %>]"
-                                                                                accept="image/*">
+
+                                                    <!-- Fixed Industry Inputs -->
+                                                    <div class="industry-section">
+                                                        <h4>Industries</h4>
+                                                        <% for (let i=0; i < 3; i++) { %>
+                                                            <div class="industry-item">
+                                                                <input type="text"
+                                                                    name="industry[<%= lang %>][<%= i %>][industryName]"
+                                                                    placeholder="Industry Name"
+                                                                    value="<%= model?.Language?.[lang]?.[0]?.industry?.[i]?.industryName || '' %>">
+
+                                                                <% if (lang==='EN' ) { %>
+                                                                    <% const
+                                                                        img=model?.Language?.[lang]?.[0]?.industry?.[i];
+                                                                        %>
+                                                                        <% if (img?.industryImage) { %>
+                                                                            <img src="<%= img.industryImage %>"
+                                                                                style="max-width: 100px;">
+                                                                            <input type="hidden"
+                                                                                name="oldIndustryImage_<%= i %>"
+                                                                                value="<%= img.industryImage %>">
                                                                             <% } %>
-                                                        </div>
-                                                        <% } %>
+                                                                                <% if (img?.industryLogo) { %>
+                                                                                    <img src="<%= img.industryLogo %>"
+                                                                                        style="max-width: 100px;">
+                                                                                    <input type="hidden"
+                                                                                        name="oldIndustryLogo_<%= i %>"
+                                                                                        value="<%= img.industryLogo %>">
+                                                                                    <% } %>
+
+                                                                                        <input type="file"
+                                                                                            name="industryImages_EN[<%= i %>]"
+                                                                                            accept="image/*">
+                                                                                        <input type="file"
+                                                                                            name="industryLogos_EN[<%= i %>]"
+                                                                                            accept="image/*">
+                                                                                        <% } %>
+                                                            </div>
+                                                            <% } %>
+                                                    </div>
+
+                                                    <div class="techspec-section">
+                                                        <h4>Technical Specifications</h4>
+                                                        <div id="specs_<%= lang %>_container"></div>
+                                                        <button type="button" class="add-spec-section"
+                                                            data-lang="<%= lang %>">Add Specification Section</button>
+
+                                                    </div>
+
+                                                    <h4>Downloads</h4>
+                                                    <div id="download_<%= lang %>_container"></div>
+                                                    <button type="button" class="add-download-field"
+                                                        data-lang="<%= lang %>">Add Download File</button>
+
+
                                                 </div>
+                                            </div>
 
+                                            <% const isAdmin=(user && (user.role==='admin' || user.isAdmin===true)); %>
 
-                                                <!-- Fixed Industry Inputs -->
-                                                <div class="industry-section">
-                                                    <h4>Industries</h4>
-                                                    <% for (let i=0; i < 3; i++) { %>
-                                                        <div class="industry-item">
-                                                            <input type="text"
-                                                                name="industry[<%= lang %>][<%= i %>][industryName]"
-                                                                placeholder="Industry Name"
-                                                                value="<%= model?.Language?.[lang]?.[0]?.industry?.[i]?.industryName || '' %>">
+                                                <% if (isAdmin) { %>
+                                                    <div class="input-container" style="margin: .5rem 0 1rem;">
+                                                        <label style="display:flex; gap:.5rem; align-items:center;">
+                                                            <input type="checkbox" name="publish_<%= lang %>"
+                                                                <%=model?.Language?.[lang]?.[0]?.publish ? 'checked'
+                                                                : '' %> />
+                                                            Publish in <strong>
+                                                                <%= lang %>
+                                                            </strong>
+                                                        </label>
+                                                        <small class="text-muted">Checked = visible in navbar for this
+                                                            language.</small>
+                                                    </div>
+                                                    <% } %>
 
-                                                            <% if (lang==='EN' ) { %>
-                                                                <% const
-                                                                    img=model?.Language?.[lang]?.[0]?.industry?.[i]; %>
-                                                                    <% if (img?.industryImage) { %>
-                                                                        <img src="<%= img.industryImage %>"
-                                                                            style="max-width: 100px;">
-                                                                        <input type="hidden"
-                                                                            name="oldIndustryImage_<%= i %>"
-                                                                            value="<%= img.industryImage %>">
+                                                        <% }); %>
+
+                                                            <!-- Model Thumbnail -->
+                                                            <div class="input-container">
+                                                                <label>Model Thumbnail</label>
+                                                                <input type="file" name="ModelThumbnail"
+                                                                    accept="image/*"
+                                                                    class="<%= validationErrors.find(e => e.path === 'ModelThumbnail') ? 'is-invalid' : '' %>">
+                                                                <% const thumbErr=validationErrors.find(e=> e.path ===
+                                                                    'ModelThumbnail'); %>
+                                                                    <% if (thumbErr) { %>
+                                                                        <div class="form-error">
+                                                                            <%= thumbErr.msg %>
+                                                                        </div>
                                                                         <% } %>
-                                                                            <% if (img?.industryLogo) { %>
-                                                                                <img src="<%= img.industryLogo %>"
+                                                                            <% if (model?.ModelThumbnail) { %>
+                                                                                <img src="<%= model.ModelThumbnail %>"
                                                                                     style="max-width: 100px;">
                                                                                 <input type="hidden"
-                                                                                    name="oldIndustryLogo_<%= i %>"
-                                                                                    value="<%= img.industryLogo %>">
+                                                                                    name="oldModelThumbnail"
+                                                                                    value="<%= model.ModelThumbnail %>">
                                                                                 <% } %>
-
-                                                                                    <input type="file"
-                                                                                        name="industryImages_EN[<%= i %>]"
-                                                                                        accept="image/*">
-                                                                                    <input type="file"
-                                                                                        name="industryLogos_EN[<%= i %>]"
-                                                                                        accept="image/*">
-                                                                                    <% } %>
-                                                        </div>
-                                                        <% } %>
-                                                </div>
-
-                                                <div class="techspec-section">
-                                                    <h4>Technical Specifications</h4>
-                                                    <div id="specs_<%= lang %>_container"></div>
-                                                    <button type="button" class="add-spec-section"
-                                                        data-lang="<%= lang %>">Add Specification Section</button>
-
-                                                </div>
-
-                                                <h4>Downloads</h4>
-                                                <div id="download_<%= lang %>_container"></div>
-                                                <button type="button" class="add-download-field"
-                                                    data-lang="<%= lang %>">Add Download File</button>
-
-
-                                            </div>
-                                            <% }); %>
-
-                                                <!-- Model Thumbnail -->
-                                                <div class="input-container">
-                                                    <label>Model Thumbnail</label>
-                                                    <input type="file" name="ModelThumbnail" accept="image/*"
-                                                        class="<%= validationErrors.find(e => e.path === 'ModelThumbnail') ? 'is-invalid' : '' %>">
-                                                    <% const thumbErr=validationErrors.find(e=> e.path ===
-                                                        'ModelThumbnail'); %>
-                                                        <% if (thumbErr) { %>
-                                                            <div class="form-error">
-                                                                <%= thumbErr.msg %>
                                                             </div>
-                                                            <% } %>
-                                                                <% if (model?.ModelThumbnail) { %>
-                                                                    <img src="<%= model.ModelThumbnail %>"
-                                                                        style="max-width: 100px;">
-                                                                    <input type="hidden" name="oldModelThumbnail"
-                                                                        value="<%= model.ModelThumbnail %>">
-                                                                    <% } %>
-                                                </div>
 
 
-                                                <!-- Model Photos -->
-                                                <div class="input-container">
-                                                    <label>Model Photos</label>
-                                                    <input type="file" name="ModelPhotos" multiple accept="image/*">
-                                                    <% if (model?.ModelPhotos?.length) { %>
-                                                        <% model.ModelPhotos.forEach(photo=> { %>
-                                                            <img src="<%= photo %>" style="max-width: 100px;">
-                                                            <% }) %>
-                                                                <% } %>
-                                                </div>
+                                                            <!-- Model Photos -->
+                                                            <div class="input-container">
+                                                                <label>Model Photos</label>
+                                                                <input type="file" name="ModelPhotos" multiple
+                                                                    accept="image/*">
+                                                                <% if (model?.ModelPhotos?.length) { %>
+                                                                    <% model.ModelPhotos.forEach(photo=> { %>
+                                                                        <img src="<%= photo %>"
+                                                                            style="max-width: 100px;">
+                                                                        <% }) %>
+                                                                            <% } %>
+                                                            </div>
 
-                                                <div class="btn-form-container">
-                                                    <a href="/admin/Myproduct" class="btnBack">Cancel</a>
+                                                            <div class="btn-form-container">
+                                                                <a href="/admin/Myproduct" class="btnBack">Cancel</a>
 
-                                                    <% if (editing) { %>
-                                                        <button class="btnsaveaddress" type="submit" name="action"
-                                                            value="publish">Update Model</button>
-                                                        <% } else { %>
-                                                            <button class="btnsaveaddress" type="submit" name="action"
-                                                                value="publish">Add Model</button>
-                                                            <button class="btnsaveaddress" type="submit" name="action"
-                                                                value="draft">Save as Draft</button>
-                                                            <% } %>
-                                                </div>
+                                                                <% if (editing) { %>
+                                                                    <button class="btnsaveaddress" type="submit"
+                                                                        name="action" value="publish">Update
+                                                                        Model</button>
+                                                                    <% } else { %>
+                                                                        <button class="btnsaveaddress" type="submit"
+                                                                            name="action" value="publish">Add
+                                                                            Model</button>
+                                                                        <button class="btnsaveaddress" type="submit"
+                                                                            name="action" value="draft">Save as
+                                                                            Draft</button>
+                                                                        <% } %>
+                                                            </div>
 
                                     </form>
                         </div>

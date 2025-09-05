@@ -16,7 +16,7 @@ const slideSchema = new Schema({
     },
     language: {
         type: String,
-        enum: ['EN', 'ES', 'DE', 'ALL'],
+        enum: ['EN', 'ES', 'DE', 'TR','FR', 'ALL'],
         default: 'EN',
         required: true
       }

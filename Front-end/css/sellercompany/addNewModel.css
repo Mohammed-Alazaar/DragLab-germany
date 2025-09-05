@@ -170,3 +170,40 @@ button[type="button"]:hover {
 .is-invalid {
     border-color: #dc3545 !important;
 }
+
+
+
+
+
+
+.language-section {
+  background: #f0f2f7;
+  border-left: 6px solid var(--primary-Color);
+  border-radius: 8px;
+  margin-top: 24px;
+  overflow: hidden;
+}
+
+.language-header { margin: 0; background: #e9ecf4; }
+.language-toggle {
+  width: 100%;
+  display: flex; justify-content: space-between; align-items: center; gap: 10px;
+  padding: 14px 16px;
+  background: transparent; border: 0; cursor: pointer;
+  font: inherit; font-weight: 700; color: var(--primary-Color);
+}
+.language-toggle .chev { transition: transform .25s ease; }
+.language-section.is-open .language-toggle .chev { transform: rotate(90deg); }
+
+/* collapse behavior driven by .collapse */
+.language-body {
+  overflow: hidden;
+  transition: max-height 0.3s ease, padding-top 0.2s ease, padding-bottom 0.2s ease;
+  max-height: 9999px;    /* open by default; JS will add .collapse initially */
+  padding: 0 16px 16px;
+}
+.language-body.collapse {
+  max-height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+}

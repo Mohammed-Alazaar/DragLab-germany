@@ -2,8 +2,9 @@
     <html lang="<%= lang %>" data-lang="<%= lang %>" data-select-option="<%= translations.selectOption %>">
 
     <link rel="stylesheet" href="/css/customer/technical-service.css">
-    <script
-        src="https://www.google.com/recaptcha/enterprise.js?render=6LemaIMrAAAAABkGmvhvmbRSO5BbXQq7AsLB7NGU"></script>
+  <% if (recaptchaEnabled) { %>
+  <script src="https://www.google.com/recaptcha/enterprise.js?render=6LemaIMrAAAAABkGmvhvmbRSO5BbXQq7AsLB7NGU"></script>
+<% } %>
     <title>
         <%= t.pageTitle %> | DragLab
     </title>

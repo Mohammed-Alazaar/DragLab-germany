@@ -13,6 +13,7 @@ const CatalogCategory = require('../models/CatalogCategory'); // Add this line t
 const Slideshow = require('../models/slideshow'); // ✅ Make sure this is imported at the top
 const axios = require('axios'); // ✅ Import axios for HTTP requests
 
+const allanguages = ['EN', 'ES', 'DE', 'TR', 'FR'];
 
 
 
@@ -164,7 +165,7 @@ exports.getHomePage = async (req, res, next) => {
 
     } catch (err) {
         console.error('Error loading home page:', err);
-        res.redirect('/EN');
+        res.redirect('/');
     }
 };
 
@@ -250,7 +251,7 @@ exports.getProducts = (req, res, next) => {
         .catch(err => {
             console.log(err);
             next(err);
-            res.redirect('/EN');
+            res.redirect('/');
         });
 };
 
@@ -290,7 +291,7 @@ exports.getProduct = (req, res, next) => {
         })
         .catch(err => {
             console.error(err);
-            res.redirect('/EN');
+            res.redirect('/');
         });
 };
 
@@ -386,45 +387,78 @@ exports.search = async (req, res) => {
 
 
 
+exports.getProductDetails = async (req, res, next) => {
+    try {
+        const { lang, productSlug } = req.params;
+        const supportedLangs = allanguages; // e.g. ['EN','ES','DE','TR','FR']
+        const selectedLang = supportedLangs.includes(lang) ? lang : 'EN';
 
-exports.getProductDetails = (req, res, next) => {
-    const { lang, productSlug } = req.params;
-    const supportedLangs = ['EN', 'ES', 'DE'];
-    const selectedLang = supportedLangs.includes(lang) ? lang : 'EN';
-
-    Product.findOne({ slug: productSlug })
-        .then(product => {
-            if (!product) return res.redirect(`/${selectedLang}`);
-
-            return Product.find().then(allProducts => {
-                const publishedProducts = allProducts.map(prod => {
-                    const publishedModels = prod.Models.filter(model => model.isPublished);
-                    return {
-                        ...prod.toObject(),
-                        Models: publishedModels
-                    };
-                });
-
-                res.render('customer/product-details.ejs', {
-                    product,
-                    lang: selectedLang,
-                    translation: product.Language[selectedLang]?.[0] || product.Language['EN'][0],
-                    models: product.Models.filter(m => m.isPublished),
-                    products: publishedProducts,
-                    req
-                });
+        const product = await Product.findOne({ slug: productSlug }).lean();
+        if (!product) {
+            // product itself does not exist -> genuine 404/redirect
+            return res.status(404).render('404', {
+                pageTitle: 'Not found',
+                path: '/404',
+                isAuthenticated: req.session?.isLoggedIn || false,
             });
-        })
-        .catch(err => {
-            console.error(err);
-            res.redirect('/EN');
+        }
+
+        const langData = product.Language?.[selectedLang]?.[0];
+        const enData = product.Language?.EN?.[0];
+
+        // Find languages where this product IS published
+        const availableLangs = (supportedLangs || [])
+            .filter(L => product?.Language?.[L]?.[0]?.publish === true);
+
+        // If current language is NOT published -> show friendly page with links
+        if (!langData || langData.publish !== true) {
+            // Prefer EN first in the list if available
+            const sortedAvailable = availableLangs.sort((a, b) => (a === 'EN' ? -1 : b === 'EN' ? 1 : 0));
+
+            // Prepare link objects for the template
+            const links = sortedAvailable.map(L => ({
+                code: L,
+                url: `/${L}/products/${product.slug}`,
+                name: ({ EN: 'English', ES: 'Español', DE: 'Deutsch', TR: 'Türkçe', FR: 'Français' }[L]) || L
+            }));
+
+            return res.status(200).render('customer/product-not-available', {
+                pageTitle: 'Product Unavailable',
+                lang: selectedLang,
+                productSlug: product.slug,
+                links,                  // array of {code, url, name} for available languages
+                hasAny: links.length > 0,
+                products: res.locals.navProducts || []   // ✅ so navbar has something to render
+
+            });
+        }
+
+        // Language is published -> render normally (and filter models by lang publish)
+        const modelsForLang = (product.Models || []).filter(m =>
+            m?.Language?.[selectedLang]?.[0]?.publish === true
+        );
+
+        // If you populate navbar via middleware, you can rely on res.locals.navProducts; otherwise fetch here.
+        const navProducts = res.locals.navProducts || [];
+
+        return res.render('customer/product-details.ejs', {
+            product,
+            lang: selectedLang,
+            translation: langData || enData,
+            models: modelsForLang,
+            products: navProducts,
+            req
         });
+    } catch (err) {
+        console.error(err);
+        return res.redirect('/EN');
+    }
 };
 
 
 exports.getModelDetailsPage = async (req, res, next) => {
     const { lang, productSlug, modelSlug } = req.params;
-    const supportedLangs = ['EN', 'ES', 'DE'];
+    const supportedLangs = allanguages;
     const selectedLang = supportedLangs.includes(lang) ? lang : 'EN';
 
     try {
@@ -467,6 +501,20 @@ exports.getModelDetailsPage = async (req, res, next) => {
                 specsTitle: "Technische Daten",
                 downloadsTitle: "Downloads",
                 noDownloads: "Keine Downloads in dieser Sprache verfügbar."
+            },
+            TR: {
+                overviewTitle: "Genel Bakış",
+                industriesTitle: "Sektörler",
+                specsTitle: "Teknik Özellikler",
+                downloadsTitle: "İndirmeler",
+                noDownloads: "Bu dilde mevcut indirme yok."
+            },
+            FR: {
+                overviewTitle: "Aperçu",
+                industriesTitle: "Industries",
+                specsTitle: "Spécifications techniques",
+                downloadsTitle: "Téléchargements",
+                noDownloads: "Aucun téléchargement disponible dans cette langue."
             }
         };
 
@@ -498,7 +546,7 @@ exports.getModelDetailsPage = async (req, res, next) => {
             productName: productLangData?.ProductName || "Unknown Product",
             productSlug,
             modelSlug
-            
+
         });
 
     } catch (err) {
@@ -645,6 +693,7 @@ exports.postContactUs = async (req, res, next) => {
 
 
 
+const RECAPTCHA_ENABLED = String(process.env.RECAPTCHA_ENABLED) === 'true';
 
 
 exports.geTechnicalservice = (req, res, next) => {
@@ -753,6 +802,40 @@ exports.geTechnicalservice = (req, res, next) => {
             notePlaceholder: "Schreiben Sie Ihre Notiz...",
             sendBtn: "Nachricht senden",
             selectOption: "Auswählen"
+        },
+        TR: {
+            dataLabel: 'Kişisel verilerimin işlenmesini kabul ediyorum',
+            privacyPolicy: 'Gizlilik Politikası',
+            dataSuffix: 'garanti kaydı talebimi yönetmek için.',
+            slideTitle: "Teknik destek hizmetinizde.",
+            slideSubtitle: "Teknik sorunlarınıza hızlı ve güvenilir çözümler.",
+            formTitle: "Teknik Destek Formu",
+            success: "✅ Teknik destek talebiniz başarıyla gönderildi.",
+            error: "❌ Bir hata oluştu. Lütfen tekrar deneyin.",
+            userSectionTitle: "Kullanıcı Teknik Desteği",
+            infoLabel: "Bilgi Türü:",
+            company: "Şirket",
+            private: "Gerçek kişi",
+            salutationLabel: "Selam:",
+            mrs: "Bayan",
+            mr: "Bay",
+            firstName: "Ad",
+            lastName: "Soyad",
+            postalTown: "Posta kodu, şehir",
+            street: "Sokak",
+            country: "Ülke",
+            telephone: "Telefon",
+            telefax: "Faks",
+            email: "E-posta",
+            techSectionTitle: "Teknik Soru / Arıza",
+            failureDate: "Arıza Tarihi",
+            deviceCategory: "Cihaz Kategorisi*",
+            deviceModel: "Cihaz Modeli*",
+            serialNo: "Seri No",
+            note: "Not",
+            notePlaceholder: "Notunuzu yazın...",
+            sendBtn: "Mesajı Gönder",
+            selectOption: "Seç"
         }
     };
 
@@ -766,7 +849,9 @@ exports.geTechnicalservice = (req, res, next) => {
                 lang,
                 t: translations[lang] || translations['EN'],
                 translations: translations[lang] || translations['EN'],
-                req
+                req,
+                recaptchaEnabled: RECAPTCHA_ENABLED, // ✅ pass to EJS
+
             });
         })
         .catch(err => {
@@ -776,61 +861,157 @@ exports.geTechnicalservice = (req, res, next) => {
 };
 
 
+// controllers/technicalService.js
+const { sendCustomerEmail, notifyInternal } = require('../services/email');
+
+// controllers/technicalService.js
 
 exports.postTechnicalService = async (req, res) => {
     const lang = req.query.lang?.toUpperCase() || 'EN';
     const token = req.body['g-recaptcha-response'];
 
-    // ✅ Check if token exists
-    if (!token) {
-        console.error("❌ Missing reCAPTCHA token");
-        return res.redirect(`/${lang}/technical-service/?error=true`);
-    }
-
     try {
-        // ✅ Verify token with Google
-        const verifyUrl = `https://www.google.com/recaptcha/api/siteverify`;
-        const response = await axios.post(verifyUrl, null, {
-            params: {
-                secret: process.env.RECAPTCHA_SECRET_KEY,
-                response: token
+        // -- reCAPTCHA (optional) -------------------------------------------------
+        if (RECAPTCHA_ENABLED) {
+            if (!token) return res.redirect(`/${lang}/technical-service/?error=true`);
+
+            const verifyUrl = 'https://www.google.com/recaptcha/api/siteverify';
+            const { data } = await axios.post(verifyUrl, null, {
+                params: { secret: process.env.RECAPTCHA_SECRET_KEY, response: token }
+            });
+
+            const { success, score } = data;
+            if (!success || Number(score) < 0.5) {
+                console.error('❌ reCAPTCHA verification failed:', data);
+                return res.redirect(`/${lang}/technical-service/?error=true`);
             }
-        });
-
-        const { success, score } = response.data;
-
-        if (!success || score < 0.5) {
-            console.error("❌ reCAPTCHA verification failed:", response.data);
-            return res.redirect(`/${lang}/technical-service/?error=true`);
+        } else {
+            console.warn('⚠️ reCAPTCHA disabled via RECAPTCHA_ENABLED=false (test mode)');
         }
 
-        // ✅ Passed reCAPTCHA — proceed to save
+        // -- Extract submitted fields --------------------------------------------
         const {
             infoType, company, department, salutation, firstName, lastName,
             postalTown, street, country, telephone, telefax, email,
-            failureDate, deviceCategory, deviceModel, serialNo, note
+            failureDate, deviceCategory, deviceModel, serialNo, note,
+            // (optional) if you kept the client hidden fields, we'll use ONLY as fallback
+            deviceCategoryName, deviceModelName
         } = req.body;
 
-        await TechnicalService.create({
-            infoType,
-            company,
-            department,
-            salutation,
-            firstName,
-            lastName,
-            postalTown,
-            street,
-            country,
-            telephone,
-            telefax,
-            email,
-            failureDate,
-            deviceCategory,
-            deviceModel,
-            serialNo,
-            note,
-            lang
+        // -- Resolve readable names from DB (Product + embedded Model) -----------
+        let productName = '';
+        let modelName = '';
+
+        try {
+            const productDoc = await Product.findById(
+                deviceCategory,
+                { Language: 1, Models: 1 }
+            ).lean();
+
+            if (productDoc) {
+                productName =
+                    productDoc?.Language?.[lang]?.[0]?.ProductName ??
+                    productDoc?.Language?.EN?.[0]?.ProductName ?? '';
+
+                const modelSub = productDoc?.Models?.find(m => String(m._id) === String(deviceModel));
+                if (modelSub) {
+                    modelName =
+                        modelSub?.Language?.[lang]?.[0]?.ModelName ??
+                        modelSub?.Language?.EN?.[0]?.ModelName ?? '';
+                }
+            }
+        } catch (e) {
+            console.warn('⚠️ Product/Model name lookup failed:', e?.message || e);
+        }
+
+        // Fallbacks if lookup failed (optional: uses client-provided names, else IDs)
+        if (!productName) productName = deviceCategoryName || deviceCategory;
+        if (!modelName) modelName = deviceModelName || deviceModel;
+
+        // -- Meta -----------------------------------------------------------------
+        const ipAddress = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip;
+        const userAgent = req.get('User-Agent');
+
+        // -- Persist submission (keep storing IDs) --------------------------------
+        const doc = await TechnicalService.create({
+            infoType, company, department, salutation, firstName, lastName,
+            postalTown, street, country, telephone, telefax, email,
+            failureDate, deviceCategory, deviceModel, serialNo, note, lang,
+            ipAddress, userAgent
+            // (optional) you can also persist resolved names:
+            // productNameResolved: productName,
+            // modelNameResolved: modelName
         });
+
+        const ticketId = `TS-${doc._id.toString().slice(-6).toUpperCase()}`;
+
+        // -- Customer email -------------------------------------------------------
+        const flags = { isEN: lang === 'EN', isES: lang === 'ES', isDE: lang === 'DE', isTR: lang === 'TR' };
+
+        await sendCustomerEmail({
+            to: email,
+            form: 'technicalSupport',
+            data: {
+                ...flags,
+                year: new Date().getFullYear(),
+                brandName: 'DragLab',
+                supportEmail: 'info@drag-lab.de',
+                ticketId,
+                deviceCategory: productName,   // ✅ readable name
+                deviceModel: modelName,        // ✅ readable name
+                serialNumber: serialNo || '',
+                dateOfFailure: failureDate || '',
+                technicalQuestion: note || '',
+                helpCenterUrl: `https://www.drag-lab.de/${lang}/technical-service`
+            }
+        });
+
+        // -- Internal email -------------------------------------------------------
+        const subjectMap = {
+            EN: `[Tech Support] ${firstName} ${lastName} — ${productName}/${modelName} (${ticketId})`,
+            ES: `[Soporte Técnico] ${firstName} ${lastName} — ${productName}/${modelName} (${ticketId})`,
+            DE: `[Technischer Support] ${firstName} ${lastName} — ${productName}/${modelName} (${ticketId})`,
+            TR: `[Teknik Destek] ${firstName} ${lastName} — ${productName}/${modelName} (${ticketId})`
+        };
+        const subject = subjectMap[lang] || subjectMap.EN;
+
+        const bodyText =
+            `New Technical Support submission
+
+Ticket: ${ticketId}
+Name: ${firstName} ${lastName}
+Email: ${email}
+Type: ${infoType || '-'}
+Company: ${company || '-'}
+Department: ${department || '-'}
+
+Address:
+- ${street || '-'}
+- ${postalTown || '-'}
+- ${country || '-'}
+
+Contact:
+- Telephone: ${telephone || '-'}
+- Telefax: ${telefax || '-'}
+
+Device:
+- Category: ${productName || '-'}
+- Model: ${modelName || '-'}
+- Serial: ${serialNo || '-'}
+
+Failure Date: ${failureDate || '-'}
+Question/Note:
+${note || '-'}
+
+Meta:
+- Language: ${lang}
+- IP: ${ipAddress || '-'}
+- User-Agent: ${userAgent || '-'}
+
+Admin Link (optional): https://www.drag-lab.de/admin/technical-requests/${doc._id}
+`;
+
+        await notifyInternal({ to: 'info@drag-lab.de', subject, text: bodyText });
 
         return res.redirect(`/${lang}/technical-service/?success=true`);
     } catch (error) {
@@ -838,6 +1019,8 @@ exports.postTechnicalService = async (req, res) => {
         return res.redirect(`/${lang}/technical-service/?error=true`);
     }
 };
+
+
 
 
 exports.getSupport = (req, res, next) => {
@@ -1247,7 +1430,7 @@ exports.getArticles = async (req, res) => {
         });
     } catch (err) {
         console.error(err);
-        res.redirect('/EN');
+        res.redirect('/');
     }
 };
 
@@ -1276,7 +1459,7 @@ exports.getArticleDetails = async (req, res) => {
         });
     } catch (err) {
         console.error(err);
-        res.redirect('/EN');
+        res.redirect('/');
     }
 };
 
@@ -1591,12 +1774,12 @@ exports.getTearmCondition = (req, res, next) => {
         })
         .catch(err => {
             console.error(err);
-            res.redirect('/EN');
+            res.redirect('/');
         });
 };
 
 exports.getPrivacyPolicy = (req, res, next) => {
-    const supportedLangs = ['EN', 'ES', 'DE'];
+    const supportedLangs = allanguages;
     const rawLang = req.params.lang?.toUpperCase() || 'EN';
     const lang = supportedLangs.includes(rawLang) ? rawLang : 'EN';
     Product.find()
@@ -2357,7 +2540,7 @@ exports.getimprint = async (req, res, next) => {
         });
     } catch (err) {
         console.error('Error loading imprint page:', err);
-        res.redirect('/EN/imprint');
+        res.redirect('/');
     }
 };
 
@@ -2482,7 +2665,7 @@ exports.getCodeofEthics = (req, res, next) => {
         })
         .catch(err => {
             console.error(err);
-            res.redirect('/EN');
+            res.redirect('/');
         });
 };
 
@@ -2669,12 +2852,12 @@ exports.getQualitypolicy = async (req, res, next) => {
         });
     } catch (err) {
         console.error(err);
-        res.redirect('/EN');
+        res.redirect('/');
     }
 };
 
 exports.getWarrantyRegistration = (req, res) => {
-    const supportedLangs = ['EN', 'ES', 'DE'];
+    const supportedLangs = allanguages;
     const rawLang = req.params.lang?.toUpperCase() || 'EN';
     const lang = supportedLangs.includes(rawLang) ? rawLang : 'EN';
 
@@ -2756,6 +2939,32 @@ exports.getWarrantyRegistration = (req, res) => {
             submit: 'Nachricht senden',
             successMessage: '✅ Ihre Garantie wurde erfolgreich registriert.',
             errorMessage: '❌ Etwas ist schiefgelaufen. Bitte versuchen Sie es später erneut.'
+        },
+        TR: {
+            pageTitle: 'Garanti Kaydı',
+            metaDescription: 'DragLab ürün garanti kaydınızı yapın; hızlı teknik destek ve güvenli servis.',
+            ogTitle: 'Garanti Kaydı | DragLab',
+            ogDescription: 'DragLab ürününüz için garanti kaydı formunu doldurun.',
+            heroTitle: 'Garanti Kaydı',
+            heroDesc: 'Teknik sorunlarınıza hızlı ve güvenilir çözümler.',
+            formTitle: 'Garanti Kayıt Formu',
+            dataLabel: 'Kişisel verilerimin işlenmesini kabul ediyorum',
+            privacyPolicy: 'Gizlilik Politikası',
+            dataSuffix: 'garanti kaydı talebimin işlenmesi amacıyla.',
+            name: 'Ad Soyad*',
+            namePlaceholder: 'Ad Soyad',
+            datePurchased: 'Satın Alma Tarihi*',
+            email: 'E-posta*',
+            techHeader: 'Teknik Soru / Arıza',
+            deviceCategory: 'Cihaz Kategorisi*',
+            deviceModel: 'Cihaz Modeli*',
+            serialNo: 'Seri No*',
+            message: 'Mesaj',
+            messagePlaceholder: 'Mesajınızı yazın...',
+            select: 'Seç',
+            submit: 'Mesajı Gönder',
+            successMessage: '✅ Garanti kaydınız başarıyla oluşturuldu.',
+            errorMessage: '❌ Bir hata oluştu. Lütfen daha sonra tekrar deneyin.'
         }
     };
 
@@ -2770,28 +2979,144 @@ exports.getWarrantyRegistration = (req, res) => {
         })
         .catch(err => {
             console.error(err);
-            res.redirect('/EN');
+            res.redirect('/');
         });
 };
 
 
-
 exports.postWarrantyRegistration = async (req, res) => {
+    const lang = (req.body.lang || req.query.lang || 'EN').toUpperCase();
+    const token = req.body['g-recaptcha-response'];
+
     try {
+        // (Optional) reCAPTCHA – only if enabled and token present
+        if (RECAPTCHA_ENABLED && token) {
+            const verifyUrl = 'https://www.google.com/recaptcha/api/siteverify';
+            const { data } = await axios.post(verifyUrl, null, {
+                params: { secret: process.env.RECAPTCHA_SECRET_KEY, response: token }
+            });
+            if (!data?.success || Number(data?.score) < 0.5) {
+                console.error('❌ reCAPTCHA verification failed (warranty):', data);
+                return res.redirect(`/${lang}/WarrantyRegistration?error=true`);
+            }
+        } else if (RECAPTCHA_ENABLED && !token) {
+            // if you want to enforce it strictly, redirect; otherwise allow during tests
+            console.warn('⚠️ reCAPTCHA enabled but no token on Warranty form');
+            return res.redirect(`/${lang}/WarrantyRegistration?error=true`);
+        }
+
+        // Extract fields
         const {
             name, email, datePurchased,
-            deviceCategory, deviceModel, serialNo, message, lang
+            deviceCategory, deviceModel, serialNo, message
         } = req.body;
 
-        await new WarrantyRegistration({
+        // Resolve human-friendly names from DB (Product + embedded Model)
+        let productName = '';
+        let modelName = '';
+        try {
+            const productDoc = await Product.findById(
+                deviceCategory,
+                { Language: 1, Models: 1 }
+            ).lean();
+
+            if (productDoc) {
+                productName =
+                    productDoc?.Language?.[lang]?.[0]?.ProductName ??
+                    productDoc?.Language?.EN?.[0]?.ProductName ?? '';
+
+                const modelSub = productDoc?.Models?.find(m => String(m._id) === String(deviceModel));
+                if (modelSub) {
+                    modelName =
+                        modelSub?.Language?.[lang]?.[0]?.ModelName ??
+                        modelSub?.Language?.EN?.[0]?.ModelName ?? '';
+                }
+            }
+        } catch (e) {
+            console.warn('⚠️ Product/Model name lookup (warranty) failed:', e?.message || e);
+        }
+        if (!productName) productName = deviceCategory; // fallback to ID
+        if (!modelName) modelName = deviceModel;    // fallback to ID
+
+        // Meta
+        const ipAddress = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip;
+        const userAgent = req.get('User-Agent');
+
+        // Save to DB (store IDs; optionally store resolved names)
+        const doc = await new WarrantyRegistration({
             name, email, datePurchased,
-            deviceCategory, deviceModel, serialNo, message, lang: req.body.lang
+            deviceCategory, deviceModel, serialNo,
+            message, lang,
+            ipAddress, userAgent
+            // productNameResolved: productName,
+            // modelNameResolved: modelName
         }).save();
 
-        res.redirect(`/${lang}/WarrantyRegistration?success=true`);
+        const ticketId = `WR-${doc._id.toString().slice(-6).toUpperCase()}`;
+
+        // Customer confirmation (SendGrid Dynamic Template - warrantyRegistration)
+        const flags = { isEN: lang === 'EN', isES: lang === 'ES', isDE: lang === 'DE', isTR: lang === 'TR' };
+
+        await sendCustomerEmail({
+            to: email,
+            form: 'warrantyRegistration',  // <- use the new template key
+            data: {
+                ...flags,
+                year: new Date().getFullYear(),
+                brandName: 'DragLab',
+                brandLogoUrl: 'https://cdn.draglab.com/brand/draglab-logo-100.png', // optional
+                supportEmail: 'info@drag-lab.de',
+                ticketId,
+                deviceCategory: productName,
+                deviceModel: modelName,
+                serialNumber: serialNo || '',
+                datePurchased: datePurchased || '',
+                userMessage: message || '',
+                helpCenterUrl: `https://www.drag-lab.de/${lang}/WarrantyRegistration`
+            }
+        });
+
+
+        // Internal notification (SMTP fallback → SendGrid)
+        const subjectMap = {
+            EN: `[Warranty] ${name} — ${productName}/${modelName} (${ticketId})`,
+            ES: `[Garantía] ${name} — ${productName}/${modelName} (${ticketId})`,
+            DE: `[Garantie] ${name} — ${productName}/${modelName} (${ticketId})`,
+            TR: `[Garanti] ${name} — ${productName}/${modelName} (${ticketId})`
+        };
+        const subject = subjectMap[lang] || subjectMap.EN;
+
+        const bodyText =
+            `New Warranty Registration
+
+Ticket: ${ticketId}
+Name: ${name}
+Email: ${email}
+
+Device:
+- Category: ${productName}
+- Model: ${modelName}
+- Serial: ${serialNo || '-'}
+
+Date Purchased: ${datePurchased || '-'}
+
+Message:
+${message || '-'}
+
+Meta:
+- Language: ${lang}
+- IP: ${ipAddress || '-'}
+- User-Agent: ${userAgent || '-'}
+
+Admin Link (optional): https://www.drag-lab.de/admin/warranty-registrations/${doc._id}
+`;
+
+        await notifyInternal({ to: 'info@drag-lab.de', subject, text: bodyText });
+
+        return res.redirect(`/${lang}/WarrantyRegistration?success=true`);
     } catch (err) {
-        console.error(err);
-        res.redirect(`/${lang}/WarrantyRegistration?success=true`);
+        console.error('❌ Error in WarrantyRegistration submission:', err);
+        return res.redirect(`/${lang}/WarrantyRegistration?error=true`);
     }
 };
 
@@ -2800,9 +3125,11 @@ exports.postWarrantyRegistration = async (req, res) => {
 
 
 
+
+
 exports.getIndustryPage = async (req, res, next) => {
     try {
-        const supportedLangs = ['EN', 'ES', 'DE'];
+        const supportedLangs = allanguages;
         const rawLang = req.params.lang?.toUpperCase() || 'EN';
         const lang = supportedLangs.includes(rawLang) ? rawLang : 'EN';
 
@@ -2839,7 +3166,7 @@ exports.getIndustryPage = async (req, res, next) => {
 
     } catch (err) {
         console.error(err);
-        res.redirect('/EN');
+        res.redirect('/');
     }
 };
 
@@ -2918,7 +3245,7 @@ exports.getIndustryDetails = async (req, res) => {
 
 
 exports.getQualityPolicy = (req, res, next) => {
-    const supportedLangs = ['EN', 'ES', 'DE'];
+    const supportedLangs = allanguages;
     const rawLang = req.params.lang?.toUpperCase() || 'EN';
     const lang = supportedLangs.includes(rawLang) ? rawLang : 'EN';
 
@@ -3046,7 +3373,7 @@ exports.getQualityPolicy = (req, res, next) => {
         })
         .catch(err => {
             console.error(err);
-            res.redirect('/EN');
+            res.redirect('/');
         });
 };
 
@@ -3054,7 +3381,7 @@ exports.getQualityPolicy = (req, res, next) => {
 
 
 exports.getSustainabilityPolicy = (req, res, next) => {
-    const supportedLangs = ['EN', 'ES', 'DE'];
+    const supportedLangs = allanguages;
     const rawLang = req.params.lang?.toUpperCase() || 'EN';
     const lang = supportedLangs.includes(rawLang) ? rawLang : 'EN';
 
@@ -3134,7 +3461,7 @@ exports.getSustainabilityPolicy = (req, res, next) => {
         })
         .catch(err => {
             console.error(err);
-            res.redirect('/EN');
+            res.redirect('/');
         });
 };
 
@@ -3142,7 +3469,7 @@ exports.getSustainabilityPolicy = (req, res, next) => {
 
 
 exports.getQualifications = (req, res, next) => {
-    const supportedLangs = ['EN', 'ES', 'DE'];
+    const supportedLangs = allanguages;
     const rawLang = req.params.lang?.toUpperCase() || 'EN';
     const lang = supportedLangs.includes(rawLang) ? rawLang : 'EN';
 
@@ -3257,7 +3584,7 @@ exports.getQualifications = (req, res, next) => {
         })
         .catch(err => {
             console.error(err);
-            res.redirect('/EN');
+            res.redirect('/');
         });
 };
 

@@ -697,7 +697,6 @@ select#languageSwitcher {
 /* iOS-friendly base */
 html { -webkit-text-size-adjust: 100%; }              /* prevent random text scaling */
 input, button { font-size: 16px; line-height: 1.2; }  /* stop iOS zoom-on-focus */
-input, button { -webkit-appearance: none; appearance: none; }
 input, button { box-sizing: border-box; }
 
 /* Newsletter row – make spacing work even on old iOS */
@@ -708,7 +707,6 @@ input, button { box-sizing: border-box; }
 }
 
 /* Fallback spacing if flex-gap is not supported */
-.newsletter-form > * + * { margin-left: 10px; }
 
 /* If gap IS supported, remove the fallback margins */
 @supports (gap: 10px) {

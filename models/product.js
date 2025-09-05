@@ -34,7 +34,11 @@ const ModelsSchema = new Schema({
                 fileSize: String,
                 fileCategory: String,
                 fileProductCategory: String
-            }]
+            }],
+            publish: {
+                type: Boolean,
+                default: false
+            }
         }],
         ES: [{
             ModelName: { type: String },
@@ -61,7 +65,11 @@ const ModelsSchema = new Schema({
                 fileSize: String,
                 fileCategory: String,
                 fileProductCategory: String
-            }]
+            }],
+            publish: {
+                type: Boolean,
+                default: false
+            }
         }],
         DE: [{
             ModelName: { type: String },
@@ -88,7 +96,73 @@ const ModelsSchema = new Schema({
                 fileSize: String,
                 fileCategory: String,
                 fileProductCategory: String
-            }]
+            }],
+            publish: {
+                type: Boolean,
+                default: false
+            }
+        }],
+        TR: [{
+            ModelName: { type: String },
+            ModelNameDesc: { type: String },
+            ModelDesc: { type: String },
+            ModelApplications: { type: String },
+            overview: [{
+                overviewName: { type: String },
+                overviewDesc: { type: String }
+            }],
+            industry: [{
+                industryName: { type: String }
+            }],
+            technicalSpecifications: [{
+                sectionTitle: { type: String },
+                rows: [{
+                    title: { type: String },
+                    value: { type: String }
+                }]
+            }],
+            downloads: [{
+                fileName: String,
+                filePath: String,
+                fileSize: String,
+                fileCategory: String,
+                fileProductCategory: String
+            }],
+            publish: {
+                type: Boolean,
+                default: false
+            }
+        }],
+        FR: [{
+            ModelName: { type: String },
+            ModelNameDesc: { type: String },
+            ModelDesc: { type: String },
+            ModelApplications: { type: String },
+            overview: [{
+                overviewName: { type: String },
+                overviewDesc: { type: String }
+            }],
+            industry: [{
+                industryName: { type: String }
+            }],
+            technicalSpecifications: [{
+                sectionTitle: { type: String },
+                rows: [{
+                    title: { type: String },
+                    value: { type: String }
+                }]
+            }],
+            downloads: [{
+                fileName: String,
+                filePath: String,
+                fileSize: String,
+                fileCategory: String,
+                fileProductCategory: String
+            }],
+            publish: {
+                type: Boolean,
+                default: false
+            }
         }]
     },
     isPublished: { type: Boolean, default: false },
@@ -129,6 +203,10 @@ const productSchema = new Schema({
                 required: function () {
                     return !this.parent().parent().isDraft;
                 }
+            },
+            publish: {
+                type: Boolean,
+                default: false
             }
         }],
         ES: [{
@@ -140,7 +218,11 @@ const productSchema = new Schema({
             ProductName: { type: String, required: false },          // ✅ No required
             ProductNameDesc: { type: String, required: false },       // ✅ No required
             ProductDesc: { type: String, required: false },           // ✅ No required
-            WhyProductDesc: { type: String, required: false }         // ✅ No required
+            WhyProductDesc: { type: String, required: false },
+            publish: {
+                type: Boolean,
+                default: false
+            }
         }],
         DE: [{
             features: [{
@@ -152,7 +234,44 @@ const productSchema = new Schema({
             ProductNameDesc: { type: String, required: false },       // ✅ No required
             ProductDesc: { type: String, required: false },           // ✅ No required
             WhyProductDesc: { type: String, required: false }         // ✅ No required
-        }]
+            ,
+            publish: {
+                type: Boolean,
+                default: false
+            }
+        }],
+        TR: [{
+            features: [{
+                FeatureImage: { type: String },
+                FeatureName: { type: String },
+                FeatureDesc: { type: String }
+            }],
+            ProductName: { type: String, required: false },          // ✅ No required
+            ProductNameDesc: { type: String, required: false },       // ✅ No required
+            ProductDesc: { type: String, required: false },           // ✅ No required
+            WhyProductDesc: { type: String, required: false }         // ✅ No required
+            ,
+            publish: {
+                type: Boolean,
+                default: false
+            }
+        }],
+        FR: [{
+            features: [{
+                FeatureImage: { type: String },
+                FeatureName: { type: String },
+                FeatureDesc: { type: String }
+            }],
+            ProductName: { type: String, required: false },          // ✅ No required
+            ProductNameDesc: { type: String, required: false },       // ✅ No required
+            ProductDesc: { type: String, required: false },           // ✅ No required
+            WhyProductDesc: { type: String, required: false }         // ✅ No required
+            ,
+            publish: {
+                type: Boolean,
+                default: false
+            }
+        }],
     },
     Models: [ModelsSchema],
     isDraft: { type: Boolean, default: false },

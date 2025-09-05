@@ -39,10 +39,10 @@ app.use(helmet());
 
 
 app.use((req, res, next) => {
-  const nonce = crypto.randomBytes(16).toString('base64');
-  res.locals.nonce = nonce;
+    const nonce = crypto.randomBytes(16).toString('base64');
+    res.locals.nonce = nonce;
 
-  const csp = `
+    const csp = `
     default-src 'self';
     script-src 'self' 'nonce-${nonce}' https://*.clarity.ms https://cdn.jsdelivr.net https://cdn.tiny.cloud https://www.termsfeed.com https://embed.tawk.to https://va.tawk.to https://client.tawk.to https://api.tawk.to https://www.googletagmanager.com https://www.google-analytics.com https://www.google.com https://www.gstatic.com https://www.googleadservices.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://*.doubleclick.net;
     style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com https://cdn.tiny.cloud https://embed.tawk.to https://va.tawk.to https://client.tawk.to;
@@ -54,8 +54,8 @@ app.use((req, res, next) => {
     frame-ancestors 'self';
   `.replace(/\s+/g, ' ').trim();
 
-  res.setHeader('Content-Security-Policy', csp);
-  next();
+    res.setHeader('Content-Security-Policy', csp);
+    next();
 });
 
 
@@ -84,9 +84,9 @@ app.use(
 
 
 
-const MONGODB_URI = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@cluster0.yrit4.mongodb.net/${process.env.MONGO_DATABASE}?retryWrites=true&w=majority&ssl=true`;
+// const MONGODB_URI = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@cluster0.yrit4.mongodb.net/${process.env.MONGO_DATABASE}?retryWrites=true&w=majority&ssl=true`;
 
-// const MONGODB_URI = `mongodb+srv://mhmdalazr:7NRgpPYqQ3HZs3mH@cluster0.r8u1rna.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
+const MONGODB_URI = `mongodb+srv://mhmdalazr:7NRgpPYqQ3HZs3mH@cluster0.r8u1rna.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 const store = new MongoDBStore({
     uri: MONGODB_URI,
     collection: 'sessions'
@@ -147,10 +147,78 @@ app.use((req, res, next) => {
     res.locals.faqSchema = {
         EN: { url: "https://www.drag-lab.de/EN" },
         ES: { url: "https://www.drag-lab.de/ES" },
-        DE: { url: "https://www.drag-lab.de/DE" }
+        DE: { url: "https://www.drag-lab.de/DE" },
+        TR: { url: "https://www.drag-lab.de/TR" },
+        FR: { url: "https://www.drag-lab.de/FR" }
     };
     next();
 });
+
+const Product = require('./models/product');
+
+app.use(async (req, res, next) => {
+    try {
+        const supported = ['EN', 'ES', 'DE', 'TR', 'FR'];
+        const m = req.path.match(/^\/(EN|ES|DE|TR|FR)\b/i);
+        const langFromPath = m ? m[1].toUpperCase() : (res.locals.lang || 'EN');
+        const lang = supported.includes(langFromPath) ? langFromPath : 'EN';
+        res.locals.lang = lang;
+
+        // ✅ Use $elemMatch, not ".0.publish"
+        const query = { [`Language.${lang}`]: { $elemMatch: { publish: true } } };
+
+        // ✅ Select full language arrays (no numeric index in projection)
+        let navProducts = await Product.find(query)
+            .select([
+                'slug',
+                'ProductSketch',
+                `Language.${lang}`,
+                'Language.EN',
+                'Models.slug',
+                `Models.Language.${lang}`,
+                'Models.Language.EN',
+            ])
+            .lean();
+
+        // ✅ Derive safe display fields and filter models by current lang publish
+        navProducts = navProducts.map(p => {
+            const cur = p?.Language?.[lang]?.[0] || {};
+            const en = p?.Language?.EN?.[0] || {};
+            const displayName = cur.ProductName || en.ProductName || '';
+            const displayDesc = cur.ProductNameDesc || en.ProductNameDesc || '';
+
+            const models = (p.Models || []).filter(
+                m => m?.Language?.[lang]?.[0]?.publish === true
+            );
+
+            return { ...p, displayName, displayDesc, Models: models };
+        });
+
+        res.locals.navProducts = navProducts;
+        next();
+    } catch (e) {
+        console.error('Navbar preload error:', e);
+        res.locals.navProducts = [];
+        next();
+    }
+});
+app.use((req, res, next) => {
+    if (!req.session.user) return next();
+    User.findById(req.session.user._id)
+        .then(user => {
+            if (!user) return next();
+            req.user = user;
+            res.locals.user = user; // ensure views see the full user doc (with role)
+            res.locals.isAdmin = (user.role === 'admin' || user.isAdmin === true);
+            next();
+        })
+        .catch(err => next(err));
+});
+
+const { verifyMailTransports } = require('./services/email');
+verifyMailTransports();
+
+
 
 // Log and compress
 app.use(compression()); // Compress all routes

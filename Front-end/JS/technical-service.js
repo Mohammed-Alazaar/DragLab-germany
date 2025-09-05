@@ -1,8 +1,10 @@
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", () => { 
   console.log("✅ technical-service.js loaded");
 
-  const lang = document.documentElement.getAttribute("data-lang");
-  const selectOptionText = document.documentElement.getAttribute("data-select-option");
+  const html = document.documentElement;
+  const lang = html.getAttribute("data-lang");
+  const selectOptionText = html.getAttribute("data-select-option");
+  const recaptchaEnabled = (html.getAttribute("data-recaptcha-enabled") === "true");
 
   const categorySelect = document.getElementById("deviceCategory");
   const modelSelect = document.getElementById("deviceModel");
@@ -12,9 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const productId = this.value;
 
       // Clear all options
-      while (modelSelect.options.length > 0) {
-        modelSelect.remove(0);
-      }
+      while (modelSelect.options.length > 0) modelSelect.remove(0);
 
       // Add placeholder
       const placeholder = document.createElement("option");
@@ -51,6 +51,14 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
+      // 🔹 If reCAPTCHA is disabled, just submit normally
+      if (!recaptchaEnabled) {
+        console.warn("⚠️ reCAPTCHA disabled (test mode) — submitting form directly");
+        form.submit();
+        return;
+      }
+
+      // 🔹 Otherwise, run Enterprise reCAPTCHA
       grecaptcha.enterprise.ready(function () {
         grecaptcha.enterprise
           .execute("6LemaIMrAAAAABkGmvhvmbRSO5BbXQq7AsLB7NGU", { action: "submit" })
@@ -67,6 +75,7 @@ document.addEventListener("DOMContentLoaded", () => {
           })
           .catch((err) => {
             console.error("❌ reCAPTCHA failed:", err);
+            alert("reCAPTCHA failed to initialize. Please try again.");
           });
       });
     });

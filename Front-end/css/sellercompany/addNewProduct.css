@@ -177,3 +177,63 @@
     margin-top: 5px;
   }
   
+
+
+
+
+
+
+/* Section frame */
+.language-section {
+  background: #f0f2f7;
+  border-left: 6px solid var(--primary-Color);
+  border-radius: 8px;
+  margin-top: 24px;
+  overflow: hidden; /* needed for smooth collapse */
+}
+
+/* Header always visible */
+.language-header {
+  margin: 0;
+  padding: 0;
+  background: #e9ecf4;
+}
+
+/* Clickable header button */
+.language-toggle {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  background: transparent;
+  border: 0;
+  font: inherit;
+  font-weight: 700;
+  color: var(--primary-Color);
+  cursor: pointer;
+}
+
+.language-toggle .chev { transition: transform 0.25s ease; }
+.language-section.is-open .language-toggle .chev { transform: rotate(90deg); }
+
+
+
+  /* Smooth collapse using max-height */
+.language-body {
+  overflow: hidden;
+  transition: max-height 0.3s ease, padding-top 0.2s ease, padding-bottom 0.2s ease;
+  max-height: 9999px;      /* open by default; JS adds .collapse to close */
+  padding: 0 16px 16px;    /* some vertical space when open */
+}
+
+.language-body.collapse {
+  max-height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+/* Chevron rotate when open */
+.language-toggle .chev { transition: transform 0.25s ease; }
+.language-section.is-open .language-toggle .chev { transform: rotate(90deg); }

@@ -19,8 +19,50 @@ const industryPageSchema = new mongoose.Schema({
         FeatureImage: String
       }]
     }],
-    ES: [{ slideTitle: String, slideSubTitle: String, slideDesc: String, introTitle: String, introDesc: String, features: [{ FeatureName: String, FeatureDesc: String }] }],
-    DE: [{ slideTitle: String, slideSubTitle: String, slideDesc: String, introTitle: String, introDesc: String, features: [{ FeatureName: String, FeatureDesc: String }] }]
+    ES: [{
+      slideTitle: String,
+      slideSubTitle: String,
+      slideDesc: String,
+      introTitle: String,
+      introDesc: String,
+      features: [{
+        FeatureName: String,
+        FeatureDesc: String
+      }]
+    }],
+    DE: [{
+      slideTitle: String,
+      slideSubTitle: String,
+      slideDesc: String,
+      introTitle: String,
+      introDesc: String,
+      features: [{
+        FeatureName: String,
+        FeatureDesc: String
+      }]
+    }],
+    TR: [{
+      slideTitle: String,
+      slideSubTitle: String,
+      slideDesc: String,
+      introTitle: String,
+      introDesc: String,
+      features: [{
+        FeatureName: String,
+        FeatureDesc: String
+      }]
+    }],
+    FR: [{
+      slideTitle: String,
+      slideSubTitle: String,
+      slideDesc: String,
+      introTitle: String,
+      introDesc: String,
+      features: [{
+        FeatureName: String,
+        FeatureDesc: String
+      }]
+    }]
   },
   frequentlyUsedProducts: {
     EN: [{
@@ -32,6 +74,14 @@ const industryPageSchema = new mongoose.Schema({
       text: String
     }],
     DE: [{
+      productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
+      text: String
+    }],
+    TR: [{
+      productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
+      text: String
+    }],
+    FR: [{
       productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
       text: String
     }]

@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', function () {
   const modelData = JSON.parse(document.getElementById('model-data').dataset.model);
 
-  ['EN', 'ES', 'DE'].forEach(lang => {
+  ['EN', 'ES', 'DE', 'TR', 'FR'].forEach(lang => {
     const langData = modelData[lang]?.[0];
     if (!langData) return;
 
@@ -155,4 +155,42 @@ tinymce.init({
   selector: '.tinymce-textarea',
   plugins: 'anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount',
   toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table | align lineheight | numlist bullist indent outdent | emoticons charmap | removeformat'
+});
+
+
+
+
+// /assets/Js/addNewProduct.js  (or a models page JS)
+// Independent collapsers per language
+document.addEventListener("DOMContentLoaded", function () {
+  // initialize: collapse all unless errors exist
+  document.querySelectorAll(".language-section").forEach(section => {
+    const body = section.querySelector(".language-body");
+    const btn  = section.querySelector(".language-toggle");
+    if (!body || !btn) return;
+
+    if (body.querySelector(".is-invalid, .form-error")) {
+      body.classList.remove("collapse");
+      section.classList.add("is-open");
+      btn.setAttribute("aria-expanded", "true");
+    } else {
+      body.classList.add("collapse");
+      section.classList.remove("is-open");
+      btn.setAttribute("aria-expanded", "false");
+    }
+  });
+
+  // toggle on click (independent)
+  document.addEventListener("click", function (e) {
+    const btn = e.target.closest(".language-toggle");
+    if (!btn) return;
+
+    const section = btn.closest(".language-section");
+    const body = section && section.querySelector(".language-body");
+    if (!body) return;
+
+    const collapsed = body.classList.toggle("collapse");
+    section.classList.toggle("is-open", !collapsed);
+    btn.setAttribute("aria-expanded", String(!collapsed));
+  });
 });

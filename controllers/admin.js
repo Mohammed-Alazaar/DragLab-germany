@@ -1,6 +1,7 @@
 const path = require('path'); // Add this line to import the path module
 const Product = require('../models/product'); // Add this line to import the Product model
 const Slideshow = require('../models/slideshow');
+const user = require('../models/user');
 const CatalogCategory = require('../models/CatalogCategory');
 const TechnicalService = require('../models/technicalService');
 const WarrantyRegistration = require('../models/warrantyRegistration');
@@ -21,8 +22,9 @@ const bodyParser = require('body-parser');
 const { validationResult } = require('express-validator');
 const fs = require('fs');
 
-const languages = ['EN', 'ES', 'DE'];
+const languages = ['EN', 'ES', 'DE', 'TR', 'FR'];
 
+const allanguages = ['EN', 'ES', 'DE', 'TR', 'FR'];
 
 
 exports.getAddProduct = (req, res, next) => {
@@ -69,96 +71,125 @@ exports.getAddProduct = (req, res, next) => {
             { FeatureName: '', FeatureDesc: '' },
             { FeatureName: '', FeatureDesc: '' }
           ]
-        }]
+        }],
+        TR: [{
+          ProductName: '',
+          ProductNameDesc: '',
+          ProductDesc: '',
+          WhyProductDesc: '',
+          features: [
+            { FeatureName: '', FeatureDesc: '' },
+            { FeatureName: '', FeatureDesc: '' },
+            { FeatureName: '', FeatureDesc: '' },
+            { FeatureName: '', FeatureDesc: '' }
+          ]
+        }],
+        FR: [{
+          ProductName: '',
+          ProductNameDesc: '',
+          ProductDesc: '',
+          WhyProductDesc: '',
+          features: [
+            { FeatureName: '', FeatureDesc: '' },
+            { FeatureName: '', FeatureDesc: '' },
+            { FeatureName: '', FeatureDesc: '' },
+            { FeatureName: '', FeatureDesc: '' }
+          ]
+        }],
       }
     },
     validationErrors: [],
     errorMessage: null,
     isAuthenticated: req.session.isLoggedIn,
-    languages: ['EN', 'ES', 'DE'],
+    user: req.session.user,
+    role: req.session.role,
+    languages: allanguages,
     isDraft: false // because it's new
   });
 };
 
-
 exports.postAddProduct = async (req, res, next) => {
   try {
-    // Extracting files from multer
-    console.log('✅ Multer Files:', req.files);
+    // who is editing?
+    const isAdmin = !!(req.user && (req.user.role === 'admin' || req.user.isAdmin === true));
 
+    // Files from multer (cloudinaryUrl injected by your middleware)
     const productThumbnail = req.files['productThumbnail']?.[0]?.cloudinaryUrl || req.body.oldProductThumbnail || '';
     const productSketch = req.files['productSketch']?.[0]?.cloudinaryUrl || req.body.oldProductSketch || '';
 
-    console.log('✅ Thumbnail Path:', productThumbnail);
-    console.log('✅ Sketch Path:', productSketch);
-
-
-
-    console.log('🖼️ Product Thumbnail Path:', productThumbnail);
-    console.log('🖼️ Product Sketch Path:', productSketch);
-
-    const languages = ['EN', 'ES', 'DE'];
+    const languages = allanguages;
     const languageData = {};
     const validationErrors = [];
-    const isDraft = req.body.saveType === 'draft';
 
-    // Step 1: Check if required images are missing
+    // Requested publish flags (UI should be hidden for non-admin, but enforce server-side too)
+    const requestedPublish = Object.fromEntries(
+      languages.map(l => [l, req.body[`publish_${l}`] === 'on'])
+    );
+    const anyLangPublishedRequested = Object.values(requestedPublish).some(Boolean);
+
+    // Save as draft when:
+    // - user explicitly chooses draft (if you use saveType), OR
+    // - user is NOT admin, OR
+    // - no language publish was requested
+    const isDraft = (req.body.saveType === 'draft') || !isAdmin || !anyLangPublishedRequested;
+
+    // Global images required ONLY when not draft
     if (!isDraft) {
       if (!productThumbnail) {
-        validationErrors.push({
-          path: 'ProductThumbnail',
-          msg: 'Product Thumbnail is required.'
-        });
+        validationErrors.push({ path: 'ProductThumbnail', msg: 'Product Thumbnail is required.' });
       }
       if (!productSketch) {
-        validationErrors.push({
-          path: 'ProductSketch',
-          msg: 'Product Sketch is required.'
-        });
+        validationErrors.push({ path: 'ProductSketch', msg: 'Product Sketch is required.' });
       }
     }
 
-    // Step 2: Loop through each language and handle features
-    languages.forEach(lang => {
-      console.log(`➡️ Processing language: ${lang}`);
+    // Per-language data + validation
+    for (const lang of languages) {
+      // Effective publish (non-admins cannot publish)
+      const publishLang = isAdmin ? requestedPublish[lang] : false;
 
-      const validateThisLanguage = (lang === 'EN');
+      // Validate EN always; other languages only if effectively published
+      const validateThisLanguage = (lang === 'EN') || publishLang;
 
-      const productName = req.body[`ProductName_${lang}`];
-      const productNameDesc = req.body[`ProductNameDesc_${lang}`];
-      const productDesc = req.body[`ProductDesc_${lang}`];
-      const whyProductDesc = req.body[`WhyProductDesc_${lang}`];
+      const productName = (req.body[`ProductName_${lang}`] || '').trim();
+      const productNameDesc = (req.body[`ProductNameDesc_${lang}`] || '').trim();
+      const productDesc = (req.body[`ProductDesc_${lang}`] || '').trim();
+      const whyProductDesc = (req.body[`WhyProductDesc_${lang}`] || '').trim();
 
+      if (!isDraft && validateThisLanguage) {
+        if (!productName) validationErrors.push({ path: `ProductName_${lang}`, msg: `Product Name (${lang}) is required.` });
+        if (!productNameDesc) validationErrors.push({ path: `ProductNameDesc_${lang}`, msg: `Short Description (${lang}) is required.` });
+        if (!productDesc) validationErrors.push({ path: `ProductDesc_${lang}`, msg: `Product Description (${lang}) is required.` });
+        if (!whyProductDesc) validationErrors.push({ path: `WhyProductDesc_${lang}`, msg: `Why Product Description (${lang}) is required.` });
+      }
+
+      // Features (4 slots)
       const names = req.body[`FeatureName_${lang}`] || [];
       const descs = req.body[`FeatureDesc_${lang}`] || [];
       const oldImages = req.body[`OldFeatureImage_${lang}`] || [];
       const features = [];
 
+      const requireFeatureImage = (lang === 'EN') && !isDraft; // images required only for EN when publishing
+
       for (let i = 0; i < 4; i++) {
         const featureName = names[i]?.trim() || '';
         const featureDesc = descs[i]?.trim() || '';
 
+        // pick image
         let imagePath = '';
         const file = req.files?.[`FeatureImage_${lang}[${i}]`]?.[0];
 
         if (file) {
-          // Ensure we are getting the correct URL
           imagePath = file.cloudinaryUrl;
-          if (!imagePath) {
-            console.error(`❌ Cloudinary URL not found for FeatureImage_${lang}[${i}]`);
-          } else {
-            console.log(`✅ Feature Image found for ${lang} at index ${i}:`, imagePath);
-          }
         } else if (lang !== 'EN') {
-          const enImage = req.files?.[`FeatureImage_EN[${i}]`]?.[0];
-          if (enImage) {
-            imagePath = enImage.cloudinaryUrl;
-            console.log(`✅ Using EN version for ${lang} at index ${i}`);
-          }
-        }
-
-        if (!imagePath && oldImages[i]) {
-          imagePath = oldImages[i];
+          // Non-EN: never required, but we can inherit EN or prior image if present
+          const enFile = req.files?.[`FeatureImage_EN[${i}]`]?.[0];
+          if (enFile) imagePath = enFile.cloudinaryUrl;
+          else if (Array.isArray(oldImages)) imagePath = oldImages[i] || '';
+          else imagePath = oldImages || '';
+        } else {
+          // EN: keep prior if any (usually empty for add)
+          imagePath = Array.isArray(oldImages) ? (oldImages[i] || '') : (oldImages || '');
         }
 
         if (!isDraft && validateThisLanguage) {
@@ -168,7 +199,7 @@ exports.postAddProduct = async (req, res, next) => {
               msg: `Feature Name ${i + 1} (${lang}) is required.`
             });
           }
-          if (!imagePath) {
+          if (requireFeatureImage && !imagePath) {
             validationErrors.push({
               path: `FeatureImage_${lang}_${i}`,
               msg: `Feature Image ${i + 1} (${lang}) is required.`
@@ -183,23 +214,18 @@ exports.postAddProduct = async (req, res, next) => {
         });
       }
 
-
-
-
       languageData[lang] = [{
         ProductName: productName,
         ProductNameDesc: productNameDesc,
         ProductDesc: productDesc,
         WhyProductDesc: whyProductDesc,
-        features: features
+        features,
+        publish: publishLang
       }];
-    });
-    const productNameEN = req.body['ProductName_EN'];
-    const productSlug = slugify(productNameEN || 'unnamed-product', { lower: true, strict: true });
+    }
 
-    // Step 3: Handle validation errors
+    // If validation fails, re-render
     if (validationErrors.length > 0) {
-      console.log('❌ Validation Errors Detected:', validationErrors);
       return res.status(422).render('sellercompany/edit-product', {
         pageTitle: 'Add Product',
         path: '/admin/add-product',
@@ -216,28 +242,29 @@ exports.postAddProduct = async (req, res, next) => {
       });
     }
 
-    // Step 4: Save to the database
+    // Build slug from EN name
+    const productNameEN = req.body['ProductName_EN'];
+    const productSlug = slugify(productNameEN || 'unnamed-product', { lower: true, strict: true });
+
+    // Save
     const Product = require('../models/product');
     const product = new Product({
-      slug: productSlug, // ✅ Add this line
-
+      slug: productSlug,
       ProductThumbnail: productThumbnail,
       ProductSketch: productSketch,
       Language: languageData,
-      isDraft: isDraft
+      isDraft // final draft flag based on admin + publish selections
     });
 
-    console.log("🔥 Attempting to save product to database...");
     await product.save();
-    console.log("✅ Product successfully added!");
+    console.log('✅ Product successfully added!');
     res.redirect('/admin/Myproduct');
-
   } catch (err) {
-    console.error('🔥 Internal Server Error:', err.message);
-    console.error(err.stack);
-    res.status(500).send(`🔥 Internal Server Error: ${err.message}`);
+    console.error('🔥 Internal Server Error:', err);
+    if (!res.headersSent) res.status(500).send(`🔥 Internal Server Error: ${err.message}`);
   }
 };
+
 
 
 
@@ -284,7 +311,9 @@ exports.getEditProduct = (req, res, next) => {
         validationErrors: [],
         errorMessage: null,
         isAuthenticated: req.session.isLoggedIn,
-        isDraft: product.isDraft
+        isDraft: product.isDraft,
+        languages: allanguages  // <-- optional convenience
+
         // ❌ no categories anymore
       });
     })
@@ -294,167 +323,175 @@ exports.getEditProduct = (req, res, next) => {
     });
 };
 
-exports.postEditProduct = (req, res, next) => {
-  const productId = req.body.productId;
-  const languages = ['EN', 'ES', 'DE'];
-  const languageData = {};
-  const validationErrors = [];
+exports.postEditProduct = async (req, res, next) => {
+  try {
+    const productId = req.body.productId;
+    const languages = allanguages;
+    const languageData = {};
+    const validationErrors = [];
 
-  // ✅ Assign only once at the top
-  const updatedProductThumbnail = req.files['productThumbnail']?.[0]?.cloudinaryUrl || req.body.oldProductThumbnail;
-  const updatedProductSketch = req.files['productSketch']?.[0]?.cloudinaryUrl || req.body.oldProductSketch;
+    // who is editing?
+    const isAdmin = !!(req.user && (req.user.role === 'admin' || req.user.isAdmin === true));
 
+    // Pull existing for publish fallback (non-admin) and old values
+    const existing = await Product.findById(productId)
+      .select('Language ProductThumbnail ProductSketch isDraft')
+      .lean();
+    if (!existing) return res.redirect('/admin/Myproduct');
 
-  if (!updatedProductThumbnail && req.body.oldProductThumbnail) {
-    console.log("🗑️ Deleting old thumbnail from Cloudinary...");
-    // You can add logic to delete the old image from Cloudinary if you want
-  }
-  if (!updatedProductSketch && req.body.oldProductSketch) {
-    console.log("🗑️ Deleting old sketch from Cloudinary...");
-    // You can add logic to delete the old image from Cloudinary if you want
-  }
+    // Requested publish per language (from form)
+    const requestedPublish = Object.fromEntries(
+      languages.map(l => [l, req.body[`publish_${l}`] === 'on'])
+    );
 
+    // Effective publish = admin can set, non-admin keeps previous publish
+    const effectivePublishMap = Object.fromEntries(
+      languages.map(l => {
+        const prev = existing?.Language?.[l]?.[0]?.publish === true;
+        const incoming = requestedPublish[l];
+        return [l, isAdmin ? incoming : prev];
+      })
+    );
 
-  // Debugging logs to verify
-  console.log("✅ Updated Product Thumbnail Path:", updatedProductThumbnail);
-  console.log("✅ Updated Product Sketch Path:", updatedProductSketch);
+    const anyLangPublished = Object.values(effectivePublishMap).some(Boolean);
 
+    // ONE-TIME files (keep old if no new)
+    const updatedProductThumbnail =
+      req.files['productThumbnail']?.[0]?.cloudinaryUrl || req.body.oldProductThumbnail || '';
+    const updatedProductSketch =
+      req.files['productSketch']?.[0]?.cloudinaryUrl || req.body.oldProductSketch || '';
 
-  // 🔸 Global thumbnail/sketch validation
-  if (!updatedProductThumbnail) {
-    validationErrors.push({
-      path: `ProductThumbnail`,
-      msg: `Product Thumbnail is required.`
-    });
-  }
-  if (!updatedProductSketch) {
-    validationErrors.push({
-      path: `ProductSketch`,
-      msg: `Product Sketch is required.`
-    });
-  }
-
-  languages.forEach(lang => {
-    const validateThisLanguage = (lang === 'EN');
-
-    const productName = req.body[`ProductName_${lang}`];
-    const productNameDesc = req.body[`ProductNameDesc_${lang}`];
-    const productDesc = req.body[`ProductDesc_${lang}`];
-    const whyProductDesc = req.body[`WhyProductDesc_${lang}`];
-
-    if (validateThisLanguage) {
-      if (!productName) {
-        validationErrors.push({ path: `ProductName_${lang}`, msg: `Product Name (${lang}) is required.` });
+    // ✅ IMPORTANT: If nothing is published, DO NOT validate anything at all.
+    // Only validate when at least one language is effectively published.
+    if (anyLangPublished) {
+      // Global images required only when publishing
+      if (!updatedProductThumbnail) {
+        validationErrors.push({ path: 'ProductThumbnail', msg: 'Product Thumbnail is required.' });
       }
-      if (!productNameDesc) {
-        validationErrors.push({ path: `ProductNameDesc_${lang}`, msg: `Short Description (${lang}) is required.` });
-      }
-      if (!productDesc) {
-        validationErrors.push({ path: `ProductDesc_${lang}`, msg: `Product Description (${lang}) is required.` });
-      }
-      if (!whyProductDesc) {
-        validationErrors.push({ path: `WhyProductDesc_${lang}`, msg: `Why Product Description (${lang}) is required.` });
+      if (!updatedProductSketch) {
+        validationErrors.push({ path: 'ProductSketch', msg: 'Product Sketch is required.' });
       }
     }
 
-    const names = req.body[`FeatureName_${lang}`] || [];
-    const descs = req.body[`FeatureDesc_${lang}`] || [];
-    const oldImages = req.body[`OldFeatureImage_${lang}`] || [];
-    const features = [];
+    // Build per-language data (+ conditional validation)
+    for (const lang of languages) {
+      const effectivePublish = !!effectivePublishMap[lang];
 
-    for (let i = 0; i < 4; i++) {
-      const featureName = names[i]?.trim() || '';
-      const featureDesc = descs[i]?.trim() || '';
+      // Validate this language only when something is being published:
+      // - EN always when publishing (even if EN isn’t toggled)
+      // - Any other lang only if its publish is toggled
+      const validateThisLanguage = anyLangPublished && (lang === 'EN' || effectivePublish);
 
-      let imagePath = '';
-      const file = req.files?.[`FeatureImage_${lang}[${i}]`]?.[0];
-
-      if (file) {
-        // ✅ Use Cloudinary URL
-        imagePath = file.cloudinaryUrl;
-      } else if (lang !== 'EN') {
-        const enFile = req.files?.[`FeatureImage_EN[${i}]`]?.[0];
-        if (enFile) {
-          imagePath = enFile.cloudinaryUrl;
-        } else if (Array.isArray(oldImages)) {
-          imagePath = oldImages[i] || '';
-        } else {
-          imagePath = oldImages || '';
-        }
-      } else {
-        imagePath = Array.isArray(oldImages) ? oldImages[i] || '' : oldImages || '';
-      }
+      const productName = (req.body[`ProductName_${lang}`] || '').trim();
+      const productNameDesc = (req.body[`ProductNameDesc_${lang}`] || '').trim();
+      const productDesc = (req.body[`ProductDesc_${lang}`] || '').trim();
+      const whyProductDesc = (req.body[`WhyProductDesc_${lang}`] || '').trim();
 
       if (validateThisLanguage) {
-        if (!featureName) {
-          validationErrors.push({
-            path: `FeatureName_${lang}_${i}`,
-            msg: `Feature Name ${i + 1} (${lang}) is required.`
-          });
-        }
-        if (!imagePath) {
-          validationErrors.push({
-            path: `FeatureImage_${lang}_${i}`,
-            msg: `Feature Image ${i + 1} (${lang}) is required.`
-          });
-        }
+        if (!productName) validationErrors.push({ path: `ProductName_${lang}`, msg: `Product Name (${lang}) is required.` });
+        if (!productNameDesc) validationErrors.push({ path: `ProductNameDesc_${lang}`, msg: `Short Description (${lang}) is required.` });
+        if (!productDesc) validationErrors.push({ path: `ProductDesc_${lang}`, msg: `Product Description (${lang}) is required.` });
+        if (!whyProductDesc) validationErrors.push({ path: `WhyProductDesc_${lang}`, msg: `Why Product Description (${lang}) is required.` });
       }
 
-      features.push({
-        FeatureName: featureName,
-        FeatureDesc: featureDesc,
-        FeatureImage: imagePath
+      // Features (4)
+      const names = req.body[`FeatureName_${lang}`] || [];
+      const descs = req.body[`FeatureDesc_${lang}`] || [];
+      const oldImages = req.body[`OldFeatureImage_${lang}`] || [];
+      const features = [];
+
+      // Only EN feature images are required, and only when publishing
+      const requireFeatureImage = anyLangPublished && (lang === 'EN');
+
+      for (let i = 0; i < 4; i++) {
+        const featureName = names[i]?.trim() || '';
+        const featureDesc = descs[i]?.trim() || '';
+
+        let imagePath = '';
+        const file = req.files?.[`FeatureImage_${lang}[${i}]`]?.[0];
+
+        if (file) {
+          imagePath = file.cloudinaryUrl;
+        } else if (lang !== 'EN') {
+          // Non-EN: never required; try to inherit EN or keep previous if present
+          const enFile = req.files?.[`FeatureImage_EN[${i}]`]?.[0];
+          if (enFile) imagePath = enFile.cloudinaryUrl;
+          else if (Array.isArray(oldImages)) imagePath = oldImages[i] || '';
+          else imagePath = oldImages || '';
+        } else {
+          // EN: keep old if exists
+          imagePath = Array.isArray(oldImages) ? (oldImages[i] || '') : (oldImages || '');
+        }
+
+        if (validateThisLanguage) {
+          if (!featureName) {
+            validationErrors.push({
+              path: `FeatureName_${lang}_${i}`,
+              msg: `Feature Name ${i + 1} (${lang}) is required.`
+            });
+          }
+          if (requireFeatureImage && !imagePath) {
+            validationErrors.push({
+              path: `FeatureImage_${lang}_${i}`,
+              msg: `Feature Image ${i + 1} (${lang}) is required.`
+            });
+          }
+        }
+
+        features.push({ FeatureName: featureName, FeatureDesc: featureDesc, FeatureImage: imagePath });
+      }
+
+      languageData[lang] = [{
+        ProductName: productName,
+        ProductNameDesc: productNameDesc,
+        ProductDesc: productDesc,
+        WhyProductDesc: whyProductDesc,
+        features,
+        publish: effectivePublish  // enforce server-side
+      }];
+    }
+
+    // If there are validation errors (only possible when anyLangPublished === true), re-render
+    if (validationErrors.length > 0) {
+      return res.status(422).render('sellercompany/edit-product', {
+        pageTitle: 'Edit Product',
+        path: '/admin/edit-product',
+        editing: true,
+        hasError: true,
+        errorMessage: 'Please fix the highlighted errors.',
+        validationErrors,
+        isAuthenticated: req.session.isLoggedIn,
+        isDraft: !anyLangPublished, // reflect current intent
+        product: {
+          _id: productId,
+          Language: languageData,
+          ProductThumbnail: updatedProductThumbnail,
+          ProductSketch: updatedProductSketch
+        }
       });
     }
 
-    languageData[lang] = [{
-      ProductName: productName,
-      ProductNameDesc: productNameDesc,
-      ProductDesc: productDesc,
-      WhyProductDesc: whyProductDesc,
-      features: features
-    }];
-  });
+    // ✅ Update DB
+    const product = await Product.findById(productId);
+    if (!product) return res.redirect('/admin/Myproduct');
 
-  if (validationErrors.length > 0) {
-    return res.status(422).render('sellercompany/edit-product', {
-      pageTitle: 'Edit Product',
-      path: '/admin/edit-product',
-      editing: true,
-      hasError: true,
-      errorMessage: 'Please fix the highlighted errors.',
-      validationErrors,
-      isAuthenticated: req.session.isLoggedIn,
-      isDraft: req.body.isDraft,
-      product: {
-        _id: productId,
-        Language: languageData,
-        ProductThumbnail: updatedProductThumbnail,
-        ProductSketch: updatedProductSketch
-      }
-    });
+    product.Language = languageData;
+    product.ProductThumbnail = updatedProductThumbnail;
+    product.ProductSketch = updatedProductSketch;
+
+    // CRUCIAL: If nothing is published, mark draft so Mongoose "required" won’t fire later.
+    product.isDraft = !anyLangPublished;
+
+    await product.save();
+    console.log('✅ Product Updated');
+    res.redirect('/admin/Myproduct');
+  } catch (err) {
+    console.error('🔥 Error updating product:', err);
+    if (!res.headersSent) return next(err);
   }
-
-  // ✅ Update database
-  Product.findById(productId)
-    .then(product => {
-      if (!product) return res.redirect('/admin/Myproduct');
-      product.Language = languageData;
-      product.ProductThumbnail = updatedProductThumbnail;
-      product.ProductSketch = updatedProductSketch;
-      product.isDraft = false;
-      return product.save();
-    })
-    .then(() => {
-      console.log('✅ Product Updated');
-      res.redirect('/admin/Myproduct');
-    })
-    .catch(err => {
-      console.error('🔥 Error updating product:', err.message);
-      console.error(err.stack);
-      if (!res.headersSent) next(err);
-    });
 };
+
+
 
 
 
@@ -663,164 +700,325 @@ const uploadToCloudinary = async (file, {
   }
 };
 
+const toIndexedArray = (val) => {
+  if (!val) return [];
+  if (Array.isArray(val)) return val;
+  if (typeof val === 'object') {
+    const keys = Object.keys(val).filter(k => /^\d+$/.test(k)).sort((a, b) => (+a) - (+b));
+    if (keys.length) return keys.map(k => val[k]);
+    return [val];
+  }
+  return [];
+};
+
+const clean = (s) => (typeof s === 'string' ? s.trim() : '');
+
+const canonicalizeLangKey = (k) => {
+  const up = String(k || '').toUpperCase();
+  const m = up.match(/\b[A-Z]{2}\b/);
+  return m ? m[0] : up.replace(/[^A-Z]/g, '');
+};
+
+// Group all variants per canonical lang, preserving each variant separately
+const groupSpecsByLangVariants = (specsRoot) => {
+  const grouped = {};
+  if (!specsRoot || typeof specsRoot !== 'object') return grouped;
+  for (const [k, v] of Object.entries(specsRoot)) {
+    const canon = canonicalizeLangKey(k);
+    if (!grouped[canon]) grouped[canon] = [];
+    grouped[canon].push(v);
+  }
+  return grouped;
+};
+
+// Merge sections *by index* across all variants (e.g., "EN" + "EN ▸")
+const mergeSectionsByIndex = (sectionVariantsList) => {
+  const arrays = sectionVariantsList.map(toIndexedArray);
+  const maxLen = Math.max(0, ...arrays.map(a => a.length));
+  const merged = [];
+
+  const mergeRowsByIndex = (rowsA, rowsB) => {
+    const a = toIndexedArray(rowsA);
+    const b = toIndexedArray(rowsB);
+    const max = Math.max(a.length, b.length);
+    const out = [];
+    for (let j = 0; j < max; j++) {
+      const rA = a[j] || {};
+      const rB = b[j] || {};
+      out.push({
+        title: clean(rA.title) || clean(rB.title) || '',
+        value: clean(rA.value) || clean(rB.value) || ''
+      });
+    }
+    return out;
+  };
+
+  for (let i = 0; i < maxLen; i++) {
+    let acc = { sectionTitle: '', rows: [] };
+    for (const arr of arrays) {
+      const sec = arr[i] || {};
+      const title = clean(sec.sectionTitle);
+      if (title && !acc.sectionTitle) acc.sectionTitle = title;
+      acc.rows = mergeRowsByIndex(acc.rows, sec.rows);
+    }
+    const hasAnyRow = acc.rows.some(r => r.title || r.value);
+    if (acc.sectionTitle || hasAnyRow) merged.push(acc);
+  }
+  return merged;
+};
+
+// Build final normalized specs for a given lang from the grouped variants
+const buildFinalSpecsForLang = (grouped, lang) => {
+  const variants = grouped?.[lang] || [];
+  if (variants.length === 0) return [];
+  return mergeSectionsByIndex(variants);
+};
+// Coerce a single value or an array into an array (keeps strings intact)
+const toList = (v) => (v == null ? [] : (Array.isArray(v) ? v : [v]));
 
 
 
-/**
- * ✅ REPLACE your entire postAddModel with this.
- * 
- * Changes:
- * - Uses the unified upload helper.
- * - For downloads, **saves** Mongo `downloads[].fileName` exactly as admin intended
- *   (with a valid extension), AND stores the Cloudinary URL.
- * - Keeps your 4 overview & 3 industry entries structure.
- * - Images → webp; PDFs → raw.
- */
+
 exports.postAddModel = async (req, res) => {
   const productId = req.params.productId;
-  const languages = ['EN', 'ES', 'DE'];
+  const languages = allanguages; // ['EN','ES','DE',...]
   const languageData = {};
-  const isDraft = req.body.action === 'draft';
+  const validationErrors = [];
+
+  const requestedPublish = Object.fromEntries(
+    languages.map(l => [l, req.body[`publish_${l}`] === 'on'])
+  );
+  const shouldValidate = Object.values(requestedPublish).some(Boolean);
+  const mustValidateLang = (lang) => shouldValidate && (lang === 'EN' || requestedPublish[lang]);
 
   try {
-    // === Top-level images ===
+    // Slug + top-level uploads
+    // Slug first
+    const modelSlug = slugify(req.body['ModelName_EN'] || 'model', { lower: true, strict: true });
+
+    // Model Thumbnail
     const ModelThumbnail = req.files?.ModelThumbnail?.[0]
       ? (await uploadToCloudinary(req.files.ModelThumbnail[0], {
         folder: 'draglab/models/thumbnails',
-        desiredFileName: req.body['ModelName_EN'] ? `${req.body['ModelName_EN']}-thumbnail.webp` : 'model-thumbnail.webp',
+        desiredFileName: `${modelSlug}-thumbnail`,
         treatAsDownload: false,
       }))?.url || ''
-      : '';
+      : (req.body.oldModelThumbnail || '');
 
-    const ModelPhotos = req.files?.ModelPhotos
-      ? await Promise.all(
-        req.files.ModelPhotos.map(async (f, idx) => {
-          const uploaded = await uploadToCloudinary(f, {
-            folder: 'draglab/models/photos',
-            desiredFileName: `photo-${idx + 1}.webp`,
-            treatAsDownload: false,
-          });
-          return uploaded?.url || '';
-        })
-      )
-      : [];
-
+    // Overview Thumbnail
     const overviewThumbnail = req.files?.overviewThumbnail?.[0]
       ? (await uploadToCloudinary(req.files.overviewThumbnail[0], {
         folder: 'draglab/models/overview',
-        desiredFileName: 'overview-thumbnail.webp',
+        desiredFileName: `${modelSlug}-overview-thumb`,
         treatAsDownload: false,
       }))?.url || ''
-      : '';
+      : (req.body.oldOverviewThumbnail || '');
 
-    // Generate slug from EN name (keep your behavior)
-    const modelSlug = slugify(req.body['ModelName_EN'] || 'model', { lower: true, strict: true });
 
-    // === Per-language content ===
+    if (shouldValidate) {
+      if (!ModelThumbnail) validationErrors.push({ path: 'ModelThumbnail', msg: 'Model Thumbnail is required when publishing.' });
+      if (!overviewThumbnail) validationErrors.push({ path: 'overviewThumbnail', msg: 'Overview Thumbnail is required when publishing.' });
+    }
+
+    // Normalize TS keys and group by lang variants
+    const groupedTechSpecs = groupSpecsByLangVariants(req.body.technicalSpecifications || {});
+    console.log('TS KEYS RAW:', Object.keys(req.body.technicalSpecifications || {}));
+    console.log('TS KEY GROUPS:', Object.fromEntries(Object.entries(groupedTechSpecs).map(([k, v]) => [k, v.length])));
+
     for (const lang of languages) {
-      const overviewData = [];
-      const industryData = [];
-      const downloads = [];
-      const technicalSpecifications = [];
+      const validateThis = mustValidateLang(lang);
 
-      // ---- Overview (max 4) ----
+      const ModelName = clean(req.body[`ModelName_${lang}`]);
+      const ModelNameDesc = clean(req.body[`ModelNameDesc_${lang}`]);
+      const ModelDesc = clean(req.body[`ModelDesc_${lang}`]);
+
+      if (validateThis) {
+        if (!ModelName) validationErrors.push({ path: `ModelName_${lang}`, msg: `Model Name (${lang}) is required.` });
+        if (!ModelNameDesc) validationErrors.push({ path: `ModelNameDesc_${lang}`, msg: `Short Description (${lang}) is required.` });
+        if (!ModelDesc) validationErrors.push({ path: `ModelDesc_${lang}`, msg: `Model Description (${lang}) is required.` });
+      }
+
+      // Overview (4)
+      const overview = [];
       for (let i = 0; i < 4; i++) {
-        const overviewName = req.body.overview?.[lang]?.[i]?.overviewName || '';
-        const overviewDesc = req.body.overview?.[lang]?.[i]?.overviewDesc || '';
+        const overviewName = clean(req.body.overview?.[lang]?.[i]?.overviewName);
+        const overviewDesc = clean(req.body.overview?.[lang]?.[i]?.overviewDesc);
 
-        const overviewImageFile = req.files?.[`overviewImages_${lang}[${i}]`]?.[0];
+        const overviewImageFile = req.files?.[`overviewImages_${lang}[${i}]`] && req.files[`overviewImages_${lang}[${i}]`][0];
+        const oldOverviewImg = req.body[`oldOverviewImages_${i}`] || ''; // EJS emits this for EN only
+
         const overviewImage = overviewImageFile
           ? (await uploadToCloudinary(overviewImageFile, {
             folder: `draglab/models/overview/${lang}`,
-            desiredFileName: `${modelSlug}-overview-${i + 1}.webp`,
+            desiredFileName: `${modelSlug}-overview-${i + 1}`,
             treatAsDownload: false,
           }))?.url || ''
-          : '';
+          : (lang === 'EN' ? oldOverviewImg : '');
 
-        overviewData.push({ overviewName, overviewDesc, overviewImage });
+        // ...validation as you already have for EN...
+        overview.push({ overviewName, overviewDesc, overviewImage });
       }
 
-      // ---- Industry (max 3) ----
+
+      // Industry (3)
+      const industry = [];
       for (let i = 0; i < 3; i++) {
-        const industryName = req.body.industry?.[lang]?.[i]?.industryName || '';
+        const industryName = clean(req.body.industry?.[lang]?.[i]?.industryName);
 
-        const industryImageFile = req.files?.[`industryImages_${lang}[${i}]`]?.[0];
-        const industryLogoFile = req.files?.[`industryLogos_${lang}[${i}]`]?.[0];
+        const imageFile = req.files?.[`industryImages_${lang}[${i}]`] && req.files[`industryImages_${lang}[${i}]`][0];
+        const logoFile = req.files?.[`industryLogos_${lang}[${i}]`] && req.files[`industryLogos_${lang}[${i}]`][0];
 
-        const industryImage = industryImageFile
-          ? (await uploadToCloudinary(industryImageFile, {
+        const oldIndImg = req.body[`oldIndustryImage_${i}`] || '';
+        const oldIndLogo = req.body[`oldIndustryLogo_${i}`] || '';
+
+        const industryImage = imageFile
+          ? (await uploadToCloudinary(imageFile, {
             folder: `draglab/models/industry/${lang}`,
-            desiredFileName: `${modelSlug}-industry-image-${i + 1}.webp`,
+            desiredFileName: `${modelSlug}-industry-image-${i + 1}`,
             treatAsDownload: false,
           }))?.url || ''
-          : '';
+          : (lang === 'EN' ? oldIndImg : '');
 
-        const industryLogo = industryLogoFile
-          ? (await uploadToCloudinary(industryLogoFile, {
+        const industryLogo = logoFile
+          ? (await uploadToCloudinary(logoFile, {
             folder: `draglab/models/industry/${lang}`,
-            desiredFileName: `${modelSlug}-industry-logo-${i + 1}.webp`,
+            desiredFileName: `${modelSlug}-industry-logo-${i + 1}`,
             treatAsDownload: false,
           }))?.url || ''
-          : '';
+          : (lang === 'EN' ? oldIndLogo : '');
 
-        industryData.push({ industryName, industryImage, industryLogo });
+        // ...validation for EN...
+        industry.push({ industryName, industryImage, industryLogo });
       }
 
-      // ---- Technical Specifications (dynamic) ----
-      if (req.body.technicalSpecifications?.[lang]) {
-        const langSpecs = req.body.technicalSpecifications[lang];
-        if (Array.isArray(langSpecs)) {
-          langSpecs.forEach(section => {
-            const rows = Array.isArray(section.rows)
-              ? section.rows.map(r => ({ title: r.title || '', value: r.value || '' }))
-              : [];
-            technicalSpecifications.push({ sectionTitle: section.sectionTitle || '', rows });
+
+      // Technical Specifications (merge by index across variants)
+      const technicalSpecifications = buildFinalSpecsForLang(groupedTechSpecs, lang);
+
+      if (validateThis && lang === 'EN') {
+        const hasValidSection = technicalSpecifications.some(
+          sec => sec.sectionTitle && toIndexedArray(sec.rows).some(r => r.title && r.value)
+        );
+        if (!hasValidSection) {
+          validationErrors.push({
+            path: `technicalSpecifications_${lang}`,
+            msg: 'At least one Technical Specifications section with one row is required (EN).'
           });
         }
       }
 
-      // ---- Downloads (FILES + NAMES) ----
-      if (req.files?.[`downloadFiles_${lang}`]) {
-        const fileNames = req.body[`downloadFileNames_${lang}`] || [];
-        const categories = req.body[`downloadCategories_${lang}`] || [];
+      // Downloads
+    // ---- Downloads (keep existing from error re-render + add new uploads)
+const downloads = [];
 
-        for (let i = 0; i < req.files[`downloadFiles_${lang}`].length; i++) {
-          const file = req.files[`downloadFiles_${lang}`][i];
+// Keep existing (not deleted) downloads coming back from the form
+// Your frontend sends hidden inputs named existingDownloads_LANG[] with JSON.
+const existingJsons =
+  toList(req.body[`existingDownloads_${lang}[]`])  // most browsers
+  .concat(toList(req.body[`existingDownloads_${lang}`])); // fallback name, just in case
 
-          // Build final saved filename based on admin name + original extension (default .pdf)
-          const originalExt = path.extname(file.originalname).toLowerCase() || '.pdf';
-          const adminName = (fileNames[i] || path.basename(file.originalname, originalExt));
-          const desiredNameForSave = buildDesiredName(adminName, '.pdf', originalExt); // e.g. 'incubator-manual.pdf'
+for (const js of existingJsons) {
+  try {
+    const d = JSON.parse(js);
+    // sanitize & keep shape consistent
+    downloads.push({
+      fileName: d.fileName || '',
+      filePath: d.filePath || '',
+      fileSize: d.fileSize || '',
+      fileCategory: d.fileCategory || 'Uncategorized',
+      fileProductCategory: d.fileProductCategory || '',
+    });
+  } catch (_) { /* ignore bad JSON */ }
+}
 
-          const uploaded = await uploadToCloudinary(file, {
-            folder: `draglab/models/downloads/${lang}`,
-            desiredFileName: desiredNameForSave,
-            treatAsDownload: true, // raw for docs
-          });
+// Add new uploads (if any)
+if (req.files?.[`downloadFiles_${lang}`]) {
+  const names = toIndexedArray(req.body[`downloadFileNames_${lang}`]);   // from your form
+  const cats  = toIndexedArray(req.body[`downloadCategories_${lang}`]);
 
-          downloads.push({
-            fileName: adminName,              // ✅ pure, as typed by admin (no .pdf!)
-            filePath: uploaded?.url || '',    // ✅ includes the file format
-            fileSize: `${(file.size / (1024 * 1024)).toFixed(2)} MB`,
-            fileCategory: categories[i] || 'Uncategorized',
-            fileProductCategory: '',              // set if you need it
-          });
-        }
-      }
+  for (let i = 0; i < req.files[`downloadFiles_${lang}`].length; i++) {
+    const file = req.files[`downloadFiles_${lang}`][i];
+    const originalExt = path.extname(file.originalname).toLowerCase() || '.pdf';
+    const adminName = clean(names[i]) || path.basename(file.originalname, originalExt);
+    const desiredNameForSave = buildDesiredName(adminName, '.pdf', originalExt);
 
-      // Collect per-language payload
+    const uploaded = await uploadToCloudinary(file, {
+      folder: `draglab/models/downloads/${lang}`,
+      desiredFileName: desiredNameForSave,
+      treatAsDownload: true,
+    });
+
+    downloads.push({
+      fileName: adminName,
+      filePath: uploaded?.url || '',
+      fileSize: `${(file.size / (1024 * 1024)).toFixed(2)} MB`,
+      fileCategory: clean(cats[i]) || 'Uncategorized',
+      fileProductCategory: '',
+    });
+  }
+}
+
+
       languageData[lang] = [{
-        ModelName: req.body[`ModelName_${lang}`],
-        ModelNameDesc: req.body[`ModelNameDesc_${lang}`],
-        ModelDesc: req.body[`ModelDesc_${lang}`],
-        overview: overviewData,
-        industry: industryData,
+        ModelName,
+        ModelNameDesc,
+        ModelDesc,
+        overview,
+        industry,
         technicalSpecifications,
-        downloads
+        downloads,
+        publish: shouldValidate && !!requestedPublish[lang],
       }];
     }
+    // Gallery photos: upload if new ones present, else reuse from session draft
+    let ModelPhotos = [];
+    if (req.files?.ModelPhotos) {
+      ModelPhotos = await Promise.all(
+        req.files.ModelPhotos.map(async (f, idx) => {
+          const up = await uploadToCloudinary(f, {
+            folder: 'draglab/models/photos',
+            desiredFileName: `${modelSlug}-photo-${idx + 1}`,
+            treatAsDownload: false,
+          });
+          return up?.url || '';
+        })
+      );
+    } else if (req.session?.addModelDraft?.[productId]?.ModelPhotos) {
+      ModelPhotos = req.session.addModelDraft[productId].ModelPhotos;
+    }
 
-    // === Persist under product.Models ===
+    // Debug (optional)
+    console.log('DEBUG RAW TS EN:', JSON.stringify(req.body.technicalSpecifications?.EN, null, 2));
+    console.log('DEBUG MERGED TS EN:', JSON.stringify(buildFinalSpecsForLang(groupedTechSpecs, 'EN'), null, 2));
+
+    // Validation re-render
+    if (validationErrors.length > 0) {
+      // ✅ Stash gallery so next submit (draft) can reuse it
+      req.session.addModelDraft = req.session.addModelDraft || {};
+      req.session.addModelDraft[productId] = { ModelPhotos };
+      return res.status(422).render('sellercompany/add-model', {
+        pageTitle: 'Add Model',
+        path: '/admin/add-model',
+        editing: false,
+        hasError: true,
+        errorMessage: 'Please fix the highlighted errors.',
+        validationErrors,
+        isAuthenticated: req.session.isLoggedIn,
+        isDraft: !shouldValidate,
+        productId,
+        languages,
+        model: {
+          slug: modelSlug,
+          ModelThumbnail,
+          ModelPhotos,
+          overviewThumbnail,
+          modelcapacity: req.body.modelcapacity || '',
+          Language: languageData,
+        }
+      });
+    }
+
+    // Persist
     const product = await Product.findById(productId);
     if (!product) return res.redirect('/admin/Myproduct');
 
@@ -829,9 +1027,9 @@ exports.postAddModel = async (req, res) => {
       ModelThumbnail,
       ModelPhotos,
       overviewThumbnail,
-      modelcapacity: req.body.modelcapacity,
+      modelcapacity: req.body.modelcapacity || '',
       Language: languageData,
-      isPublished: !isDraft,
+      isPublished: shouldValidate
     });
 
     product.Models.push(newModel);
@@ -841,16 +1039,49 @@ exports.postAddModel = async (req, res) => {
     res.redirect('/admin/Myproduct');
   } catch (err) {
     console.error('🔥 Error adding model:', err);
-    res.redirect('/admin/Myproduct');
+    if (!res.headersSent) {
+      const productId = req.params.productId;
+      return res.status(500).render('sellercompany/add-model', {
+        pageTitle: 'Add Model',
+        path: '/admin/add-model',
+        editing: false,
+        hasError: true,
+        errorMessage: 'Unexpected error while adding model.',
+        validationErrors: [],
+        isAuthenticated: req.session.isLoggedIn,
+        isDraft: !Object.values(req.body || {}).some((v, k) => String(k || '').startsWith('publish_')),
+        productId,
+        languages,
+        model: {
+          slug: slugify(req.body['ModelName_EN'] || 'model', { lower: true, strict: true }),
+          ModelThumbnail: '',
+          ModelPhotos: [],
+          overviewThumbnail: '',
+          modelcapacity: req.body.modelcapacity || '',
+          Language: languageData
+        }
+      });
+    }
   }
 };
 
 
 
 
+
+// single-or-array -> array
+
 exports.postEditModel = async (req, res) => {
   const { productId, modelId } = req.params;
-  const languages = ['EN', 'ES', 'DE'];
+  const languages = allanguages;
+  const validationErrors = [];
+
+  // publish intent: if any lang checked => publishing => validate; else draft
+  const requestedPublish = Object.fromEntries(
+    languages.map(l => [l, req.body[`publish_${l}`] === 'on'])
+  );
+  const shouldValidate = Object.values(requestedPublish).some(Boolean);
+  const mustValidateLang = (lang) => shouldValidate && (lang === 'EN' || requestedPublish[lang]);
 
   try {
     const product = await Product.findById(productId);
@@ -859,121 +1090,186 @@ exports.postEditModel = async (req, res) => {
     const model = product.Models.id(modelId);
     if (!model) return res.redirect('/admin/Myproduct');
 
-    // === Top-level images (preserve if not re-uploaded) ===
-    const newModelThumb = req.files?.ModelThumbnail?.[0]
-      ? (await uploadToCloudinary(req.files.ModelThumbnail[0], {
-        folder: `draglab/models/thumbnails`,
-        desiredFileName: `${model.slug || 'model'}-thumbnail.webp`,
-        treatAsDownload: false,
-      }))?.url
-      : model.ModelThumbnail;
+    // ---------- TOP-LEVEL ----------
+    const modelSlug = model.slug || slugify(req.body['ModelName_EN'] || 'model', { lower: true, strict: true });
 
-    const newOverviewThumb = req.files?.overviewThumbnail?.[0]
-      ? (await uploadToCloudinary(req.files.overviewThumbnail[0], {
-        folder: `draglab/models/overview`,
-        desiredFileName: `${model.slug || 'model'}-overview-thumb.webp`,
+    // ModelThumbnail (new -> session -> prev)
+    let ModelThumbnail;
+    if (req.files?.ModelThumbnail?.[0]) {
+      ModelThumbnail = (await uploadToCloudinary(req.files.ModelThumbnail[0], {
+        folder: 'draglab/models/thumbnails',
+        desiredFileName: `${modelSlug}-thumbnail`,
         treatAsDownload: false,
-      }))?.url
-      : model.overviewThumbnail;
+      }))?.url || '';
+    } else if (req.session?.editModelDraft?.[modelId]?.ModelThumbnail) {
+      ModelThumbnail = req.session.editModelDraft[modelId].ModelThumbnail;
+    } else {
+      ModelThumbnail = model.ModelThumbnail || '';
+    }
 
-    const newPhotos = req.files?.ModelPhotos
-      ? await Promise.all(
+    // Overview Thumbnail (new -> session -> prev)
+    let overviewThumbnail;
+    if (req.files?.overviewThumbnail?.[0]) {
+      overviewThumbnail = (await uploadToCloudinary(req.files.overviewThumbnail[0], {
+        folder: 'draglab/models/overview',
+        desiredFileName: `${modelSlug}-overview-thumb`,
+        treatAsDownload: false,
+      }))?.url || '';
+    } else if (req.session?.editModelDraft?.[modelId]?.overviewThumbnail) {
+      overviewThumbnail = req.session.editModelDraft[modelId].overviewThumbnail;
+    } else {
+      overviewThumbnail = model.overviewThumbnail || '';
+    }
+
+    // Gallery photos (new -> session -> prev)
+    let ModelPhotos = [];
+    if (req.files?.ModelPhotos) {
+      ModelPhotos = await Promise.all(
         req.files.ModelPhotos.map(async (f, idx) => {
-          const uploaded = await uploadToCloudinary(f, {
-            folder: `draglab/models/photos`,
-            desiredFileName: `${model.slug || 'model'}-photo-${idx + 1}.webp`,
+          const up = await uploadToCloudinary(f, {
+            folder: 'draglab/models/photos',
+            desiredFileName: `${modelSlug}-photo-${idx + 1}`,
             treatAsDownload: false,
           });
-          return uploaded?.url || '';
+          return up?.url || '';
         })
-      )
-      : model.ModelPhotos;
+      );
+    } else if (req.session?.editModelDraft?.[modelId]?.ModelPhotos) {
+      ModelPhotos = req.session.editModelDraft[modelId].ModelPhotos;
+    } else {
+      ModelPhotos = model.ModelPhotos || [];
+    }
 
-    model.ModelThumbnail = newModelThumb;
-    model.overviewThumbnail = newOverviewThumb;
-    model.ModelPhotos = newPhotos;
-    model.modelcapacity = req.body.modelcapacity || model.modelcapacity;
+    if (shouldValidate) {
+      if (!ModelThumbnail)    validationErrors.push({ path: 'ModelThumbnail',    msg: 'Model Thumbnail is required when publishing.' });
+      if (!overviewThumbnail) validationErrors.push({ path: 'overviewThumbnail', msg: 'Overview Thumbnail is required when publishing.' });
+    }
 
-    // === Per-language updates ===
+    // ---------- TECH SPECS (merge weird lang keys, e.g. "EN ▸") ----------
+    const groupedTechSpecs = groupSpecsByLangVariants(req.body.technicalSpecifications || {});
+    // console.log('TS KEYS RAW:', Object.keys(req.body.technicalSpecifications || {}));
+    // console.log('TS KEY GROUPS:', Object.fromEntries(Object.entries(groupedTechSpecs).map(([k,v]) => [k, v.length])));
+
+    // ---------- PER-LANGUAGE ----------
+    let anyLangPublished = false;
+    const languageData = {};
+
     for (const lang of languages) {
       const prev = model.Language?.[lang]?.[0] || {};
-      const overviewData = [];
-      const industryData = [];
-      const downloads = [];
-      const technicalSpecifications = [];
+      const validateThis = mustValidateLang(lang);
 
-      // ---- Overview (max 4) ----
-      for (let i = 0; i < 4; i++) {
-        const newOverviewFile = req.files?.[`overviewImages_${lang}[${i}]`]?.[0];
+      const ModelName     = clean(req.body[`ModelName_${lang}`])     || prev.ModelName     || '';
+      const ModelNameDesc = clean(req.body[`ModelNameDesc_${lang}`]) || prev.ModelNameDesc || '';
+      const ModelDesc     = clean(req.body[`ModelDesc_${lang}`])     || prev.ModelDesc     || '';
 
-        const overviewImage = newOverviewFile
-          ? (await uploadToCloudinary(newOverviewFile, {
-            folder: `draglab/models/overview/${lang}`,
-            desiredFileName: `${model.slug || 'model'}-overview-${i + 1}.webp`,
-            treatAsDownload: false,
-          }))?.url || ''
-          : (prev.overview?.[i]?.overviewImage || '');
-
-        overviewData.push({
-          overviewName: req.body.overview?.[lang]?.[i]?.overviewName || prev.overview?.[i]?.overviewName || '',
-          overviewDesc: req.body.overview?.[lang]?.[i]?.overviewDesc || prev.overview?.[i]?.overviewDesc || '',
-          overviewImage
-        });
+      if (validateThis) {
+        if (!ModelName)     validationErrors.push({ path: `ModelName_${lang}`,     msg: `Model Name (${lang}) is required.` });
+        if (!ModelNameDesc) validationErrors.push({ path: `ModelNameDesc_${lang}`, msg: `Short Description (${lang}) is required.` });
+        if (!ModelDesc)     validationErrors.push({ path: `ModelDesc_${lang}`,     msg: `Model Description (${lang}) is required.` });
       }
 
-      // ---- Industry (max 3) ----
+      // ---- Overview (4)
+      const overview = [];
+      for (let i = 0; i < 4; i++) {
+        const overviewName = clean(req.body.overview?.[lang]?.[i]?.overviewName) || prev.overview?.[i]?.overviewName || '';
+        const overviewDesc = clean(req.body.overview?.[lang]?.[i]?.overviewDesc) || prev.overview?.[i]?.overviewDesc || '';
+
+        const newOverviewFile = req.files?.[`overviewImages_${lang}[${i}]`]?.[0];
+        const overviewImage = newOverviewFile
+          ? (await uploadToCloudinary(newOverviewFile, {
+              folder: `draglab/models/overview/${lang}`,
+              desiredFileName: `${modelSlug}-overview-${i + 1}`,
+              treatAsDownload: false,
+            }))?.url || ''
+          : (prev.overview?.[i]?.overviewImage || '');
+
+        if (validateThis && lang === 'EN') {
+          if (!overviewName) validationErrors.push({ path: `overview_${lang}_${i}_name`, msg: `Overview ${i + 1} name (${lang}) is required.` });
+          if (!overviewDesc) validationErrors.push({ path: `overview_${lang}_${i}_desc`, msg: `Overview ${i + 1} description (${lang}) is required.` });
+          if (!overviewImage) validationErrors.push({ path: `overview_${lang}_${i}_image`, msg: `Overview ${i + 1} image (EN) is required.` });
+        }
+
+        overview.push({ overviewName, overviewDesc, overviewImage });
+      }
+
+      // ---- Industry (3)
+      const industry = [];
       for (let i = 0; i < 3; i++) {
+        const industryName = clean(req.body.industry?.[lang]?.[i]?.industryName) || prev.industry?.[i]?.industryName || '';
+
         const newImageFile = req.files?.[`industryImages_${lang}[${i}]`]?.[0];
-        const newLogoFile = req.files?.[`industryLogos_${lang}[${i}]`]?.[0];
+        const newLogoFile  = req.files?.[`industryLogos_${lang}[${i}]`]?.[0];
 
         const industryImage = newImageFile
           ? (await uploadToCloudinary(newImageFile, {
-            folder: `draglab/models/industry/${lang}`,
-            desiredFileName: `${model.slug || 'model'}-industry-image-${i + 1}.webp`,
-            treatAsDownload: false,
-          }))?.url || ''
+              folder: `draglab/models/industry/${lang}`,
+              desiredFileName: `${modelSlug}-industry-image-${i + 1}`,
+              treatAsDownload: false,
+            }))?.url || ''
           : (prev.industry?.[i]?.industryImage || '');
 
         const industryLogo = newLogoFile
           ? (await uploadToCloudinary(newLogoFile, {
-            folder: `draglab/models/industry/${lang}`,
-            desiredFileName: `${model.slug || 'model'}-industry-logo-${i + 1}.webp`,
-            treatAsDownload: false,
-          }))?.url || ''
+              folder: `draglab/models/industry/${lang}`,
+              desiredFileName: `${modelSlug}-industry-logo-${i + 1}`,
+              treatAsDownload: false,
+            }))?.url || ''
           : (prev.industry?.[i]?.industryLogo || '');
 
-        industryData.push({
-          industryName: req.body.industry?.[lang]?.[i]?.industryName || prev.industry?.[i]?.industryName || '',
-          industryImage,
-          industryLogo
-        });
+        if (validateThis && lang === 'EN') {
+          if (!industryName)  validationErrors.push({ path: `industry_${lang}_${i}_name`,  msg: `Industry ${i + 1} name (${lang}) is required.` });
+          if (!industryImage) validationErrors.push({ path: `industry_${lang}_${i}_image`, msg: `Industry ${i + 1} image (EN) is required.` });
+          if (!industryLogo)  validationErrors.push({ path: `industry_${lang}_${i}_logo`,  msg: `Industry ${i + 1} logo (EN) is required.` });
+        }
+
+        industry.push({ industryName, industryImage, industryLogo });
       }
 
-      // ---- Technical Specifications ----
-      if (req.body.technicalSpecifications?.[lang]) {
-        const langSpecs = req.body.technicalSpecifications[lang];
-        if (Array.isArray(langSpecs)) {
-          langSpecs.forEach(section => {
-            const rows = Array.isArray(section.rows)
-              ? section.rows.map(r => ({ title: r.title || '', value: r.value || '' }))
-              : [];
-            technicalSpecifications.push({ sectionTitle: section.sectionTitle || '', rows });
+      // ---- Technical Specifications (merged by index across variants)
+      let technicalSpecifications = [];
+      const built = buildFinalSpecsForLang(groupedTechSpecs, lang);
+      if (built.length > 0 || Object.keys(req.body.technicalSpecifications || {}).length > 0) {
+        technicalSpecifications = built;
+      } else if (prev.technicalSpecifications) {
+        technicalSpecifications = prev.technicalSpecifications;
+      }
+
+      if (validateThis && lang === 'EN') {
+        const hasValidSection = (technicalSpecifications || []).some(
+          sec => sec.sectionTitle && toIndexedArray(sec.rows).some(r => r.title && r.value)
+        );
+        if (!hasValidSection) {
+          validationErrors.push({
+            path: `technicalSpecifications_${lang}`,
+            msg: 'At least one Technical Specifications section with one row is required (EN).'
           });
         }
-      } else if (prev.technicalSpecifications) {
-        // keep old if not posted
-        technicalSpecifications.push(...prev.technicalSpecifications);
       }
 
-      // ---- Downloads ----
-      if (req.files?.[`downloadFiles_${lang}`]) {
-        const fileNames = req.body[`downloadFileNames_${lang}`] || [];
-        const categories = req.body[`downloadCategories_${lang}`] || [];
+      // ---- Downloads (keep existing from hidden JSON + add new uploads)
+      const downloads = [];
+      const existingJsons =
+        toList(req.body[`existingDownloads_${lang}[]`]).concat(toList(req.body[`existingDownloads_${lang}`]));
+      for (const js of existingJsons) {
+        try {
+          const d = JSON.parse(js);
+          downloads.push({
+            fileName: d.fileName || '',
+            filePath: d.filePath || '',
+            fileSize: d.fileSize || '',
+            fileCategory: d.fileCategory || 'Uncategorized',
+            fileProductCategory: d.fileProductCategory || ''
+          });
+        } catch (_) { /* ignore */ }
+      }
 
+      if (req.files?.[`downloadFiles_${lang}`]) {
+        const names = toIndexedArray(req.body[`downloadFileNames_${lang}`]);
+        const cats  = toIndexedArray(req.body[`downloadCategories_${lang}`]);
         for (let i = 0; i < req.files[`downloadFiles_${lang}`].length; i++) {
           const file = req.files[`downloadFiles_${lang}`][i];
           const originalExt = path.extname(file.originalname).toLowerCase() || '.pdf';
-          const adminName = (fileNames[i] || path.basename(file.originalname, originalExt));
+          const adminName = clean(names[i]) || path.basename(file.originalname, originalExt);
           const desiredNameForSave = buildDesiredName(adminName, '.pdf', originalExt);
 
           const uploaded = await uploadToCloudinary(file, {
@@ -983,38 +1279,87 @@ exports.postEditModel = async (req, res) => {
           });
 
           downloads.push({
-            fileName: adminName,              // ✅ pure, as typed by admin (no .pdf!)
-            filePath: uploaded?.url || '',    // ✅ includes the file format
+            fileName: adminName,
+            filePath: uploaded?.url || '',
             fileSize: `${(file.size / (1024 * 1024)).toFixed(2)} MB`,
-            fileCategory: categories[i] || 'Uncategorized',
+            fileCategory: clean(cats[i]) || 'Uncategorized',
             fileProductCategory: prev.fileProductCategory || ''
           });
         }
-      } else if (prev.downloads) {
-        // keep old downloads if none uploaded now
-        downloads.push(...prev.downloads);
       }
 
-      // ---- Commit per-language
-      model.Language[lang] = [{
-        ModelName: req.body[`ModelName_${lang}`] || prev.ModelName || '',
-        ModelNameDesc: req.body[`ModelNameDesc_${lang}`] || prev.ModelNameDesc || '',
-        ModelDesc: req.body[`ModelDesc_${lang}`] || prev.ModelDesc || '',
-        overview: overviewData,
-        industry: industryData,
+      // Commit per-language
+      const publish = !!requestedPublish[lang];
+      anyLangPublished = anyLangPublished || publish;
+
+      languageData[lang] = [{
+        ModelName,
+        ModelNameDesc,
+        ModelDesc,
+        overview,
+        industry,
         technicalSpecifications,
-        downloads
+        downloads,
+        publish
       }];
     }
 
+    // ---------- If validation fails, re-render (and stash images/photos in session) ----------
+    if (validationErrors.length > 0) {
+      req.session.editModelDraft = req.session.editModelDraft || {};
+      req.session.editModelDraft[modelId] = {
+        ModelThumbnail,
+        overviewThumbnail,
+        ModelPhotos
+      };
+
+      return res.status(422).render('sellercompany/add-model', {
+        pageTitle: 'Edit Model',
+        path: '/admin/edit-model',
+        editing: true,
+        hasError: true,
+        errorMessage: 'Please fix the highlighted errors.',
+        validationErrors,
+        isAuthenticated: req.session.isLoggedIn,
+        isDraft: !shouldValidate,
+        productId,
+        modelId,
+        languages,
+        model: {
+          _id: modelId,
+          slug: modelSlug,
+          ModelThumbnail,
+          overviewThumbnail,
+          ModelPhotos,
+          modelcapacity: req.body.modelcapacity || model.modelcapacity || '',
+          Language: languageData
+        }
+      });
+    }
+
+    // ---------- Persist ----------
+    model.ModelThumbnail = ModelThumbnail;
+    model.overviewThumbnail = overviewThumbnail;
+    model.ModelPhotos = ModelPhotos;
+    model.modelcapacity = req.body.modelcapacity || model.modelcapacity;
+    model.Language = languageData;
+    model.isPublished = anyLangPublished;
+
     await product.save();
+
+    // clear session stash on success
+    if (req.session?.editModelDraft?.[modelId]) {
+      delete req.session.editModelDraft[modelId];
+    }
+
     console.log('✅ Model successfully updated!');
     res.redirect('/admin/Myproduct');
   } catch (err) {
     console.error('Error updating model:', err);
-    res.redirect('/admin/Myproduct');
+    if (!res.headersSent) return res.redirect('/admin/Myproduct');
   }
 };
+
 
 
 
@@ -1441,7 +1786,6 @@ exports.postDeleteProduct = async (req, res, next) => {
 };
 
 
-// Assuming getDashboard and getchart are in the admin controller
 
 exports.getDashboard = async (req, res, next) => {
   try {
@@ -2439,6 +2783,7 @@ exports.getNewsletterList = async (req, res) => {
 
 
 const ExcelJS = require('exceljs');
+const { all } = require('axios');
 
 async function exportSubscribers(res, filter, markExtracted = false) {
   const subscribers = await NewsletterSubscriber.find(filter);

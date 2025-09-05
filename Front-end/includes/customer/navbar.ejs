@@ -1,413 +1,430 @@
-<div id="cc--main" role="dialog" aria-hidden="true" data-nosnippet></div>
-
-<div class="navbarContainer">
-    <div class="navright">
-        <a href="/">
-            <img src="/assets/Imgs/logo/DragLab-Logo.png" alt="DragLab Logo">
-        </a>
-    </div>
+<% const _navProducts=navProducts || []; %>
+    <% function pField(p, field) { return p?.Language?.[lang]?.[0]?.[field] || p?.Language?.EN?.[0]?.[field] || '' ; }
+        %>
 
 
-    <div class="navMid">
-        <div class="12">
+        <div id="cc--main" role="dialog" aria-hidden="true" data-nosnippet></div>
 
-            <ul class="menu">
-                <li class="dropdown">
-                    <p>
-                    <p>
-                        <%= lang==='DE' ? 'Unternehmen' : lang==='ES' ? 'Empresa' : 'Company' %>
-                            <img src="/assets/Imgs/Icons/Down-arrow-blue.png" alt="Down arrow">
-                    </p>
+        <div class="navbarContainer">
+            <div class="navright">
+                <a href="/">
+                    <img src="/assets/Imgs/logo/DragLab-Logo.png" alt="DragLab Logo">
+                </a>
+            </div>
 
-                    </p>
-                    <ul class="dropdown-menu">
-                        <li><a href="/aboutus">&#8226; <%= lang==='DE' ? 'Über Uns' : lang==='ES' ? 'Sobre Nosotros'
-                                    : 'About Us' %></a></li>
-                        <li><a href="/<%= lang %>/QualityPolicy">&#8226; <%= lang==='DE' ? 'Qualitätspolitik' :
-                                    lang==='ES' ? 'Política de Calidad' : 'Quality Policy' %></a></li>
-                        <li><a href="/<%= lang %>/SustainabilityPolicy">&#8226; <%= lang==='DE' ? 'Nachhaltigkeit' :
-                                    lang==='ES' ? 'Sostenibilidad' : 'Sustainability' %></a></li>
-                        <li><a href="/<%= lang %>/Qualifications">&#8226; <%= lang==='DE' ? 'Qualifikationen' :
-                                    lang==='ES' ? 'Calificaciones' : 'Qualifications' %></a></li>
-                        <li><a href="/<%= lang %>/PrivacyPolicy">&#8226; <%= lang==='DE' ? 'Datenschutzerklärung' :
-                                    lang==='ES' ? 'Política de Privacidad' : 'Privacy Policy' %></a></li>
 
-                        <!-- <li><a href="/imprint">&#8226; <%= lang==='DE' ? 'Impressum' : lang==='ES'
+            <div class="navMid">
+                <div class="12">
+
+                    <ul class="menu">
+                        <li class="dropdown">
+                            <p>
+                            <p>
+                                <%= lang==='DE' ? 'Unternehmen' : lang==='ES' ? 'Empresa' : 'Company' %>
+                                    <img src="/assets/Imgs/Icons/Down-arrow-blue.png" alt="Down arrow">
+                            </p>
+
+                            </p>
+                            <ul class="dropdown-menu">
+                                <li><a href="/aboutus">&#8226; <%= lang==='DE' ? 'Über Uns' : lang==='ES'
+                                            ? 'Sobre Nosotros' : 'About Us' %></a></li>
+                                <li><a href="/<%= lang %>/QualityPolicy">&#8226; <%= lang==='DE' ? 'Qualitätspolitik' :
+                                            lang==='ES' ? 'Política de Calidad' : 'Quality Policy' %></a></li>
+                                <li><a href="/<%= lang %>/SustainabilityPolicy">&#8226; <%= lang==='DE'
+                                            ? 'Nachhaltigkeit' : lang==='ES' ? 'Sostenibilidad' : 'Sustainability' %>
+                                    </a></li>
+                                <li><a href="/<%= lang %>/Qualifications">&#8226; <%= lang==='DE' ? 'Qualifikationen' :
+                                            lang==='ES' ? 'Calificaciones' : 'Qualifications' %></a></li>
+                                <li><a href="/<%= lang %>/PrivacyPolicy">&#8226; <%= lang==='DE'
+                                            ? 'Datenschutzerklärung' : lang==='ES' ? 'Política de Privacidad'
+                                            : 'Privacy Policy' %></a></li>
+
+                                <!-- <li><a href="/imprint">&#8226; <%= lang==='DE' ? 'Impressum' : lang==='ES'
                                     ? 'Impreso' : 'Imprint' %></a></li> -->
 
-                    </ul>
-                </li>
+                            </ul>
+                        </li>
 
-                <li class="dropdown">
-                    <p>
-                    <p>
-                        <%= lang==='DE' ? 'Produkte' : lang==='ES' ? 'Productos' : 'Products' %>
-                            <img src="/assets/Imgs/Icons/Down-arrow-blue.png" alt="Down arrow">
-                    </p>
+                        <li class="dropdown">
+                            <p>
+                            <p>
+                                <%= lang==='DE' ? 'Produkte' : lang==='ES' ? 'Productos' : 'Products' %>
+                                    <img src="/assets/Imgs/Icons/Down-arrow-blue.png" alt="Down arrow">
+                            </p>
 
-                    </p>
-                    <ul class="dropdown-menu dropdown-menu-products">
-                        <div class="ProductsDivContainer">
-                            <div class="AllproductContainer">
-                                <p>Products</p>
-
-                                <% products.filter(p=> !p.isDraft).forEach(product => {
-
-                                    const productLang = product.Language?.[lang]?.[0];
-                                    const modelsArray = product.Models
-                                    .filter(model => model.isPublished)
-                                    .map(model => {
-                                    return {
-                                    id: model.slug,
-                                    name: model.Language?.[lang]?.[0]?.ModelName || model.Language?.EN?.[0]?.ModelName
-                                    };
-                                    });
-
-
-                                    %>
-                                    <div class="productContainer" data-goto-product="<%= product.slug %>"
-                                        data-update-models="<%= product.slug %>" data-id="<%= product.slug %>"
-                                        data-sketch="<%= product.ProductSketch %>"
-                                        data-models='<%- JSON.stringify(modelsArray) %>'>
-
-                                        <div class="productphotoContainer">
-                                            <img src="<%=product.ProductSketch %>" width="80.1px" alt="">
-                                        </div>
-
-                                        <div class="productNamImgContainer">
-                                            <div class="productnameContainer">
-                                                <h2>
-                                                    <%= productLang?.ProductName %>
-                                                </h2>
-                                                <p>
-                                                    <%= productLang?.ProductNameDesc %>
-                                                </p>
+                            </p>
+                            <ul class="dropdown-menu dropdown-menu-products">
+                                <div class="ProductsDivContainer">
+                                    <div class="AllproductContainer">
+                                        <p>Products</p>
+                                        <% _navProducts.forEach(product=> {
+                                            const productLang = product.Language?.[lang]?.[0] ||
+                                            product.Language?.EN?.[0];
+                                            const modelsArray = (product.Models || [])
+                                            .filter(m => m?.Language?.[lang]?.[0]?.publish === true)
+                                            .map(m => ({
+                                            id: m.slug,
+                                            name: m.Language?.[lang]?.[0]?.ModelName || m.Language?.EN?.[0]?.ModelName
+                                            ||
+                                            'Model'
+                                            }));
+                                            %>
+                                            <div class="productContainer" data-goto-product="<%= product.slug %>"
+                                                data-update-models="<%= product.slug %>" data-id="<%= product.slug %>"
+                                                data-sketch="<%= product.ProductSketch %>"
+                                                data-models='<%- JSON.stringify(modelsArray) %>'>
+                                                <div class="productphotoContainer">
+                                                    <img src="<%= product.ProductSketch %>" width="80.1px"
+                                                        alt="<%= product.slug %>">
+                                                </div>
+                                                <div class="productNamImgContainer">
+                                                    <div class="productnameContainer">
+                                                        <h2>
+                                                            <%= product.displayName %>
+                                                        </h2>
+                                                        <p>
+                                                            <%= product.displayDesc %>
+                                                        </p>
+                                                    </div>
+                                                    <img src="/assets/Imgs/Icons/Arrow.png" alt="arrow">
+                                                </div>
                                             </div>
-                                            <img src="/assets/Imgs/Icons/Arrow.png" alt="arrow">
-                                        </div>
+                                            <% }) %>
+
+
+
                                     </div>
-                                    <% }); %>
 
-                            </div>
+                                    <div class="modelsContainer">
+                                        <div class="imgModelContainer">
+                                            <img src="/assets/Imgs/Icons/models.png" alt="models" width="38.31px">
+                                            <p>models:</p>
+                                        </div>
+                                        <ul>
+                                            <% _navProducts.forEach(product=> {
+                                                const productLang = product.Language?.[lang]?.[0] ||
+                                                product.Language?.EN?.[0];
+                                                (product.Models || [])
+                                                .filter(m => m?.Language?.[lang]?.[0]?.publish === true)
+                                                .forEach(model => {
+                                                const modelLang = model.Language?.[lang]?.[0] ||
+                                                model.Language?.EN?.[0];
+                                                %>
+                                                <li>
+                                                    <%= product.displayName %> - <%= modelLang?.ModelName || 'Model' %>
+                                                </li>
 
-                            <div class="modelsContainer">
-                                <div class="imgModelContainer">
-                                    <img src="/assets/Imgs/Icons/models.png" alt="models" width="38.31px">
-                                    <p>models:</p>
+                                                <% }); }) %>
+                                        </ul>
+
+
+
+                                    </div>
+
+                                    <div class="productImgContainer">
+                                        <img src="/assets/Imgs/Icons/products/waterBath.webp" alt="">
+                                    </div>
                                 </div>
-                                <ul>
-                                    <% products.forEach(product=> {
-                                        const productLang = product.Language?.[lang]?.[0];
-                                        product.Models.forEach(model => {
-                                        const modelLang = model.Language?.[lang]?.[0];
+                            </ul>
 
-                                        %>
-                                        <li>
-                                            <%= productLang?.ProductName %> - <%= modelLang?.ModelName %>
-                                        </li>
-                                        <% })}) %>
-                                </ul>
-                            </div>
+                        </li>
 
-                            <div class="productImgContainer">
-                                <img src="/assets/Imgs/Icons/products/waterBath.webp" alt="">
-                            </div>
-                        </div>
-                    </ul>
+                        <li class="dropdown">
+                            <p>
+                            <p>
+                                <%= lang==='DE' ? 'Dienstleistungen' : lang==='ES' ? 'Servicios' : 'Services' %>
+                                    <img src="/assets/Imgs/Icons/Down-arrow-blue.png" alt="Down arrow">
+                            </p>
 
-                </li>
+                            </p>
+                            <ul class="dropdown-menu">
+                                <li><a href="/<%= lang %>/support">&#8226; <%= lang==='DE' ? 'Support' : lang==='ES'
+                                            ? 'Soporte' : 'Support' %></a></li>
+                                <li><a href="/<%= lang %>/Downloads">&#8226; <%= lang==='DE' ? 'Downloads' : lang==='ES'
+                                            ? 'Descargas' : 'Downloads' %></a></li>
+                                <li><a href="/industry">&#8226; <%= lang==='DE' ? 'Branche & Anwendungen' : lang==='ES'
+                                            ? 'Industria & Aplicaciones' : 'Industries & Applications' %></a></li>
+                                <li><a href="/<%= lang %>/technical-service">&#8226; <%= lang==='DE'
+                                            ? 'Technischer Service' : lang==='ES' ? 'Servicio Técnico'
+                                            : 'Technical Services' %></a></li>
+                                <li><a href="/<%= lang %>/WarrantyRegistration">&#8226; <%= lang==='DE'
+                                            ? 'Garantieregistrierung' : lang==='ES' ? 'Registro de Garantía'
+                                            : 'Warranty Registration' %></a></li>
+                                <li><a href="/TermCondition">&#8226; <%= lang==='DE' ? 'AGB' : lang==='ES'
+                                            ? 'Términos y Condiciones' : 'Terms & Condition' %></a></li>
 
-                <li class="dropdown">
-                    <p>
-                    <p>
-                        <%= lang==='DE' ? 'Dienstleistungen' : lang==='ES' ? 'Servicios' : 'Services' %>
-                            <img src="/assets/Imgs/Icons/Down-arrow-blue.png" alt="Down arrow">
-                    </p>
 
-                    </p>
-                    <ul class="dropdown-menu">
-                        <li><a href="/<%= lang %>/support">&#8226; <%= lang==='DE' ? 'Support' : lang==='ES' ? 'Soporte'
-                                    : 'Support' %></a></li>
-                        <li><a href="/<%= lang %>/Downloads">&#8226; <%= lang==='DE' ? 'Downloads' : lang==='ES'
-                                    ? 'Descargas' : 'Downloads' %></a></li>
-                        <li><a href="/industry">&#8226; <%= lang==='DE' ? 'Branche & Anwendungen' : lang==='ES'
-                                    ? 'Industria & Aplicaciones' : 'Industries & Applications' %></a></li>
-                        <li><a href="/<%= lang %>/technical-service">&#8226; <%= lang==='DE' ? 'Technischer Service' :
-                                    lang==='ES' ? 'Servicio Técnico' : 'Technical Services' %></a></li>
-                        <li><a href="/<%= lang %>/WarrantyRegistration">&#8226; <%= lang==='DE'
-                                    ? 'Garantieregistrierung' : lang==='ES' ? 'Registro de Garantía'
-                                    : 'Warranty Registration' %></a></li>
-                        <li><a href="/TermCondition">&#8226; <%= lang==='DE' ? 'AGB' : lang==='ES'
-                                    ? 'Términos y Condiciones' : 'Terms & Condition' %></a></li>
+                            </ul>
 
+                        </li>
+                        <li><a href="/<%= lang %>/Articles">
+                                <%= lang==='DE' ? 'Artikel' : lang==='ES' ? 'Artículos' : 'Articles' %>
+                            </a></li>
+                        <li><a href="/<%= lang %>/Contactus">
+                                <%= lang==='DE' ? 'Kontakt' : lang==='ES' ? 'Contáctanos' : 'Contact Us' %>
+                            </a></li>
 
                     </ul>
+                </div>
+            </div>
+            <div id="languageSwitcher" class="language-switcher">
+                <button type="button" class="lang-toggle" id="currentLangBtn"><span id="currentLangName">Language</span>
+                    <img src="/assets/Imgs/Icons/Down-arrow-blue.png" alt="Down arrow"></button>
+                <ul class="lang-options">
+                    <li><button type="button" data-lang="EN">English</button></li>
+                    <li><button type="button" data-lang="ES">Español</button></li>
+                    <li><button type="button" data-lang="DE">Deutsch</button></li>
+                    <li><button type="button" data-lang="TR">Türkçe</button></li>
+                    <li><button type="button" data-lang="FR">Français</button></li>
+                </ul>
+            </div>
 
-                </li>
-                <li><a href="/<%= lang %>/Articles">
-                        <%= lang==='DE' ? 'Artikel' : lang==='ES' ? 'Artículos' : 'Articles' %>
-                    </a></li>
-                <li><a href="/<%= lang %>/Contactus">
-                        <%= lang==='DE' ? 'Kontakt' : lang==='ES' ? 'Contáctanos' : 'Contact Us' %>
-                    </a></li>
 
-            </ul>
+
+            <li class="dropdown language-dropdown-mobile">
+                <p>
+                    <%= lang==='DE' ? 'Sprache' : lang==='ES' ? 'Idioma' : 'Language' %>
+                        <img src="/assets/Imgs/Icons/Down-arrow-blue.png" alt="Down arrow">
+                </p>
+                <ul class="dropdown-menu">
+                    <li><a href="javascript:void(0)" onclick="changeLanguage('EN')">&#8226; English</a></li>
+                    <li><a href="javascript:void(0)" onclick="changeLanguage('ES')">&#8226; Español</a></li>
+                    <li><a href="javascript:void(0)" onclick="changeLanguage('DE')">&#8226; Deutsch</a></li>
+                </ul>
+            </li>
+
+
+
+            <div class="navLeft">
+                <div class="navMidRight">
+                    <input type="text" id="search" name="search" placeholder="Search..">
+                    <img src="/assets/Imgs/Icons/search.png" alt="search" class="search-icon">
+
+                </div>
+                <div id="searchResults" class="search-results"></div>
+
+            </div>
+
+
+
+            <div class="hamburgerIconcontainer">
+                <img src="/assets/Imgs/Icons/hamburger-menu.png" alt="menu" id="hamburgerBtn" class="menu-icon" />
+            </div>
+
+
         </div>
-    </div>
-    <div id="languageSwitcher" class="language-switcher">
-        <button type="button" class="lang-toggle" id="currentLangBtn"><span id="currentLangName">Language</span> <img
-                src="/assets/Imgs/Icons/Down-arrow-blue.png" alt="Down arrow"></button>
-        <ul class="lang-options">
-            <li><button type="button" data-lang="EN">English</button></li>
-            <li><button type="button" data-lang="ES">Español</button></li>
-            <li><button type="button" data-lang="DE">Deutsch</button></li>
-        </ul>
-    </div>
 
+        </nav>
 
-
-    <li class="dropdown language-dropdown-mobile">
-        <p>
-            <%= lang==='DE' ? 'Sprache' : lang==='ES' ? 'Idioma' : 'Language' %>
-                <img src="/assets/Imgs/Icons/Down-arrow-blue.png" alt="Down arrow">
-        </p>
-        <ul class="dropdown-menu">
-            <li><a href="javascript:void(0)" onclick="changeLanguage('EN')">&#8226; English</a></li>
-            <li><a href="javascript:void(0)" onclick="changeLanguage('ES')">&#8226; Español</a></li>
-            <li><a href="javascript:void(0)" onclick="changeLanguage('DE')">&#8226; Deutsch</a></li>
-        </ul>
-    </li>
-
-
-
-    <div class="navLeft">
-        <div class="navMidRight">
-            <input type="text" id="search" name="search" placeholder="Search..">
-            <img src="/assets/Imgs/Icons/search.png" alt="search" class="search-icon">
-
-        </div>
-        <div id="searchResults" class="search-results"></div>
-
-    </div>
-
-
-
-    <div class="hamburgerIconcontainer">
-        <img src="/assets/Imgs/Icons/hamburger-menu.png" alt="menu" id="hamburgerBtn" class="menu-icon" />
-    </div>
-
-
-</div>
-
-</nav>
-
-<!-- ✅ MOBILE NAVIGATION STRUCTURE -->
-<div class="mobile-navbar" id="mobileNavbar">
-    <!-- Main Menu -->
-    <div class="menu-page active" id="mainMenu">
-        <div class="top-bar">
-            <img src="/assets/Imgs/logo/DragLab-Logo.png" class="logo" alt="DragLab Logo" />
-            <!-- <select id="languageSwitcher" onchange="changeLanguage(this.value)">
+        <!-- ✅ MOBILE NAVIGATION STRUCTURE -->
+        <div class="mobile-navbar" id="mobileNavbar">
+            <!-- Main Menu -->
+            <div class="menu-page active" id="mainMenu">
+                <div class="top-bar">
+                    <img src="/assets/Imgs/logo/DragLab-Logo.png" class="logo" alt="DragLab Logo" />
+                    <!-- <select id="languageSwitcher" onchange="changeLanguage(this.value)">
                 <option value="EN">EN</option>
                 <option value="ES">ES</option>
                 <option value="DE">DE</option>
             </select> -->
-            <span class="close-menu">&#10005;</span>
-        </div>
-        <div class="mobile-search-container">
-
-            <input type="text" id="mobileSearch" class="mobile-search" placeholder="Search..." />
-            <div id="searchResults" class="search-results"></div>
-        </div>
-
-        <ul class="main-links">
-            <li data-goto-page="companyPage">
-                <%= lang==='DE' ? 'Unternehmen' : lang==='ES' ? 'Empresa' : 'Company' %>
-                    <img src="/assets/Imgs/Icons/Down-arrow-blue.png" alt="Down arrow">
-            </li>
-            <li data-goto-page="productPage">
-                <%= lang==='DE' ? 'Produkte' : lang==='ES' ? 'Productos' : 'Products' %>
-                    <img src="/assets/Imgs/Icons/Down-arrow-blue.png" alt="">
-            </li>
-            <li data-goto-page="supportPage">
-                <%= lang==='DE' ? 'Dienstleistungen' : lang==='ES' ? 'Servicios' : 'Services' %></span> <img
-                        src="/assets/Imgs/Icons/Down-arrow-blue.png" alt="">
-            </li>
-            <li><a href="/<%= lang %>/Articles">
-                    <%= lang==='DE' ? 'Artikel' : lang==='ES' ? 'Artículos' : 'Articles' %>
-                </a></li>
-            <li><a href="/<%= lang %>/Contactus">
-                    <%= lang==='DE' ? 'Kontakt' : lang==='ES' ? 'Contáctanos' : 'Contact Us' %>
-                </a></li>
-            <li data-goto-page="languagePage">
-                Language
-                <img src="/assets/Imgs/Icons/Down-arrow-blue.png" alt="Down arrow" />
-            </li>
-
-        </ul>
-    </div>
-
-    <!-- Company Submenu -->
-    <div class="menu-page" id="companyPage">
-        <div class="top-bar">
-            <span class="back" data-go-back-parent>
-                <img src="/assets/Imgs/Icons/backarrow.png" alt="">
-            </span>
-
-            <span class="page-title">
-                <%= lang==='DE' ? 'Unternehmen' : lang==='ES' ? 'Empresa' : 'Company' %>
-            </span>
-            <span class="close-menu">&#10005;</span>
-        </div>
-        <ul>
-            <li><a href="/<%= lang %>/aboutus">
-                    <%= lang==='DE' ? 'Über Uns' : lang==='ES' ? 'Sobre Nosotros' : 'About Us' %>
-                </a></li>
-            <li><a href="/<%= lang %>/TermCondition">
-                    <%= lang==='DE' ? 'AGB' : lang==='ES' ? 'Términos y Condiciones' : 'Terms & Condition' %>
-                </a></li>
-            <li><a href="/<%= lang %>/QualityPolicy">
-                    <%= lang==='DE' ? 'Qualitätspolitik' : lang==='ES' ? 'Política de Calidad' : 'Quality Policy' %>
-                </a></li>
-            <li><a href="/<%= lang %>/SustainabilityPolicy">
-                    <%= lang==='DE' ? 'Nachhaltigkeit' : lang==='ES' ? 'Sostenibilidad' : 'Sustainability' %>
-                </a></li>
-            <li><a href="/<%= lang %>/Qualifications">
-                    <%= lang==='DE' ? 'Qualifikationen' : lang==='ES' ? 'Calificaciones' : 'Qualifications' %>
-                </a></li>
-            <li><a href="/<%= lang %>/PrivacyPolicy">
-                    <%= lang==='DE' ? 'Datenschutzerklärung' : lang==='ES' ? 'Política de Privacidad' : 'Privacy Policy'
-                        %>
-                </a></li>
-        </ul>
-    </div>
-
-    <!-- Products Submenu -->
-    <!-- Products Menu (no redirect on click) -->
-    <!-- Products list page -->
-    <div class="menu-page" id="productPage">
-        <div class="top-bar">
-            <span class="back" data-go-back-parent><img src="/assets/Imgs/Icons/backarrow.png" alt=""></span>
-            <span class="page-title">Products</span>
-            <span class="close-menu">&#10005;</span>
-        </div>
-
-        <% products.filter(p=> !p.isDraft).forEach(product => {
-            const productLang = product.Language?.[lang]?.[0];
-            %>
-            <div class="product-item" data-show-models="<%= product.slug %>">
-
-                <div class="product-photo-container">
-                    <img src="<%=product.ProductSketch %>" alt="Product Image" width="80px" height="80px" />
-                    <div class="product-info">
-                        <h4>
-                            <%= productLang?.ProductName %>
-                        </h4>
-                        <p>
-                            <%= productLang?.ProductNameDesc %>
-                        </p>
-                    </div>
-                </div>
-
-                <span class="arrow"><img src="/assets/Imgs/Icons/Arrow.png" alt=""></span>
-            </div>
-            <% }) %>
-    </div>
-
-    <!-- ✅ Move this outside the productPage -->
-    <% products.filter(p=> !p.isDraft).forEach(product => {
-        const productLang = product.Language?.[lang]?.[0];
-        const models = product.Models.filter(m => m.isPublished);
-        %>
-        <div class="menu-page" id="modelMenu_<%= product.slug %>">
-            <div class="top-bar">
-                <span class="back" data-go-back="modelMenu_<%= product.slug %>">
-                    <img src="/assets/Imgs/Icons/backarrow.png" alt="">
-                </span>
-
-                <span class="page-title">Models</span>
-                <span class="close-menu">&#10005;</span>
-            </div>
-
-            <div class="model-section">
-                <div class="imgModelContainer">
-                    <img src="/assets/Imgs/Icons/models.png" alt="models" width="30">
-                    <p>
-                        <%= lang==='DE' ? 'Modelle:' : lang==='ES' ? 'Modelos:' : 'Models:' %>
-                    </p>
-                </div>
-
-                <ul>
-                    <% models.forEach(model=> {
-                        const modelLang = model.Language?.[lang]?.[0] || model.Language?.EN?.[0];
-
-                        %>
-                        <li data-goto-model-product="<%= product.slug %>" data-goto-model-model="<%= model.slug %>">
-                            <%= productLang?.ProductName %> - <%= modelLang?.ModelName %>
-                        </li>
-
-                        <% }) %>
-                </ul>
-
-                <img src="<%=product.ProductSketch %>" class="model-img" alt="Model Image" />
-                <button class="view-product" data-goto-product="<%= product.slug %>">View Product</button>
-            </div>
-        </div>
-        <% }) %>
-
-
-            <!-- Support Submenu -->
-            <div class="menu-page" id="supportPage">
-                <div class="top-bar">
-                    <span class="back" data-go-back-parent><img src="/assets/Imgs/Icons/backarrow.png" alt=""></span>
-                    <span class="page-title">
-                        <%= lang==='DE' ? 'Dienstleistungen' : lang==='ES' ? 'Servicios' : 'Services' %>
-                    </span>
                     <span class="close-menu">&#10005;</span>
                 </div>
-                <ul>
-                    <li><a href="/<%= lang %>/support">
-                            <%= lang==='DE' ? 'Support' : lang==='ES' ? 'Soporte' : 'Support' %>
-                        </a></li>
-                    <li><a href="/<%= lang %>/Downloads">
-                            <%= lang==='DE' ? 'Downloads' : lang==='ES' ? 'Descargas' : 'Downloads' %>
-                        </a></li>
-                    <li><a href="/industry">
-                            <%= lang==='DE' ? 'Branche & Anwendungen' : lang==='ES' ? 'Industria & Aplicaciones'
-                                : 'Industries & Applications' %>
-                        </a></li>
-                    <li><a href="/<%= lang %>/technical-service">
-                            <%= lang==='DE' ? 'Technischer Service' : lang==='ES' ? 'Servicio Técnico'
-                                : 'Technical Services' %>
-                        </a></li>
-                    <li><a href="/<%= lang %>/WarrantyRegistration">
-                            <%= lang==='DE' ? 'Garantieregistrierung' : lang==='ES' ? 'Registro de Garantía'
-                                : 'Warranty Registration' %>
-                        </a></li>
-                    <li><a href="/TermCondition">
-                            <%= lang==='DE' ? 'AGB' : lang==='ES' ? 'Términos y Condiciones' : 'Terms & Condition' %>
-                        </a></li>
+                <div class="mobile-search-container">
 
+                    <input type="text" id="mobileSearch" class="mobile-search" placeholder="Search..." />
+                    <div id="searchResults" class="search-results"></div>
+                </div>
 
+                <ul class="main-links">
+                    <li data-goto-page="companyPage">
+                        <%= lang==='DE' ? 'Unternehmen' : lang==='ES' ? 'Empresa' : 'Company' %>
+                            <img src="/assets/Imgs/Icons/Down-arrow-blue.png" alt="Down arrow">
+                    </li>
+                    <li data-goto-page="productPage">
+                        <%= lang==='DE' ? 'Produkte' : lang==='ES' ? 'Productos' : 'Products' %>
+                            <img src="/assets/Imgs/Icons/Down-arrow-blue.png" alt="">
+                    </li>
+                    <li data-goto-page="supportPage">
+                        <%= lang==='DE' ? 'Dienstleistungen' : lang==='ES' ? 'Servicios' : 'Services' %></span> <img
+                                src="/assets/Imgs/Icons/Down-arrow-blue.png" alt="">
+                    </li>
+                    <li><a href="/<%= lang %>/Articles">
+                            <%= lang==='DE' ? 'Artikel' : lang==='ES' ? 'Artículos' : 'Articles' %>
+                        </a></li>
+                    <li><a href="/<%= lang %>/Contactus">
+                            <%= lang==='DE' ? 'Kontakt' : lang==='ES' ? 'Contáctanos' : 'Contact Us' %>
+                        </a></li>
+                    <li data-goto-page="languagePage">
+                        Language
+                        <img src="/assets/Imgs/Icons/Down-arrow-blue.png" alt="Down arrow" />
+                    </li>
 
                 </ul>
             </div>
-            <div class="menu-page" id="languagePage">
+
+            <!-- Company Submenu -->
+            <div class="menu-page" id="companyPage">
                 <div class="top-bar">
                     <span class="back" data-go-back-parent>
-                        <img src="/assets/Imgs/Icons/backarrow.png" alt="Back" />
+                        <img src="/assets/Imgs/Icons/backarrow.png" alt="">
                     </span>
+
                     <span class="page-title">
-                        <%= lang==='DE' ? 'Sprache' : lang==='ES' ? 'Idioma' : 'Language' %>
+                        <%= lang==='DE' ? 'Unternehmen' : lang==='ES' ? 'Empresa' : 'Company' %>
                     </span>
                     <span class="close-menu">&#10005;</span>
                 </div>
-
                 <ul>
-                    <li><a href="javascript:void(0)" data-lang="EN">English</a></li>
-                    <li><a href="javascript:void(0)" data-lang="ES">Español</a></li>
-                    <li><a href="javascript:void(0)" data-lang="DE">Deutsch</a></li>
+                    <li><a href="/<%= lang %>/aboutus">
+                            <%= lang==='DE' ? 'Über Uns' : lang==='ES' ? 'Sobre Nosotros' : 'About Us' %>
+                        </a></li>
+                    <li><a href="/<%= lang %>/TermCondition">
+                            <%= lang==='DE' ? 'AGB' : lang==='ES' ? 'Términos y Condiciones' : 'Terms & Condition' %>
+                        </a></li>
+                    <li><a href="/<%= lang %>/QualityPolicy">
+                            <%= lang==='DE' ? 'Qualitätspolitik' : lang==='ES' ? 'Política de Calidad'
+                                : 'Quality Policy' %>
+                        </a></li>
+                    <li><a href="/<%= lang %>/SustainabilityPolicy">
+                            <%= lang==='DE' ? 'Nachhaltigkeit' : lang==='ES' ? 'Sostenibilidad' : 'Sustainability' %>
+                        </a></li>
+                    <li><a href="/<%= lang %>/Qualifications">
+                            <%= lang==='DE' ? 'Qualifikationen' : lang==='ES' ? 'Calificaciones' : 'Qualifications' %>
+                        </a></li>
+                    <li><a href="/<%= lang %>/PrivacyPolicy">
+                            <%= lang==='DE' ? 'Datenschutzerklärung' : lang==='ES' ? 'Política de Privacidad'
+                                : 'Privacy Policy' %>
+                        </a></li>
                 </ul>
             </div>
 
-</div>
+            <!-- Products Submenu -->
+            <!-- Products Menu (no redirect on click) -->
+            <!-- Products list page -->
+            <div class="menu-page" id="productPage">
+                <div class="top-bar">
+                    <span class="back" data-go-back-parent><img src="/assets/Imgs/Icons/backarrow.png" alt=""></span>
+                    <span class="page-title">Products</span>
+                    <span class="close-menu">&#10005;</span>
+                </div>
+
+                <% _navProducts.forEach(product=> {
+                    const productLang = product.Language?.[lang]?.[0] || product.Language?.EN?.[0];
+                    %>
+                    <div class="product-item" data-show-models="<%= product.slug %>">
+                        <div class="product-photo-container">
+                            <img src="<%= product.ProductSketch %>" alt="Product Image" width="80" height="80" />
+                            <div class="product-info">
+                                <h4>
+                                    <%= product.displayName %>
+                                </h4>
+                                <p>
+                                    <%= product.displayDesc %>
+                                </p>
+
+                            </div>
+                        </div>
+                        <span class="arrow"><img src="/assets/Imgs/Icons/Arrow.png" alt=""></span>
+                    </div>
+                    <% }) %>
+
+            </div>
+
+            <!-- ✅ Move this outside the productPage -->
+            <% _navProducts.forEach(product=> {
+                const productLang = product.Language?.[lang]?.[0] || product.Language?.EN?.[0];
+                const models = (product.Models || []).filter(m => m?.Language?.[lang]?.[0]?.publish === true);
+                if (!models.length) { return; }
+                %>
+                <div class="menu-page" id="modelMenu_<%= product.slug %>">
+                    <div class="top-bar">
+                        <span class="back" data-go-back="modelMenu_<%= product.slug %>">
+                            <img src="/assets/Imgs/Icons/backarrow.png" alt="">
+                        </span>
+                        <span class="page-title">Models</span>
+                        <span class="close-menu">&#10005;</span>
+                    </div>
+
+                    <div class="model-section">
+                        <div class="imgModelContainer">
+                            <img src="/assets/Imgs/Icons/models.png" alt="models" width="30">
+                            <p>
+                                <%= lang==='DE' ? 'Modelle:' : lang==='ES' ? 'Modelos:' : 'Models:' %>
+                            </p>
+                        </div>
+
+                        <ul>
+                            <% models.forEach(model=> {
+                                const mLang = model.Language?.[lang]?.[0] || model.Language?.EN?.[0]; %>
+                                <li data-goto-model-product="<%= product.slug %>"
+                                    data-goto-model-model="<%= model.slug %>">
+                                    <%= productLang?.ProductName %> - <%= mLang?.ModelName %>
+                                </li>
+                                <% }) %>
+                        </ul>
+
+                        <img src="<%= product.ProductSketch %>" class="model-img" alt="Model Image" />
+                        <button class="view-product" data-goto-product="<%= product.slug %>">View Product</button>
+                    </div>
+                </div>
+                <% }) %>
+
+
+
+                    <!-- Support Submenu -->
+                    <div class="menu-page" id="supportPage">
+                        <div class="top-bar">
+                            <span class="back" data-go-back-parent><img src="/assets/Imgs/Icons/backarrow.png"
+                                    alt=""></span>
+                            <span class="page-title">
+                                <%= lang==='DE' ? 'Dienstleistungen' : lang==='ES' ? 'Servicios' : 'Services' %>
+                            </span>
+                            <span class="close-menu">&#10005;</span>
+                        </div>
+                        <ul>
+                            <li><a href="/<%= lang %>/support">
+                                    <%= lang==='DE' ? 'Support' : lang==='ES' ? 'Soporte' : 'Support' %>
+                                </a></li>
+                            <li><a href="/<%= lang %>/Downloads">
+                                    <%= lang==='DE' ? 'Downloads' : lang==='ES' ? 'Descargas' : 'Downloads' %>
+                                </a></li>
+                            <li><a href="/industry">
+                                    <%= lang==='DE' ? 'Branche & Anwendungen' : lang==='ES' ? 'Industria & Aplicaciones'
+                                        : 'Industries & Applications' %>
+                                </a></li>
+                            <li><a href="/<%= lang %>/technical-service">
+                                    <%= lang==='DE' ? 'Technischer Service' : lang==='ES' ? 'Servicio Técnico'
+                                        : 'Technical Services' %>
+                                </a></li>
+                            <li><a href="/<%= lang %>/WarrantyRegistration">
+                                    <%= lang==='DE' ? 'Garantieregistrierung' : lang==='ES' ? 'Registro de Garantía'
+                                        : 'Warranty Registration' %>
+                                </a></li>
+                            <li><a href="/TermCondition">
+                                    <%= lang==='DE' ? 'AGB' : lang==='ES' ? 'Términos y Condiciones'
+                                        : 'Terms & Condition' %>
+                                </a></li>
+
+
+
+                        </ul>
+                    </div>
+                    <div class="menu-page" id="languagePage">
+                        <div class="top-bar">
+                            <span class="back" data-go-back-parent>
+                                <img src="/assets/Imgs/Icons/backarrow.png" alt="Back" />
+                            </span>
+                            <span class="page-title">
+                                <%= lang==='DE' ? 'Sprache' : lang==='ES' ? 'Idioma' : 'Language' %>
+                            </span>
+                            <span class="close-menu">&#10005;</span>
+                        </div>
+
+                        <ul>
+                            <li><a href="javascript:void(0)" data-lang="EN">English</a></li>
+                            <li><a href="javascript:void(0)" data-lang="ES">Español</a></li>
+                            <li><a href="javascript:void(0)" data-lang="DE">Deutsch</a></li>
+                        </ul>
+                    </div>
+
+        </div>

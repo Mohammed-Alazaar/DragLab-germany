@@ -4,17 +4,19 @@ document.addEventListener('DOMContentLoaded', () => {
     // your navbar code
 
     // ────────────────────────────
-    // 📦 Utility Functions
+    //  📦 Utility Functions
     // ────────────────────────────
     function getCurrentLang() {
         const path = window.location.pathname;
-        const langMatch = path.match(/\/(EN|ES|DE)/);
+        const langMatch = path.match(/\/(EN|ES|DE|TR|FR)/);
         return langMatch ? langMatch[1] : 'EN';
     }
     const langNames = {
         EN: 'English',
         ES: 'Español',
-        DE: 'Deutsch'
+        DE: 'Deutsch',
+        TR: 'Türkçe',
+        FR: 'Français'
     };
 
     function updateCurrentLangDisplay() {
@@ -42,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function changeLanguage(lang) {
         const currentPath = window.location.pathname;
-        const updatedPath = currentPath.replace(/\/(EN|ES|DE)/, '/' + lang);
+        const updatedPath = currentPath.replace(/\/(EN|ES|DE|TR|FR)/, '/' + lang);
           updateCurrentLangDisplay(); // optional since page reloads
         window.location.href = updatedPath === currentPath ? `/${lang}` : updatedPath;
     }
