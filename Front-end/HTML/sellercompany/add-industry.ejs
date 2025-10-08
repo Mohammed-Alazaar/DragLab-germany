@@ -65,116 +65,104 @@
                                                         <% } %>
                                                 </div>
 
-                                                <% ['EN', 'ES' , 'DE' ].forEach(lang=> { %>
-                                                    <div class="language-section">
-                                                        <h2>Language: <%= lang %>
-                                                        </h2>
+                                            <% ['EN','ES','DE','TR','FR'].forEach(function(lang){ 
+     var hasLang = industry && industry.Language && industry.Language[lang] && industry.Language[lang][0];
+     var L = hasLang ? industry.Language[lang][0] : {};
+%>
+  <div class="language-section" data-lang="<%= lang %>">
+    <h2 class="language-header">
+      <button
+        type="button"
+        class="language-toggle"
+        aria-expanded="false"
+        aria-controls="lang-<%= lang %>-body">
+        <span class="toggle-caret" aria-hidden="true">▸</span>
+        Language: <%= lang %>
+      </button>
+    </h2>
 
-                                                        <div class="input-container">
-                                                            <label for="slideTitle_<%= lang %>">Slide Title (<%= lang %>
-                                                                    )</label>
-                                                            <input type="text" name="slideTitle_<%= lang %>"
-                                                                value="<%= industry?.Language?.[lang]?.[0]?.slideTitle || '' %>">
-                                                        </div>
+    <div class="language-body" id="lang-<%= lang %>-body">
+      <div class="input-container">
+        <label for="slideTitle_<%= lang %>">Slide Title (<%= lang %>)</label>
+        <input type="text" name="slideTitle_<%= lang %>" value="<%= L.slideTitle || '' %>">
+      </div>
 
-                                                        <div class="input-container">
-                                                            <label for="slideSubTitle_<%= lang %>">Slide Subtitle (<%=
-                                                                    lang %>
-                                                                    )</label>
-                                                            <input type="text" name="slideSubTitle_<%= lang %>"
-                                                                value="<%= industry?.Language?.[lang]?.[0]?.slideSubTitle || '' %>">
-                                                        </div>
+      <div class="input-container">
+        <label for="slideSubTitle_<%= lang %>">Slide Subtitle (<%= lang %>)</label>
+        <input type="text" name="slideSubTitle_<%= lang %>" value="<%= L.slideSubTitle || '' %>">
+      </div>
 
-                                                        <div class="input-container">
-                                                            <label for="slideDesc_<%= lang %>">Slide Description (<%=
-                                                                    lang %>
-                                                                    )</label>
-                                                            <textarea
-                                                                name="slideDesc_<%= lang %>"><%= industry?.Language?.[lang]?.[0]?.slideDesc || '' %></textarea>
-                                                        </div>
+      <div class="input-container">
+        <label for="slideDesc_<%= lang %>">Slide Description (<%= lang %>)</label>
+        <textarea name="slideDesc_<%= lang %>"><%= L.slideDesc || '' %></textarea>
+      </div>
 
-                                                        <div class="input-container">
-                                                            <label for="introTitle_<%= lang %>">Introduction Title (<%=
-                                                                    lang %>
-                                                                    )</label>
-                                                            <input type="text" name="introTitle_<%= lang %>"
-                                                                value="<%= industry?.Language?.[lang]?.[0]?.introTitle || '' %>">
-                                                        </div>
+      <div class="input-container">
+        <label for="introTitle_<%= lang %>">Introduction Title (<%= lang %>)</label>
+        <input type="text" name="introTitle_<%= lang %>" value="<%= L.introTitle || '' %>">
+      </div>
 
-                                                        <div class="input-container">
-                                                            <label for="introDesc_<%= lang %>">Introduction Description
-                                                                (<%= lang %>)</label>
-                                                            <textarea
-                                                                name="introDesc_<%= lang %>"><%= industry?.Language?.[lang]?.[0]?.introDesc || '' %></textarea>
-                                                        </div>
+      <div class="input-container">
+        <label for="introDesc_<%= lang %>">Introduction Description (<%= lang %>)</label>
+        <textarea name="introDesc_<%= lang %>"><%= L.introDesc || '' %></textarea>
+      </div>
 
-                                                        <h3>Feature Boxes (max 3)</h3>
-                                                        <% for (let i=0; i < 3; i++) { const
-                                                            feature=industry?.Language?.[lang]?.[0]?.features?.[i] ||
-                                                            {}; %>
-                                                            <div class="feature-box">
-                                                                <% if (lang==='EN' ) { %>
-                                                                    <% if (feature.FeatureImage) { %>
-                                                                        <img src="<%= feature.FeatureImage %>"
-                                                                            style="max-width: 100px;">
-                                                                        <% } %>
-                                                                            <input type="hidden"
-                                                                                name="OldFeatureImage_<%= lang %>[]"
-                                                                                value="<%= feature.FeatureImage || '' %>">
+      <h3>Feature Boxes (max 3)</h3>
+      <% for (var i = 0; i < 3; i++) {
+           var f = (L.features && L.features[i]) ? L.features[i] : {};
+      %>
+        <div class="feature-box">
+          <% if (lang === 'EN') { %>
+            <% if (f.FeatureImage) { %>
+              <img src="<%= f.FeatureImage %>" style="max-width:100px;">
+            <% } %>
+            <input type="hidden" name="OldFeatureImage_<%= lang %>[]"
+                   value="<%= f.FeatureImage || '' %>">
+            <label>Feature Image</label>
+            <input type="file" name="FeatureImage_<%= lang %>[<%= i %>]" accept="image/*">
+          <% } else { %>
+            <p style="color:#888;">* Image shared from EN</p>
+            <input type="hidden" name="OldFeatureImage_<%= lang %>[]"
+                   value="">
+          <% } %>
 
-                                                                            <label>Feature Image</label>
-                                                                            <input type="file"
-                                                                                name="FeatureImage_<%= lang %>[<%= i %>]"
-                                                                                accept="image/*">
-                                                                            <% } else { %>
-                                                                                <p style="color: #888;">* Image shared
-                                                                                    from EN
-                                                                                </p>
-                                                                                <input type="hidden"
-                                                                                    name="OldFeatureImage_<%= lang %>[]"
-                                                                                    value="">
-                                                                                <% } %>
+          <label>Feature Name</label>
+          <input type="text" name="FeatureName_<%= lang %>[]"
+                 value="<%= f.FeatureName || '' %>">
 
-                                                                                    <label>Feature Name</label>
-                                                                                    <input type="text"
-                                                                                        name="FeatureName_<%= lang %>[]"
-                                                                                        value="<%= feature.FeatureName || '' %>">
+          <label>Feature Description</label>
+          <input type="text" name="FeatureDesc_<%= lang %>[]"
+                 value="<%= f.FeatureDesc || '' %>">
+        </div>
+      <% } %>
 
-                                                                                    <label>Feature Description</label>
-                                                                                    <input type="text"
-                                                                                        name="FeatureDesc_<%= lang %>[]"
-                                                                                        value="<%= feature.FeatureDesc || '' %>">
-                                                            </div>
-                                                            <% } %>
-                                                                <h3>Frequently Used Products</h3>
-                                                                <% allProducts.forEach(product=> {
-                                                                    const productName =
-                                                                    product.Language?.[lang]?.[0]?.ProductName ||
-                                                                    product.slug;
-                                                                    const savedDesc =
-                                                                    industry?.frequentlyUsedProducts?.[lang]?.find(p =>
-                                                                    p.productId?.toString() === product._id.toString()
-                                                                    )?.text || '';
-                                                                    %>
-                                                                    <div class="product-desc-input">
-                                                                        <label
-                                                                            for="frequentlyUsedProduct_<%= lang %>_<%= product._id %>">
-                                                                            <%= productName %> (<%= lang %>)
-                                                                        </label>
-                                                                        <input type="hidden"
-                                                                            name="frequentlyUsedProductId_<%= lang %>[]"
-                                                                            value="<%= product._id %>">
-                                                                        <input type="text"
-                                                                            name="frequentlyUsedProductText_<%= lang %>[]"
-                                                                            id="frequentlyUsedProduct_<%= lang %>_<%= product._id %>"
-                                                                            value="<%= savedDesc %>">
-                                                                    </div>
-                                                                    <% }) %>
+      <h3>Frequently Used Products</h3>
+      <% allProducts.forEach(function(product){
+           var pName = (product.Language && product.Language[lang] && product.Language[lang][0] && product.Language[lang][0].ProductName) ? product.Language[lang][0].ProductName : product.slug;
+           var savedDesc = '';
+           if (industry && industry.frequentlyUsedProducts && industry.frequentlyUsedProducts[lang]) {
+             var match = industry.frequentlyUsedProducts[lang].find(function(p){ 
+               return p.productId && (String(p.productId) === String(product._id)); 
+             });
+             savedDesc = match ? (match.text || '') : '';
+           }
+      %>
+        <div class="product-desc-input">
+          <label for="frequentlyUsedProduct_<%= lang %>_<%= product._id %>">
+            <%= pName %> (<%= lang %>)
+          </label>
+          <input type="hidden" name="frequentlyUsedProductId_<%= lang %>[]"
+                 value="<%= product._id %>">
+          <input type="text"
+                 name="frequentlyUsedProductText_<%= lang %>[]"
+                 id="frequentlyUsedProduct_<%= lang %>_<%= product._id %>"
+                 value="<%= savedDesc %>">
+        </div>
+      <% }); %>
+    </div>
+  </div>
+<% }); %>
 
-
-                                                                     
-                                                    </div>
-                                                    <% }); %>
 
 
 
@@ -195,5 +183,7 @@
         </body>
 
         <script src="/assets/Js/nav-bar.js"></script>
+        <script src="/js/add-industry.js" nonce="<%= nonce %>"></script>
+
 
         </html>

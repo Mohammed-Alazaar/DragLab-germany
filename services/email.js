@@ -11,7 +11,9 @@ if (process.env.SENDGRID_API_KEY) {
 
 const TEMPLATES = {
   technicalSupport: 'd-66deb38dcff64e8e8fe7140d1bd0c808',
-  warrantyRegistration: 'd-fcd989123b6a4dbbb6af8ef1767c042b'
+  warrantyRegistration: 'd-fcd989123b6a4dbbb6af8ef1767c042b',
+  contactUs:'d-072c00ede8154038b00431343edd9bdf'
+
 };
 
 function pickTemplate(form) {

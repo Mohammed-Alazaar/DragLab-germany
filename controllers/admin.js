@@ -2431,7 +2431,7 @@ exports.postAddIndustry = async (req, res) => {
     const slideImage = req.files?.slideImage?.[0]?.cloudinaryUrl || '';
     const introImage = req.files?.introImage?.[0]?.cloudinaryUrl || '';
 
-    const languages = ['EN', 'ES', 'DE'];
+    const languages = allanguages;
     const languageData = {};
     const validationErrors = [];
 
@@ -2586,7 +2586,7 @@ exports.postEditIndustryPage = async (req, res) => {
   try {
     const { industryId, slug, saveType } = req.body;
     const isDraft = saveType === 'draft';
-    const languages = ['EN', 'ES', 'DE'];
+    const languages = ['EN', 'ES', 'DE', 'TR', 'FR'];
     const validationErrors = [];
     const languageData = {};
 

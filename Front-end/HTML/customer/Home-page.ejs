@@ -106,48 +106,47 @@
             <!-- slideshow -->
             <!-- products slideshow start -->
 
-            <div class="slideshow-container">
-                <h2>
-                    <%= t.featured %>
-                </h2>
-                <div class="slides-wrapper" id="slidesWrapper">
-                    <% products .filter(product=> !product.isDraft)
-                        .forEach(product => {
-                        const translation = product.Language[lang]?.[0] || product.Language['EN']?.[0];
-                        if (!translation) return;
-                        %>
-
-                        <div class="product-slide">
-                            <a href="/<%= lang %>/products/<%= product.slug %>" class="product-card-link">
-
-                                <div class="product-card">
-                                    <div class="product-image-wrapper">
-                                        <img loading="lazy" loading="lazy" src="<%=product.ProductThumbnail %>"
-                                            alt="<%= translation.ProductName %>">
-                                        <div class="product-bg-overlay"></div>
-                                    </div>
-
-                                    <div class="product-card-information">
-                                        <h4>
-                                            <%= translation.ProductName %>
-                                        </h4>
-                                        <p>
-                                            <%= translation.ProductDesc %>
-                                        </p>
-                                    </div>
-                                    <button class="article-btn">View Details</button>
-                                </div>
-                            </a>
-                        </div>
-                        <% }) %>
-                </div>
-
-
-                <button class="slideshow-btn prev-btn" data-dir="-1"><img
-                        src="/assets/Imgs/Icons/right-products-arrow.png" alt=""></button>
-                <button class="slideshow-btn next-btn" data-dir="1"><img
-                        src="/assets/Imgs/Icons/left-products-arrow.png" alt=""></button>
+           <div class="slideshow-container">
+  <h2><%= t.featured %></h2>
+  <div class="slides-wrapper" id="slidesWrapper">
+    <% products.forEach(product => { 
+         const translation = product.Language[lang]?.[0] || product.Language['EN']?.[0];
+         if (!translation) return; // defensive only
+    %>
+      <div class="product-slide">
+        <a href="/<%= lang %>/products/<%= product.slug %>" class="product-card-link">
+          <div class="product-card">
+            <div class="product-image-wrapper">
+              <img loading="lazy" src="<%= product.ProductThumbnail %>" alt="<%= translation.ProductName %>">
+              <div class="product-bg-overlay"></div>
             </div>
+            <div class="product-card-information">
+              <h4><%= translation.ProductName %></h4>
+              <p><%= translation.ProductDesc %></p>
+            </div>
+            <button class="article-btn">
+              <%=
+                lang === 'DE' ? 'Details ansehen' :
+                lang === 'ES' ? 'Ver detalles' :
+                lang === 'TR' ? 'Detayları Gör' :
+                lang === 'FR' ? 'Voir les détails' :
+                'View Details'
+              %>
+            </button>
+          </div>
+        </a>
+      </div>
+    <% }) %>
+  </div>
+
+  <button class="slideshow-btn prev-btn" data-dir="-1">
+    <img src="/assets/Imgs/Icons/right-products-arrow.png" alt="">
+  </button>
+  <button class="slideshow-btn next-btn" data-dir="1">
+    <img src="/assets/Imgs/Icons/left-products-arrow.png" alt="">
+  </button>
+</div>
+
 
 
 

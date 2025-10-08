@@ -1,7 +1,16 @@
 document.addEventListener('DOMContentLoaded', function () {
-  const modelData = JSON.parse(document.getElementById('model-data').dataset.model);
+  let modelData = {};
+  const md = document.getElementById('model-data');
+  try {
+    modelData = JSON.parse(md?.textContent || '{}') || {};
+  } catch (e) {
+    console.error('❌ Failed to parse model-data JSON:', e);
+    modelData = {};
+  }
 
   ['EN', 'ES', 'DE', 'TR', 'FR'].forEach(lang => {
+    // ...
+
     const langData = modelData[lang]?.[0];
     if (!langData) return;
 
@@ -77,7 +86,7 @@ function addSpecSection(lang) {
 function addSpecRow(button) {
   const rowsContainer = button.previousElementSibling;
   const parent = button.closest('.spec-section');
-  const lang = parent.closest('.language-section').querySelector('h3').textContent.split(':')[1].trim();
+  const lang = parent.closest('.language-section').dataset.lang; // ✅ exact
   const sectionIndex = parent.dataset.index;
   const index = rowsContainer.children.length;
 
@@ -90,6 +99,7 @@ function addSpecRow(button) {
   `;
   rowsContainer.appendChild(rowDiv);
 }
+
 
 function addDownloadField(lang) {
   const container = document.getElementById(`download_${lang}_container`);

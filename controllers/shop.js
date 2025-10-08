@@ -122,26 +122,85 @@ exports.getHomePage = async (req, res, next) => {
                     biotech: "Biotechnologie und Lebenswissenschaften",
                     pharma: "Pharmazeutische Industrie"
                 },
+            },
+            TR: {
+                featured: "Öne Çıkan Ürünler",
+                articles: "Makaleler",
+                industries: "Endüstriler",
+                about: "Hakkımızda",
+                vision: "Vizyonumuz",
+                mission: "Misyonumuz",
+                values: "Değerlerimiz",
+                tab1Title: "Yenilikçi Mükemmellik",
+                tab1Subtitle: "Üstün tasarımla teknolojiyi ileriye taşıyoruz.",
+                tab1Desc: "Ürün ve hizmetlerimizin, ortaklarımızın yenilik, kalite ve müşteri odaklı yaklaşımıyla tanınan laboratuvar ve tıbbi ekipmanlarda küresel lider olmalarını sağlayacağına inanıyoruz.",
+                tab2Title: "Küresel Liderlik",
+                tab2Subtitle: "Yenilik, kalite ve müşteri odaklı başarı.",
+                tab2Desc: "Bilim ve sağlık profesyonellerini gelişmiş, güvenilir ve kullanıcı dostu ekipmanlarla güçlendirerek ilerlemeyi teşvik etmeyi ve sonuçları iyileştirmeyi hedefliyoruz.",
+                tab3Title: "Dürüstlük ve Sorumluluk",
+                tab3Subtitle: "Etik taahhütle değişimi güçlendirmek.",
+                tab3Desc: `<b>Yenilik:</b> Kesintisiz olarak teknolojinin sınırlarını zorlayarak öncü çözümler yaratmak.<br><b>Kalite:</b> Ürün tasarımı, üretimi ve performansında en yüksek standartları korumak.`,
+                industries: "Endüstriler",
+                industriesList: {
+                    chemical: "Kimya Endüstrisi",
+                    food: "Gıda ve İçecek Endüstrisi",
+                    biotech: "Biyoteknoloji ve Yaşam Bilimleri",
+                    pharma: "İlaç Endüstrisi"
+                },
+            },
+            FR: {
+                featured: "Produits en Vedette",
+                articles: "Articles",
+                industries: "Industries",
+                about: "À Propos de Nous",
+                vision: "Notre Vision",
+                mission: "Notre Mission",
+                values: "Nos Valeurs",
+                tab1Title: "Excellence Innovante",
+                tab1Subtitle: "Pousser la technologie avec un design supérieur.",
+                tab1Desc: "Nous croyons que les produits et services que nous fournissons permettront à nos partenaires de devenir un leader mondial dans les équipements de laboratoire et médicaux, connus pour notre innovation, notre qualité et notre approche axée sur le client.",
+                tab2Title: "Leadership Mondial",
+                tab2Subtitle: "Innovation, qualité et succès axé sur le client.",
+                tab2Desc: "Nous visons à autonomiser les professionnels de la science et des soins de santé avec des équipements avancés, fiables et conviviaux, stimulant le progrès et améliorant les résultats.",
+                tab3Title: "Intégrité et Responsabilité",
+                tab3Subtitle: "Favoriser le changement grâce à un engagement éthique.",
+                tab3Desc: `<b>Innovation :</b> Repousser continuellement les limites de la technologie pour créer des solutions de pointe.<br><b>Qualité :</b> Maintenir les normes les plus élevées en matière de conception, de fabrication et de performance des produits.`,
+                industries: "Industries",
+                industriesList: {
+                    chemical: "Industrie Chimique",
+                    food: "Industrie Alimentaire et des Boissons",
+                    biotech: "Biotechnologie et Sciences de la Vie",
+                    pharma: "Industrie Pharmaceutique"
+                }
             }
         };
 
 
+        // Fetch all non-draft products; we'll filter by language publish below
         const [products, slides, articles] = await Promise.all([
-            Product.find({ isDraft: false }),
+            Product.find({ isDraft: false }).lean(),
             Slideshow.find({ $or: [{ language: lang }, { language: 'ALL' }] })
-                .sort({ createdAt: -1 }),
+                .sort({ createdAt: -1 })
+                .lean(),
             Article.find({ $or: [{ language: lang }, { language: 'ALL' }] })
                 .sort({ createdAt: -1 })
-                .limit(10),
+                .limit(10)
+                .lean(),
         ]);
+
+        // Keep only products that are PUBLISHED in current language
+        const publishedProducts = products.filter(p => {
+            const langBlock = p?.Language?.[lang]?.[0];
+            return !!(langBlock && langBlock.publish === true);
+        });
 
         const rawIndustries = await Industry.find({ isDraft: false })
             .sort({ createdAt: 1 })
-            .limit(4);
-
+            .limit(4)
+            .lean();
 
         const industryCards = rawIndustries.map(ind => {
-            const langData = ind.Language?.[lang]?.[0] || {}; // ← FIXED HERE
+            const langData = ind.Language?.[lang]?.[0] || {};
             return {
                 slug: ind.slug,
                 image: ind.sharedImages?.introImage || '/assets/Imgs/default.jpg',
@@ -150,12 +209,10 @@ exports.getHomePage = async (req, res, next) => {
             };
         });
 
-
-
         res.render('customer/Home-page', {
             pageTitle: 'Home',
             path: '/',
-            products,
+            products: publishedProducts,     // 🔴 pass filtered list
             slides,
             articles,
             lang,
@@ -458,102 +515,160 @@ exports.getProductDetails = async (req, res, next) => {
 
 exports.getModelDetailsPage = async (req, res, next) => {
     const { lang, productSlug, modelSlug } = req.params;
-    const supportedLangs = allanguages;
+    const supportedLangs = allanguages; // e.g. ['EN','ES','DE','TR','FR']
     const selectedLang = supportedLangs.includes(lang) ? lang : 'EN';
 
     try {
-        // ✅ 1. Find product by slug
-        const product = await Product.findOne({ slug: productSlug });
-        if (!product) return res.redirect(`/${selectedLang}`);
+        // 1) Product by slug
+        const product = await Product.findOne({ slug: productSlug }).lean();
+        if (!product) {
+            return res.status(404).render('404', {
+                pageTitle: 'Not found',
+                path: '/404',
+                isAuthenticated: req.session?.isLoggedIn || false,
+            });
+        }
 
-        // ✅ 2. Find model by slug inside the product
-        const model = product.Models.find(m => m.slug === modelSlug);
-        if (!model || model.isPublished === false) return res.redirect(`/${selectedLang}`);
+        // 2) Model by slug
+        const model = (product.Models || []).find(m => m.slug === modelSlug);
+        if (!model || model.isPublished === false) {
+            // model itself is not published at all -> genuine 404/redirect
+            return res.status(404).render('404', {
+                pageTitle: 'Not found',
+                path: '/404',
+                isAuthenticated: req.session?.isLoggedIn || false,
+            });
+        }
 
-        // ✅ 3. Handle language fallback
-        const currentLangData = model.Language[selectedLang]?.[0];
-        const englishLangData = model.Language['EN']?.[0];
+        // 3) Published languages for this model
+        const availableLangs = (supportedLangs || []).filter(L =>
+            model?.Language?.[L]?.[0]?.publish === true
+        );
 
-        if (!currentLangData) return res.redirect(`/${selectedLang}`);
+        // 4) Current language gate: if not published -> friendly page
+        const currentLangData = model?.Language?.[selectedLang]?.[0];
+        if (!currentLangData || currentLangData.publish !== true) {
+            // EN first, then the rest
+            const sortedAvailable = availableLangs.sort((a, b) =>
+                a === 'EN' ? -1 : b === 'EN' ? 1 : 0
+            );
 
-        // ✅ 4. Fetch all products for the navbar
-        const allProducts = await Product.find();
+            const langNames = {
+                EN: 'English',
+                ES: 'Español',
+                DE: 'Deutsch',
+                TR: 'Türkçe',
+                FR: 'Français',
+            };
 
-        const productLangData = product.Language[selectedLang]?.[0] || product.Language['EN']?.[0];
+            const links = sortedAvailable.map(L => ({
+                code: L,
+                url: `/${L}/products/${product.slug}/${model.slug}`,
+                name: langNames[L] || L,
+            }));
+
+            return res.status(200).render('customer/model-not-available', {
+                pageTitle: 'Model Unavailable',
+                lang: selectedLang,
+                productSlug: product.slug,
+                modelSlug: model.slug,
+                links,
+                hasAny: links.length > 0,
+                products: res.locals.navProducts || [], // keep navbar happy
+            });
+        }
+
+        // 5) Normal render (language is published)
+        const englishLangData = model.Language?.EN?.[0];
+        const productLangData =
+            product.Language?.[selectedLang]?.[0] || product.Language?.EN?.[0];
+
         const translations = {
             EN: {
-                overviewTitle: "Overview",
-                industriesTitle: "Industries",
-                specsTitle: "Technical Specifications",
-                downloadsTitle: "Downloads",
-                noDownloads: "No downloads available in this language."
+                overviewTitle: 'Overview',
+                industriesTitle: 'Industries',
+                specsTitle: 'Technical Specifications',
+                downloadsTitle: 'Downloads',
+                noDownloads: 'No downloads available in this language.',
             },
             ES: {
-                overviewTitle: "Descripción general",
-                industriesTitle: "Industrias",
-                specsTitle: "Especificaciones técnicas",
-                downloadsTitle: "Descargas",
-                noDownloads: "No hay descargas disponibles en este idioma."
+                overviewTitle: 'Descripción general',
+                industriesTitle: 'Industrias',
+                specsTitle: 'Especificaciones técnicas',
+                downloadsTitle: 'Descargas',
+                noDownloads: 'No hay descargas disponibles en este idioma.',
             },
             DE: {
-                overviewTitle: "Überblick",
-                industriesTitle: "Branchen",
-                specsTitle: "Technische Daten",
-                downloadsTitle: "Downloads",
-                noDownloads: "Keine Downloads in dieser Sprache verfügbar."
+                overviewTitle: 'Überblick',
+                industriesTitle: 'Branchen',
+                specsTitle: 'Technische Daten',
+                downloadsTitle: 'Downloads',
+                noDownloads: 'Keine Downloads in dieser Sprache verfügbar.',
             },
             TR: {
-                overviewTitle: "Genel Bakış",
-                industriesTitle: "Sektörler",
-                specsTitle: "Teknik Özellikler",
-                downloadsTitle: "İndirmeler",
-                noDownloads: "Bu dilde mevcut indirme yok."
+                overviewTitle: 'Genel Bakış',
+                industriesTitle: 'Sektörler',
+                specsTitle: 'Teknik Özellikler',
+                downloadsTitle: 'İndirmeler',
+                noDownloads: 'Bu dilde mevcut indirme yok.',
             },
             FR: {
-                overviewTitle: "Aperçu",
-                industriesTitle: "Industries",
-                specsTitle: "Spécifications techniques",
-                downloadsTitle: "Téléchargements",
-                noDownloads: "Aucun téléchargement disponible dans cette langue."
-            }
+                overviewTitle: 'Aperçu',
+                industriesTitle: 'Industries',
+                specsTitle: 'Spécifications techniques',
+                downloadsTitle: 'Téléchargements',
+                noDownloads: 'Aucun téléchargement disponible dans cette langue.',
+            },
         };
 
+        const navProducts = res.locals.navProducts || [];
 
-        res.render('customer/Model-details', {
-            pageTitle: currentLangData.ModelName || "Model Details",
-            ModelName: currentLangData.ModelName || englishLangData.ModelName || "No Name",
-            ModelNameDesc: currentLangData.ModelNameDesc || englishLangData.ModelNameDesc || "No Description",
-            ModelDesc: currentLangData.ModelDesc || englishLangData.ModelDesc || "No Details",
-            overview: (currentLangData.overview?.length ? currentLangData.overview : englishLangData.overview || []).map((o, i) => ({
+        return res.render('customer/Model-details', {
+            pageTitle: currentLangData.ModelName || 'Model Details',
+            ModelName: currentLangData.ModelName || englishLangData?.ModelName || 'No Name',
+            ModelNameDesc:
+                currentLangData.ModelNameDesc || englishLangData?.ModelNameDesc || 'No Description',
+            ModelDesc: currentLangData.ModelDesc || englishLangData?.ModelDesc || 'No Details',
+
+            // Use EN images when present, keep text from current language
+            overview: (currentLangData.overview?.length
+                ? currentLangData.overview
+                : englishLangData?.overview || []
+            ).map((o, i) => ({
                 ...(o.toObject ? o.toObject() : o),
-                overviewImage: englishLangData?.overview?.[i]?.overviewImage || ''
+                overviewImage: englishLangData?.overview?.[i]?.overviewImage || '',
             })),
-            industry: (currentLangData.industry?.length ? currentLangData.industry : englishLangData.industry || []).map((ind, i) => ({
+
+            industry: (currentLangData.industry?.length
+                ? currentLangData.industry
+                : englishLangData?.industry || []
+            ).map((ind, i) => ({
                 ...(ind.toObject ? ind.toObject() : ind),
                 industryImage: englishLangData?.industry?.[i]?.industryImage || '',
-                industryLogo: englishLangData?.industry?.[i]?.industryLogo || ''
+                industryLogo: englishLangData?.industry?.[i]?.industryLogo || '',
             })),
-            specs: currentLangData.technicalSpecifications,
+
+            specs: currentLangData.technicalSpecifications || [],
             downloads: currentLangData.downloads || [],
             modelThumbnail: model.ModelThumbnail,
             overviewThumbnail: model.overviewThumbnail,
             modelPhotos: model.ModelPhotos,
             lang: selectedLang,
-            products: allProducts,
-            productId: product._id, // might still be needed in forms
+            products: navProducts,
+            productId: product._id,
             modelId: model._id,
             t: translations[selectedLang],
-            productName: productLangData?.ProductName || "Unknown Product",
+            productName: productLangData?.ProductName || 'Unknown Product',
             productSlug,
-            modelSlug
-
+            modelSlug,
+            req,
         });
-
     } catch (err) {
         console.error(err);
-        res.redirect('/EN');
+        return res.redirect('/EN');
     }
 };
+
 
 
 
@@ -623,6 +738,46 @@ exports.getContactus = (req, res, next) => {
                 send: 'Enviar mensaje',
                 contactInfo: 'Información de contacto',
             }
+        },
+        TR: {
+            pageTitle: 'Bize Ulaşın - DragLab',
+            metaDescription: 'Sorularınız mı var veya yardıma mı ihtiyacınız var? Hızlı destek ve uzman yardımı için DragLab ile iletişime geçin.',
+            ogTitle: 'İletişim | DragLab',
+            ogDescription: 'Laboratuvar ekipmanları veya hizmet taleplerinizle ilgili yardıma mı ihtiyacınız var? Bugün DragLab Technologies ile iletişime geçin.',
+            ogImage: DEFAULT_OG,
+            sectionHeading: 'Bize Ulaşın',
+            sectionSub: 'Sorularınız mı var veya yardıma mı ihtiyacınız var? Bizimle iletişime geçin!',
+            successMessage: '✅ Teşekkürler! Mesajınızı aldık.',
+            errorMessage: '❌ Bir şeyler ters gitti. Lütfen daha sonra tekrar deneyin.',
+            labels: {
+                first: 'Ad',
+                last: 'Soyad',
+                subject: 'Konu',
+                email: 'E-posta',
+                message: 'Mesajınızı yazın...',
+                send: 'Mesajı Gönder',
+                contactInfo: 'İletişim Bilgileri',
+            }
+        },
+        FR: {
+            pageTitle: 'Contactez-nous - DragLab',
+            metaDescription: 'Vous avez une question ou besoin d\'aide ? Contactez DragLab pour un support rapide et une assistance experte.',
+            ogTitle: 'Contact | DragLab',
+            ogDescription: 'Besoin d\'aide avec du matériel de laboratoire ou des demandes de service ? Contactez DragLab Technologies dès aujourd\'hui.',
+            ogImage: DEFAULT_OG,
+            sectionHeading: 'Contactez-nous',
+            sectionSub: 'Vous avez une question ou besoin d\'aide ? Contactez-nous !',
+            successMessage: '✅ Merci ! Nous avons bien reçu votre message.',
+            errorMessage: '❌ Une erreur est survenue. Veuillez réessayer plus tard.',
+            labels: {
+                first: 'Prénom',
+                last: 'Nom',
+                subject: 'Sujet',
+                email: 'E-mail',
+                message: 'Écrivez votre message...',
+                send: 'Envoyer le message',
+                contactInfo: 'Informations de contact',
+            }
         }
     };
 
@@ -645,8 +800,8 @@ exports.getContactus = (req, res, next) => {
                 products,
                 categories: [],
                 path: `/${lang}/contactus`,
-                noindex,          // 👈 use this in EJS
-                canonicalUrl,     // 👈 use this in EJS
+                noindex,
+                canonicalUrl,
                 ogImage: t.ogImage
             });
         })
@@ -658,38 +813,111 @@ exports.getContactus = (req, res, next) => {
 
 
 
-exports.postContactUs = async (req, res, next) => {
-    let fallbackLang = req.body.lang?.toLowerCase() || 'en';
+
+exports.postContactUs = async (req, res) => {
+    const lang = (req.body.lang || req.query.lang || 'EN').toUpperCase();
 
     try {
+        // --- Optional reCAPTCHA (controlled by RECAPTCHA_ENABLED) ---
         const token = req.body['g-recaptcha-response'];
-
-        const secret = process.env.RECAPTCHA_SECRET_KEY; // v3 secret
-        const verifyUrl = `https://www.google.com/recaptcha/api/siteverify`;
-
-        const response = await axios.post(verifyUrl, null, {
-            params: {
-                secret,
-                response: token,
-            },
-        });
-
-        const { success, score } = response.data;
-
-        if (!success || score < 0.5) {
-            return res.redirect(`/${fallbackLang}/contactus?error=true`);
+        if (RECAPTCHA_ENABLED) {
+            if (!token) return res.redirect(`/${lang}/contactus?error=true`);
+            const verifyUrl = 'https://www.google.com/recaptcha/api/siteverify';
+            const { data } = await axios.post(verifyUrl, null, {
+                params: { secret: process.env.RECAPTCHA_SECRET_KEY, response: token }
+            });
+            if (!data?.success || Number(data?.score) < 0.5) {
+                console.error('❌ reCAPTCHA verification failed (contact):', data);
+                return res.redirect(`/${lang}/contactus?error=true`);
+            }
+        } else {
+            console.warn('⚠️ reCAPTCHA disabled via RECAPTCHA_ENABLED=false (test mode)');
         }
 
+        // --- Extract fields ---
         const { firstName, lastName, subject, email, message } = req.body;
 
-        await new ContactUs({ firstName, lastName, subject, email, message }).save();
+        // --- Meta ---
+        const ipAddress = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip;
+        const userAgent = req.get('User-Agent');
 
-        res.redirect(`/${fallbackLang}/contactus?success=true`);
+        // --- Persist submission ---
+        const doc = await new ContactUs({
+            firstName, lastName, subject, email, message, lang, ipAddress, userAgent
+        }).save();
+
+        // Human-friendly ticket (Contact Us)
+        const ticketId = `CU-${doc._id.toString().slice(-6).toUpperCase()}`;
+
+        // --- Flags for template i18n ---
+        const flags = {
+            isEN: lang === 'EN',
+            isES: lang === 'ES',
+            isDE: lang === 'DE',
+            isTR: lang === 'TR',
+            isFR: lang === 'FR'
+        };
+
+        // --- Customer confirmation (SendGrid -> FROM noreply@) ---
+        await sendCustomerEmail({
+            to: email,
+            form: 'contactUs',
+            data: {
+                ...flags,
+                year: new Date().getFullYear(),
+                brandName: 'DragLab',
+                supportEmail: 'info@drag-lab.de',  // what users see in the footer/contact line
+                ticketId,
+                fullName: `${firstName} ${lastName}`,
+                contactSubject: subject,
+                userMessage: message || '',
+                helpCenterUrl: `https://www.drag-lab.de/${lang}/contactus`
+            }
+        });
+
+        // --- Admin notification (SMTP -> info@) ---
+        const subjectMap = {
+            EN: `[Contact] ${firstName} ${lastName} — ${subject} (${ticketId})`,
+            ES: `[Contacto] ${firstName} ${lastName} — ${subject} (${ticketId})`,
+            DE: `[Kontakt] ${firstName} ${lastName} — ${subject} (${ticketId})`,
+            TR: `[İletişim] ${firstName} ${lastName} — ${subject} (${ticketId})`,
+            FR: `[Contact] ${firstName} ${lastName} — ${subject} (${ticketId})`
+        };
+        const internalSubject = subjectMap[lang] || subjectMap.EN;
+
+        const bodyText =
+            `New Contact Us submission
+
+Ticket: ${ticketId}
+Name: ${firstName} ${lastName}
+Email: ${email}
+Subject: ${subject}
+
+Message:
+${message || '-'}
+
+Meta:
+- Language: ${lang}
+- IP: ${ipAddress || '-'}
+- User-Agent: ${userAgent || '-'}
+
+Admin Link (optional): https://www.drag-lab.de/admin/contact-message/${doc._id}
+`;
+
+        await notifyInternal({
+            to: 'info@drag-lab.de',
+            subject: internalSubject,
+            text: bodyText
+        });
+
+        return res.redirect(`/${lang}/contactus?success=true`);
     } catch (err) {
-        console.error(err);
-        res.redirect(`/${fallbackLang}/contactus?error=true`);
+        console.error('❌ Error in Contact Us submission:', err);
+        const fallback = (req.body.lang || req.query.lang || 'EN').toUpperCase();
+        return res.redirect(`/${fallback}/contactus?error=true`);
     }
 };
+
 
 
 
@@ -836,7 +1064,42 @@ exports.geTechnicalservice = (req, res, next) => {
             notePlaceholder: "Notunuzu yazın...",
             sendBtn: "Mesajı Gönder",
             selectOption: "Seç"
+        },
+        FR: {
+            dataLabel: 'J\'accepte le traitement de mes données personnelles conformément à la',
+            privacyPolicy: 'Politique de Confidentialité',
+            dataSuffix: 'dans le but de traiter ma demande d\'enregistrement de garantie.',
+            slideTitle: "Support technique à votre service.",
+            slideSubtitle: "Des solutions rapides et fiables à vos problèmes techniques.",
+            formTitle: "Formulaire de support technique",
+            success: "✅ Votre demande de support technique a été soumise avec succès.",
+            error: "❌ Une erreur s'est produite. Veuillez réessayer.",
+            userSectionTitle: "Support technique utilisateur",
+            infoLabel: "Type d'information :",
+            company: "Entreprise",
+            private: "Particulier",
+            salutationLabel: "Salutation :",
+            mrs: "Mme/Mlle",
+            mr: "M.",
+            firstName: "Prénom",
+            lastName: "Nom",
+            postalTown: "Code postal, ville",
+            street: "Rue",
+            country: "Pays",
+            telephone: "Téléphone",
+            telefax: "Télécopie",
+            email: "E-mail",
+            techSectionTitle: "Question technique / Panne",
+            failureDate: "Date de la panne",
+            deviceCategory: "Catégorie d'appareil*",
+            deviceModel: "Modèle d'appareil*",
+            serialNo: "N° de série",
+            note: "Note",
+            notePlaceholder: "Écrivez votre note...",
+            sendBtn: "Envoyer le message",
+            selectOption: "Sélectionner"
         }
+
     };
 
     Product.find()
@@ -946,7 +1209,7 @@ exports.postTechnicalService = async (req, res) => {
         const ticketId = `TS-${doc._id.toString().slice(-6).toUpperCase()}`;
 
         // -- Customer email -------------------------------------------------------
-        const flags = { isEN: lang === 'EN', isES: lang === 'ES', isDE: lang === 'DE', isTR: lang === 'TR' };
+        const flags = { isEN: lang === 'EN', isES: lang === 'ES', isDE: lang === 'DE', isTR: lang === 'TR', isFR: lang === 'FR' };
 
         await sendCustomerEmail({
             to: email,
@@ -971,7 +1234,8 @@ exports.postTechnicalService = async (req, res) => {
             EN: `[Tech Support] ${firstName} ${lastName} — ${productName}/${modelName} (${ticketId})`,
             ES: `[Soporte Técnico] ${firstName} ${lastName} — ${productName}/${modelName} (${ticketId})`,
             DE: `[Technischer Support] ${firstName} ${lastName} — ${productName}/${modelName} (${ticketId})`,
-            TR: `[Teknik Destek] ${firstName} ${lastName} — ${productName}/${modelName} (${ticketId})`
+            TR: `[Teknik Destek] ${firstName} ${lastName} — ${productName}/${modelName} (${ticketId})`,
+            FR: `[Support Technique] ${firstName} ${lastName} — ${productName}/${modelName} (${ticketId})`
         };
         const subject = subjectMap[lang] || subjectMap.EN;
 
@@ -1114,7 +1378,56 @@ exports.getSupport = (req, res, next) => {
             downloadDesc: 'Entdecken Sie unsere hochwertigen Lösungen mit allen Argumenten, Funktionen und Spezifikationen auf einen Blick.',
             downloadExplore: 'Downloads durchsuchen',
             downloadOptions: ['Broschüren', 'Flyer', 'Installationspakete.']
+        },
+        TR: {
+            pageTitle: 'Profesyonel Destek İhtiyacınız Olduğunda',
+            heroDesc: 'Mükemmel çözümü tasarlamak ve uzun vadeli operasyonu sağlamak için kapsamlı hizmetler.',
+            contactUs: 'Bize Ulaşın',
+            qualificationTitle: 'Kalifikasyon & Doğrulama',
+            qualificationDesc: `Kalifikasyon, DragLab ürün kalitesinin karşılandığını ve bakım ve işletme için uygun prosedürlerin uygulandığını garanti eder.`,
+            qualificationCTA: 'IQ/OQ kalifikasyon planlarınız için bizimle iletişime geçin.',
+            calibrationTitle: 'Kalibrasyon & Ayar',
+            calibrationDesc: `Kalibrasyon, laboratuvar ekipmanlarını doğrulamak için esastır. Sapmaları tanımlar ve belgeler, gerektiğinde ünite ayarlarını yeniden ayarlar.`,
+            calibrationBenefits: ['Fabrika standart kalibrasyonu.', 'Sertifikalı ölçüm cihazları.'],
+            calibrationCTA: 'Kalibrasyon hakkında daha fazla bilgi için bizimle iletişime geçin.',
+            maintenanceTitle: 'Bakım & Teknik Destek',
+            maintenanceDesc: `DragLab cihazları kalite ve güvenilirlik ile üretilmiştir, ancak uzun vadeli operasyon için düzenli bakım esastır.`,
+            maintenanceBenefits: ['Uzman teknik destek.', 'Tüm taleplere hızlı yanıt.'],
+            maintenanceCTA: 'Şimdi teknik destek talep edin.',
+            trainingTitle: 'Eğitim Kursları & Seminerler',
+            trainingDesc: `DragLab eğitim programı, kullanıcılar, ortaklar ve servis ekipleri için temel bilgiler sağlar.`,
+            trainingBenefits: ['Özel eğitim oturumları.', 'Ortaklar ve kullanıcılar için planlanmış programlar.'],
+            trainingCTA: 'Yaklaşan eğitim oturumları için bizimle iletişime geçin.',
+            downloadTitle: 'İndirme Alanı',
+            downloadDesc: 'Premium kaliteli çözümlerimizi keşfedin ve tüm önemli argümanlara, özelliklere ve teknik özelliklere parmaklarınızın ucunda sahip olun.',
+            downloadExplore: 'İndirmeleri Keşfedin',
+            downloadOptions: ['Broşürler', 'El ilanları', 'Kurulum paketleri.']
+        },
+        FR: {
+            pageTitle: 'Support professionnel quand vous en avez besoin',
+            heroDesc: 'Des services complets pour concevoir la solution parfaite et assurer un fonctionnement à long terme.',
+            contactUs: 'Contactez-nous',
+            qualificationTitle: 'Qualification & Validation',
+            qualificationDesc: `La qualification garantit que la qualité du produit DragLab est satisfaisante et que des procédures appropriées sont en place pour la maintenance et l'exploitation.`,
+            qualificationCTA: 'Contactez-nous pour vos plans de qualification IQ/OQ.',
+            calibrationTitle: 'Étalonnage & Ajustement',
+            calibrationDesc: `L'étalonnage est essentiel pour valider les équipements de laboratoire. Nous identifions et documentons les écarts et réajustons les paramètres de l'unité si nécessaire.`,
+            calibrationBenefits: ['Étalonnage selon les normes dusine.', 'Appareils de mesure certifiés.'],
+            calibrationCTA: "Contactez-nous pour plus de détails sur l'étalonnage.",
+            maintenanceTitle: 'Maintenance & Support Technique',
+            maintenanceDesc: `Les appareils DragLab sont fabriqués avec qualité et fiabilité, mais un entretien régulier est essentiel pour un fonctionnement à long terme.`,
+            maintenanceBenefits: ['Support technique expert.', 'Réponse rapide à toutes les demandes.'],
+            maintenanceCTA: 'Demandez un support technique maintenant.',
+            trainingTitle: 'Cours de Formation & Séminaires',
+            trainingDesc: `Le programme de formation DragLab fournit des informations de base pour les utilisateurs, les partenaires et les équipes de service.`,
+            trainingBenefits: ['Sessions de formation personnalisées.', 'Programmes planifiés pour les partenaires et les utilisateurs.'],
+            trainingCTA: 'Contactez-nous pour les prochaines sessions de formation.',
+            downloadTitle: 'Zone de Téléchargement',
+            downloadDesc: 'Découvrez nos solutions de qualité supérieure et ayez tous les arguments clés, fonctionnalités et spécifications à portée de main.',
+            downloadExplore: 'Explorer les Téléchargements',
+            downloadOptions: ['Brochures', 'Flyers', 'Packages d\'installation.']
         }
+
     };
 
     const content = t[lang] || t.EN;
@@ -1360,8 +1673,157 @@ exports.getaboutus = (req, res, next) => {
                     alt: 'Icono de estándares de seguridad'
                 }
             ]
+        },
+        TR: {
+            pageTitle: 'Hakkımızda - DragLab',
+            metaDescription: 'DragLab’ın vizyonu, misyonu ve değerleri hakkında bilgi edinin. Yenilikçi laboratuvar ekipmanlarımızı ve kalite ve sürdürülebilirliğe olan bağlılığımızı keşfedin.',
+            ogTitle: 'Hakkımızda | DragLab',
+            ogDescription: 'DragLab’ın yenilik, bütünlük ve müşteri odaklılık ile laboratuvar ekipmanları pazarına nasıl liderlik ettiğini keşfedin.',
+            ogImage: 'https://yourdomain.com/assets/Imgs/SEO/about-us.jpg',
+            sectionHeading: 'Hakkımızda',
+            featuresTitle: 'Özellik Noktaları',
+            tabs: {
+                vision: {
+                    title: 'Vizyon',
+                    sectionHeading: 'Küresel Liderlik',
+                    subtitle: 'Üstün tasarımla teknolojiyi ilerletmek.',
+                    desc: 'Gelişmiş teknolojinin modern tasarımla buluştuğu yenilikçi, yüksek kaliteli ve maliyet etkin ekipmanlar sunarak laboratuvarların tercih ettiği küresel ortak olmaktır. Müşteri odaklı yaklaşımımızla çeşitli laboratuvar cihazları ve tıbbi ekipman yelpazesiyle dünya çapında bilimsel ilerlemeyi destekliyoruz.'
+                },
+                mission: {
+                    title: 'Misyon',
+                    sectionHeading: 'Yenilikçi Mükemmellik',
+                    subtitle: 'Üstün tasarımla teknolojiyi ilerletmek.',
+                    desc: 'Avrupa, Orta Doğu ve Asya’da kimya ve gıda ve içecekten ilaç, biyoteknoloji ve çevreye kadar çeşitli endüstrilerdeki profesyonelleri, yenilikçi, modern tasarımlı ve gelişmiş teknolojiye sahip yüksek kaliteli, Avrupa yapımı laboratuvar ekipmanları sağlayarak güçlendirmek – rekabetçi fiyatlandırma ve müşteri hizmetlerine güçlü bir bağlılıkla desteklenmektedir.'
+                },
+                values: {
+                    title: 'Değerler',
+                    sectionHeading: 'Dürüstlük ve Sorumluluk',
+                    subtitle: 'Etik taahhütle değişimi güçlendirmek.',
+                    desc: 'Dürüstlük korunur, yenilik teşvik edilir, duyarlı destek sağlanır, sürdürülebilirlik önceliklendirilir, müşteri ihtiyaçları dikkatle ele alınır, mükemmellik sağlanır ve en yüksek standartlara uyularak kapsayıcı, işbirlikçi bir kültür zenginleştirilir.'
+                }
+            },
+            features: [
+                {
+                    title: 'Etik ve Dürüstlük',
+                    text: 'İşimizin her alanında en yüksek etik standartları korumaya, şeffaf iletişimle güveni güçlendirmeye ve çalışanlar, müşteriler, tedarikçiler, rakipler ve yatırımcılarla dürüstlük uygulamaya kararlıyız.',
+                    icon: 'innovation.png',
+                    alt: 'Laboratuvar inovasyon simgesi'
+                },
+                {
+                    title: 'Yenilik ve Sürekli Gelişim',
+                    text: 'Yenilik, teknolojideki ilerlemeleri ürünlerimize ve hizmetlerimize dönüştürerek müşterilerimizin ihtiyaçlarını karşılamak için en yüksek değeri yaratmaktır. Profesyonel uzmanlığımız, müşteri odaklı yaklaşımımızı desteklemek için yeniliği yönlendirir. Ürünlerimiz ve hizmetlerimiz aracılığıyla geliştirilmiş bir deneyim için daha iyi çözümler sunuyoruz.',
+                    icon: 'Quality.png',
+                    alt: 'Kalite güvencesi simgesi'
+                },
+                {
+                    title: 'Hızlı ve Mükemmel Yanıt',
+                    text: 'DragLab, çoklu iletişim kanallarımız aracılığıyla müşterilerimizin ve ortaklarımızın ihtiyaçlarına hızlı ve güvenilir bir şekilde yanıt vermeye kararlıdır. Profesyonel ekibimiz aracılığıyla özelleştirilmiş çözümler sunma taahhüdümüz, minimum kesinti süresi ve ihtiyaçlarınız için uygun çözümler sağlar.',
+                    icon: 'Certification.png',
+                    alt: 'Sertifikasyon uyumluluğu simgesi'
+                },
+                {
+                    title: 'Sorumluluk ve Sürdürülebilirlik',
+                    text: 'DragLab, kaynakları sorumlu bir şekilde yöneterek, ISO 14001 ve AB standartlarına uyarak ve gelecek nesiller için daha iyi, yüksek kaliteli bir geleceğe katkıda bulunarak sürdürülebilirliği operasyonlarına entegre eder.',
+                    icon: 'response.png',
+                    alt: 'Hızlı müşteri yanıt simgesi'
+                },
+                {
+                    title: 'Müşteri Odaklılık ve Hizmet',
+                    text: 'Müşterileri işimizin merkezine koyuyoruz, müşteri odaklı bir yaklaşım benimseyerek, ihtiyaçlarını dikkatle dinleyerek ve olağanüstü hizmetle yenilikçi çözümler sunarak. Güvene dayalı, kalıcı ortaklıklar aracılığıyla.',
+                    icon: 'WarrantyAfterSales.png',
+                    alt: 'Garanti ve hizmet simgesi'
+                },
+                {
+                    title: 'Kalite ve Mükemmellik',
+                    text: 'İşimizin her alanında en yüksek kalite ve mükemmellik standartlarına bağlıyız. Ürünlerimizin ve hizmetlerimizin her biri, müşteri beklentilerini karşılamak ve aşmak için titizlikle test edilir ve iyileştirilir.',
+                    icon: 'SustainableEnvironment.png',
+                    alt: 'Çevre dostu teknoloji simgesi'
+                },
+                {
+                    title: 'Takım Çalışması ve Kapsayıcı Kültür',
+                    text: 'Her sesin duyulduğu kültürümüzde takım çalışmasına büyük değer veriyoruz. Tüm seviyelerde işbirliği yaparak ve çeşitliliği kucaklayarak, insanlarımızın en iyisini katkıda bulunmalarını sağlıyor, yeniliği ve kolektif başarıyı teşvik ediyoruz.',
+                    icon: 'Safety.png',
+                    alt: 'Güvenlik standartları simgesi'
+                }
+            ]
+
+
+        },
+        FR: {
+            pageTitle: 'À Propos de Nous - DragLab',
+            metaDescription: 'Découvrez la vision, la mission et les valeurs de DragLab. Explorez nos équipements de laboratoire innovants et notre engagement envers la qualité et la durabilité.',
+            ogTitle: 'À Propos de Nous | DragLab',
+            ogDescription: 'Découvrez comment DragLab mène le marché des équipements de laboratoire avec innovation, intégrité et orientation client.',
+            ogImage: 'https://yourdomain.com/assets/Imgs/SEO/about-us.jpg',
+            sectionHeading: 'À Propos de Nous',
+            featuresTitle: 'Points Forts',
+            tabs: {
+                vision: {
+                    title: 'Vision',
+                    sectionHeading: 'Leadership Mondial',
+                    subtitle: 'Faire progresser la technologie avec un design supérieur.',
+                    desc: 'Être le partenaire mondial de choix pour les laboratoires en fournissant des équipements innovants, de haute qualité et rentables, où la technologie avancée rencontre un design moderne. Avec une approche axée sur le client à travers une gamme diversifiée d\'appareils de laboratoire et d\'équipements médicaux, nous stimulons le progrès scientifique dans le monde entier.'
+                },
+                mission: {
+                    title: 'Mission',
+                    sectionHeading: 'Excellence Innovante',
+                    subtitle: 'Faire progresser la technologie avec un design supérieur.',
+                    desc: 'Nous visons à autonomiser les professionnels de la science et des soins de santé avec des équipements avancés, fiables et conviviaux, stimulant le progrès et améliorant les résultats.'
+                },
+                values: {
+                    title: 'Valeurs',
+                    sectionHeading: 'Intégrité et Responsabilité',
+                    subtitle: 'Favoriser le changement par un engagement éthique.',
+                    desc: 'L\'intégrité est maintenue, l\'innovation est encouragée, un support réactif est fourni, la durabilité est priorisée, les besoins des clients sont soigneusement pris en compte, l\'excellence est assurée et une culture inclusive et collaborative est enrichie tout en respectant les normes les plus élevées.'
+                }
+            },
+            features: [
+                {
+                    title: 'Éthique et Intégrité',
+                    text: 'Nous nous engageons à respecter les normes éthiques les plus élevées dans tous les aspects de notre entreprise, avec une communication transparente, pour renforcer la confiance et pratiquer l\'intégrité avec les employés, les clients, les fournisseurs, les concurrents et les investisseurs.',
+                    icon: 'innovation.png',
+                    alt: 'Icône d\'éthique et d\'intégrité'
+                },
+                {
+                    title: 'Innovation et Développement Continu',
+                    text: 'L\'innovation consiste à créer la plus grande valeur en transformant les avancées technologiques en nos produits et services pour satisfaire nos clients. Notre expertise professionnelle stimule l\'innovation pour soutenir notre approche axée sur le client. Nous offrons de meilleures solutions pour une expérience améliorée grâce à nos produits et services.',
+                    icon: 'Quality.png',
+                    alt: 'Icône d\'innovation et de développement continu'
+                },
+                {
+                    title: 'Réponse Rapide et Parfaite',
+                    text: 'DragLab s\'engage à répondre rapidement et de manière fiable aux besoins de nos clients et partenaires via nos multiples canaux de communication. Notre engagement à fournir des solutions sur mesure grâce à notre équipe de professionnels garantit un temps d\'arrêt minimal et des solutions pratiques pour vos besoins.',
+                    icon: 'response.png',
+                    alt: 'Icône de réponse rapide et parfaite'
+                },
+                {
+                    title: 'Responsabilité et Durabilité',
+                    text: 'DragLab intègre la durabilité dans ses opérations en gérant les ressources de manière responsable, en respectant la norme ISO 14001 et les normes de l\'UE, et en contribuant à un avenir meilleur et de haute qualité pour les générations à venir.',
+                    icon: 'SustainableEnvironment.png',
+                    alt: 'Icône de responsabilité et de durabilité'
+                },
+
+                {
+                    title: 'Orientation Client et Service',
+                    text: 'Nous plaçons les clients au cœur de notre entreprise en adoptant une approche axée sur le client, en écoutant attentivement leurs besoins et en fournissant des solutions innovantes avec un service exceptionnel. Grâce à des partenariats durables basés sur la confiance.',
+                    icon: 'Customer-Focus-and-Service.svg',
+                    alt: 'Icône d\'orientation client et de service'
+                },
+                {
+                    title: 'Qualité et Excellence',
+                    text: 'Nous adhérons aux normes les plus élevées de qualité et d\'excellence dans tous les aspects de notre entreprise. Chacun de nos produits et services est rigoureusement testé et affiné pour satisfaire et dépasser les attentes des clients.',
+                    icon: 'Quality.png',
+                    alt: 'Icône de qualité et d\'excellence'
+                },
+                {
+                    title: 'Travail d\'Équipe et Culture Inclusive',
+                    text: 'Nous valorisons grandement le travail d\'équipe dans toute notre culture où chaque voix est entendue. En collaborant à tous les niveaux et en embrassant la diversité, nous permettons à nos collaborateurs de donner le meilleur d\'eux-mêmes, stimulant l\'innovation et le succès collectif.',
+                    icon: 'Teamwork-and-Inclusive-Culture.svg',
+                    alt: 'Icône de travail d\'équipe et de culture inclusive'
+                }
+            ]
         }
-        // TODO: Add Spanish or other languages here...
+
     };
 
     const t = translations[lang] || translations['EN'];
@@ -1406,6 +1868,14 @@ exports.getArticles = async (req, res) => {
         DE: {
             pageTitle: 'Artikel - DragLab',
             metaDescription: 'Entdecken Sie Einblicke, Innovationen und Fachwissen über Labortechnologie in den neuesten Artikeln von DragLab.'
+        },
+        TR: {
+            pageTitle: 'Makaleler - DragLab',
+            metaDescription: 'DragLab’ın en son makaleleri aracılığıyla laboratuvar teknolojisindeki içgörüler, yenilikler ve uzman bilgilerini keşfedin.'
+        },
+        FR: {
+            pageTitle: 'Articles - DragLab',
+            metaDescription: 'Explorez les idées, les innovations et l\'expertise en technologie de laboratoire à travers les derniers articles de DragLab.'
         }
     };
 
@@ -1489,6 +1959,22 @@ exports.getDownloads = async (req, res, next) => {
             noProducts: 'Keine Produkte verfügbar',
             noCategories: 'Keine Kategorien verfügbar',
             allLabel: 'Alle',
+        },
+        TR: {
+            pageTitle: 'İndirilenler',
+            heroTitle: 'İndirilenler',
+            heroIntro: 'DragLab Ürünleri için kataloglar, kılavuzlar, sertifikalar ve teknik belgeler bulun.',
+            noProducts: 'Mevcut Ürün Yok',
+            noCategories: 'Mevcut Kategori Yok',
+            allLabel: 'Tümü',
+        },
+        FR: {
+            pageTitle: 'Téléchargements',
+            heroTitle: 'Téléchargements',
+            heroIntro: 'Trouvez des catalogues, manuels, certificats et documents techniques pour les produits DragLab.',
+            noProducts: 'Aucun produit disponible',
+            noCategories: 'Aucune catégorie disponible',
+            allLabel: 'Tous',
         }
     };
 
@@ -1758,8 +2244,121 @@ exports.getTearmCondition = (req, res, next) => {
                     "body": "11.1 Sofern nicht ausdrücklich schriftlich anders vereinbart, gelten Informationen, die dem Kunden im Zusammenhang mit Bestellungen an Nanodrag übermittelt werden, nicht als vertraulich, es sei denn, deren vertraulicher Charakter ist offensichtlich.<br>11.2 Nanodrag weist darauf hin, dass personenbezogene Daten im Zusammenhang mit der Vertragsbeziehung gespeichert und an mit Nanodrag verbundene Unternehmen innerhalb der Nanodrag-Gruppe übermittelt werden können."
                 }
             ]
+        },
+        TR: {
+            pageTitle: 'Genel Satış Koşulları',
+            metaDescription: 'NanoDrag\'ın tam Genel İşletme Koşullarını yasal tanımlar, fiyatlandırma, garantiler ve sorumluluk beyanları ile okuyun.',
+            heroTitle: 'Genel Satış Koşulları',
+            sections: [
+                {
+                    "title": "Terimler",
+                    "body": "<strong>Nanodrag</strong>, mal veya hizmetleri tedarik eden şirket olan Nanodrag Technology GmbH veya bağlı kuruluşunu ifade eder.<br><strong>Müşteri</strong>, satıcı ile sözleşme yapan gerçek veya tüzel kişi ya da diğer tarafı ifade eder.<br><strong>Sözleşme</strong>, mal veya hizmet satın almak için yapılan sözleşmeli siparişi ifade eder."
+                },
+                {
+                    "title": "1. Genel Hükümler",
+                    "body": "1.1 Nanodrag tarafından satıcı olarak müşteriye yapılan her türlü mal ve hizmet teslimatı, aksi açıkça kararlaştırılmadıkça, aşağıdaki Genel İşletme Koşullarına tabidir. Müşterinin bu koşullardan farklı olan genel işletme koşulları, ancak Nanodrag'ın yazılı onayıyla geçerlilik kazanır.<br>1.2 Nanodrag karşıtı talepler üçüncü kişilere devredilemez. HGB madde 354a bundan etkilenmez.<br>1.3 Mal ve hizmetlerin satışı, yeniden satışı ve bertarafı, ilgili Alman, AB ve ABD ihracat kontrol yasalarına ve diğer ülkelerin yasalarına tabi olabilir. Ambargo uygulanan ülkelere veya yasaklı kişilere veya malları askeri amaçlar, NBC silahları veya nükleer teknoloji için kullanan ya da kullanabilecek kişilere yeniden satış, resmi izne tabidir. Müşteri, bu tür yasa ve düzenlemelere uyacağını ve malların ithalatını yasaklayan veya kısıtlayan ülkelere doğrudan veya dolaylı olarak teslim edilmeyeceğini siparişle beyan eder. Müşteri, ihracat ve ithalat için gerekli tüm izinleri aldığını beyan eder."
+                },
+                {
+                    "title": "2. Bilgi ve Danışmanlık",
+                    "body": "Nanodrag'ın mal ve hizmetlerine ilişkin bilgi ve danışmanlık, en iyi bilgi ve mevcut deneyimlere dayanarak yapılır. Özellikle performans verileri olmak üzere belirtilen tüm değerler, standart laboratuvar koşullarında belirlenen ortalama değerlerdir. Nanodrag, ürünlerin belirtilen değerlere veya uygulama alanlarına tam olarak uymasını taahhüt etmez. Sorumluluk konuları bu koşulların 10. bölümünde düzenlenmiştir."
+                },
+                {
+                    "title": "3. Fiyatlar",
+                    "body": "3.1 Yalnızca Nanodrag'ın sipariş onayında belirtilen fiyatlar geçerlidir. Ek hizmetler ayrı olarak faturalandırılır.<br>3.2 Tüm fiyatlar net fiyatlardır ve yasal KDV'yi içermez; bu, müşterinin yasal oranlarda ayrıca ödemesi gereken bir tutardır.<br>3.3 Aksi açıkça kararlaştırılmadıkça, fiyatlar, bu koşulları kullanan Nanodrag şirketinin fabrikasından (EXW INCOTERMS 2010) geçerlidir. Müşteri, standart ambalajın ötesindeki tüm ek nakliye, ambalaj, kamu vergileri (kaynak vergisi dahil) ve gümrük masraflarını karşılar."
+                },
+                {
+                    "title": "4. Teslimat",
+                    "body": "4.1 Aksi açıkça kararlaştırılmadıkça, Nanodrag, bu koşulları kullanan Nanodrag şirketinin fabrikasından (EXW INCOTERMS 2010) teslimat yapar.<br>4.2 Teslimat süreleri, ancak yazılı olarak açıkça kararlaştırıldığında bağlayıcıdır. Süreler, Nanodrag'ın sipariş onayı tarihinden itibaren başlar, ancak siparişle ilgili tüm ayrıntıların, gerekli resmi izinlerin sunulması dahil, açıklığa kavuşturulmasından önce asla başlamaz. Teslimat süresi, malların zamanında gönderilememesi durumunda bile, nakliye hazır olduğunda yerine getirilmiş sayılır.<br>4.3 Açıkça sabitlenmiş teslimat süreleri hariç, müşteri, teslimat süresinin sona ermesinden iki hafta sonra Nanodrag'a makul bir ek süre vermelidir. Nanodrag'ın gecikmesi, bu ek sürenin sona ermesinden sonra gerçekleşir.<br>4.4 Müşterinin Nanodrag'a karşı yükümlülüklerini yerine getirmemesi durumunda, Nanodrag'ın hakları saklı kalmak kaydıyla, teslimat süreleri ve tarihleri, müşterinin yükümlülüklerini yerine getirmediği süre kadar uzar. Nanodrag'ın gecikmesi durumunda şirket yalnızca bu koşulların 10. bölümünde belirtilen kapsamda sorumludur.<br>4.5 Nanodrag, teslimatları kendi teslimat servisiyle gerçekleştirme hakkını saklı tutar.<br>4.6 Kısmi teslimatlar ve kısmi hizmetler, müşteri için makul olduğu sürece kabul edilebilir.<br>4.7 Müşteri, iki başarısız ek süreden sonra sözleşmeden çekilebilir; aksi takdirde sözleşmeden çekilme hakkı yoktur veya gecikme müşteri için makul değilse geçiciyse.<br>4.8 Müşterinin sözleşmeye veya yasal geri çekilme hakları, Nanodrag tarafından belirlenen makul bir süre içinde kullanılmadığı takdirde geçersiz olur."
+                },
+                {
+                    "title": "5. Nakliye, Riskin Geçişi",
+                    "body": "5.1 Aksi açıkça kararlaştırılmadıkça, nakliye her zaman müşterinin riski altındadır. Risk, malların nakliye için görevlendirilen kişiye teslim edilmesiyle müşteriye geçer.<br>5.2 Müşterinin neden olduğu gecikmeler nedeniyle nakliye gecikirse, malların tesadüfi kaybı, hasarı veya bozulması riski, nakliye hazır olduğunun bildirilmesiyle müşteriye geçer. Risk geçtikten sonra ortaya çıkan depolama maliyetleri müşteriye aittir. Diğer talepler saklıdır.<br>5.3 Müşteri kabul etmeme durumuna düşerse, Nanodrag, gecikmeden kaynaklanan masrafların tazminini talep etme hakkına sahiptir. Bu durumda da, tesadüfi kayıp, hasar veya bozulma riski müşteriye geçer."
+                },
+                {
+                    "title": "6. Ödeme",
+                    "body": "6.1 Ödeme, fatura tarihinden itibaren 30 gün içinde tam olarak yapılmalıdır. Ödeme, Nanodrag'a vadesi gelmiş tutarın ulaşmasıyla gerçekleşmiş sayılır. Poliçeler ve çekler, ancak tahsil edildikten sonra ödeme olarak kabul edilir ve zamanında sunulma ve protesto kabulü yükümlülüğü olmaksızın kabul edilir.<br>6.2 Ödeme gecikmesi durumunda – veya müşteri HGB anlamında bir tüccar ise vade tarihinde – Nanodrag, daha yüksek gerçek gecikme zararını talep etme hakkına sahiptir.<br>6.3 Müşteri, yalnızca tartışmasız veya kesinleşmiş karşı taleplerle ödemeleri mahsup edebilir veya alıkoyabilir.<br>6.4 Müşterinin ödeme gecikmesi, bir poliçe protestosu bulunması veya müşterinin ödemelerini durdurması durumunda, Nanodrag'ın tüm talepleri derhal vadesi gelir, kabul edilmiş poliçelerin süresine bakılmaksızın. Bu durumlarda, Nanodrag, bekleyen teslimatları yalnızca ön ödeme veya güvence karşılığında yapma hakkına sahiptir. Bu iki hafta içinde yapılmazsa, Nanodrag sözleşmeden çekilebilir. Diğer talepler saklıdır."
+                },
+                {
+                    "title": "7. Mülkiyetin Korunması",
+                    "body": "7.1 Teslim edilen mallar, iş ilişkilerinden kaynaklanan tüm talepler tam olarak ödenene kadar Nanodrag'ın mülkiyetinde kalır.<br>7.2 Müşteri, mülkiyetin korunması altındaki malları, müşteriye ait diğer mallarla işleme, bağlama veya karıştırma yoluyla kullanırsa, Nanodrag, yeni nesne üzerinde mülkiyet hakkının bir kısmına sahip olur; bu, mülkiyetin korunması altındaki malın fatura değeri ile kullanılan diğer malların değeri arasındaki orana göre belirlenir. İşleme, bağlama veya karıştırma yoluyla müşteriye ait olmayan mallar nedeniyle mülkiyet hakkı sona ererse, müşteri, Nanodrag'a işleme, bağlama veya karıştırma yoluyla yeni nesne üzerinde sahip olduğu mülkiyet haklarını, mülkiyetin korunması altındaki malın fatura değerine kadar şimdiden devreder ve bunları Nanodrag için ücretsiz olarak saklar.<br>7.3 Müşteri, gecikmede olmadığı sürece, mülkiyetin korunması altındaki malları normal iş akışında yeniden satabilir, işleyebilir veya karıştırabilir. Mallar üzerinde başka tasarruflar yasaktır. Rehinler veya teminat devri yasaktır. Müşteri, üçüncü kişilerin mülkiyetin korunması altındaki mallara yönelik zorla icra işlemleri hakkında Nanodrag'ı derhal yazılı olarak bilgilendirmelidir. Müşteri, bu tür müdahalelerin kaldırılması ve malın geri alınması için yapılan tüm masrafları, üçüncü kişiler tarafından tazmin edilmedikçe karşılar.<br>7.4 Müşteri, mülkiyetin korunması altındaki malların yeniden satışından kaynaklanan tüm talepleri, mülkiyetin korunması altındaki malın fatura değerine kadar Nanodrag'a şimdiden devreder. Bu devir, mülkiyetin korunması altındaki mallarla aynı kapsamda teminat sağlar.<br>7.5 Müşteri, mülkiyetin korunması altındaki malları, Nanodrag'a ait olmayan diğer mallarla birlikte toplam bir fiyat üzerinden satarsa, müşteri, yeniden satıştan kaynaklanan talebini, mülkiyetin korunması altındaki malın payı oranında Nanodrag'a şimdiden devreder.<br>7.6 Devredilen talep bir cari hesaba dahil edilirse, müşteri, cari hesap ilişkisinden kaynaklanan talebini, orijinal olarak devredilen talep tutarına eşit olan miktarda Nanodrag'a devreder.<br>7.7 Müşteri, Nanodrag tarafından geri çekilene kadar devredilen talepleri tahsil etme hakkına sahiptir. Geri çekilme, müşterinin ödeme yükümlülüklerini düzgün bir şekilde yerine getirmemesi durumunda mümkündür. Geri çekilmeden sonra müşteri, talebin geçerli kılınması için gerekli tüm bilgileri Nanodrag'a sağlamalı, belgeleri teslim etmeli ve borçlulara devri bildirmelidir.<br>7.8 Nanodrag için mevcut teminatların gerçekleşebilir değeri, Nanodrag'ın tüm taleplerini %50'den fazla aşıyorsa, Nanodrag, müşterinin talebi üzerine, kendi seçimine bağlı olarak teminatları serbest bırakmakla yükümlüdür.<br>7.9 Nanodrag'ın mülkiyetin korunmasını ileri sürmesi, sözleşmeden çekilme olarak kabul edilmez; bu, ancak açıkça yazılı olarak beyan edilirse geçerlidir. Müşterinin mülkiyetin korunması altındaki mallar üzerindeki mülkiyet hakkı, müşterinin sözleşmesel yükümlülüklerini yerine getirmemesi durumunda sona erer."
+                },
+                {
+                    "title": "8. Garanti",
+                    "body": "8.1 Kusurlu olduğu iddia edilen mallar, orijinal ambalajında veya eşdeğer bir ambalajda Nanodrag'a inceleme için iade edilmelidir. Nanodrag, garanti talebi haklı ve garanti süresi içinde yapıldığında kusurları giderecektir. Nanodrag, kusurun onarılması için gerekli olan masrafları üstlenir; kusurun onarılması için onarım veya ikame teslimatı yapılıp yapılmayacağı Nanodrag'ın takdirindedir.<br>8.2 Nanodrag, yasal düzenlemelere uygun olarak kusurun giderilmesini reddetme hakkına sahiptir. Müşteri, Nanodrag'ın kusurlu malların iadesi talebine uymaması durumunda da kusurun giderilmesini reddedebilir.<br>8.3 Müşteri, yasal olarak öngörüldüğü ölçüde sözleşmeden çekilme veya fiyat indirimi hakkına sahiptir. Ancak müşteri, Nanodrag'a iki kez makul bir süre tanıdıktan sonra ve bu süreler başarısız olduktan sonra sözleşmeden çekilme veya indirim hakkına sahiptir; süre belirleme gerekmiyorsa bu geçerli değildir. Sözleşmeden çekilme durumunda, müşteri, kasıtlı veya ihmalkar hasarlar ve malın kullanılmamasından kaynaklanan zararlar için sorumludur.<br>8.4 Nanodrag, bir kusuru kötü niyetle gizlemişse veya BGB madde 444'e göre bir kalite garantisi üstlenmişse, müşterinin hakları yalnızca yasal düzenlemelere tabidir.<br>8.5 Müşterinin tazminat veya masraf talebi varsa, bu talepler bu Genel İşletme Koşullarının 9. bölümündeki düzenlemelere tabidir.<br>8.6 Nanodrag ürünlerine ilişkin bilgiler, özellikle tekliflerde ve broşürlerdeki resimler, çizimler, ağırlık, boyut ve performans bilgileri ortalama değerler olarak anlaşılmalıdır. Bu tür bilgiler, özellikleri taahhüt etmez; yalnızca ürünlerin tanımlanması veya nitelendirilmesi amacıyla kullanılır.<br>8.7 Siparişte açıkça sapma toleransları kararlaştırılmamışsa, ticari sapmalar kabul edilebilir.<br>8.8 Normal aşınma nedeniyle ortaya çıkan kusurlar için Nanodrag sorumluluk kabul etmez. Daha düşük kalite veya kullanılmış mal olarak satılan ürünler için Nanodrag'a karşı kusur talepleri yoktur.<br>8.9 Garanti, işletme veya bakım talimatlarına uyulmaması, teslimat veya hizmetlerde değişiklik yapılması, parçaların değiştirilmesi veya orijinal Nanodrag spesifikasyonlarına uymayan malzemelerin kullanılması durumunda geçersiz olur; müşteri, kusurun bununla ilgili olmadığını kanıtlamadığı sürece.<br>8.10 Müşteri tüccar ise, kusurları yazılı olarak veya faksla bildirmelidir.<br>8.11 Kusur talepleri için zamanaşımı süresi 12 aydır (tüketiciler için 24 ay). Bu, hayat, beden veya sağlık zararları için tazminat talepleri ve Nanodrag'ın sorumluluğunda olan kusurlardan kaynaklanan tazminat talepleri için geçerli değildir; ayrıca kasıtlı veya ağır ihmal nedeniyle ortaya çıkan tazminat talepleri için de geçerli değildir."
+                },
+                {
+                    "title": "9. Sorumluluk Sınırlaması",
+                    "body": "9.1 Sözleşmesel yükümlülüklerin ihlali, kusurlu teslimat veya haksız fiil nedeniyle Nanodrag'ın sorumluluğu – diğer sözleşmesel veya yasal sorumluluk şartları saklı kalmak kaydıyla – yalnızca kasıt veya ağır ihmal durumunda veya basit ihmal durumunda, önemli bir sözleşmesel yükümlülüğün ihlal edilmesi durumunda (sözleşmenin amacını tehlikeye atan bir yükümlülük). Basit ihmal durumunda, Nanodrag'ın sorumluluğu, önceden öngörülebilir, sözleşmeye özgü zararlarla sınırlıdır.<br>9.2 Basit ihmal nedeniyle gecikmeli teslimat nedeniyle Nanodrag'ın sorumluluğu, anlaşmaya varılan satın alma fiyatının %5'i ile sınırlıdır.<br>9.3 Bölüm 9.1 – 9.2'de belirtilen sorumluluk hariç tutmaları ve sınırlamaları, BGB madde 444'e göre bir kalite garantisi durumunda (bölüm 9.4'e bakınız), kötü niyetle kusurun gizlenmesi durumunda, hayat, beden veya sağlık zararları için ve yasal olarak zorunlu, değiştirilemeyen ürün sorumluluğu durumunda geçerli değildir.<br>9.4 Nanodrag'a karşı tüm talepler – hangi yasal nedene dayanırsa dayansın – zamanaşımı süresi 12 aydır (tüketiciler için 24 ay) ve teslimattan itibaren başlar. Haksız fiil talepleri için zamanaşımı süresi 12 aydır (tüketiciler için 24 ay) ve müşteri, talep oluşturan koşullar ve sorumlu kişiyi öğrendiği veya öğrenmesi gerektiği andan itibaren başlar. Bu düzenleme, kasıtlı veya ağır ihmal nedeniyle ortaya çıkan yükümlülük ihlalleri ve bölüm 9.3'te belirtilen durumlar için geçerli değildir.<br>9.5 Müşteri aracı ise ve nihai satış bir tüketiciye yapılırsa, müşterinin Nanodrag'a karşı geri çekilme talepleri için yasal zamanaşımı süreleri geçerlidir."
+                },
+                {
+                    "title": "10. Ticari Koruma Hakları ve Telif Hakları",
+                    "body": "10.1 Müşteri, Nanodrag tarafından teslim edilen ürünlerin veya hizmetlerin sözleşmeye uygun kullanımı nedeniyle bir ticari koruma hakkı veya telif hakkının ihlali nedeniyle sorumlu tutulursa, Nanodrag, müşteriye kullanım hakkını sağlamayı taahhüt eder; müşteri, bu tür üçüncü taraf talepleri hakkında Nanodrag'ı derhal yazılı olarak bilgilendirir ve Nanodrag'a tüm savunma önlemlerini – hem yasal hem de yasal olmayan – saklı tutar. Sözleşmeye uygun kullanımın makul koşullar altında sürdürülmesi mümkün değilse, Nanodrag, ihlali ortadan kaldırmak için teslimatı veya hizmeti değiştirme veya değiştirme veya teslimatı veya hizmeti geri alma ve kullanım indirimi ile birlikte satın alma fiyatını iade etme hakkına sahiptir.<br>10.2 Müşterinin, Nanodrag'ın önemli sözleşmesel yükümlülüklerini kasıtlı veya ağır ihmalle ihlal etmemesi durumunda, ticari koruma hakları veya telif haklarının ihlali nedeniyle müşterinin başka talepleri yoktur. Bölüm 10.1'de belirtilen sorumluluk, özellikle teslimat veya hizmetin sözleşmeye uygun olmayan kullanımı veya Nanodrag tarafından teslim edilmeyen diğer ürünler veya hizmetlerle kombinasyonu nedeniyle ihlal edilmesi durumunda geçerli değildir."
+                },
+                {
+                    "title": "11. Gizlilik",
+                    "body": "11.1 Yazılı olarak açıkça farklı kararlaştırılmadıkça, müşteriye Nanodrag ile siparişler bağlamında iletilen bilgiler, gizli olarak kabul edilmez; gizli karakteri bariz değilse.<br>11.2 Nanodrag, sözleşme ilişkisi bağlamında kişisel verilerin saklandığını ve Nanodrag grubundaki bağlı şirketlere iletilebileceğini belirtir."
+                }
+            ]
+        },
+        FR: {
+            pageTitle: 'Conditions Générales de Vente',
+            metaDescription: 'Lisez les Conditions Générales Complètes de NanoDrag, y compris les définitions légales, la tarification, les garanties et les clauses de responsabilité.',
+            heroTitle: 'Conditions Générales de Vente',
+            sections: [
+                {
+                    "title": "Termes",
+                    "body": "<strong>Nanodrag</strong> désigne la société Nanodrag Technology GmbH ou une de ses filiales, qui fournit des biens ou des services en tant que vendeur.<br><strong>Client</strong> désigne la personne physique ou morale ou toute autre partie contractante qui conclut un contrat avec le vendeur.<br><strong>Contrat</strong> désigne la commande contractuelle passée pour l'achat de biens ou de services."
+                },
+                {
+                    "title": "1. Dispositions Générales",
+                    "body": "1.1 Toutes les livraisons de biens et de services effectuées par Nanodrag en tant que vendeur au client sont soumises aux présentes Conditions Générales de Vente, sauf accord contraire explicite. Les conditions générales du client qui diffèrent de celles-ci ne sont valables qu'avec l'approbation écrite de Nanodrag.<br>1.2 Les réclamations du client contre Nanodrag ne peuvent être cédées à des tiers. L'article 354a du HGB n'est pas affecté.<br>1.3 La vente, la revente et l'élimination des biens et services peuvent être soumises aux lois d'exportation allemandes, de l'UE et des États-Unis ainsi qu'à d'autres lois nationales. La revente vers des pays sous embargo ou à des personnes ou entités interdites, ou à des personnes qui utilisent ou pourraient utiliser les biens à des fins militaires, des armes NBC ou de la technologie nucléaire, est soumise à une autorisation officielle. Le client déclare, par la présente commande, qu'il se conformera à ces lois et règlements et que les biens ne seront pas livrés directement ou indirectement à des pays qui interdisent ou restreignent l'importation, ni à des personnes qui utilisent ou pourraient utiliser les biens à des fins militaires, des armes NBC ou de la technologie nucléaire. Le client déclare qu'il a obtenu toutes les autorisations nécessaires pour l'exportation et l'importation."
+                },
+                {
+                    "title": "2. Informations et Conseils",
+                    "body": "Les informations et conseils concernant les biens et services de Nanodrag sont fournis au mieux des connaissances et de l'expérience actuelles. Toutes les valeurs indiquées, en particulier les données de performance, sont des valeurs moyennes déterminées dans des conditions de laboratoire standard. Nanodrag ne garantit pas que les produits correspondent exactement aux valeurs ou aux domaines d'application indiqués. Les questions de responsabilité sont régies par la section 10 des présentes conditions."
+                },
+                {
+                    "title": "3. Prix",
+                    "body": "3.1 Seuls les prix indiqués dans la confirmation de commande de Nanodrag sont valables. Les services supplémentaires sont facturés séparément.<br>3.2 Tous les prix sont des prix nets et n'incluent pas la TVA légale ; celle-ci est un montant que le client doit payer en sus au taux légal.<br>3.3 Sauf accord contraire explicite, les prix sont valables à partir de l'usine de la société Nanodrag utilisant ces conditions (EXW INCOTERMS 2010). Le client paie tous les frais supplémentaires de transport, d'emballage, de taxes publiques (y compris la retenue à la source) et de douane au-delà de l'emballage standard."
+                },
+                {
+                    "title": "4. Livraison",
+                    "body": "4.1 Sauf accord contraire explicite, Nanodrag effectue la livraison à partir de l'usine de la société Nanodrag utilisant ces conditions (EXW INCOTERMS 2010).<br>4.2 Les délais de livraison ne sont contraignants que s'ils ont été expressément convenus par écrit. Les délais commencent à partir de la date de la confirmation de commande de Nanodrag, mais ne commencent jamais avant que tous les détails relatifs à la commande, y compris la fourniture des autorisations officielles nécessaires, n'aient été clarifiés. Le délai de livraison est considéré comme respecté même si les marchandises ne peuvent pas être expédiées à temps.<br>4.3 Sauf pour les délais de livraison expressément fixés, le client doit accorder à Nanodrag un délai supplémentaire raisonnable deux semaines après l'expiration du délai de livraison."
+                },
+                {
+                    "title": "5. Transport, Transfert de Risque",
+                    "body": "5.1 Sauf accord contraire explicite, le transport est toujours aux risques du client. Le risque est transféré au client lorsque les marchandises sont remises à la personne chargée du transport.<br>5.2 Si le transport est retardé pour des raisons imputables au client, le risque de perte, de dommage ou de détérioration fortuite des marchandises est transféré au client dès que Nanodrag informe le client que les marchandises sont prêtes pour l'expédition. Les coûts de stockage survenant après le transfert du risque sont à la charge du client. Les autres réclamations restent réservées.<br>5.3 Si le client se trouve dans une situation de refus d'acceptation, Nanodrag a le droit de réclamer une indemnisation pour les frais résultant du refus d'acceptation."
+                },
+                {
+                    "title": "6. Paiement",
+                    "body": "6.1 Le paiement doit être effectué intégralement dans les 30 jours suivant la date de facturation. Le paiement est considéré comme effectué lorsque le montant dû parvient à Nanodrag. Les lettres de change et les chèques ne sont considérés comme un paiement qu'après encaissement et sont acceptés sans obligation de présentation ou d'acceptation en temps voulu.<br>6.2 En cas de retard de paiement, Nanodrag se réserve le droit de facturer des intérêts de retard au taux légal en vigueur. Les frais de recouvrement sont à la charge du client."
+                },
+                {
+                    "title": "7. Responsabilité",
+                    "body": "7.1 La responsabilité de Nanodrag est limitée aux dommages directs et prévisibles résultant d'une violation des obligations contractuelles. Nanodrag n'est pas responsable des dommages indirects, consécutifs ou accessoires, y compris, mais sans s'y limiter, la perte de profits, la perte d'exploitation ou la perte de données.<br>7.2 En cas de responsabilité de Nanodrag, celle-ci est limitée au montant total payé par le client pour les marchandises concernées, sauf en cas de faute intentionnelle ou de négligence grave de la part de Nanodrag."
+                },
+                {
+                    "title": "8. Dispositions Finales",
+                    "body": "8.1 Les présentes conditions générales de vente et toutes les relations entre Nanodrag et le client sont régies par le droit allemand, à l'exclusion de la Convention des Nations Unies sur les contrats de vente internationale de marchandises (CVIM).<br>8.2 Si une disposition des présentes conditions générales de vente est ou devient invalide ou inapplicable, cela n'affectera pas la validité des autres dispositions. La disposition invalide ou inapplicable sera remplacée par une disposition valide et applicable qui se rapproche le plus de l'intention économique de la disposition invalide ou inapplicable."
+                },
+                {
+                    "title": "9. Juridiction Compétente",
+                    "body": "Le tribunal compétent pour tous les litiges découlant de ou en relation avec les présentes conditions générales de vente est, si le client est un commerçant, le siège social de Nanodrag. Nanodrag a également le droit d'intenter une action contre le client à son siège social."
+                },
+                {
+                    "title": "10. Protection des Données",
+                    "body": "10.1 Sauf accord écrit contraire, les informations transmises au client dans le cadre des commandes avec Nanodrag ne sont pas considérées comme confidentielles, à moins que leur caractère confidentiel ne soit évident.<br>10.2 Nanodrag indique que des données personnelles sont stockées dans le cadre de la relation contractuelle et peuvent être transmises aux sociétés affiliées du groupe Nanodrag."
+                },
+                {
+                    "title": "11. Confidentialité",
+                    "body": "11.1 Sauf accord écrit contraire, les informations transmises au client dans le cadre des commandes avec Nanodrag ne sont pas considérées comme confidentielles, à moins que leur caractère confidentiel ne soit évident.<br>11.2 Nanodrag indique que des données personnelles sont stockées dans le cadre de la relation contractuelle et peuvent être transmises aux sociétés affiliées du groupe Nanodrag."
+                }
+            ]
         }
     };
+
+
+
 
     const langContent = content[lang] || content.EN;
 
@@ -1788,7 +2387,9 @@ exports.getPrivacyPolicy = (req, res, next) => {
                 EN: {
                     pageTitle: "Privacy Policy",
                     metaDescription: "Read DragLab's Data Protection and Privacy Policy. Learn how we collect, use, and protect your information.",
-                    status: "01.01.2019",
+                    dataPolicyTitle: "Data Protection Policy",
+                    status: "Status:",
+                    statusDate: "02 - Last Updated: June 2025",
                     contactInfo: `
                             The responsible body, i.e. the data controller, within the meaning of the data protection laws
                             is:
@@ -2131,7 +2732,9 @@ The current version of this Privacy Policy is always available at <a class="high
                 ES: {
                     pageTitle: "Política de Privacidad",
                     metaDescription: "Lea la política de privacidad de DragLab y descubra cómo recopilamos, usamos y protegemos su información.",
-                    status: "01.01.2019",
+                    dataPolicyTitle: "Política de Protección de Datos",
+                    status: "Estado:",
+                    statusDate: "02 - Última actualización: junio de 2025",
                     contactInfo: `
                     DragLab Technology GmbH<br>
                     Mergenthalerallee 10-12<br>
@@ -2196,7 +2799,9 @@ The current version of this Privacy Policy is always available at <a class="high
                 DE: {
                     pageTitle: "Datenschutzerklärung",
                     metaDescription: "Lesen Sie die Datenschutzerklärung von DragLab und erfahren Sie, wie wir Ihre Informationen sammeln, verwenden und schützen.",
-                    status: "01.01.2019",
+                    dataPolicyTitle: "Datenschutzerklärung",
+                    status: "Status:",
+                    statusDate: "02 - Letzte Aktualisierung: Juni 2025",
                     contactInfo: `
                     DragLab Technology GmbH<br>
                     Mergenthalerallee 10-12<br>
@@ -2292,6 +2897,171 @@ The current version of this Privacy Policy is always available at <a class="high
                             Bei Fragen zum Datenschutz wenden Sie sich bitte an den Datenschutzbeauftragten der Nanodrag Technology GmbH.`}
                     ]
 
+                },
+                TR: {
+                    pageTitle: "Gizlilik Politikası",
+                    metaDescription: "DragLab'ın Gizlilik Politikasını okuyun ve bilgilerinizi nasıl topladığımızı, kullandığımızı ve koruduğumuzu öğrenin.",
+                    dataPolicyTitle: "Veri Koruma Politikası",
+                    status: "Durum:",
+                    statusDate: "02 - Son Güncelleme: Haziran 2025",
+                    contactInfo: `<br>  <span class=\"text-bold\">İletişim Bilgileri</span><br> <span class=\"text-bold\">DragLab Technology GmbH</span><br>    E-Mail: <a class=\"highlighted\" href=\"mailto:info@drag-lab.de\">info@drag-lab.de</a><br><br>  DragLab Technology GmbH<br>    Mergenthalerallee 10-12<br>    D-65760 Eschborn, Almanya<br>    Tel: +49 6196 400816<br>    Fax: +49 6196 400910<br>    E-Mail: <a href=\"mailto:info@drag-lab.de\">info@drag-lab.de</a> <br>    Website: <a href=\"https://www.drag-lab.de\">www.drag-lab.de</a><br>    Merkez: Eschborn<br>    Ticaret Sicil No: Eschborn Ticaret Mahkemesi - HRB 97258<br>    Hukuki Form: Sınırlı Sorumluluk Şirketi (GmbH)<br>    Kayıt Yeri: Eschborn<br>`,
+                    sections: [
+                        {
+                            "title": "1. Genel Bilgilerin Toplanması",
+                            "body": "Web sitemizi ziyaret ettiğinizde, belirli genel bilgiler otomatik olarak toplanır ve sunucu günlük dosyalarında saklanır. Bunlar şunları içerebilir:\n<ul>\n<li>Tarayıcı türü ve sürümü</li>\n<li>Kullanılan işletim sistemi</li>\n<li>Yönlendiren URL</li>\n<li>Erişen bilgisayarın ana bilgisayar adı (IP adresi)</li>\n<li>Sunucu talebinin tarihi ve saati</li>\n<li>Web sitesinin güvenli ve istikrarlı çalışması için gerekli olan diğer benzer veriler</li>\n</ul>\n<br>\nBu bilgiler, sorunsuz bir bağlantı, sistem güvenliği ve web sitemizin içeriğinin doğru teslimatı için teknik olarak gereklidir.\n<br>\nBu veriler belirli bir kişinin doğrudan tanımlanmasını mümkün kılmasa da, geçerli veri koruma yasalarına göre kişisel veri olarak kabul edilebilir.\n<br><br>\n<strong>Hukuki Dayanak:</strong> Bu verilerin işlenmesi, DSGVO Madde 6(1)(f) uyarınca meşru menfaatimize dayanmaktadır. Meşru menfaatimiz, web sitemizin işlevselliğini, güvenliğini ve optimizasyonunu sağlamaktır.\n<br><br>\n<strong>Depolama Süresi:</strong> Günlük veriler geçici olarak saklanır ve en geç 14 gün sonra otomatik olarak silinir, ancak güvenlik veya yasal nedenlerle daha uzun süre saklanması gerekebilir."
+                        },
+                        {
+                            "title": "2. Çerezler",
+                            "body": "Web sitemizde çerezler kullanıyoruz. Çerezler, web sitemizi ziyaret ettiğinizde cihazınıza kaydedilen küçük metin dosyalarıdır. Hizmetlerimizi sağlamak, iyileştirmek ve kişiselleştirmek için bize yardımcı olurlar.\n<br><br>\nŞunları ayırt ediyoruz:\n<ul>\n<li><span class=\"text-bold\">Temel Çerezler:</span> Web sitesinin temel işlevselliği için gereklidir (örneğin, dil ayarları, oturum yönetimi).</li>\n<li><span class=\"text-bold\">Analiz Çerezleri:</span> Web sitesinin kullanımına ilişkin anonimleştirilmiş veriler toplamak için kullanılır (örneğin, Google Analytics).</li>\n<li><span class=\"text-bold\">Pazarlama Çerezleri:</span> Üçüncü taraflar tarafından, kişiselleştirilmiş reklamlar göstermek veya web siteleri arasında kullanıcı davranışını izlemek için kullanılır.</li>\n</ul>\n<br>\n<span class=\"text-bold\">Hukuki Dayanak:</span>\n<ul>\n<li>Temel çerezler, web sitesinin işlevselliği konusundaki meşru menfaatimize dayanarak işlenir (DSGVO Madde 6(1)(f)).</li>\n<li>Diğer tüm çerezler (analiz, pazarlama) yalnızca açık rızanızla işlenir (DSGVO Madde 6(1)(a)), bu rıza çerez bildirimimiz aracılığıyla verilir.</li>\n</ul>\n<br>\nRızanızı, web sitemizin altındaki Çerez Ayarları bağlantısı aracılığıyla istediğiniz zaman yönetebilir veya geri çekebilirsiniz.\n<br><br>\nÇoğu tarayıcı çerezleri varsayılan olarak kabul eder. Ancak, tarayıcınızı çerezleri reddedecek veya çerezler ayarlanmadan önce sizi bilgilendirecek şekilde ayarlayabilirsiniz. Ancak, çerezlerin devre dışı bırakılması web sitesinin tam işlevselliğini etkileyebilir.\n<br><br>\nDaha fazla bilgi için lütfen [Çerez Politikamıza] bakın."
+                        },
+                        {
+                            "title": "3. Bülten",
+                            "body": "Bültenimize kaydolursanız, sağladığınız kişisel verileri (genellikle e-posta adresiniz) yalnızca şirketimiz, ürünlerimiz, hizmetlerimiz ve haberlerimiz hakkında bilgi göndermek için kullanıyoruz.\n<br><br>\n<span class=\\\"text-bold\\\">Kayıt Prosedürü:</span>\n<br>\nKimliğinizi doğrulamak için Çift Onaylama (Double-Opt-In) prosedürünü kullanıyoruz. E-posta adresinizi girdikten sonra, kaydınızı tamamlamak için bir bağlantı içeren bir onay e-postası alacaksınız. Onayladıktan sonra dağıtım listemize eklenirsiniz.\n<br><br>\n<span class=\\\"text-bold\\\">Hukuki Dayanak:</span>\n<br>\nVerilerinizin işlenmesi, verdiğiniz rızaya dayanmaktadır (DSGVO Madde 6(1)(a)). Rızanızı, bültenlerdeki abonelikten çıkış bağlantısına tıklayarak veya doğrudan <a class=\\\"highlighted\\\" href=\\\"mailto:info@drag-lab.de\\\">info@drag-lab.de</a> adresine e-posta göndererek geri çekebilirsiniz.\n<br><br>\n<span class=\\\"text-bold\\\">Veri Depolama ve Üçüncü Taraf Hizmet Sağlayıcılar:</span>\n<br>\nVerileriniz güvenli bir şekilde saklanır ve e-posta hizmet sağlayıcıları (örneğin, Mailchimp, Brevo) gibi üçüncü taraflara aktarılmaz, bu sağlayıcılar yalnızca bizim adımıza ve veri koruma anlaşmaları çerçevesinde verileri işler.\n<br><br>\n<span class=\\\"text-bold\\\">İsteğe Bağlı Analizler (varsa):</span>\n<br>\nBültenlerimiz, kullanıcı davranışını daha iyi anlamamıza yardımcı olan izleme pikselleri içerebilir. Bu izlemeyi devre dışı bırakmak için istediğiniz zaman abonelikten çıkabilirsiniz."
+                        },
+                        {
+                            "title": "4. Formlar aracılığıyla toplanan veriler",
+                            "body": "Web sitemiz, bizimle iletişime geçebileceğiniz, teknik destek talep edebileceğiniz veya ürün garantinizi kaydedebileceğiniz çeşitli formlar sunar. Bu formları kullandığınızda, talebinizi işlemek için sağladığınız kişisel verileri toplarız.\n<br><br>\n<span class=\"text-bold\">Toplanan veriler şunları içerebilir:</span>\n<ul>\n<li> <span class=\"text-bold\">İletişim Formu:</span> Ad, Soyad, E-posta Adresi, Konu ve Mesaj</li>\n<li><span class=\"text-bold\">Destek Formu:</span> İletişim Türü (Birey/Şirket), Şirket Adı, Departman, Hitap, Tam Ad, Adres Bilgileri, Telefon, Faks, E-posta, Hata Tarihi, Cihaz Kategorisi ve Modeli, Seri Numarası ve Hata Açıklaması</li>\n<li><span class=\"text-bold\">Garanti Kaydı:</span> İsim, E-posta Adresi, Satın Alma Tarihi, Cihaz Kategorisi ve Modeli, Seri Numarası, Teknik Sorgu ve Ek Mesaj</li>\n</ul>\n<br>\n<span class=\"text-bold\">İşleme Amacı:</span>\nVerileriniz yalnızca talebinizi işlemek, müşteri hizmetleri sağlamak ve garanti veya servis amaçları için kullanılır.\n<br><br>\n<span class=\"text-bold\">Hukuki Dayanak:</span>\n<ul>\n<li>Formu gönderirken verdiğiniz rızaya dayalı olarak (DSGVO Madde 6(1)(a)); veya</li>\n<li>Gerekirse bir sözleşmenin ifası veya sözleşme öncesi tedbirler için (DSGVO Madde 6(1)(b)).</li>\n</ul>\n<br><br>\n<span class=\"text-bold\">Depolama Süresi:</span>\nVerileriniz yalnızca talebinizi işlemek için gerekli olduğu sürece saklanır, yasal saklama yükümlülükleri (örneğin garanti, vergi veya yasal gereklilikler) olmadıkça.\n<br><br>\n<span class=\"text-bold\">Harici Hizmet Sağlayıcılar:</span>\nVerileriniz, gizlilik ve veri koruma taahhütlerine bağlı olan yetkili DragLab çalışanları veya görevlendirilmiş hizmet sağlayıcılar (örneğin barındırma, e-posta veya CRM sağlayıcıları) tarafından işlenebilir."
+                        },
+                        {
+                            "title": "5. Microsoft Clarity'nin Kullanımı",
+                            "body": "Kullanıcı davranış analiz aracı Microsoft Clarity'yi kullanıyoruz, sağlayıcısı:<br><br>\n<span class=\"text-bold\">Microsoft Corporation</span><br>\n<span class=\"text-bold\">One Microsoft Way, Redmond, WA 98052-6399, ABD</span><br><br>\nClarity, çerezler ve benzer teknolojiler kullanarak fare hareketleri, kaydırma davranışı, tıklama davranışı, cihaz bilgileri ve yönlendiren URL'ler gibi verileri toplar ve işler. Bu veriler, kullanıcı davranışını daha iyi anlamamıza ve web sitemizin kullanılabilirliğini ve yapısını optimize etmemize yardımcı olur.\n<br><br>\nMicrosoft ayrıca toplanan verileri kendi ticari amaçları için de kullanabilir; bu, <a class=\"highlighted\" href=\"https://privacy.microsoft.com/\">Microsoft'un Gizlilik Bildirimi</a>nde açıklanmıştır.\n<br><br>\n<span class=\"text-bold\">Hukuki Dayanak:</span><br>\nMicrosoft Clarity'nin kullanımı, Çerez Bildirimimiz aracılığıyla verdiğiniz rızaya dayanmaktadır (DSGVO Madde 6(1)(a)). Rızanızı, web sitemizin altındaki Çerez Ayarları bağlantısı aracılığıyla istediğiniz zaman geri çekebilirsiniz.\n<br><br>\n<span class=\"text-bold\">Veri Aktarımı:</span><br>\nVeriler ABD'deki sunuculara aktarılabilir. Microsoft, AB-ABD Veri Gizliliği Çerçevesi kapsamında sertifikalandırılmıştır.\n<br><br>\n<span class=\"text-bold\">Opt-out:</span><br>\nTarayıcı ayarlarınız veya web sitemizdeki çerez tercihlerinizi yöneterek veri toplama işlemini kontrol edebilirsiniz."
+                        },
+                        {
+                            "title": "6. Google Analytics'in Kullanımı",
+                            "body": "Bu web sitesi, bir web analiz hizmeti olan Google Analytics'i kullanmaktadır. Sağlayıcısı:<br><br>\n<span class=\"text-bold\">Google Ireland Limited</span><br>\nGordon House, Barrow Street<br>\nDublin 4, İrlanda<br><br>\nGoogle Analytics, web sitemizin kullanımını analiz etmek için çerezler kullanır. Oluşturulan bilgiler (örneğin IP adresi, kullanıcı davranışı, tarayıcı türü) genellikle ABD'deki bir Google sunucusuna iletilir ve orada saklanır.\n<br><br>\nWeb sitemizde IP anonimleştirmeyi etkinleştirdik, böylece IP adresiniz Avrupa Birliği içinde kısaltılır ve ardından Google'a iletilir.\n<br><br>\nGoogle, DSGVO Madde 28 uyarınca bir veri işleme sözleşmesi kapsamında bizim adımıza bu verileri işler. Google'ın kişisel verilerle nasıl başa çıktığına dair daha fazla bilgiye <a class=\"highlighted\" href=\"https://policies.google.com/privacy\">buradan</a> ulaşabilirsiniz.\n<br><br>\n<span class=\"text-bold\">Hukuki Dayanak:</span>\nAnaliz çerezlerinin ve Google Analytics'in kullanımı, Çerez Bildirimimiz aracılığıyla verdiğiniz açık rızaya dayanmaktadır (DSGVO Madde 6(1)(a)). Rızanızı, [Çerez Ayarları] aracılığıyla istediğiniz zaman geri çekebilirsiniz.\n<br><br>\n<span class=\"text-bold\">Depolama Süresi:</span><br>\nÇerezler veya kullanıcı kimlikleriyle ilişkilendirilen kullanıcı ve olay düzeyindeki veriler en fazla 14 ay saklanır ve ardından otomatik olarak silinir.\n<br><br>\n<span class=\"text-bold\">Opt-out Seçenekleri:</span><br>\n<ul>\n<li>Rızanızı [Çerez Ayarları] aracılığıyla geri çekin</li>\n<li>Resmi tarayıcı eklentisi: Google Analytics Opt-out'u yükleyin</li>\n<li>Tarayıcınızı çerezleri engelleyecek şekilde yapılandırın</li>\n</ul>"
+                        },
+                        {
+                            "title": "7. Google Ads Dönüşüm Takibinin Kullanımı",
+                            "body": `Web sitemiz, bir hizmet olan Google Ads dönüşüm takibini kullanmaktadır:<br><br>
+                            <span class=\"text-bold\">Google Ireland Limited</span><br>
+                            Gordon House, Barrow Street<br>
+                            Dublin 4, İrlanda<br><br>
+                            Google tarafından yayınlanan bir reklama tıkladığınızda, cihazınıza bir çerez kaydedilir. Bu çerez, belirli işlemlerin gerçekleştirilip gerçekleştirilmediğini izlememizi sağlar - örneğin, bir formun doldurulup doldurulmadığını veya belirli bir sayfanın ziyaret edilip edilmediğini. Bu çerezler 30 gün geçerlidir ve kişisel veriler içermez.<br><br>
+                            Çerezin geçerliliği süresi içinde belirli sayfaları ziyaret ederseniz, Google ve biz, bir reklama tıkladığınızı ve web sitemize yönlendirildiğinizi anlayabiliriz. Bu, Google'ın bizim için dönüşüm istatistikleri oluşturmasını sağlar. Ancak, kullanıcıları kişisel olarak tanımlamamıza olanak tanıyan hiçbir bilgi almayız.<br><br>
+                            <strong>Hukuki Dayanak:</strong><br>
+                            Google Ads ve dönüşüm takibi çerezlerinin kullanımı, Çerez Bildirimimiz aracılığıyla verdiğiniz açık rızaya dayanmaktadır (DSGVO Madde 6(1)(a)).<br><br>
+                            <strong>Veri Paylaşımı ve Profil Oluşturma:</strong><br>
+                            Google, verilerinizi Google Hesabınızla ilişkilendirebilir ve bunları Google'ın <a class=\"highlighted\" href=\"https://policies.google.com/privacy\">Gizlilik Politikası</a> uyarınca kişiselleştirilmiş reklamlar için kullanabilir.<br><br>
+                            <strong>Reddetme ve Opt-out:</strong><br>
+                            Rızanızı [Çerez Ayarları] aracılığıyla geri çekebilir veya tarayıcı ayarlarınızı değiştirerek çerezleri reddedebilirsiniz.<br><br>
+                            <ul>
+                            <li>Rızanızı [Çerez Ayarları] aracılığıyla istediğiniz zaman geri çekin</li>
+                            <li>Resmi tarayıcı eklentisi: Google Analytics Opt-out'u yükleyin</li>
+                            <li>Tarayıcınızı çerezleri engelleyecek şekilde yapılandırın</li>
+                            </ul>`
+                        },
+                        {
+                            "title": "8. Veri Koruma Haklarınız",
+                            "body": `DSGVO uyarınca veri koruma haklarınız şunlardır:
+                            <ul>    
+                            <li>Erişim Hakkı: Kişisel verilerinize erişim talep etme hakkına sahipsiniz.</li>
+                            <li>Düzeltme Hakkı: Yanlış veya eksik verilerin düzeltilmesini talep etme hakkına sahipsiniz.</li>
+                            <li>Silme Hakkı: Kişisel verilerinizin silinmesini talep etme hakkına sahipsiniz.</li>
+                            <li>İtiraz Hakkı: Verilerinizin işlenmesine itiraz etme hakkına sahipsiniz.</li>
+                            <li>Veri Taşınabilirliği Hakkı: Verilerinizi başka bir hizmet sağlayıcıya aktarma hakkına sahipsiniz.</li>
+                            </ul>
+                            İşleme faaliyetlerimizle ilgili sorularınız veya veri koruma haklarınızı kullanmak isterseniz, lütfen veri koruma sorumlumuzla iletişime geçin:<br>
+                            E-Mail: <a class=\"highlighted\" href=\"mailto:data.protection@draglab.com\">data.protection@draglab.com</a><br>
+                            Kimlik doğrulaması için ek bilgiler talep edebiliriz.<br><br>
+                            Ayrıca, ilgili veri koruma otoritesine şikayette bulunma hakkınız da vardır:<br>
+                            <a class=\"highlighted\" href=\"https://datenschutz.hessen.de/\">Hessen Veri Koruma ve Bilgi Özgürlüğü Komiseri</a>`
+                        },
+                        {
+                            "title": "9. Gizlilik Politikasındaki Değişiklikler",
+                            "body": `Gizlilik politikamızda zaman zaman değişiklik yapma hakkını saklı tutuyoruz. Değişiklikler yapıldığında, güncellenmiş politikayı web sitemizde yayınlayacağız. Lütfen düzenli olarak bu sayfayı kontrol edin.
+                            <br><br>
+                            Son güncelleme: 01.01.2023`
+                        },
+                        {
+                            "title": "10. Veri Koruma Sorumlusu ile İletişim",
+                            "body": `Kişisel verilerinizin işlenmesi hakkında sorularınız varsa veya veri koruma haklarınızı kullanmak istiyorsanız, doğrudan veri koruma sorumlumuzla iletişime geçebilirsiniz:<br><br>
+                            <span class=\"text-bold\">Veri Koruma Sorumlusu</span><br>
+                            <span class=\"text-bold\">DragLab Technology GmbH</span><br>
+                            E-Mail: <a class=\"highlighted\" href=\"mailto:data.protection@draglab.com\">data.protection@draglab.com</a><br><br>
+                            Ayrıca, ilgili veri koruma otoritesine şikayette bulunma hakkınız da vardır:<br>
+                            <a class=\"highlighted\" href=\"https://datenschutz.hessen.de/\">Hessen Veri Koruma ve Bilgi Özgürlüğü Komiseri</a><br><br>
+                            <span class=\"text-bold\">Posta Adresi:</span> Postfach 3163, 65021 Wiesbaden, Almanya<br><br>
+                            Veri koruma ile ilgili sorularınız için lütfen Nanodrag Technology GmbH'nin veri koruma sorumlusuna başvurun.`}
+                    ]
+                },
+                FR: {
+                    pageTitle: "Politique de Confidentialité",
+                    metaDescription: "Lisez la Politique de Confidentialité de DragLab et découvrez comment nous collectons, utilisons et protégeons vos informations.",
+                    dataPolicyTitle: "Politique de Protection des Données",
+                    status: "Statut :",
+                    statusDate: "02 - Dernière mise à jour : Juin 2025",
+                    contactInfo: `<br>  <span class=\"text-bold\">Coordonnées</span><br> <span class=\"text-bold\">DragLab Technology GmbH</span><br>    E-Mail: <a class=\"highlighted\" href=\"mailto:data.protection@draglab.com\">data.protection@draglab.com</a><br><br>  DragLab Technology GmbH<br>    Mergenthalerallee 10-12<br>    D-65760 Eschborn, Allemagne<br>    Tel: +49 6196 400816<br>    Fax: +49 6196 400910<br>    E-Mail: <a href=\"mailto:data.protection@draglab.com\">data.protection@draglab.com</a> <br>    Site web: <a href=\"https://www.drag-lab.de\">www.drag-lab.de</a><br>    Siège social: Eschborn<br>    Numéro d'immatriculation au registre du commerce: Tribunal de commerce d'Eschborn - HRB 97258<br>    Forme juridique: Société à responsabilité limitée (GmbH)<br>    Lieu d'enregistrement: Eschborn<br>`,
+                    sections: [
+                        {
+                            "title": "1. Collecte d'informations générales",
+                            "body": "Lorsque vous visitez notre site web, certaines informations générales sont automatiquement collectées et stockées dans des fichiers journaux du serveur. Cela peut inclure:\n<ul>\n<li>Type et version du navigateur</li>\n<li>Système d'exploitation utilisé</li>\n<li>URL de référence</li>\n<li>Nom d'hôte de l'ordinateur accédant (adresse IP)</li>\n<li>Date et heure de la requête au serveur</li>\n<li>Données similaires nécessaires pour assurer le fonctionnement sécurisé et stable de notre site web</li>\n</ul>\n<br>\nCes informations sont techniquement nécessaires pour établir une connexion sans problème, assurer la sécurité du système et garantir la livraison correcte du contenu de notre site web.\n<br>\nBien que ces données ne permettent pas d'identifier directement une personne spécifique, elles peuvent être considérées comme des données personnelles selon les lois de protection des données en vigueur.\n<br><br>\n<strong>Base juridique :</strong> Le traitement de ces données est basé sur notre intérêt légitime conformément à l'article 6(1)(f) du DSGVO. Notre intérêt légitime est d'assurer la fonctionnalité, la sécurité et l'optimisation de notre site web.\n<br><br>\n<strong>Durée de stockage :</strong> Les données journalières sont stockées temporairement et supprimées automatiquement au plus tard après 14 jours, sauf si une conservation plus longue est nécessaire pour des raisons de sécurité ou légales."
+                        },
+                        {
+                            "title": "2. Cookies",
+                            "body": "Nous utilisons des cookies sur notre site web. Les cookies sont de petits fichiers texte enregistrés sur votre appareil lorsque vous visitez notre site web. Ils nous aident à fournir, améliorer et personnaliser nos services.\n<br><br>\nNous distinguons:\n<ul>\n<li><span class=\"text-bold\">Cookies essentiels :</span> Nécessaires pour les fonctions de base du site web (par exemple, paramètres de langue, gestion de session).</li>\n<li><span class=\"text-bold\">Cookies d'analyse :</span> Utilisés pour collecter des données anonymisées sur l'utilisation du site web (par exemple, Google Analytics).</li>\n<li><span class=\"text-bold\">Cookies marketing :</span> Utilisés par des tiers pour afficher des publicités personnalisées ou suivre le comportement des utilisateurs entre les sites web.</li>\n</ul>\n<br>\n<span class=\"text-bold\">Base juridique :</span>\n<ul>\n<li>Les cookies essentiels sont traités sur la base de notre intérêt légitime à assurer la fonctionnalité du site web (DSGVO article 6(1)(f)).</li>\n<li>Tous les autres cookies (analyse, marketing) sont traités uniquement avec votre consentement explicite (DSGVO article 6(1)(a)), ce consentement étant donné via notre notification de cookies.</li>\n</ul>\n<br>\nVous pouvez gérer ou retirer votre consentement à tout moment via le lien Paramètres des cookies en bas de notre site web.\n<br><br>\nLa plupart des navigateurs acceptent les cookies par défaut. Cependant, vous pouvez configurer votre navigateur pour refuser les cookies ou vous informer avant qu'ils ne soient définis. Veuillez noter que la désactivation des cookies peut affecter la fonctionnalité complète du site web.\n<br><br>\nPour plus d'informations, veuillez consulter notre [Politique de Cookies]."
+                        },
+                        {
+                            "title": "3. Newsletter",
+                            "body": "Si vous vous inscrivez à notre newsletter, nous utilisons les données personnelles que vous fournissez (généralement votre adresse e-mail) uniquement pour vous envoyer des informations sur notre entreprise, nos produits, nos services et nos actualités.\n<br><br>\n<span class=\\\"text-bold\\\">Procédure d'inscription :</span>\n<br>\nNous utilisons la procédure de double opt-in pour vérifier votre identité. Après avoir saisi votre adresse e-mail, vous recevrez un e-mail de confirmation contenant un lien pour finaliser votre inscription. Une fois confirmé, vous serez ajouté à notre liste de diffusion.\n<br><br>\n<span class=\\\"text-bold\\\">Base juridique :</span>\n<br>\nLe traitement de vos données est basé sur le consentement que vous avez donné (DSGVO article 6(1)(a)). Vous pouvez retirer votre consentement à tout moment en cliquant sur le lien de désabonnement dans les newsletters ou en envoyant un e-mail directement à <a class=\\\"highlighted\\\" href=\\\"mailto:data.protection@draglab.com\\\">data.protection@draglab.com</a>."
+                        },
+                        {
+                            "title": "4. Données collectées via les formulaires",
+                            "body": "Notre site web propose divers formulaires que vous pouvez utiliser pour nous contacter, demander une assistance technique ou enregistrer la garantie de votre produit. Lorsque vous utilisez ces formulaires, nous collectons les données personnelles que vous fournissez pour traiter votre demande.\n<br><br>\n<span class=\"text-bold\">Les données collectées peuvent inclure :</span>\n<ul>\n<li> <span class=\"text-bold\">Formulaire de contact :</span> Prénom, Nom, Adresse e-mail, Sujet et Message</li>\n<li><span class=\"text-bold\">Formulaire d'assistance :</span> Type de contact (Particulier/Entreprise), Nom de l'entreprise, Département, Civilité, Nom complet, Informations d'adresse, Téléphone, Fax, E-mail, Date de l'erreur, Catégorie et modèle de l'appareil, Numéro de série et Description de l'erreur</li>\n<li><span class=\"text-bold\">Enregistrement de garantie :</span> Nom, Adresse e-mail, Date d'achat, Catégorie et modèle de l'appareil, Numéro de série, Question technique et Message supplémentaire</li>\n</ul>\n<br>\n<span class=\"text-bold\">But du traitement :</span>\nVos données sont utilisées uniquement pour traiter votre demande, fournir un service client et à des fins de garantie ou de service.\n<br><br>\n<span class=\"text-bold\">Base juridique :</span>\n<ul>\n<li>Basée sur le consentement que vous donnez en soumettant le formulaire (DSGVO article 6(1)(a)); ou</li>\n<li>Si nécessaire pour l'exécution d'un contrat ou des mesures précontractuelles (DSGVO article 6(1)(b)).</li>\n</ul>\n<br><br>\n<span class=\"text-bold\">Durée de stockage :</span>\nVos données sont conservées uniquement aussi longtemps que nécessaire pour traiter votre demande, sauf si des obligations légales de conservation (par exemple, garanties, exigences fiscales ou légales) s'appliquent.\n<br><br>\n<span class=\"text-bold\">Fournisseurs de services externes :</span>\nVos données peuvent être traitées par des employés autorisés de DragLab liés par des engagements de confidentialité ou par des prestataires de services mandatés (par exemple, hébergement, e-mail ou fournisseurs CRM) qui traitent les données pour notre compte."
+                        },
+                        {
+                            "title": "5. Utilisation de Microsoft Clarity",
+                            "body": "Nous utilisons l'outil d'analyse du comportement des utilisateurs Microsoft Clarity, dont le fournisseur est:<br><br>\n<span class=\"text-bold\">Microsoft Corporation</span><br>\n<span class=\"text-bold\">One Microsoft Way, Redmond, WA 98052-6399, USA</span><br><br>\nClarity collecte et traite des données telles que les mouvements de la souris, le comportement de défilement, le comportement de clic, les informations sur l'appareil et les URL de référence en utilisant des cookies et des technologies similaires. Ces données nous aident à mieux comprendre le comportement des utilisateurs et à optimiser la convivialité et la structure de notre site web.\n<br><br>\nMicrosoft peut également utiliser les données collectées à des fins commerciales propres; cela est expliqué dans la <a class=\"highlighted\" href=\"https://privacy.microsoft.com/\">Déclaration de confidentialité de Microsoft</a>.\n<br><br>\n<span class=\"text-bold\">Base juridique :</span><br>\nL'utilisation de Microsoft Clarity est basée sur le consentement que vous avez donné via notre notification de cookies (DSGVO article 6(1)(a)). Vous pouvez retirer votre consentement à tout moment via le lien Paramètres des cookies en bas de notre site web.\n<br><br>\n<span class=\"text-bold\">Transfert de données :</span><br>\nLes données peuvent être transférées à des serveurs situés aux États-Unis. Microsoft est certifié dans le cadre du Bouclier de protection des données UE-États-Unis.\n<br><br>\n<span class=\"text-bold\">Opt-out :</span><br>\nVous pouvez contrôler le processus de collecte de données en configurant les paramètres de votre navigateur ou en gérant vos préférences de cookies sur notre site web."
+                        },
+                        {
+                            "title": "6. Utilisation de Google Analytics",
+                            "body": "Ce site web utilise Google Analytics, un service d'analyse web. Le fournisseur est:<br><br>\n<span class=\"text-bold\">Google Ireland Limited</span><br>\nGordon House, Barrow Street<br>\nDublin 4, Irlande<br><br>\nGoogle Analytics utilise des cookies pour analyser l'utilisation de notre site web. Les informations générées (par exemple, adresse IP, comportement des utilisateurs, type de navigateur) sont généralement transmises à un serveur Google aux États-Unis et y sont stockées.\n<br><br>\nNous avons activé l'anonymisation IP sur notre site web, de sorte que votre adresse IP est raccourcie au sein de l'Union européenne avant d'être transmise à Google.\n<br><br>\nGoogle traite ces données en notre nom dans le cadre d'un contrat de traitement des données conformément à l'article 28 du DSGVO. Pour plus d'informations sur la manière dont Google gère les données personnelles, veuillez consulter <a class=\"highlighted\" href=\"https://policies.google.com/privacy\">ici</a>.\n<br><br>\n<span class=\"text-bold\">Base juridique :</span>\nL'utilisation des cookies d'analyse et de Google Analytics est basée sur votre consentement explicite via notre notification de cookies (DSGVO article 6(1)(a)). Vous pouvez retirer votre consentement à tout moment via [Paramètres des cookies].\n<br><br>\n<span class=\"text-bold\">Durée de stockage :</span><br>\nLes données au niveau des utilisateurs et des événements associées aux cookies ou aux identifiants utilisateur sont conservées pendant un maximum de 14 mois, puis supprimées automatiquement.\n<br><br>\n<span class=\"text-bold\">Options d'opt-out :</span><br>\n<ul>\n<li>Retirez votre consentement à tout moment via [Paramètres des cookies]</li>\n<li>Extension officielle du navigateur : installez le module complémentaire Google Analytics Opt-out</li>\n<li>Configurez votre navigateur pour bloquer les cookies</li>\n</ul>"
+                        },
+                        {
+                            "title": "7. Utilisation du suivi des conversions Google Ads",
+                            "body": `Notre site web utilise le suivi des conversions Google Ads, un service de :<br><br>
+                            <span class=\"text-bold\">Google Ireland Limited</span><br>
+                            Gordon House, Barrow Street<br>
+                            Dublin 4, Irlande<br><br>   
+                            Lorsque vous cliquez sur une publicité publiée par Google, un cookie est enregistré sur votre appareil. Ce cookie nous permet de suivre si certaines actions ont été effectuées - par exemple, si un formulaire a été rempli ou si une page spécifique a été visitée. Ces cookies sont valables pendant 30 jours et ne contiennent pas de données personnelles.<br><br>
+                            Si vous visitez certaines pages dans la période de validité du cookie, Google et nous pouvons savoir que vous avez cliqué sur une publicité et que vous avez été redirigé vers notre site web. Cela permet à Google de créer des statistiques de conversion pour nous. Cependant, nous ne recevons aucune information qui nous permettrait d'identifier personnellement les utilisateurs.<br><br>
+                            <strong>Base juridique :</strong><br>
+                            L'utilisation de Google Ads et des cookies de suivi des conversions est basée sur votre consentement explicite via notre notification de cookies (DSGVO article 6(1)(a)).<br><br>
+                            <strong>Partage de données et création de profils :</strong><br>
+                            Google peut associer vos données à votre compte Google et les utiliser conformément à la <a class=\"highlighted\" href=\"https://policies.google.com/privacy\">Politique de confidentialité</a> de Google pour des publicités personnalisées.<br><br>
+                            <strong>Refus et opt-out :</strong><br>
+                            Vous pouvez retirer votre consentement via [Paramètres des cookies] ou refuser les cookies en modifiant les paramètres de votre navigateur.<br><br> 
+                            <ul>
+                            <li>Retirez votre consentement à tout moment via [Paramètres des cookies]</li>
+                            <li>Extension officielle du navigateur : installez le module complémentaire Google Analytics Opt-out</li>
+                            </ul>`
+                        },
+                        {
+                            "title": "8. Vos droits en matière de protection des données",
+                            "body": `Conformément au DSGVO, vous disposez des droits suivants en matière de protection des données :
+                            <ul>
+                            <li>Droit d'accès : Vous avez le droit de demander des informations sur les données personnelles que nous détenons à votre sujet.</li>
+                            <li>Droit de rectification : Vous avez le droit de demander la correction de données personnelles inexactes ou incomplètes.</li>
+                            <li>Droit à l'effacement : Vous avez le droit de demander la suppression de vos données personnelles, sous certaines conditions.</li>
+                            <li>Droit à la limitation du traitement : Vous avez le droit de demander la limitation du traitement de vos données personnelles dans certaines situations.</li>
+                            <li>Droit à la portabilité des données : Vous avez le droit de recevoir vos données personnelles dans un format structuré, couramment utilisé et lisible par machine.</li>
+                            <li>Droit d'opposition : Vous avez le droit de vous opposer au traitement de vos données personnelles, sous certaines conditions.</li>
+                            </ul>`
+                        },
+                        {
+                            "title": "9. Modifications de la Politique de Confidentialité",
+                            "body": `Nous nous réservons le droit de modifier notre politique de confidentialité de temps à autre. Lorsque des modifications sont apportées, nous publierons la politique mise à jour sur notre site web. Veuillez consulter cette page régulièrement.  `
+                        }, {
+                            "title": "10. Contact avec le Délégué à la Protection des Données",
+                            "body": `Si vous avez des questions concernant le traitement de vos données personnelles ou si vous souhaitez exercer vos droits en matière de protection des données, vous pouvez contacter directement notre délégué à la protection des données :<br><br>
+                            <span class=\"text-bold\">Délégué à la Protection des Données</span><br>
+                            <span class=\"text-bold\">DragLab Technology GmbH</span><br>
+                            E-Mail: <a class=\"highlighted\" href=\"mailto:dpo@draglab.de\">dpo@draglab.de</a><br>
+                            Vous avez également le droit de déposer une plainte auprès de l'autorité de protection des données compétente :<br>
+                            <a class=\"highlighted\" href=\"https://datenschutz.hessen.de/\">Commissariat à la Protection des Données et à la Liberté d'Information de Hesse</a><br>
+                            <span class=\"text-bold\">Adresse postale :</span> Postfach 3163, 65021 Wiesbaden, Allemagne<br>
+                            Pour toute question relative à la protection des données, veuillez contacter le délégué à la protection des données de Nanodrag Technology GmbH.`
+                        }
+                    ]
                 }
             };
 
@@ -2303,12 +3073,18 @@ The current version of this Privacy Policy is always available at <a class="high
                 pageTitle: {
                     EN: 'Privacy Policy',
                     ES: 'Política de Privacidad',
-                    DE: 'Datenschutzerklärung'
+                    DE: 'Datenschutzerklärung',
+                    TR: 'Gizlilik Politikası',
+                    FR: 'Politique de Confidentialité'
+
                 }[lang],
                 metaDescription: {
                     EN: 'Read DragLab’s Privacy Policy and learn how we handle your data.',
                     ES: 'Lea la Política de Privacidad de DragLab y conozca cómo manejamos sus datos.',
-                    DE: 'Lesen Sie die Datenschutzrichtlinie von DragLab und erfahren Sie, wie wir mit Ihren Daten umgehen.'
+                    DE: 'Lesen Sie die Datenschutzrichtlinie von DragLab und erfahren Sie, wie wir mit Ihren Daten umgehen.',
+                    TR: 'DragLab\'ın Gizlilik Politikasını okuyun ve bilgilerinizi nasıl işlediğimizi öğrenin.',
+                    FR: 'Lisez la Politique de Confidentialité de DragLab et découvrez comment nous traitons vos données.'
+
                 }[lang],
                 products,
                 lang,
@@ -2402,6 +3178,56 @@ exports.getDataProtection = (req, res, next) => {
                 { title: 'Actualización de la política', text: 'Esta política puede modificarse conforme cambien las leyes o nuestras prácticas. Le informaremos de cualquier cambio importante.' }
             ]
 
+        },
+        TR: {
+            pageTitle: 'Veri Koruma Politikası - DragLab',
+            metaDescription: 'DragLab\'ın kişisel verilerinizi nasıl koruduğunu öğrenin. Gizlilik, güvenlik ve uluslararası veri işleme konularını kapsayan Veri Koruma Politikamızı okuyun.',
+            ogTitle: 'Veri Koruma Politikası | DragLab',
+            ogDescription: 'Gizliliğiniz önemlidir. DragLab\'ın kişisel verilerinizi GDPR, CCPA ve uluslararası standartlara uygun olarak nasıl topladığını, kullandığını ve koruduğunu öğrenin.',
+            ogImage: 'https://yourdomain.com/assets/Imgs/SEO/dataprotection.jpg',
+            sectionHeading: 'Veri Koruma Politikası',
+            content: [
+                { title: 'Gizliliğe Bağlılık', text: 'DragLab olarak, kişisel verilerinizin korunmasını önceliklendiriyoruz ve güvenliğini ve gizliliğini sağlamaya kararlıyız. Bu, adınız, iletişim bilgileriniz ve bize sağladığınız diğer bilgiler gibi sizi tanımlayabilecek herhangi bir veriyi içerir. Verileriniz yalnızca meşru amaçlar için kullanılır.' },
+                { title: 'Veri Toplama ve Kullanımı', text: 'Ürün ve hizmetlerimizi sağlamak, tekliflerimizi iyileştirmek ve sizinle etkili bir şekilde iletişim kurmak için yalnızca gerekli verileri toplarız. Topladığımız veri türleri, nasıl kullanıldığı ve işleme için yasal dayanak hakkında şeffafız. Verileriniz, toplandığı amaçlar için yalnızca kullanılır ve izniniz olmadan satılmaz veya üçüncü taraflarla paylaşılmaz.' },
+                { title: 'Rıza ve Kontrol', text: 'Kişisel verilerinizi toplamadan, kullanmadan veya paylaşmadan önce açık rızanızı talep ederiz. Rızanızı istediğiniz zaman geri çekme hakkına sahipsiniz ve bunu nasıl yapacağınız konusunda net talimatlar sağlıyoruz. Ayrıca, kişisel bilgileriniz üzerinde kontrol sahibisiniz; verilerinize erişme, düzeltme veya silme hakkınız vardır.' },
+                { title: 'Veri Güvenliği', text: 'Kişisel verilerinizi yetkisiz erişim, kayıp veya kötüye kullanıma karşı korumak için gelişmiş güvenlik önlemleri uygularız. Bu, şifreleme, güvenli sunucular ve düzenli güvenlik denetimlerini içerir.' },
+                { title: 'Veri Saklama', text: 'Kişisel verilerinizi yalnızca toplandığı amaçları yerine getirmek, yasal yükümlülüklere uymak veya anlaşmazlıkları çözmek için gerekli olduğu sürece saklarız. Veri artık gerekli olmadığında, güvenli bir şekilde silinir veya anonimleştirilir.' },
+                { title: 'Üçüncü Taraf Veri Paylaşımı', text: 'Hizmetlerimizi sağlamak veya yasal olarak gerekli olduğunda, kişisel verilerinizi yalnızca güvenilir üçüncü taraflarla paylaşırız. Bu taraflar, verilerinizi korumak ve yalnızca amaçlanan amaç için kullanmakla yükümlüdür. Verileriniz üçüncü taraflara satılmaz.' },
+                { title: 'Uluslararası Veri Aktarımları', text: 'Küresel bir şirket olarak, kişisel verilerinizi ikamet ettiğiniz yargı alanının dışındaki ülkelere aktarabiliriz. Bunu yaptığımızda, uluslararası standartlara uygun olarak verilerinizin uygun koruma önlemleriyle korunduğundan emin oluruz.' },
+                { title: 'Haklarınız', text: 'Kişisel verilerinizle ilgili olarak erişim, düzeltme, güncelleme veya silme hakkınız vardır. Ayrıca, verilerinizin işlenmesine itiraz etme veya kısıtlama hakkınız da vardır. Bu taleplere hızlı ve şeffaf bir şekilde yanıt veririz.' },
+                { title: 'Çerezler ve İzleme Teknolojileri', text: 'Deneyiminizi geliştirmek, kullanımı analiz etmek ve pazarlama çabalarını desteklemek için çerezler ve benzer teknolojiler kullanıyoruz. Tercihleriniz üzerinde kontrol sahibisiniz ve çerezleri kabul etmeyi veya reddetmeyi seçebilirsiniz.' },
+                { title: 'Veri İhlali Yanıtı', text: 'Bir veri ihlali durumunda, kapsamlı bir yanıt planımız vardır. Etkilenen bireyleri ve yetkilileri yasal gerekliliklere uygun olarak bilgilendiririz ve zararı hafifletmek ve gelecekteki olayları önlemek için adımlar atarız.' },
+                { title: 'Çalışan Eğitimi ve Farkındalığı', text: 'Çalışanlarımız veri koruma ilkeleri konusunda eğitilir. Ekibimiz genelinde güçlü bir gizlilik farkındalığı ve sorumluluk kültürü sürdürürüz.' },
+                { title: 'Yasalara ve Düzenlemelere Uyum', text: 'GDPR ve CCPA dahil olmak üzere tüm geçerli veri koruma yasalarına uyarız. Dünya çapında en yüksek veri koruma standartlarını sürdürmeye kararlıyız.' },
+                { title: 'Çocukların Gizliliği', text: 'Hizmetlerimiz 13 yaşın altındaki çocuklara yönelik değildir ve bilerek onlardan veri toplamayız. Böyle bir veri toplarsak, derhal sileriz.' },
+                { title: 'Şeffaflık ve İletişim', text: 'Veri işleme uygulamalarımızda şeffaf olmaya kararlıyız. Herhangi bir sorunuz veya endişeniz varsa, size yardımcı olmak için buradayız.' },
+                { title: 'Politika Güncellemeleri', text: 'Yasalar veya uygulamalarımızdaki değişiklikleri yansıtmak için bu politikayı güncelleyebiliriz. Önemli güncellemeler açıkça iletilecek ve kolayca erişilebilir olacaktır.' }
+            ]
+        },
+        FR: {
+            pageTitle: 'Politique de Protection des Données - DragLab',
+            metaDescription: 'Découvrez comment DragLab protège vos données personnelles. Lisez notre Politique de Protection des Données couvrant la confidentialité, la sécurité, le consentement et la gestion internationale des données.',
+            ogTitle: 'Politique de Protection des Données | DragLab',
+            ogDescription: 'Votre vie privée est importante. Découvrez comment DragLab collecte, utilise et protège vos données personnelles conformément au RGPD, à la CCPA et aux normes internationales.',
+            ogImage: 'https://yourdomain.com/assets/Imgs/SEO/dataprotection.jpg',
+            sectionHeading: 'Politique de Protection des Données',
+            content: [
+                { title: 'Engagement envers la vie privée', text: 'Chez DragLab, nous accordons la priorité à la protection de vos données personnelles et nous nous engageons à garantir leur sécurité et leur confidentialité. Cela inclut toutes les données pouvant vous identifier, telles que votre nom, vos coordonnées et toute autre information que vous nous fournissez. Nous traitons vos données avec le plus grand soin, en veillant à ce qu\'elles ne soient utilisées qu\'à des fins légitimes.' },
+                { title: 'Collecte et utilisation des données', text: 'Nous ne collectons que les données nécessaires pour fournir nos produits et services, améliorer nos offres et communiquer efficacement avec vous. Nous sommes transparents sur les types de données que nous collectons, la manière dont elles sont utilisées et la base juridique du traitement de vos informations. Vos données sont utilisées uniquement aux fins pour lesquelles elles ont été collectées, et nous ne vendons ni ne partageons vos informations avec des tiers sans votre consentement.' },
+                { title: 'Consentement et contrôle', text: 'Votre consentement est primordial. Nous sollicitons votre consentement explicite avant de collecter, d\'utiliser ou de partager vos données personnelles. Vous avez le droit de retirer votre consentement à tout moment, et nous fournissons des instructions claires sur la manière de le faire. De plus, vous avez le contrôle de vos informations personnelles, y compris le droit d\'accéder, de corriger ou de supprimer vos données.' },
+                { title: 'Sécurité des données', text: 'Nous employons des mesures de sécurité avancées pour protéger vos données personnelles contre tout accès non autorisé, perte ou mauvaise utilisation. Cela inclut le cryptage, des serveurs sécurisés et des audits de sécurité réguliers pour garantir que vos informations restent en sécurité.' },
+                { title: 'Conservation des données', text: 'Nous ne conservons vos données personnelles que le temps nécessaire pour remplir les objectifs pour lesquels elles ont été collectées, pour nous conformer aux obligations légales ou pour résoudre des litiges. Une fois que les données ne sont plus nécessaires, elles sont supprimées en toute sécurité ou anonymisées.' },
+                { title: 'Partage des données avec des tiers', text: 'Nous ne partageons vos données personnelles qu\'avec des tiers de confiance lorsque cela est essentiel à la fourniture de nos services ou lorsque la loi l\'exige. Ces parties sont contractuellement tenues de protéger vos données et de les utiliser uniquement à la fin prévue. Nous ne vendons pas vos données à des tiers.' },
+                { title: 'Transferts internationaux de données', text: 'En tant qu\'entreprise mondiale, DragLab peut transférer vos données personnelles vers des pays en dehors de votre juridiction d\'origine. Lorsque nous le faisons, nous veillons à ce que vos données soient protégées par des garanties appropriées conformément aux normes internationales.' },
+                { title: 'Vos droits', text: 'Vous disposez de plusieurs droits concernant vos données personnelles, notamment le droit d\'accéder, de corriger, de mettre à jour ou de supprimer vos informations. Vous pouvez également vous opposer ou restreindre le traitement de vos données. Nous répondons rapidement et de manière transparente à ces demandes.' },
+                { title: 'Cookies et technologies de suivi', text: 'Nous utilisons des cookies et des technologies similaires pour améliorer votre expérience, analyser l\'utilisation et soutenir les efforts marketing. Vous avez le contrôle de vos préférences et pouvez choisir d\'accepter ou de refuser les cookies.' },
+                { title: 'Réponse aux violations de données', text: 'En cas de violation de données, nous disposons d\'un plan de réponse complet. Nous informerons les personnes concernées et les autorités conformément aux exigences légales, et nous prendrons des mesures pour atténuer les dommages et prévenir les incidents futurs.' },
+                { title: 'Formation et sensibilisation des employés', text: 'Nos employés sont formés aux principes de protection des données. Nous maintenons une forte culture de sensibilisation à la vie privée et de responsabilité au sein de notre équipe.' },
+                { title: 'Conformité aux lois et réglementations', text: 'Nous respectons toutes les lois applicables en matière de protection des données, y compris le RGPD et la CCPA. Nous nous engageons à maintenir les normes les plus élevées en matière de protection des données dans le monde entier.' },
+                { title: 'Confidentialité des enfants', text: 'Nos services ne s\'adressent pas aux enfants de moins de 13 ans, et nous ne collectons pas sciemment de données les concernant. Si nous collectons de telles données, nous les supprimons immédiatement.' },
+                { title: 'Transparence et communication', text: 'Nous nous engageons à la transparence dans nos pratiques de gestion des données. Si vous avez des questions ou des préoccupations, nous sommes disponibles pour vous aider.' },
+                { title: 'Mises à jour de la politique', text: 'Nous pouvons mettre à jour cette politique pour refléter les changements législatifs ou nos pratiques. Les mises à jour importantes seront communiquées clairement et rendues facilement accessibles.' }
+            ]
         }
     };
 
@@ -2504,7 +3330,95 @@ exports.getimprint = async (req, res, next) => {
                 heroTitle: "Impressum",
                 pageHeading: "Rechtliche Unternehmensinformationen",
                 Responsible: `Verantwortlich für den Inhalt gemäß § 55 Abs. 2 RStV: <br> NANODRAG TECHNOLOGY GmbH<br> Alfred-Herrhausen-Allee 3-5 <br> D-65760 Eschborn <br> Deutschland <br>`
-            }
+            },
+            TR: {
+                companyName: "Şirket Adı",
+                location: "Konum",
+                representedBy: "Temsil Edilen",
+                managingPartner: "Yönetici Ortak",
+                emailGeneral: "E-posta (Genel)",
+                website: "Web Sitesi",
+                TrademarkOwnershipTitle: "Ticari Marka Sahipliği",
+                TrademarkOwnership: `Nanodrag Technology GmbH, "DragLab" ve/veya "DragLab Technologies" tescilli markalarının yasal sahibidir ve tüm ilgili fikri mülkiyet hakları ve kullanım haklarına sahiptir.`,
+                registrationCourt: "Kayıt Mahkemesi",
+                registrationNumber: "Kayıt Numarası",
+                legalForm: "Hukuki Biçim",
+                registrationPlace: "Kayıt Yeri",
+                vatHeading: "Katma Değer Vergisi Kimlik Numarası (§ 27a KDV Kanunu'na göre)",
+                taxNumber: "Vergi Numarası",
+                contactDetails: "İletişim Bilgileri",
+                tel: "Tel",
+                fax: "Fax",
+                heroTitle: "Impressum",
+                pageHeading: "Hukuki Şirket Bilgileri",
+                Responsible: `İçerikten sorumlu kişi § 55 Abs. 2 RStV'ye göre: <br> NANODRAG TECHNOLOGY GmbH<br> Alfred-Herrhausen-Allee 3-5 <br> D-65760 Eschborn <br> Almanya <br>`
+            },
+            TR: {
+                companyName: "Şirket Adı",
+                location: "Konum",
+                representedBy: "Temsil Edilen",
+                managingPartner: "Yönetici Ortak",
+                emailGeneral: "E-posta (Genel)",
+                website: "Web Sitesi",
+                TrademarkOwnershipTitle: "Ticari Marka Sahipliği",
+                TrademarkOwnership: `Nanodrag Technology GmbH, "DragLab" ve/veya "DragLab Technologies" tescilli markalarının yasal sahibidir ve tüm ilgili fikri mülkiyet hakları ve kullanım haklarına sahiptir.`,
+                registrationCourt: "Kayıt Mahkemesi",
+                registrationNumber: "Kayıt Numarası",
+                legalForm: "Hukuki Biçim",
+                registrationPlace: "Kayıt Yeri",
+                vatHeading: "Katma Değer Vergisi Kimlik Numarası (§ 27a KDV Kanunu'na göre)",
+                taxNumber: "Vergi Numarası",
+                contactDetails: "İletişim Bilgileri",
+                tel: "Tel",
+                fax: "Fax",
+                heroTitle: "Impressum",
+                pageHeading: "Hukuki Şirket Bilgileri",
+                Responsible: `İçerikten sorumlu kişi § 55 Abs. 2 RStV'ye göre: <br> NANODRAG TECHNOLOGY GmbH<br> Alfred-Herrhausen-Allee 3-5 <br> D-65760 Eschborn <br> Almanya <br>`
+            },
+            FR: {
+                companyName: "Nom de l'Entreprise",
+                location: "Emplacement",
+                representedBy: "Représenté par",
+                managingPartner: "Associé Gérant",
+                emailGeneral: "E-mail (Général)",
+                website: "Site Web",
+                TrademarkOwnershipTitle: "Propriété de la Marque Déposée",
+                TrademarkOwnership: `Nanodrag Technology GmbH est le propriétaire légal des marques déposées "DragLab" et/ou "DragLab Technologies", y compris tous les droits de propriété intellectuelle et d'utilisation associés.`,
+                registrationCourt: "Tribunal d'Enregistrement",
+                registrationNumber: "Numéro d'Enregistrement",
+                legalForm: "Forme Juridique",
+                registrationPlace: "Lieu d'Enregistrement",
+                vatHeading: "Numéro d'identification à la TVA conformément au § 27a de la loi sur la TVA",
+                taxNumber: "Numéro d'Imposition",
+                contactDetails: "Coordonnées",
+                tel: "Tél",
+                fax: "Fax",
+                heroTitle: "Impressum",
+                pageHeading: "Hukuki Şirket Bilgileri",
+                Responsible: `İçerikten sorumlu kişi § 55 Abs. 2 RStV'ye göre: <br> NANODRAG TECHNOLOGY GmbH<br> Alfred-Herrhausen-Allee 3-5 <br> D-65760 Eschborn <br> Almanya <br>`
+            },
+            FR: {
+                companyName: "Nom de l'Entreprise",
+                location: "Emplacement",
+                representedBy: "Représenté par",
+                managingPartner: "Associé Gérant",
+                emailGeneral: "E-mail (Général)",
+                website: "Site Web",
+                TrademarkOwnershipTitle: "Propriété de la Marque Déposée",
+                TrademarkOwnership: `Nanodrag Technology GmbH est le propriétaire légal des marques déposées "DragLab" et/ou "DragLab Technologies", y compris tous les droits de propriété intellectuelle et d'utilisation associés.`,
+                registrationCourt: "Tribunal d'Enregistrement",
+                registrationNumber: "Numéro d'Enregistrement",
+                legalForm: "Forme Juridique",
+                registrationPlace: "Lieu d'Enregistrement",
+                vatHeading: "Numéro d'identification à la TVA conformément au § 27a de la loi sur la TVA",
+                taxNumber: "Numéro d'Imposition",
+                contactDetails: "Coordonnées",
+                tel: "Tél",
+                fax: "Fax",
+                heroTitle: "Impressum",
+                pageHeading: "Hukuki Şirket Bilgileri",
+                Responsible: `İçerikten sorumlu kişi § 55 Abs. 2 RStV'ye göre: <br> NANODRAG TECHNOLOGY GmbH<br> Alfred-Herrhausen-Allee 3-5 <br> D-65760 Eschborn <br> Almanya <br>`
+            },
         };
 
         const meta = {
@@ -2525,6 +3439,18 @@ exports.getimprint = async (req, res, next) => {
                 desc: "Rechtliche Hinweise, Handelsregistereintrag und Kontaktdaten von DragLab in Deutschland.",
                 heroTitle: "Impressum",
                 pageHeading: "Rechtliche Unternehmensinformationen"
+            },
+            TR: {
+                title: "Yasal Uyarı (Impressum) – DragLab",
+                desc: "DragLab'ın Almanya'daki yasal açıklamalarını, kayıt detaylarını ve iletişim bilgilerini görüntüleyin.",
+                heroTitle: "Yasal Uyarı (Impressum)",
+                pageHeading: "Şirket Hukuki Bilgileri"
+            },
+            FR: {
+                title: "Mentions Légales – DragLab",
+                desc: "Consultez les mentions légales, les détails d'enregistrement et les coordonnées de DragLab en Allemagne.",
+                heroTitle: "Mentions Légales",
+                pageHeading: "Informations Légales de l'Entreprise"
             }
         };
 
@@ -2640,6 +3566,69 @@ exports.getCodeofEthics = (req, res, next) => {
                 { title: 'Geistiges Eigentum', text: 'Wir respektieren geistiges Eigentum – sowohl unser eigenes als auch das anderer. Unsere Innovationen schützen wir verantwortungsvoll.' },
                 { title: 'Transparenz und Offenlegung', text: 'Wir informieren unsere Stakeholder offen und zeitnah über unsere Leistungen, Werte und Ziele.' },
                 { title: 'Mitarbeiterentwicklung', text: 'Wir investieren in unsere Mitarbeiter durch Weiterbildung und individuelle Entwicklungsmöglichkeiten.' }
+            ]
+        },
+        TR: {
+            pageTitle: 'Etik Kuralları - DragLab',
+            metaDescription: 'DragLab Etik Kurallarını okuyun; dürüstlük, sürdürülebilirlik, müşteri odaklılık ve etik sorumluluk değerlerimizi özetler.',
+            ogTitle: 'Etik Kuralları | DragLab',
+            ogDescription: 'DragLab’ın tüm iş alanlarında mükemmeliyet, sürdürülebilirlik, adalet ve etik uygulamalara nasıl bağlı olduğunu keşfedin.',
+            ogImage: 'https://yourdomain.com/assets/Imgs/SEO/codeofethics.jpg',
+            sectionHeading: 'Etik Kuralları',
+            closingStatement: 'DragLab’ın Etik Kuralları, bir dizi yönergeden daha fazlasıdır; kim olduğumuzun bir yansımasıdır. Bu ilkeleri tüm eylemlerimizde sürdürmeye kararlıyız ve sektörümüzde güvenilir ve saygın bir lider olmaya devam ediyoruz.',
+            sections: [
+                { title: '', text: 'DragLab olarak işimizin her alanında en yüksek etik standartları sürdürmeye kararlıyız. Bu Etik Kurallar, çalışanlarımız, ortaklarımız ve paydaşlarımız için bir rehber olarak hizmet eder ve eylemlerimizin dürüstlük, saygı ve mükemmeliyet gibi temel değerlerimizi yansıtmasını sağlar.' },
+                { title: 'Dürüstlük ve Doğruluk', text: 'En yüksek dürüstlük standartlarına bağlıyız, eylemlerimizin dürüst ve şeffaf olmasını sağlıyoruz. Taahhütlerimizi tutarak ve tüm paydaşlarla açık iletişim kurarak güven inşa ediyoruz.' },
+                { title: 'Saygı ve Adalet', text: 'Tüm bireylere saygı ile davranıyoruz, herkesin değerli olduğu kapsayıcı bir ortamı teşvik ediyoruz. Irk, cinsiyet, yaş, din veya geçmiş ne olursa olsun eşit fırsatlar sunarak tüm etkileşimlerimizde adalete bağlıyız.' },
+                { title: 'Sürdürülebilirlik ve Çevresel Sorumluluk', text: 'DragLab, sürdürülebilirliğe kendini adamıştır ve sorumlu kaynak kullanımı, çevre dostu ürün tasarımı ve sürdürülebilir uygulamalarda sürekli yenilik yoluyla çevresel etkilerimizi en aza indirmeye çalışmaktadır.' },
+                { title: 'Yasalara ve Düzenlemelere Uyum', text: 'Faaliyet gösterdiğimiz bölgelerde geçerli tüm yasa ve düzenlemelere uyuyoruz. Tüm çalışanlarımızın ve ortaklarımızın yasal gerekliliklere uymasını ve işlerini etik değerlerimizi yansıtan bir şekilde yürütmesini bekliyoruz.' },
+                { title: 'Gizlilik ve Veri Koruma', text: 'Müşterilerimizin, çalışanlarımızın ve ortaklarımızın gizliliğine ve mahremiyetine saygı duyuyoruz. Tüm hassas bilgileri en üst düzeyde özenle ele alıyor ve yetkisiz erişim ve kötüye kullanıma karşı koruyoruz.' },
+                { title: 'Mükemmeliyete Bağlılık', text: 'Yaptığımız her şeyde mükemmelliğe bağlıyız. Yenilik, kalite ve müşteri memnuniyetine odaklanmamız, ürünlerimizi ve hizmetlerimizi sürekli olarak iyileştirmemizi sağlar.' },
+                { title: 'Hesap Verebilirlik', text: 'Eylemlerimiz ve bunların müşterilerimiz, çalışanlarımız, topluluklarımız ve çevre üzerindeki etkileri için sorumluluk alıyoruz. Etik olmayan davranışları bildirmek için açık kanallar tutuyor ve işimizin tüm yönlerinde şeffaflığı teşvik ediyoruz.' },
+                { title: 'Çıkar Çatışması', text: 'Müşterilerimiz ve ortaklarımız tarafından bize duyulan güveni veya bütünlüğümüzü tehlikeye atabilecek çıkar çatışmalarından kaçınıyoruz. Potansiyel çatışmalar açıklanır ve etik standartlarımızı korumak için uygun şekilde yönetilir.' },
+                { title: 'Rüşvet ve Yolsuzlukla Mücadele', text: 'DragLab, rüşvet ve yolsuzluğa karşı sıfır tolerans politikasına sahiptir. Tüm iş işlemlerimizi şeffaf ve etik bir şekilde yürütüyor, herhangi bir yolsuz uygulamaya dahil olmuyor veya onaylamıyoruz.' },
+                { title: 'Sosyal Sorumluluk', text: 'İş faaliyetlerimiz aracılığıyla topluma olumlu bir katkıda bulunmaya kararlıyız. Topluluk girişimlerini destekliyor, gönüllülüğü teşvik ediyor ve sorumlu bir kurumsal vatandaş olmaya çalışıyoruz.' },
+                { title: 'Sağlık ve Güvenlik', text: 'Çalışanlarımızın, müşterilerimizin ve ortaklarımızın sağlığı ve güvenliği önceliğimizdir. Tüm ilgili güvenlik düzenlemelerine uyarak güvenli ve sağlıklı bir çalışma ortamı sağlamaya kararlıyız.' },
+                { title: 'Yenilik ve Sürekli İyileştirme', text: 'Yenilik, DragLab’ın kalbinde yer alır. Etik standartlarımıza bağlı kalarak yaratıcılığı ve deneyselliği teşvik eden sürekli iyileştirme kültürünü destekliyoruz.' },
+                { title: 'Müşteri Odaklılık', text: 'Müşterilerimiz misyonumuzun merkezindedir. İhtiyaçlarını anlamaya, yüksek kaliteli ürünler ve hizmetler sunmaya ve etik iş uygulamaları ve açık iletişim yoluyla müşteri memnuniyetini sağlamaya kendimizi adadık.' },
+                { title: 'İşbirliği ve Takım Çalışması', text: 'İşbirliği ve takım çalışmasının gücüne inanıyoruz. Birlikte çalışarak hedeflerimize ulaşabilir ve müşterilerimiz ve paydaşlarımız için değer yaratabiliriz.' },
+                { title: 'Etik Pazarlama ve Reklam', text: 'Dürüst ve etik pazarlama uygulamalarına bağlıyız. Reklamlarımız doğru, yanıltıcı olmayan ve ürünlerimizin ve hizmetlerimizin kalitesini ve değerini yansıtıyor.' },
+                { title: 'Tedarik Zinciri Sorumluluğu', text: 'Tedarikçilerimizin ve ortaklarımızın etik uygulamalara olan bağlılığımızı paylaşmasını bekliyoruz. Tedarik zincirimizin sosyal olarak sorumlu ve çevresel olarak sürdürülebilir bir şekilde işlemesini sağlamak için onlarla yakın çalışıyoruz.' },
+                { title: 'Fikri Mülkiyet', text: 'Fikri mülkiyet haklarına saygı duyuyoruz ve başkalarının da aynı saygıyı göstermesini bekliyoruz. Fikirlerimizin etik standartlarımıza uygun şekilde kullanılmasını sağlamak için yeniliklerimizi koruyoruz.' },
+                { title: 'Şeffaflık ve Açıklama', text: 'İş operasyonlarımızda şeffaflığa inanıyoruz. Faaliyetlerimiz, performansımız ve etik uygulamalarımız hakkında paydaşlarımıza doğru ve zamanında bilgi sağlamaya kararlıyız.' },
+                { title: 'Çalışan Gelişimi', text: 'Çalışanlarımızın büyümesine ve gelişimine yatırım yapıyoruz. Sürekli öğrenme, beceri geliştirme ve kariyer ilerlemesi için fırsatlar sunarak iş gücümüzün yarının zorluklarıyla başa çıkmasını sağlıyoruz.' }
+            ]
+        },
+        FR: {
+            pageTitle: 'Code d\'éthique - DragLab',
+            metaDescription: 'Lisez le Code d\'éthique de DragLab, qui reflète nos valeurs d\'intégrité, de durabilité, de centration client et de responsabilité éthique.',
+            ogTitle: 'Code d\'éthique | DragLab',
+            ogDescription: 'Découvrez comment DragLab s\'engage pour l\'excellence, la durabilité, l\'équité et les pratiques éthiques dans tous ses domaines d\'activité.',
+            ogImage: 'https://yourdomain.com/assets/Imgs/SEO/codeofethics.jpg',
+            sectionHeading: 'Code d\'éthique',
+            closingStatement: 'Le Code d\'éthique de DragLab est plus qu\'un ensemble de directives ; il reflète qui nous sommes en tant qu\'entreprise. Nous nous engageons à respecter ces principes dans toutes nos actions, assurant ainsi que nous restons un leader de confiance et respecté dans notre secteur.',
+            closingStatementBold: 'Le Code d\'éthique de DragLab est plus qu\'un ensemble de directives ;',
+            sections: [
+                { title: '', text: 'Chez DragLab, nous nous engageons à respecter les normes éthiques les plus élevées dans tous les aspects de notre activité. Ce Code d\'éthique sert de guide pour nos employés, partenaires et parties prenantes, garantissant que nos actions reflètent nos valeurs fondamentales d\'intégrité, de respect et d\'excellence.' },
+                { title: 'Intégrité et honnêteté', text: 'Nous adhérons aux normes les plus élevées d\'intégrité, veillant à ce que nos actions soient honnêtes et transparentes. Nous bâtissons la confiance en respectant constamment nos engagements et en maintenant une communication ouverte avec toutes les parties prenantes.' },
+                { title: 'Respect et équité', text: 'Nous traitons tous les individus avec dignité, favorisant un environnement inclusif où chacun est valorisé. Nous nous engageons à l\'équité dans toutes nos interactions, offrant des opportunités égales indépendamment de la race, du sexe, de l\'âge ou de toute autre caractéristique personnelle.' },
+                { title: 'Durabilité et responsabilité environnementale', text: 'DragLab est dédié à la durabilité, s\'efforçant de minimiser notre impact environnemental grâce à une utilisation responsable des ressources, à la conception de produits écologiques et à une innovation continue dans les pratiques durables.' },
+                { title: 'Conformité aux lois et réglementations', text: 'Nous respectons toutes les lois et réglementations applicables dans les régions où nous opérons. Nous attendons de tous nos employés et partenaires qu\'ils respectent les exigences légales et qu\'ils mènent leurs activités d\'une manière qui reflète nos valeurs éthiques.' },
+                { title: 'Confidentialité et protection des données', text: 'Nous respectons la vie privée et la confidentialité de nos clients, employés et partenaires. Nous traitons toutes les informations sensibles avec le plus grand soin, en veillant à ce qu\'elles soient protégées contre tout accès ou usage non autorisé.' },
+                { title: 'Engagement envers l\'excellence', text: 'Nous nous engageons à l\'excellence dans tout ce que nous faisons. Notre concentration sur l\'innovation, la qualité et la satisfaction client nous pousse à améliorer continuellement nos produits et services.' },
+                { title: 'Responsabilité', text: 'Nous assumons la responsabilité de nos actions et de leur impact sur nos clients, employés, communautés et l\'environnement. Nous maintenons des canaux ouverts pour signaler les comportements non éthiques et encourageons la transparence dans tous les aspects de notre entreprise.' },
+                { title: 'Conflit d\'intérêts', text: 'Nous évitons les conflits d\'intérêts qui pourraient compromettre notre intégrité ou la confiance placée en nous par nos clients et partenaires. Tout conflit potentiel est divulgué et géré de manière appropriée pour maintenir nos normes éthiques.' },
+                { title: 'Lutte contre la corruption et la fraude', text: 'DragLab applique une politique de tolérance zéro envers la corruption. Nous menons toutes nos transactions commerciales de manière transparente et éthique, en veillant à ne pas nous engager dans des pratiques corrompues.' },
+                { title: 'Responsabilité sociale', text: 'Nous nous engageons à avoir un impact positif sur la société à travers nos activités commerciales. Nous soutenons les initiatives communautaires, encourageons le bénévolat et nous efforçons d\'être un citoyen corporatif responsable.' },
+                { title: 'Santé et sécurité', text: 'Nous priorisons la santé et la sécurité de nos employés, clients et partenaires. Nous nous engageons à maintenir un environnement de travail sûr et sain, en respectant toutes les réglementations de sécurité pertinentes et en promouvant des initiatives de bien-être.' },
+                { title: 'Innovation et amélioration continue', text: 'L\'innovation est au cœur de DragLab. Nous favorisons une culture d\'amélioration continue, encourageant la créativité et l\'expérimentation tout en respectant nos normes éthiques.' },
+                { title: 'Centration client', text: 'Nos clients sont au centre de notre mission. Nous nous consacrons à comprendre leurs besoins, à fournir des produits et services de haute qualité, et à assurer leur satisfaction grâce à des pratiques commerciales éthiques et une communication ouverte.' },
+                { title: 'Collaboration et travail d\'équipe', text: 'Nous croyons au pouvoir de la collaboration et du travail d\'équipe. En travaillant ensemble, nous pouvons atteindre nos objectifs et créer de la valeur pour nos clients et parties prenantes. Nous favorisons une culture de respect mutuel, de confiance et de succès partagé.' },
+                { title: 'Marketing et publicité éthiques', text: 'Nous nous engageons à des pratiques de marketing honnêtes et éthiques. Notre publicité est véridique, non trompeuse et reflète la qualité et la valeur de nos produits et services.' },
+                { title: 'Responsabilité dans la chaîne d\'approvisionnement', text: 'Nous attendons de nos fournisseurs et partenaires qu\'ils partagent notre engagement envers les pratiques éthiques. Nous travaillons en étroite collaboration avec eux pour garantir que notre chaîne d\'approvisionnement fonctionne de manière socialement responsable et durable sur le plan environnemental.' },
+                { title: 'Propriété intellectuelle', text: 'Nous respectons les droits de propriété intellectuelle et attendons des autres qu\'ils fassent de même. Nous nous engageons à protéger notre propriété intellectuelle et à veiller à ce que nos innovations soient utilisées de manière conforme à nos normes éthiques.' },
+                { title: 'Transparence et divulgation', text: 'Nous croyons en la transparence dans nos opérations commerciales. Nous nous engageons à fournir des informations précises et opportunes à nos parties prenantes, en veillant à ce qu\'elles soient informées de nos activités, de nos performances et de nos pratiques éthiques.' },
+                { title: 'Développement des employés', text: 'Nous investissons dans la croissance et le développement de nos employés. Nous offrons des opportunités d\'apprentissage continu, de développement des compétences et d\'avancement professionnel, garantissant que notre personnel est équipé pour relever les défis de demain.' }
             ]
         }
 
@@ -2828,6 +3817,111 @@ exports.getQualitypolicy = async (req, res, next) => {
             ],
             commitmentTitle: "Engagement für Exzellenz",
             commitmentBody: `Bei DragLab ist die Einhaltung höchster Qualitätsstandards die Grundlage all unserer Aktivitäten. Unsere Qualitätspolitik unterstützt unsere Mission, hochwertige Laborprodukte und -dienstleistungen zu liefern, auf die sich unsere Kunden verlassen können. Vielen Dank für Ihr Vertrauen in DragLab – wir freuen uns darauf, Sie mit höchster Qualität und Innovation zu bedienen.`
+        },
+        TR: {
+            pageTitle: 'Kalite Politikası',
+            metaDescription: 'DragLab’ın ürün mükemmeliyeti ve sürekli iyileştirme taahhüdünü keşfedin. Kapsamlı Kalite Politikamızı okuyun.',
+            ogTitle: 'Kalite Politikası | DragLab',
+            ogDescription: 'Kalite uygulamalarımız aracılığıyla kalite, uyumluluk, sürdürülebilirlik ve müşteri memnuniyetine olan bağlılığımızı keşfedin.',
+            heroTitle: 'Kalite Politikası',
+            heading: 'Kalite Politikamız',
+            intro: `<strong>DragLab</strong> olarak, Kalite Politikamız operasyonlarımızın tüm yönlerinde mükemmeliyet, güvenilirlik ve sürekli iyileştirme taahhüdümüzü yansıtır. Amacımız, müşteri beklentilerini karşılayan veya aşan ürün ve hizmetler sunmaktır.`,
+            sections: [
+                {
+                    title: "Müşteri Odaklılık",
+                    body: "Müşteri ihtiyaçlarını anlamak ve karşılamak en önemli önceliğimizdir. Güven, performans ve memnuniyete dayalı uzun vadeli ilişkiler kurmaya çalışıyoruz."
+                },
+                {
+                    title: "Uyumluluk ve Standartlar",
+                    body: "Ürünlerimizin güvenli, etkili ve güvenilir olmasını sağlamak için ilgili tüm endüstri standartlarına ve yasal gerekliliklere uyuyoruz."
+                },
+                {
+                    title: "Sürekli İyileştirme",
+                    body: "Düzenli incelemeler, geri bildirim mekanizmaları ve yenilik yoluyla süreçlerimizi, ürünlerimizi ve hizmetlerimizi sürekli olarak geliştiriyoruz. Laboratuvar ekipmanları endüstrisinde öncü olmak için yeni teknolojileri benimsiyoruz."
+                },
+                {
+                    title: "Çalışan Katılımı",
+                    body: "Ekibimiz en büyük varlığımızdır. Çalışanlarımızın kalite hedeflerimize aktif olarak katkıda bulunmalarını sağlamak için sürekli eğitim ve profesyonel gelişime yatırım yapıyoruz."
+                },
+                {
+                    title: "Tedarikçi İlişkileri",
+                    body: "Tüm malzeme ve bileşenlerin sıkı kalite standartlarımıza uygun olmasını sağlamak için tedarikçilerimizle yakın çalışıyoruz ve nihai ürünlerimizin mükemmelliğini destekliyoruz."
+                },
+                {
+                    title: "Sürdürülebilirlik",
+                    body: "Tüm operasyonlarımızda sürdürülebilir uygulamalara bağlıyız, en yüksek kalite standartlarını korurken çevresel etkiyi en aza indiriyoruz."
+                }
+            ],
+            implementationTitle: "Uygulama ve İzleme",
+            implementationList: [
+                {
+                    title: "Kalite Yönetim Sistemi:",
+                    value: "ISO ve CE standartlarıyla uyumlu sağlam sistem."
+                },
+                {
+                    title: "Denetimler ve İncelemeler:",
+                    value: "Uyumluluk ve iyileştirmeler için düzenli iç ve dış değerlendirmeler."
+                },
+                {
+                    title: "Müşteri Geri Bildirimi:",
+                    value: "Mükemmelliği artırmak için müşteri geri bildirimlerinin aktif olarak toplanması ve uygulanması."
+                }
+            ],
+            commitmentTitle: "Mükemmelliğe Bağlılık",
+            commitmentBody: `DragLab olarak, en yüksek kalite standartlarını korumak yaptığımız her şeyin temelidir. Kalite Politikamız, müşterilerimizin güvenebileceği üstün laboratuvar ürünleri ve hizmetleri sunma misyonumuzu destekler. DragLab’a duyduğunuz güven için teşekkür eder, en yüksek kalite ve yenilik seviyeleriyle size hizmet etmeyi dört gözle bekleriz.`
+        },
+        FR: {
+            pageTitle: 'Politique de Qualité',
+            metaDescription: 'Découvrez l\'engagement de DragLab envers l\'excellence des produits et l\'amélioration continue. Lisez notre Politique de Qualité complète.',
+            ogTitle: 'Politique de Qualité | DragLab',
+            ogDescription: 'Explorez notre dévouement à la qualité, à la conformité, à la durabilité et à la satisfaction client à travers nos pratiques de qualité.',
+            heroTitle: 'Politique de Qualité',
+            heading: 'Notre Politique de Qualité',
+            intro: `Chez <strong>DragLab</strong>, notre Politique de Qualité reflète notre engagement envers l'excellence, la fiabilité et l'amélioration continue dans tous les aspects de nos opérations. Notre objectif est de fournir constamment des produits et services qui répondent ou dépassent les attentes des clients.`,
+            sections: [
+                {
+                    title: "Orientation Client",
+                    body: "Comprendre et répondre aux besoins des clients est notre priorité absolue. Nous nous efforçons de construire des relations durables basées sur la confiance, la performance et la satisfaction."
+                },
+                {
+                    title: "Conformité et Normes",
+                    body: "Nous respectons toutes les normes industrielles pertinentes et les exigences réglementaires, garantissant que nos produits sont sûrs, efficaces et fiables."
+                },
+                {
+                    title: "Amélioration Continue",
+                    body: "Grâce à des examens réguliers, des mécanismes de retour d'information et de l'innovation, nous améliorons continuellement nos processus, produits et services. Nous adoptons de nouvelles technologies pour rester à la pointe de l'industrie des équipements de laboratoire."
+                },
+                {
+                    title: "Implication des Employés",
+                    body: "Notre équipe est notre plus grand atout. Nous investissons dans la formation continue et le développement professionnel pour permettre à nos employés de contribuer activement à nos objectifs de qualité."
+                },
+                {
+                    title: "Relations avec les Fournisseurs",
+                    body: "Nous travaillons en étroite collaboration avec nos fournisseurs pour garantir que tous les matériaux et composants répondent à nos normes de qualité strictes, soutenant ainsi l'excellence de nos produits finis."
+                },
+                {
+                    title: "Durabilité",
+                    body: "Nous nous engageons à adopter des pratiques durables dans toutes nos opérations, minimisant l'impact environnemental tout en maintenant les normes de qualité les plus élevées."
+                }
+            ],
+            implementationTitle: "Mise en Œuvre et Suivi",
+            implementationList: [
+                {
+                    title: "Système de Gestion de la Qualité :",
+                    value: "Système robuste aligné sur les normes ISO et CE."
+                },
+                {
+                    title: "Audits et Inspections :",
+                    value: "Évaluations internes et externes régulières pour assurer la conformité et les améliorations."
+                },
+                {
+                    title: "Retour d'Information Client :",
+                    value: "Collecte active et application des retours clients pour stimuler l'excellence."
+                }
+            ],
+            commitmentTitle: "Engagement envers l'Excellence",
+            commitmentBody: `Chez DragLab, le maintien des normes de qualité les plus élevées est la base de tout ce que nous faisons. Notre Politique de Qualité soutient notre mission de fournir des produits et services de laboratoire supérieurs en lesquels nos clients peuvent avoir confiance. Nous vous remercions de votre confiance en DragLab et sommes impatients de vous servir avec les plus hauts niveaux de qualité et d'innovation.`
+
         }
     };
 
@@ -2965,6 +4059,32 @@ exports.getWarrantyRegistration = (req, res) => {
             submit: 'Mesajı Gönder',
             successMessage: '✅ Garanti kaydınız başarıyla oluşturuldu.',
             errorMessage: '❌ Bir hata oluştu. Lütfen daha sonra tekrar deneyin.'
+        },
+        FR: {
+            pageTitle: 'Enregistrement de la Garantie',
+            metaDescription: 'Enregistrez la garantie de votre produit DragLab pour un support technique rapide et un service sécurisé.',
+            ogTitle: 'Enregistrement de la Garantie | DragLab',
+            ogDescription: 'Remplissez le formulaire d\'enregistrement de la garantie pour activer le support et le service de votre produit DragLab.',
+            heroTitle: 'Enregistrement de la Garantie',
+            heroDesc: 'Des solutions rapides et fiables à vos problèmes techniques.',
+            formTitle: "Formulaire d'Enregistrement de la Garantie",
+            dataLabel: 'J\'accepte le traitement de mes données personnelles conformément à la',
+            privacyPolicy: 'Politique de Confidentialité',
+            dataSuffix: 'dans le but de traiter ma demande d\'enregistrement de garantie.',
+            name: 'Nom*',
+            namePlaceholder: 'Nom',
+            datePurchased: 'Date d\'Achat*',
+            email: 'Email*',
+            techHeader: 'Question Technique / Panne',
+            deviceCategory: 'Catégorie de l\'Appareil*',
+            deviceModel: 'Modèle de l\'Appareil*',
+            serialNo: 'Numéro de Série*',
+            message: 'Message',
+            messagePlaceholder: 'Écrivez votre message...',
+            select: 'Sélectionner',
+            submit: 'Envoyer le Message',
+            successMessage: '✅ Votre garantie a été enregistrée avec succès.',
+            errorMessage: '❌ Une erreur est survenue. Veuillez réessayer plus tard.'
         }
     };
 
@@ -3055,7 +4175,7 @@ exports.postWarrantyRegistration = async (req, res) => {
         const ticketId = `WR-${doc._id.toString().slice(-6).toUpperCase()}`;
 
         // Customer confirmation (SendGrid Dynamic Template - warrantyRegistration)
-        const flags = { isEN: lang === 'EN', isES: lang === 'ES', isDE: lang === 'DE', isTR: lang === 'TR' };
+        const flags = { isEN: lang === 'EN', isES: lang === 'ES', isDE: lang === 'DE', isTR: lang === 'TR', isFR: lang === 'FR' };
 
         await sendCustomerEmail({
             to: email,
@@ -3082,7 +4202,8 @@ exports.postWarrantyRegistration = async (req, res) => {
             EN: `[Warranty] ${name} — ${productName}/${modelName} (${ticketId})`,
             ES: `[Garantía] ${name} — ${productName}/${modelName} (${ticketId})`,
             DE: `[Garantie] ${name} — ${productName}/${modelName} (${ticketId})`,
-            TR: `[Garanti] ${name} — ${productName}/${modelName} (${ticketId})`
+            TR: `[Garanti] ${name} — ${productName}/${modelName} (${ticketId})`,
+            FR: `[Garantie] ${name} — ${productName}/${modelName} (${ticketId})`
         };
         const subject = subjectMap[lang] || subjectMap.EN;
 
@@ -3153,12 +4274,16 @@ exports.getIndustryPage = async (req, res, next) => {
             pageTitle: {
                 EN: 'Industry Solutions',
                 ES: 'Soluciones para la Industria',
-                DE: 'Branchenspezifische Lösungen'
+                DE: 'Branchenspezifische Lösungen',
+                TR: 'Endüstri Çözümleri',
+                FR: 'Solutions Industrielles'
             }[lang],
             metaDescription: {
                 EN: 'Read DragLab’s Industry Solutions and learn how we can help your business.',
                 ES: 'Lea las Soluciones para la Industria de DragLab y descubra cómo podemos ayudar a su negocio.',
-                DE: 'Lesen Sie die Branchenspezifischen Lösungen von DragLab und erfahren Sie, wie wir Ihnen helfen können.'
+                DE: 'Lesen Sie die Branchenspezifischen Lösungen von DragLab und erfahren Sie, wie wir Ihnen helfen können.',
+                TR: 'DragLab’ın Endüstri Çözümleri’ni okuyun ve işinize nasıl yardımcı olabileceğimizi öğrenin.',
+                FR: 'Lisez les Solutions Industrielles de DragLab et découvrez comment nous pouvons aider votre entreprise.'
             }[lang],
             products,
             industryCards
@@ -3357,7 +4482,81 @@ exports.getQualityPolicy = (req, res, next) => {
                     body: `Durch regelmäßige Überprüfungen und Rückmeldemechanismen verbessern wir kontinuierlich unsere Prozesse, Produkte und Dienstleistungen. Wir fördern Innovationen und setzen neue Technologien ein, um in der Branche führend zu bleiben.`
                 }
             ]
-        }
+        },
+        TR: {
+            pageTitle: "Kalite Politikası",
+            metaDescription: "NanoDrag'ın kalite, uyumluluk, güvenlik ve sürekli iyileştirme taahhüdünü okuyun.",
+            status: "Doğru, Güvenilir ve Maliyet Etkin",
+            contactInfo: `NanoDrag Technology GmbH<br> Alfred-Herrhausen-Allee 3-5<br> D-65760 Eschborn Almanya<br> Tel: +49 6196 400816<br> E-posta: <a href="mailto:info@drag-lab.de">info@drag-lab.de</a><br>`,
+            sections: [
+                {
+                    title: "Taahhüdümüz",
+                    body: `NANODRAG TECHNOLOGY GmbH olarak, müşterilerimize uluslararası gereksinimlere uygun, performans, güvenilirlik ve güvenlik açısından beklentileri sürekli karşılayan veya aşan yüksek kaliteli ürünler sunmayı taahhüt ediyoruz - tüm bunları rekabetçi maliyet etkinliği sağlarken yapıyoruz.`
+                },
+                {
+                    title: "Sürekli İyileştirme ve Kalite Standartları",
+                    body: `Bunu başarmak için, uluslararası tanınan standartlara uygun olarak Kalite Yönetim Sistemimizin (KYS) etkinliğini kurduk ve geliştirmeye devam ediyoruz. Stratejik yönümüzle uyumlu kalite hedeflerinin belirlenmesi ve gözden geçirilmesi için uygun bir çerçevenin mevcut olmasını sağlıyoruz.`
+                },
+                {
+                    title: "Uyumluluk ve Sorumluluk",
+                    body: `Son ürünlerin müşteri, yasal ve düzenleyici gereksinimleri tam olarak karşıladığından emin olmak için çalışmalarımızın her yönünde büyük özen gösteriyoruz. Yaklaşımımız, en iyi uygulamalara olan farkındalık, sektör yeniliklerinin sürekli izlenmesi ve olağanüstü ürünler ve hizmetler sunmak için gelişmiş stratejilerin benimsenmesi üzerine kuruludur.`
+                },
+                {
+                    title: "Ekibimizi Güçlendirme",
+                    body: `Müşteri ihtiyaçlarının her projede her zaman öncelikli olmasını sağlamak için durmaksızın çalışıyoruz. Personel eğitimi ve gelişimine proaktif olarak yatırım yapıyor, ekiplerimizi yüksek kalite ve performans standartlarını karşılamak için gereken yetkinliklerle güçlendiriyoruz.`
+                },
+                {
+                    title: "Açık İletişim ve Güven",
+                    body: `Müşterilerimizle şeffaflığı koruyor, açık iletişimi ve ortaya çıkabilecek herhangi bir zorluğun hızlı çözümünü teşvik ediyoruz. Bu, güveni artırır ve müşteri yolculuğu boyunca işbirliğini geliştirir.`
+                },
+                {
+                    title: "Mükemmellik Kültürü",
+                    body: `Mükemmellik ve yenilik, güçlü, pozitif bir kalite kültürünü teşvik etmek için organizasyonumuz içinde takdir edilir ve ödüllendirilir. Net iç standartlar uygulayarak, süreçleri birlikte kolaylaştırır, verimliliği artırır ve müşterilerimizin deneyimleri için tutarlı memnuniyet sağlar.`
+                },
+                {
+                    title: "Gözden Geçirme ve Yenilik",
+                    body: `Son olarak, düzenli incelemeler ve geri bildirim mekanizmaları aracılığıyla sürekli olarak iyileştiriyoruz, süreçlerimizi, ürünlerimizi ve hizmetlerimizi buna göre geliştiriyoruz. Yeniliği teşvik ediyor ve sektörde önde kalmak için yeni teknolojileri benimsiyoruz.`
+                }
+            ]
+        },
+        FR: {
+            pageTitle: "Politique de Qualité",
+            metaDescription: "Lisez l'engagement de NanoDrag en matière de qualité, de conformité, de sécurité et d'amélioration continue.",
+            status: "Juste, Fiable et Rentable",
+            contactInfo: `NanoDrag Technology GmbH<br> Alfred-Herrhausen-Allee 3-5<br> D-65760 Eschborn Allemagne<br> Tel: +49 6196 400816<br> Email: <a href="mailto:info@drag-lab.de">info@drag-lab.de</a><br>`,
+            sections: [
+                {
+                    title: "Notre Engagement",
+                    body: `Chez NANODRAG TECHNOLOGY GmbH, notre engagement est de fournir à nos clients des produits de haute qualité qui respectent les exigences internationales et répondent ou dépassent constamment les attentes en matière de performance, de fiabilité et de sécurité, tout en garantissant une rentabilité compétitive.`
+                },
+                {
+                    title: "Amélioration Continue et Normes de Qualité",
+                    body: `Pour y parvenir, nous avons mis en place et continuons d'améliorer l'efficacité de notre Système de Management de la Qualité (SMQ) conformément aux normes reconnues internationalement. Nous veillons à ce qu'un cadre adéquat soit en place pour définir et revoir les objectifs de qualité alignés sur notre orientation stratégique.`
+                },
+                {
+                    title: "Conformité et Responsabilité",
+                    body: `Nous accordons une grande importance à chaque aspect de notre travail pour garantir que les produits finaux répondent pleinement aux exigences des clients, légales et réglementaires. Notre approche repose sur la connaissance des meilleures pratiques, la surveillance continue des innovations du secteur et l'adoption de stratégies avancées pour offrir des produits et services exceptionnels.`
+                },
+                {
+                    title: "Valorisation de Notre Équipe",
+                    body: `Nous travaillons sans relâche pour garantir que les besoins des clients sont toujours prioritaires dans chaque projet. Nous investissons de manière proactive dans la formation et le développement du personnel, en dotant nos équipes des compétences nécessaires pour atteindre des normes élevées de qualité et de performance.`
+                },
+
+                {
+                    title: "Communication Ouverte et Confiance",
+                    body: `Nous maintenons la transparence avec nos clients, en favorisant une communication ouverte et une résolution rapide de tout défi pouvant survenir. Cela favorise la confiance et améliore la collaboration tout au long du parcours client.`
+                },
+                {
+                    title: "Culture d'Excellence",
+                    body: `L'excellence et l'innovation sont appréciées et récompensées au sein de notre organisation pour encourager une culture de qualité forte et positive. En mettant en œuvre des normes internes claires, nous rationalisons les processus de manière collaborative, améliorons l'efficacité et offrons une satisfaction constante pour les expériences de nos clients.`
+                },
+                {
+                    title: "Revue et Innovation",
+                    body: `Enfin, nous nous améliorons continuellement grâce à des revues régulières et des mécanismes de feedback, nous améliorons nos processus, produits et services en conséquence. Nous encourageons l'innovation et adoptons de nouvelles technologies pour rester à la pointe du secteur.`
+                }
+            ]
+        },
+
 
     };
 
@@ -3443,6 +4642,47 @@ exports.getSustainabilityPolicy = (req, res, next) => {
                 {
                     title: "Geteilte Verantwortung",
                     body: `Umweltverantwortung ist ein gemeinsames Engagement in unserem gesamten Unternehmen. Alle Mitglieder unseres Teams sowie Parteien, die in unserem Namen arbeiten, sind verpflichtet, diese Richtlinie einzuhalten und sie in ihrer täglichen Arbeit zu unterstützen. Wir stellen Schulungen und Ressourcen bereit, um das Umweltbewusstsein zu stärken und unser Team zu befähigen, Ideen und Maßnahmen zur Verbesserung beizutragen.`
+                }
+            ]
+        },
+        TR: {
+            pageTitle: "Sürdürülebilirlik Politikası",
+            metaDescription: "NanoDrag'ın ISO 14001:2015'e uygun olarak çevre koruma ve sürdürülebilirliğe olan bağlılığını okuyun.",
+            status: "Çevresel Sürdürülebilirliğe Bağlılık",
+            contactInfo: `NanoDrag Technology GmbH<br> Alfred-Herrhausen-Allee 3-5<br> D-65760 Eschborn Almanya<br> Tel: +49 6196 400816<br> E-posta: <a href="mailto:info@drag-lab.de">info@drag-lab.de</a><br>`,
+            sections: [
+                {
+                    title: "Sürdürülebilirlik Politikası",
+                    body: `NANODRAG TECHNOLOGY GmbH olarak, laboratuvar ekipmanları üreticisi ve distribütörü olarak çevreyi koruma sorumluluğumuzu kabul ediyoruz. Operasyonlarımızın ve ürünlerimizin çevresel etkileri olduğunu kabul ediyor ve bu etkileri çevresel açıdan sorumlu bir şekilde yönetmeye kararlıyız; aynı zamanda ürünlerimiz ve hizmetlerimiz için en yüksek kaliteyi sağlamaya devam ediyoruz. Bu Çevre Politikası, ISO 14001:2015 gereksinimleriyle uyumludur ve çevresel hususları iş stratejimize ve günlük operasyonlarımıza entegre etme taahhüdümüzü yansıtır.`
+                },
+                {
+                    title: "Uyum ve Sürekli İyileştirme Taahhüdü",
+                    body: `Çevreyi korumaya ve tüm geçerli çevre yasalarına, düzenlemelere ve diğer yükümlülüklere tam uyum sağlamaya kararlıyız. Atık yönetimi, kaynakların verimli kullanımı ve emisyon azaltımı konularında en iyi uygulamaları benimseyerek kirliliği önlemeye ve olumsuz etkileri en aza indirmeye çalışıyoruz. İlgili çevre standartlarını karşılamayı veya aşmayı ve çevresel ayak izimizi azaltmak için süreçlerimizi sürekli olarak iyileştirmeyi hedefliyoruz; böylece gelecek nesiller için doğal kaynakları koruyoruz.`
+                },
+                {
+                    title: "Paylaşılan Sorumluluk",
+                    body: `Çevresel sorumluluk, organizasyonumuz genelinde paylaşılan bir taahhüttür. Ekibimizin tüm üyeleri ve bizim adımıza çalışan taraflar, bu politikaya uymalı ve günlük çalışmalarında desteklemelidir. Çevresel farkındalığı artırmak ve ekibimizi iyileştirme için fikir ve eylemlerle katkıda bulunmaya teşvik etmek için eğitim ve kaynaklar sağlıyoruz.`
+                }
+            ]
+        },
+        FR: {
+            pageTitle: "Politique de Durabilité",
+            metaDescription: "Lisez l'engagement de NanoDrag en matière de protection de l'environnement et de durabilité conformément à la norme ISO 14001:2015.",
+            status: "Engagement en faveur de la durabilité environnementale",
+            contactInfo: `NanoDrag Technology GmbH<br> Alfred-Herrhausen-Allee 3-5<br> D-65760 Eschborn Allemagne<br> Email: <a href="mailto:info@drag-lab.de">info@drag-lab.de</a><br>`,
+            sections: [
+                {
+                    title: "Politique de Durabilité",
+                    body: `Chez NANODRAG TECHNOLOGY GmbH, nous reconnaissons notre responsabilité de protéger l'environnement en tant que fabricant et distributeur d'équipements de laboratoire. Nous reconnaissons que nos opérations et nos produits ont des impacts environnementaux, et nous nous engageons à gérer ces impacts de manière responsable tout en garantissant la plus haute qualité pour nos produits et services. Cette politique environnementale est conforme aux exigences de la norme ISO 14001:2015 et reflète notre engagement à intégrer les considérations environnementales dans notre stratégie commerciale et nos opérations quotidiennes.`
+                },
+
+                {
+                    title: "Engagement en matière de conformité et d'amélioration continue",
+                    body: `Nous nous engageons à protéger l'environnement et à respecter pleinement toutes les lois, réglementations et autres obligations environnementales applicables. Nous nous efforçons de prévenir la pollution et de minimiser tout impact négatif en adoptant les meilleures pratiques en matière de gestion des déchets, d'utilisation efficace des ressources et de réduction des émissions. Nous visons à respecter ou à dépasser les normes environnementales pertinentes et à améliorer continuellement nos processus pour réduire notre empreinte environnementale, préservant ainsi les ressources naturelles pour les générations futures.`
+                },
+                {
+                    title: "Responsabilité partagée",
+                    body: `La responsabilité environnementale est un engagement partagé au sein de notre organisation. Tous les membres de notre équipe et les parties agissant en notre nom sont tenus de respecter cette politique et de la soutenir dans leur travail quotidien. Nous fournissons des formations et des ressources pour sensibiliser à l'environnement et permettre à notre équipe de contribuer par des idées et des actions d'amélioration.`
                 }
             ]
         }
@@ -3568,6 +4808,71 @@ exports.getQualifications = (req, res, next) => {
                     body: `Wir bieten professionelle Schulungsprogramme und technische Dokumentationen an, damit unsere Partner und Kunden alle Funktionen unserer Produkte optimal nutzen können. Ob vor Ort, per Fernsupport oder durch Benutzerhandbücher – wir statten unsere Kunden mit dem nötigen Wissen und Vertrauen aus, um ihre Geräte effizient zu bedienen und zu warten.`
                 }
             ]
+        },
+        TR: {
+            pageTitle: "Nitelikler",
+            metaDescription: "DragLab'ın kalite sertifikaları, uyumluluk, teknik uzmanlık, satış sonrası destek ve küresel ortaklıkları hakkında bilgi edinin.",
+            status: "Sertifikalı, Uyumlu, Deneyimli",
+            contactInfo: `NanoDrag Technology GmbH<br> Alfred-Herrhausen-Allee 3-5<br> D-65760 Eschborn Almanya<br> Tel: +49 6196 400816<br> E-posta: <a href="mailto:info@draglab.com">info@draglab.com</a>`,
+            sections: [
+                {
+                    title: "Kalite Güvencesi ve Sertifikalar",
+                    body: `Kalite, Nanodrag Technology GmbH'deki operasyonlarımızın merkezindedir. Kalite yönetim sistemimiz, güçlü kalite ve çevre yönetim sistemlerini garanti eden ISO 9001 ve ISO 14001 standartlarına uygun olarak sertifikalandırılmıştır. Her DragLab ürünü, uluslararası standartlara uygunluğu sağlamak için sıkı kalite kontrol kontrollerinden geçer. Üçüncü taraf denetimleri ile işbirliği içinde, uyumluluğumuzu doğrulamak için düzenli kontroller yapıyoruz ve sürekli çalışan eğitimi, tüm seviyelerde güçlü bir kalite kültürünü teşvik ediyor.`
+                },
+                {
+                    title: "Uyumluluk ve Uluslararası Standartlar",
+                    body: `Tüm ürünlerimiz, Avrupa direktiflerine uygun olarak tasarlanmış ve üretilmiştir. Ekipmanlarımızın hem Avrupa hem de küresel düzenleyici gereksinimleri karşıladığından emin oluyoruz ve müşterilere laboratuvarları için güvenli, sertifikalı ve dünya çapında kabul gören çözümler sunuyoruz.`
+                },
+                {
+                    title: "Teknik Uzmanlık ve Deneyim",
+                    body: `Laboratuvar ekipmanları endüstrisinde 20 yılı aşkın deneyime sahip olan DragLab Technologies, derin teknik uzmanlık ve yenilikle gurur duymaktadır. Yüksek nitelikli bilim insanları ve mühendislerden oluşan ekibimiz, her sağladığımız çözümün - laboratuvar inkübatörlerinden kurutma fırınlarına ve santrifüjlere kadar - derin bilgi ve kanıtlanmış bilgi birikimiyle desteklendiğinden emin olmak için onlarca yıllık birleşik deneyim getiriyor. Bu zengin deneyim ve uzmanlık, müşterilerimizin ihtiyaçlarını anlamamızı ve güvenilirlik ve performansta beklentilerini aşmamızı sağlıyor.`
+                },
+                {
+                    title: "Garanti ve Satış Sonrası Hizmet",
+                    body: `DragLab Technologies'te, net bir garanti politikası ve duyarlı satış sonrası destekle ürünlerimizin güvenilirliğinin arkasındayız. Santrifüj, kurutma fırını, su distilasyonu veya manyetik karıştırıcı gibi cihazlarımız, yüksek müşteri bakımı ve uzun vadeli performans sağlayan standart bir üretici garantisi ile korunmaktadır. Ayrıca, özel servis ekibimiz, kesinti süresini en aza indirmek ve müşteri memnuniyetini artırmak için hızlı teknik destek, yedek parça ve bakım çözümleri sunar. Satış noktasının ötesinde kapsamlı destek sunarak kalıcı ilişkiler kurmayı hedefliyoruz.`
+                },
+                {
+                    title: "Küresel Varlık ve Güvenilir Ortaklıklar",
+                    body: `Gelişen küresel dağıtım ağımız ve Avrupa, Orta Doğu, Asya ve ötesinde uzun süredir devam eden ortaklıklarımızla DragLab Technologies, laboratuvar ekipmanları sektöründe güvenilir bir ortak olarak tanınmaktadır. Uluslararası varlığımız, dünya çapındaki müşterilere tutarlı kalite ve hizmetle destek olmamızı sağlıyor.`
+                },
+                {
+                    title: "Eğitim ve Destek Taahhüdü",
+                    body: `Tüm ürünlerimizin özelliklerinden tam olarak yararlanabilmeleri için ortaklarımıza ve müşterilerimize profesyonel eğitim programları ve teknik dokümantasyon sunuyoruz. İster yerinde eğitim, uzaktan destek veya kullanıcı kılavuzları aracılığıyla olsun, müşterilerimizi cihazlarını çalıştırmak ve bakımını yapmak için gerekli bilgi ve güvenle donatıyoruz.`
+                }
+            ]
+        },
+        FR: {
+            pageTitle: "Qualifications",
+            metaDescription: "Découvrez les certifications de qualité, la conformité, l'expertise technique, le support après-vente et les partenariats mondiaux de DragLab.",
+            status: "Certifié, Conforme, Expérimenté",
+            contactInfo: `NanoDrag Technology GmbH<br> Alfred-Herrhausen-Allee 3-5<br> D-65760 Eschborn Allemagne<br> Email: <a href="mailto:info@draglab.com">info@draglab.com</a>`,
+            sections: [
+                {
+                    title: "Assurance Qualité et Certifications",
+                    body: `La qualité est au cœur de nos opérations chez Nanodrag Technology GmbH. Notre système de gestion de la qualité est certifié selon les normes ISO 9001 et ISO 14001, garantissant des systèmes solides de gestion de la qualité et de l'environnement. Chaque produit DragLab subit des contrôles de qualité stricts pour répondre aux normes internationales. En collaboration avec des audits tiers, nous effectuons des contrôles réguliers pour confirmer notre conformité, tandis que la formation continue des employés favorise une forte culture de la qualité à tous les niveaux.`
+                },
+                {
+
+                    title: "Conformité et Normes Internationales",
+                    body: `Tous nos produits sont conçus et fabriqués conformément aux directives européennes. Nous veillons à ce que nos équipements répondent aux exigences réglementaires européennes et mondiales, offrant aux clients des solutions sûres, certifiées et reconnues mondialement pour leurs laboratoires.`
+                },
+                {
+                    title: "Expertise Technique et Expérience",
+                    body: `Avec plus de 20 ans d'expérience dans l'industrie des équipements de laboratoire, DragLab Technologies est fière de sa profonde expertise technique et de son innovation. Notre équipe de scientifiques et d'ingénieurs hautement qualifiés apporte des décennies d'expérience combinée, garantissant que chaque solution que nous fournissons - des incubateurs de laboratoire aux fours de séchage en passant par les centrifugeuses - est soutenue par une connaissance approfondie et un savoir-faire éprouvé. Cette riche expérience et cette spécialisation nous permettent de comprendre les besoins de nos clients et de dépasser leurs attentes en matière de fiabilité et de performance.`
+                },
+                {
+                    title: "Garantie et Service Après-Vente",
+                    body: `Chez DragLab Technologies, nous soutenons la fiabilité de nos produits avec une politique de garantie claire et un support après-vente réactif. Nos appareils, qu'il s'agisse d'une centrifugeuse, d'un four de séchage, d'une distillation d'eau ou d'un agitateur magnétique chauffant, sont couverts par une garantie standard du fabricant, garantissant un service client de haute qualité et des performances à long terme. De plus, notre équipe de service dédiée fournit une assistance technique rapide, des pièces de rechange et des solutions de maintenance pour minimiser les temps d'arrêt et améliorer la satisfaction client. Nous visons à établir des relations durables en offrant un support complet bien au-delà du point de vente.`
+                },
+                {
+                    title: "Présence Mondiale et Partenariats de Confiance",
+                    body: `Avec un réseau de distribution mondial en pleine expansion et des partenariats de longue date en Europe, au Moyen-Orient, en Asie et au-delà, DragLab Technologies est reconnue comme un partenaire fiable dans le secteur des équipements de laboratoire. Notre présence internationale nous permet de soutenir les clients du monde entier avec une qualité et un service constants.`
+                },
+                {
+                    title: "Engagement en Matière de Formation et de Support",
+                    body: `Nous proposons des programmes de formation professionnelle et une documentation technique pour garantir que nos partenaires et clients peuvent tirer pleinement parti de toutes les fonctionnalités de nos produits. Que ce soit par le biais de formations sur site, d'un support à distance ou de manuels d'utilisation, nous équipons nos clients des connaissances et de la confiance nécessaires pour exploiter et entretenir leurs appareils.`
+                }
+            ]
         }
 
     };
@@ -3605,6 +4910,14 @@ exports.getLicensePage = async (req, res, next) => {
         DE: {
             pageTitle: 'Lizenzen & Quellenangaben',
             description: 'Sehen Sie sich die Lizenzen und Quellenangaben für Bilder, Symbole und Drittanbieterressourcen auf der DragLab-Website an.',
+        },
+        TR: {
+            pageTitle: 'Lisanslar ve Atıflar',
+            description: 'DragLab web sitesinde kullanılan resimler, simgeler ve üçüncü taraf varlıklar için lisansları ve atıfları görüntüleyin.',
+        },
+        FR: {
+            pageTitle: 'Licences et Attributions',
+            description: 'Consultez les licences et attributions des images, icônes et ressources tierces utilisées sur le site Web de DragLab.',
         }
     };
 

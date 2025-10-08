@@ -181,3 +181,48 @@
     padding: 25px;
   }
 }
+
+
+
+
+
+
+
+
+/* Collapsible language sections */
+.language-header { margin: 0 0 8px; }
+
+.language-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #e3e7ef;
+  border-radius: 10px;
+  background: #17a2b8;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.language-toggle:focus { outline: 2px solid #0b5bd3; outline-offset: 2px; }
+
+.toggle-caret {
+  transition: transform 0.2s ease;
+  font-size: 14px;
+}
+
+/* Collapsed by default */
+.language-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.25s ease;
+}
+
+/* Expanded state handled by a class on the section */
+.language-section.is-open .language-body {
+  max-height: 2000px; /* big enough for content */
+}
+
+.language-section.is-open .toggle-caret { transform: rotate(90deg); }

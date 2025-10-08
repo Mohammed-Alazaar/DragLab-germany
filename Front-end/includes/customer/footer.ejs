@@ -34,6 +34,10 @@
                     ? 'DragLab ist ein Hersteller und globaler Anbieter von allgemeiner Laborausrüstung für Forschungseinrichtungen, industrielle Labore und Gesundheitseinrichtungen. Unsere Produkte sind darauf ausgelegt, Laborexperten mit Präzision und Zuverlässigkeit zu unterstützen.'
                     : lang==='ES'
                     ? 'DragLab es un fabricante y proveedor global de equipos de laboratorio general para instituciones de investigación, laboratorios industriales y centros de atención médica. Nuestros productos están diseñados para respaldar a los profesionales de laboratorio con precisión y fiabilidad.'
+                    : lang==='TR'
+                    ? 'DragLab, araştırma kurumları, endüstriyel laboratuvarlar ve sağlık tesisleri için genel laboratuvar ekipmanlarının üreticisi ve küresel tedarikçisidir. Ürünlerimiz, laboratuvar profesyonellerini hassasiyet ve güvenilirlikle desteklemek için tasarlanmıştır.'
+                    : lang==='FR'
+                    ? 'DragLab est un fabricant et fournisseur mondial d\'équipements de laboratoire général pour les institutions de recherche, les laboratoires industriels et les établissements de santé. Nos produits sont conçus pour soutenir les professionnels de laboratoire avec précision et fiabilité.'
                     : 'DragLab is a manufacturer and global supplier of general laboratory equipment for research institutions, industrial laboratories, and healthcare facilities. Our products are designed to support laboratory professionals with precision and reliability.'
                     %>
             </p>
@@ -43,78 +47,78 @@
             <div class="footer-column">
                 <h4>
                     <%= lang==='DE' ? 'Neuigkeiten & Veranstaltungen' : lang==='ES' ? 'Noticias y Eventos'
-                        : 'News & Events' %>
+                        : lang==='TR' ? 'Haberler & Etkinlikler' : lang==='FR' ? 'Actualités & Événements' : 'News & Events' %>
                 </h4>
                 <ul>
                     <li><a href="/<%= lang %>/Articles">
-                            <%= lang==='DE' ? 'Neuigkeiten' : lang==='ES' ? 'Noticias' : 'News' %>
+                            <%= lang==='DE' ? 'Neuigkeiten' : lang==='ES' ? 'Noticias' : lang==='TR' ? 'Haberler' : lang==='FR' ? 'Actualités' : 'News' %>
                         </a></li>
                     <li><a href="/<%= lang %>/Articles">
-                            <%= lang==='DE' ? 'Artikel' : lang==='ES' ? 'Artículos' : 'Articles' %>
+                            <%= lang==='DE' ? 'Artikel' : lang==='ES' ? 'Artículos' : lang==='TR' ? 'Makaleler' : lang==='FR' ? 'Articles' : 'Articles' %>
                         </a></li>
                     <li><a href="/<%= lang %>/Articles">
-                            <%= lang==='DE' ? 'Veranstaltungen' : lang==='ES' ? 'Eventos' : 'Events' %>
+                            <%= lang==='DE' ? 'Veranstaltungen' : lang==='ES' ? 'Eventos' : lang==='TR' ? 'Etkinlikler' : lang==='FR' ? 'Événements' : 'Events' %>
                         </a></li>
                 </ul>
             </div>
 
             <div class="footer-column">
                 <h4>
-                    <%= lang==='DE' ? 'Über Uns' : lang==='ES' ? 'Sobre Nosotros' : 'About Us' %>
+                    <%= lang==='DE' ? 'Über Uns' : lang==='ES' ? 'Sobre Nosotros' : lang==='TR' ? 'Hakkımızda' : lang==='FR' ? 'À Propos' : 'About Us' %>
                 </h4>
                 <ul>
                     <li><a href="/<%= lang %>/quality-policy">
                             <%= lang==='DE' ? 'Qualitätspolitik' : lang==='ES' ? 'Política de Calidad'
-                                : 'Quality Policy' %>
+                                : lang==='TR' ? 'Kalite Politikası' : lang==='FR' ? 'Politique de Qualité' : 'Quality Policy' %>
                         </a></li>
                     <li><a href="/<%= lang %>/Downloads">
-                            <%= lang==='DE' ? 'Zertifikate' : lang==='ES' ? 'Certificados' : 'Certificates' %>
+                            <%= lang==='DE' ? 'Zertifikate' : lang==='ES' ? 'Certificados' : lang==='TR' ? 'Sertifikalar' : lang==='FR' ? 'Certificats' : 'Certificates' %>
                         </a></li>
                     <li><a href="/<%= lang %>/aboutus">
-                            <%= lang==='DE' ? 'Über Uns' : lang==='ES' ? 'Sobre Nosotros' : 'About Us' %>
+                            <%= lang==='DE' ? 'Über Uns' : lang==='ES' ? 'Sobre Nosotros' : lang==='TR' ? 'Hakkımızda' : lang==='FR' ? 'À Propos' : 'About Us' %>
                         </a></li>
                 </ul>
             </div>
 
             <div class="footer-column">
                 <h4>
-                    <%= lang==='DE' ? 'Support' : lang==='ES' ? 'Soporte' : 'Support' %>
+                    <%= lang==='DE' ? 'Support' : lang==='ES' ? 'Soporte' : lang==='TR' ? 'Destek' : lang==='FR' ? 'Soutien' : 'Support' %>
                 </h4>
                 <ul>
                     <li><a href="/<%= lang %>/technical-service">
                             <%= lang==='DE' ? 'Technischer Service' : lang==='ES' ? 'Servicio Técnico'
-                                : 'Technical Service' %>
+                                : lang==='TR' ? 'Teknik Servis' : lang==='FR' ? 'Service Technique' : 'Technical Service' %>
                         </a></li>
                     <li><a href="/<%= lang %>/Contactus">
-                            <%= lang==='DE' ? 'Kontakt' : lang==='ES' ? 'Contáctanos' : 'Contact Us' %>
+                            <%= lang==='DE' ? 'Kontakt' : lang==='ES' ? 'Contáctanos' : lang==='TR' ? 'İletişim' : lang==='FR' ? 'Contactez-nous' : 'Contact Us' %>
                         </a></li>
                     <li><a href="/<%= lang %>/Downloads">
                             <%= lang==='DE' ? 'Download-Center' : lang==='ES' ? 'Centro de Descargas'
-                                : 'Download Center' %>
+                                : lang==='TR' ? 'İndirme Merkezi' : lang==='FR' ? 'Centre de Téléchargement' : 'Download Center' %>
                         </a></li>
                 </ul>
             </div>
 
             <div class="footer-column contactusFooter">
                 <h4>
-                    <%= lang==='DE' ? 'Kontakt' : lang==='ES' ? 'Contáctanos' : 'Contact Us' %>
+                    <%= lang==='DE' ? 'Kontakt' : lang==='ES' ? 'Contáctanos' : lang==='TR' ? 'İletişim' : lang==='FR' ? 'Contactez-nous' : 'Contact Us' %>
                 </h4>
                 <ul>
                     <li><span class="highlighted">
-                            <%= lang==='DE' ? 'Adresse:' : lang==='ES' ? 'Dirección:' : 'Address:' %>
+                            <%= lang==='DE' ? 'Adresse:' : lang==='ES' ? 'Dirección:' : lang==='TR' ? 'Adres:' : lang==='FR' ? 'Adresse:' : 'Address:' %>
                         </span>
                         <a href="https://maps.app.goo.gl/AEP5y3Gwv7ejRwa48" target="_blank">
                             Alfred-Herrhausen-Allee<br>3-5 D-65760 Eschborn Germany
                         </a>
                     </li>
                     <li><span class="highlighted">
-                            <%= lang==='DE' ? 'Telefon:' : lang==='ES' ? 'Teléfono:' : 'Phone :' %>
+                            <%= lang==='DE' ? 'Telefon:' : lang==='ES' ? 'Teléfono:' : lang==='TR' ? 'Telefon:' : lang==='FR' ? 'Téléphone:' : 'Phone :' %>
                         </span> +49 6196 400816</li>
                     <li><span class="highlighted">
-                            <%= lang==='DE' ? 'Fax:' : lang==='ES' ? 'Fax:' : 'Fax :' %>
+                            <%= lang==='DE' ? 'Fax:' : lang==='ES' ? 'Fax:' : lang==='TR' ? 'Fax:' : lang==='FR' ? 'Fax:' : 'Fax :' %>
                         </span> +49 6196 400910</li>
                     <li><span class="highlighted">
-                            <%= lang==='DE' ? 'E-Mail:' : lang==='ES' ? 'Correo electrónico:' : 'Email:' %>
+                            <%= lang==='DE' ? 'E-Mail:' : lang==='ES' ? 'Correo electrónico:' : lang==='TR' ? 'E-posta:' : lang==='FR' ? 'E-mail:' : 'Email:' %>
                         </span>
                         <a href="mailto:info@drag-lab.de">info@drag-lab.de</a>
                     </li>
@@ -126,30 +130,30 @@
     <div class="footer-bottom">
         <div class="footer-legal">
             <a href="/<%= lang %>/PrivacyPolicy">
-                <%= lang==='DE' ? 'Datenschutzerklärung' : lang==='ES' ? 'Política de Privacidad' : 'Privacy Policy' %>
+                <%= lang==='DE' ? 'Datenschutzerklärung' : lang==='ES' ? 'Política de Privacidad' : lang==='TR' ? 'Gizlilik Politikası' : lang==='FR' ? 'Politique de Confidentialité' : 'Privacy Policy' %>
             </a>
             | <a href="#" id="open_preferences_center">
                 <%= lang==='DE' ? 'Cookie-Einstellungen aktualisieren' : lang==='ES'
-                    ? 'Actualizar preferencias de cookies' : 'Update cookies preferences' %>
+                    ? 'Actualizar preferencias de cookies' : lang==='TR' ? 'Çerez tercihlerini güncelle' : lang==='FR' ? 'Mettre à jour les préférences en matière de cookies' : 'Update cookies preferences' %>
             </a>
             | <a href="/<%= lang %>/TermCondition">
                 <%= lang==='DE' ? 'Allgemeine Geschäftsbedingungen' : lang==='ES' ? 'Términos y Condiciones'
-                    : 'Terms & Conditions' %>
+                    : lang==='TR' ? 'Şartlar ve Koşullar' : lang==='FR' ? 'Conditions Générales' : 'Terms & Conditions' %>
             </a>
         </div>
         <div class="footer-legal2">
             <a href="/<%= lang %>/CodeofEthics">
-                <%= lang==='DE' ? 'Verhaltenskodex' : lang==='ES' ? 'Código de Ética' : 'Code of Ethics' %>
+                <%= lang==='DE' ? 'Verhaltenskodex' : lang==='ES' ? 'Código de Ética' : lang==='TR' ? 'Etik Kurallar' : lang==='FR' ? 'Code d\'Éthique' : 'Code of Ethics' %>
             </a>
 
             | <a href="/<%= lang %>/DataProtection">
-                <%= lang==='DE' ? 'Datenschutz' : lang==='ES' ? 'Protección de Datos' : 'Data Protection' %>
+                <%= lang==='DE' ? 'Datenschutz' : lang==='ES' ? 'Protección de Datos' : lang==='TR' ? 'Veri Koruma' : lang==='FR' ? 'Protection des Données' : 'Data Protection' %>
             </a>
             | <a href="/<%= lang %>/licenses">
-                <%= lang==='DE' ? 'Lizenzierung' : lang==='ES' ? 'Licencias' : 'Licenses' %>
+                <%= lang==='DE' ? 'Lizenzierung' : lang==='ES' ? 'Licencias' : lang==='TR' ? 'Lisanslama' : lang==='FR' ? 'Licences' : 'Licenses' %>
             </a>
             | <a href="/<%= lang %>/imprint">
-                <%= lang==='DE' ? 'Impressum' : lang==='ES' ? 'Aviso Legal' : 'Imprint' %>
+                <%= lang==='DE' ? 'Impressum' : lang==='ES' ? 'Aviso Legal' : lang==='TR' ? 'Açık Rıza Metni' : lang==='FR' ? 'Mentions Légales' : 'Imprint' %>
             </a>
         </div>
         <div class="footer-social">
@@ -162,7 +166,7 @@
         </div>
         <div class="footer-copy">
             <%= lang==='DE' ? '© Copyright DragLab. Alle Rechte vorbehalten.' : lang==='ES'
-                ? '© Copyright DragLab. Todos los derechos reservados.' : '© Copyright DragLab. All Rights Reserved' %>
+                ? '© Copyright DragLab. Todos los derechos reservados.' : lang==='TR' ? '© Copyright DragLab. Tüm hakları saklıdır.' : lang==='FR' ? '© Copyright DragLab. Tous droits réservés.' : '© Copyright DragLab. All Rights Reserved' %>
         </div>
     </div>
 </footer>

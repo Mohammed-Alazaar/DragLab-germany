@@ -6,6 +6,12 @@
 
 
     <%- include('../../includes/sellercompany/head-end.ejs') %>
+function esc(s){
+  return String(s ?? '')
+    .replace(/&/g,'&amp;')
+    .replace(/"/g,'&quot;')
+    .replace(/</g,'&lt;');
+}
 
         <body>
             <%- include('../../includes/sellercompany/navbar-dash.ejs') %>
@@ -36,9 +42,7 @@
                                 <% } %>
 
 
-                                    <form id="modelForm" onsubmit="return validateModelForm()"
-                                        action="/admin/<%= editing ? ('edit-model/' + productId + '/' + modelId) : ('add-model/' + productId) %>"
-                                        method="POST" enctype="multipart/form-data">
+                                    <form id="modelForm" onsubmit="return validateModelForm()" action="/admin/<%= editing ? ('edit-model/' + productId + '/' + modelId) : ('add-model/' + productId) %>" method="POST" enctype="multipart/form-data">
 
                                         <div class="input-container">
                                             <label for="overviewThumbnail">Overview Thumbnail</label>
@@ -66,7 +70,8 @@
 
 
                                         <% ['EN', 'ES' , 'DE' , 'TR' , 'FR' ].forEach(lang=> { %>
-                                            <div class="language-section" data-collapsible>
+                                            <div class="language-section" data-collapsible data-lang="<%= lang %>">
+
                                                 <h3 class="language-header">
                                                     <button class="language-toggle" type="button" aria-expanded="false">
                                                         Language: <%= lang %> <span class="chev"
@@ -81,8 +86,8 @@
                                                             class="<%= validationErrors.find(e => e.path === `ModelName_${lang}`) ? 'is-invalid' : '' %>"
                                                             value="<%= model?.Language?.[lang]?.[0]?.ModelName || '' %>">
 
-                                                        <% const err=validationErrors.find(e=> e.path ===
-                                                            `ModelName_${lang}`); %>
+                                                       <% const err = validationErrors.find(e => e.path === `ModelName_${lang}`); %>
+
                                                             <% if (err) { %>
                                                                 <div class="form-error">
                                                                     <%= err.msg %>
@@ -114,9 +119,7 @@
                                                                     value="<%= model?.Language?.[lang]?.[0]?.overview?.[i]?.overviewDesc || '' %>">
 
                                                                 <% if (lang==='EN' ) { %>
-                                                                    <% const
-                                                                        imgPath=model?.Language?.[lang]?.[0]?.overview?.[i]?.overviewImage;
-                                                                        %>
+                                                                    <% const imgPath = model?.Language?.[lang]?.[0]?.overview?.[i]?.overviewImage; %>
                                                                         <% if (imgPath) { %>
                                                                             <img src="<%= imgPath %>"
                                                                                 style="max-width: 100px;">
@@ -144,9 +147,7 @@
                                                                     value="<%= model?.Language?.[lang]?.[0]?.industry?.[i]?.industryName || '' %>">
 
                                                                 <% if (lang==='EN' ) { %>
-                                                                    <% const
-                                                                        img=model?.Language?.[lang]?.[0]?.industry?.[i];
-                                                                        %>
+                                                                   <% const img = model?.Language?.[lang]?.[0]?.industry?.[i]; %>
                                                                         <% if (img?.industryImage) { %>
                                                                             <img src="<%= img.industryImage %>"
                                                                                 style="max-width: 100px;">
@@ -270,8 +271,8 @@
 
 
 
-                <script id="model-data" type="application/json"
-                    data-model='<%- JSON.stringify(model?.Language || {}) %>'></script>
+            <script id="model-data" type="application/json"><%- JSON.stringify(model?.Language || {}) %></script>
+
 
                 <script src="/js/add-model.js" nonce="<%= nonce %>"></script>
 

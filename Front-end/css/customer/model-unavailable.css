@@ -1,0 +1,87 @@
+/* ============================
+   Model Unavailable Page Style
+   ============================ */
+
+.unavailable {
+  max-width: 800px;
+  margin: 4rem auto;
+  padding: 2rem;
+  text-align: center;
+  background: #f9fbff;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.unavailable h1 {
+  font-size: 2rem;
+  margin-bottom: 1.2rem;
+  color: var(--primary-Color, #293c95);
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.unavailable p {
+  font-size: 1.1rem;
+  margin-bottom: 2rem;
+  color: #444;
+  line-height: 1.6;
+}
+
+.available-lang-list {
+  list-style: none;
+  padding: 0;
+  margin: 2rem 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.available-lang-list li {
+  margin: 0;
+}
+
+.available-lang-list .btn {
+  display: inline-block;
+  padding: 0.8rem 1.4rem;
+  border-radius: 30px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, #293c95, #4c63d2);
+  text-decoration: none;
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.available-lang-list .btn:hover {
+  background: linear-gradient(135deg, #1e2f73, #3a4fb2);
+  transform: translateY(-2px);
+}
+
+.available-lang-list .btn:active {
+  transform: translateY(0);
+}
+
+.unavailable .btn {
+  margin-top: 2rem;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .unavailable {
+    padding: 1.5rem;
+  }
+
+  .unavailable h1 {
+    font-size: 1.6rem;
+  }
+
+  .unavailable p {
+    font-size: 1rem;
+  }
+
+  .available-lang-list {
+    flex-direction: column;
+    align-items: center;
+  }
+}

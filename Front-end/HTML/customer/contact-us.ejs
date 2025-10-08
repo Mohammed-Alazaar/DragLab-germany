@@ -9,7 +9,7 @@
   const hasStateParams = (typeof req !== 'undefined') && req && req.query && (req.query.success || req.query.error);
 
   // Localized pieces
-  const ogLocale = (lang === 'EN' ? 'en_US' : lang === 'ES' ? 'es_ES' : 'de_DE');
+  const ogLocale = (lang === 'EN' ? 'en_US' : lang === 'ES' ? 'es_ES' : lang === 'TR' ? 'tr_TR' : lang === 'DE' ? 'de_DE' : lang === 'FR' ? 'fr_FR' : 'de_DE');
 %>
 
 <% if (hasStateParams) { %>
@@ -26,6 +26,8 @@
 <link rel="alternate" hreflang="en" href="https://www.drag-lab.de/EN/contactus">
 <link rel="alternate" hreflang="de" href="https://www.drag-lab.de/DE/contactus">
 <link rel="alternate" hreflang="es" href="https://www.drag-lab.de/ES/contactus">
+<link rel="alternate" hreflang="fr" href="https://www.drag-lab.de/FR/contactus">
+<link rel="alternate" hreflang="tr" href="https://www.drag-lab.de/TR/contactus">
 
 <meta property="og:title" content="<%= ogTitle %>">
 <meta property="og:description" content="<%= ogDescription %>">
@@ -45,8 +47,8 @@
   "@context":"https://schema.org",
   "@type":"BreadcrumbList",
   "itemListElement":[
-    {"@type":"ListItem","position":1,"name":(lang==='EN'?'Home':lang==='ES'?'Inicio':'Startseite'),"item":"https://www.drag-lab.de/"+lang+"/"},
-    {"@type":"ListItem","position":2,"name":(lang==='EN'?'Contact Us':lang==='ES'?'Contáctanos':'Kontaktieren Sie uns'),"item":"https://www.drag-lab.de/"+lang+"/contactus"}
+    {"@type":"ListItem","position":1,"name":(lang==='EN'?'Home':lang==='ES'?'Inicio': lang==='TR'?'Ana Sayfa':lang==='DE'?'Startseite':lang==='FR'?'Accueil':'Startseite'),"item":"https://www.drag-lab.de/"+lang+"/"},
+    {"@type":"ListItem","position":2,"name":(lang==='EN'?'Contact Us':lang==='ES'?'Contáctanos':lang==='TR'?'İletişim':lang==='DE'?'Kontaktieren Sie uns':lang==='FR'?'Nous Contacter':'Kontaktieren Sie uns'),"item":"https://www.drag-lab.de/"+lang+"/contactus"}
   ]
 }) %></script>
 
@@ -55,14 +57,14 @@
   "@type":"ContactPage",
   "name": pageTitle,
   "url":"https://www.drag-lab.de/"+lang+"/contactus",
-  "inLanguage":(lang==='EN'?'en':lang==='ES'?'es':'de'),
+  "inLanguage":(lang==='EN'?'en':lang==='ES'?'es':lang==='TR'?'tr':lang==='DE'?'de':lang==='FR'?'fr':'de'),
   "image": ogImage,
   "about":{
     "@type":"Organization",
     "name":"DragLab",
     "url":"https://www.drag-lab.de/",
     "logo":"https://www.drag-lab.de/assets/Imgs/logo/logo.png",
-    "contactPoint":[{"@type":"ContactPoint","telephone":"+49 6196 400816","contactType":"customer service","email":"info@drag-lab.de","availableLanguage":["en","de","es"],"areaServed":["DE","ES","GB","US","EU"]}],
+    "contactPoint":[{"@type":"ContactPoint","telephone":"+49 6196 400816","contactType":"customer service","email":"info@drag-lab.de","availableLanguage":["en","de","es","tr","fr"],"areaServed":["DE","ES","GB","US","EU"]}],
     "address":{"@type":"PostalAddress","streetAddress":"Alfred-Herrhausen-Allee 3-5","postalCode":"65760","addressLocality":"Eschborn","addressCountry":"DE"}
   }
 }) %></script>

@@ -20,27 +20,26 @@
                         <li class="dropdown">
                             <p>
                             <p>
-                                <%= lang==='DE' ? 'Unternehmen' : lang==='ES' ? 'Empresa' : 'Company' %>
+                                <%= lang==='DE' ? 'Unternehmen' : lang==='ES' ? 'Empresa' : lang==='TR' ? 'Şirket' : lang==='FR' ? 'Société' : 'Company' %>
                                     <img src="/assets/Imgs/Icons/Down-arrow-blue.png" alt="Down arrow">
                             </p>
 
                             </p>
                             <ul class="dropdown-menu">
                                 <li><a href="/aboutus">&#8226; <%= lang==='DE' ? 'Über Uns' : lang==='ES'
-                                            ? 'Sobre Nosotros' : 'About Us' %></a></li>
+                                            ? 'Sobre Nosotros' : lang==='TR' ? 'Hakkımızda' : lang==='FR' ? 'À Propos' : 'About Us' %></a></li>
                                 <li><a href="/<%= lang %>/QualityPolicy">&#8226; <%= lang==='DE' ? 'Qualitätspolitik' :
-                                            lang==='ES' ? 'Política de Calidad' : 'Quality Policy' %></a></li>
+                                            lang==='ES' ? 'Política de Calidad' : lang==='TR' ? 'Kalite Politikası' : lang==='FR' ? 'Politique de Qualité' : 'Quality Policy' %></a></li>
                                 <li><a href="/<%= lang %>/SustainabilityPolicy">&#8226; <%= lang==='DE'
-                                            ? 'Nachhaltigkeit' : lang==='ES' ? 'Sostenibilidad' : 'Sustainability' %>
+                                            ? 'Nachhaltigkeit' : lang==='ES' ? 'Sostenibilidad' : lang==='TR' ? 'Sürdürülebilirlik' : lang==='FR' ? 'Durabilité' : 'Sustainability' %>
                                     </a></li>
                                 <li><a href="/<%= lang %>/Qualifications">&#8226; <%= lang==='DE' ? 'Qualifikationen' :
-                                            lang==='ES' ? 'Calificaciones' : 'Qualifications' %></a></li>
+                                            lang==='ES' ? 'Calificaciones' : lang==='TR' ? 'Nitelikler' : lang==='FR' ? 'Qualifications' : 'Qualifications' %></a></li>
                                 <li><a href="/<%= lang %>/PrivacyPolicy">&#8226; <%= lang==='DE'
                                             ? 'Datenschutzerklärung' : lang==='ES' ? 'Política de Privacidad'
-                                            : 'Privacy Policy' %></a></li>
+                                            : lang==='TR' ? 'Gizlilik Politikası' : lang==='FR' ? 'Politique de Confidentialité' : 'Privacy Policy' %></a></li>
 
-                                <!-- <li><a href="/imprint">&#8226; <%= lang==='DE' ? 'Impressum' : lang==='ES'
-                                    ? 'Impreso' : 'Imprint' %></a></li> -->
+                              
 
                             </ul>
                         </li>
@@ -48,7 +47,7 @@
                         <li class="dropdown">
                             <p>
                             <p>
-                                <%= lang==='DE' ? 'Produkte' : lang==='ES' ? 'Productos' : 'Products' %>
+                                <%= lang==='DE' ? 'Produkte' : lang==='ES' ? 'Productos' : lang==='TR' ? 'Ürünler' : lang==='FR' ? 'Produits' : 'Products' %>
                                     <img src="/assets/Imgs/Icons/Down-arrow-blue.png" alt="Down arrow">
                             </p>
 
@@ -122,7 +121,7 @@
                                     </div>
 
                                     <div class="productImgContainer">
-                                        <img src="/assets/Imgs/Icons/products/waterBath.webp" alt="">
+                                        <img src="/assets/Imgs/Icons/products/waterBath.webp" alt="waterBath">
                                     </div>
                                 </div>
                             </ul>
@@ -132,36 +131,36 @@
                         <li class="dropdown">
                             <p>
                             <p>
-                                <%= lang==='DE' ? 'Dienstleistungen' : lang==='ES' ? 'Servicios' : 'Services' %>
+                                <%= lang==='DE' ? 'Dienstleistungen' : lang==='ES' ? 'Servicios' : lang==='TR' ? 'Hizmetler' : lang==='FR' ? 'Services' : 'Services' %>
                                     <img src="/assets/Imgs/Icons/Down-arrow-blue.png" alt="Down arrow">
                             </p>
 
                             </p>
                             <ul class="dropdown-menu">
                                 <li><a href="/<%= lang %>/support">&#8226; <%= lang==='DE' ? 'Support' : lang==='ES'
-                                            ? 'Soporte' : 'Support' %></a></li>
+                                            ? 'Soporte' : lang==='TR' ? 'Destek' : lang==='FR' ? 'Soutien' : 'Support' %></a></li>
                                 <li><a href="/<%= lang %>/Downloads">&#8226; <%= lang==='DE' ? 'Downloads' : lang==='ES'
-                                            ? 'Descargas' : 'Downloads' %></a></li>
+                                            ? 'Descargas' : lang==='TR' ? 'İndirmeler' : lang==='FR' ? 'Téléchargements' : 'Downloads' %></a></li>
                                 <li><a href="/industry">&#8226; <%= lang==='DE' ? 'Branche & Anwendungen' : lang==='ES'
-                                            ? 'Industria & Aplicaciones' : 'Industries & Applications' %></a></li>
+                                            ? 'Industria & Aplicaciones' : lang==='TR' ? 'Sektörler & Uygulamalar' : lang==='FR' ? 'Industries & Applications' : 'Industries & Applications' %></a></li>
                                 <li><a href="/<%= lang %>/technical-service">&#8226; <%= lang==='DE'
                                             ? 'Technischer Service' : lang==='ES' ? 'Servicio Técnico'
-                                            : 'Technical Services' %></a></li>
+                                            : lang==='TR' ? 'Teknik Servis' : lang==='FR' ? 'Services Techniques' : 'Technical Services' %></a></li>
                                 <li><a href="/<%= lang %>/WarrantyRegistration">&#8226; <%= lang==='DE'
                                             ? 'Garantieregistrierung' : lang==='ES' ? 'Registro de Garantía'
-                                            : 'Warranty Registration' %></a></li>
+                                            : lang==='TR' ? 'Garanti Kaydı' : lang==='FR' ? 'Enregistrement de Garantie' : 'Warranty Registration' %></a></li>
                                 <li><a href="/TermCondition">&#8226; <%= lang==='DE' ? 'AGB' : lang==='ES'
-                                            ? 'Términos y Condiciones' : 'Terms & Condition' %></a></li>
+                                            ? 'Términos y Condiciones' : lang==='TR' ? 'Şartlar ve Koşullar' : lang==='FR' ? 'Conditions Générales' : 'Terms & Condition' %></a></li>
 
 
                             </ul>
 
                         </li>
                         <li><a href="/<%= lang %>/Articles">
-                                <%= lang==='DE' ? 'Artikel' : lang==='ES' ? 'Artículos' : 'Articles' %>
+                                <%= lang==='DE' ? 'Artikel' : lang==='ES' ? 'Artículos' : lang==='TR' ? 'Makaleler' : lang==='FR' ? 'Articles' : 'Articles' %>
                             </a></li>
                         <li><a href="/<%= lang %>/Contactus">
-                                <%= lang==='DE' ? 'Kontakt' : lang==='ES' ? 'Contáctanos' : 'Contact Us' %>
+                                <%= lang==='DE' ? 'Kontakt' : lang==='ES' ? 'Contáctanos' : lang==='TR' ? 'İletişim' : lang==='FR' ? 'Contactez-nous' : 'Contact Us' %>
                             </a></li>
 
                     </ul>
@@ -190,6 +189,8 @@
                     <li><a href="javascript:void(0)" onclick="changeLanguage('EN')">&#8226; English</a></li>
                     <li><a href="javascript:void(0)" onclick="changeLanguage('ES')">&#8226; Español</a></li>
                     <li><a href="javascript:void(0)" onclick="changeLanguage('DE')">&#8226; Deutsch</a></li>
+                    <li><a href="javascript:void(0)" onclick="changeLanguage('TR')">&#8226; Türkçe</a></li>
+                    <li><a href="javascript:void(0)" onclick="changeLanguage('FR')">&#8226; Français</a></li>
                 </ul>
             </li>
 
@@ -222,11 +223,7 @@
             <div class="menu-page active" id="mainMenu">
                 <div class="top-bar">
                     <img src="/assets/Imgs/logo/DragLab-Logo.png" class="logo" alt="DragLab Logo" />
-                    <!-- <select id="languageSwitcher" onchange="changeLanguage(this.value)">
-                <option value="EN">EN</option>
-                <option value="ES">ES</option>
-                <option value="DE">DE</option>
-            </select> -->
+                   
                     <span class="close-menu">&#10005;</span>
                 </div>
                 <div class="mobile-search-container">
@@ -237,22 +234,22 @@
 
                 <ul class="main-links">
                     <li data-goto-page="companyPage">
-                        <%= lang==='DE' ? 'Unternehmen' : lang==='ES' ? 'Empresa' : 'Company' %>
+                        <%= lang==='DE' ? 'Unternehmen' : lang==='ES' ? 'Empresa' : lang==='TR' ? 'Şirket' : lang==='FR' ? 'Société' : 'Company' %>
                             <img src="/assets/Imgs/Icons/Down-arrow-blue.png" alt="Down arrow">
                     </li>
                     <li data-goto-page="productPage">
-                        <%= lang==='DE' ? 'Produkte' : lang==='ES' ? 'Productos' : 'Products' %>
+                        <%= lang==='DE' ? 'Produkte' : lang==='ES' ? 'Productos' : lang==='TR' ? 'Ürünler' : lang==='FR' ? 'Produits' : 'Products' %>
                             <img src="/assets/Imgs/Icons/Down-arrow-blue.png" alt="">
                     </li>
                     <li data-goto-page="supportPage">
-                        <%= lang==='DE' ? 'Dienstleistungen' : lang==='ES' ? 'Servicios' : 'Services' %></span> <img
+                        <%= lang==='DE' ? 'Dienstleistungen' : lang==='ES' ? 'Servicios' : lang==='TR' ? 'Destek' : lang==='FR' ? 'Services' : 'Services' %></span> <img
                                 src="/assets/Imgs/Icons/Down-arrow-blue.png" alt="">
                     </li>
                     <li><a href="/<%= lang %>/Articles">
-                            <%= lang==='DE' ? 'Artikel' : lang==='ES' ? 'Artículos' : 'Articles' %>
+                            <%= lang==='DE' ? 'Artikel' : lang==='ES' ? 'Artículos' : lang==='TR' ? 'Makaleler' : lang==='FR' ? 'Articles' : 'Articles' %>
                         </a></li>
                     <li><a href="/<%= lang %>/Contactus">
-                            <%= lang==='DE' ? 'Kontakt' : lang==='ES' ? 'Contáctanos' : 'Contact Us' %>
+                            <%= lang==='DE' ? 'Kontakt' : lang==='ES' ? 'Contáctanos' : lang==='TR' ? 'İletişim' : lang==='FR' ? 'Contactez-nous' : 'Contact Us' %>
                         </a></li>
                     <li data-goto-page="languagePage">
                         Language
@@ -270,30 +267,30 @@
                     </span>
 
                     <span class="page-title">
-                        <%= lang==='DE' ? 'Unternehmen' : lang==='ES' ? 'Empresa' : 'Company' %>
+                        <%= lang==='DE' ? 'Unternehmen' : lang==='ES' ? 'Empresa' : lang==='TR' ? 'Şirket' : lang==='FR' ? 'Société' : 'Company' %>
                     </span>
                     <span class="close-menu">&#10005;</span>
                 </div>
                 <ul>
                     <li><a href="/<%= lang %>/aboutus">
-                            <%= lang==='DE' ? 'Über Uns' : lang==='ES' ? 'Sobre Nosotros' : 'About Us' %>
+                            <%= lang==='DE' ? 'Über Uns' : lang==='ES' ? 'Sobre Nosotros' : lang==='TR' ? 'Hakkımızda' : lang==='FR' ? 'À Propos' : 'About Us' %>
                         </a></li>
                     <li><a href="/<%= lang %>/TermCondition">
-                            <%= lang==='DE' ? 'AGB' : lang==='ES' ? 'Términos y Condiciones' : 'Terms & Condition' %>
+                            <%= lang==='DE' ? 'AGB' : lang==='ES' ? 'Términos y Condiciones' : lang==='TR' ? 'Şartlar ve Koşullar' : lang==='FR' ? 'Conditions Générales' : 'Terms & Condition' %>
                         </a></li>
                     <li><a href="/<%= lang %>/QualityPolicy">
                             <%= lang==='DE' ? 'Qualitätspolitik' : lang==='ES' ? 'Política de Calidad'
-                                : 'Quality Policy' %>
+                                : lang==='TR' ? 'Kalite Politikası' : lang==='FR' ? 'Politique de Qualité' : 'Quality Policy' %>
                         </a></li>
                     <li><a href="/<%= lang %>/SustainabilityPolicy">
-                            <%= lang==='DE' ? 'Nachhaltigkeit' : lang==='ES' ? 'Sostenibilidad' : 'Sustainability' %>
+                            <%= lang==='DE' ? 'Nachhaltigkeit' : lang==='ES' ? 'Sostenibilidad' : lang==='TR' ? 'Sürdürülebilirlik' : lang==='FR' ? 'Durabilité' : 'Sustainability' %>
                         </a></li>
                     <li><a href="/<%= lang %>/Qualifications">
-                            <%= lang==='DE' ? 'Qualifikationen' : lang==='ES' ? 'Calificaciones' : 'Qualifications' %>
+                            <%= lang==='DE' ? 'Qualifikationen' : lang==='ES' ? 'Calificaciones' : lang==='TR' ? 'Nitelikler' : lang==='FR' ? 'Qualifications' : 'Qualifications' %>
                         </a></li>
                     <li><a href="/<%= lang %>/PrivacyPolicy">
                             <%= lang==='DE' ? 'Datenschutzerklärung' : lang==='ES' ? 'Política de Privacidad'
-                                : 'Privacy Policy' %>
+                                : lang==='TR' ? 'Gizlilik Politikası' : lang==='FR' ? 'Politique de Confidentialité' : 'Privacy Policy' %>
                         </a></li>
                 </ul>
             </div>
@@ -349,7 +346,7 @@
                         <div class="imgModelContainer">
                             <img src="/assets/Imgs/Icons/models.png" alt="models" width="30">
                             <p>
-                                <%= lang==='DE' ? 'Modelle:' : lang==='ES' ? 'Modelos:' : 'Models:' %>
+                                <%= lang==='DE' ? 'Modelle:' : lang==='ES' ? 'Modelos:' : lang==='TR' ? 'Modeller:' : lang==='FR' ? 'Modèles:' : 'Models:' %>
                             </p>
                         </div>
 
@@ -377,32 +374,32 @@
                             <span class="back" data-go-back-parent><img src="/assets/Imgs/Icons/backarrow.png"
                                     alt=""></span>
                             <span class="page-title">
-                                <%= lang==='DE' ? 'Dienstleistungen' : lang==='ES' ? 'Servicios' : 'Services' %>
+                                <%= lang==='DE' ? 'Dienstleistungen' : lang==='ES' ? 'Servicios' : lang==='TR' ? 'Hizmetler' : lang==='FR' ? 'Services' : 'Services' %>
                             </span>
                             <span class="close-menu">&#10005;</span>
                         </div>
                         <ul>
                             <li><a href="/<%= lang %>/support">
-                                    <%= lang==='DE' ? 'Support' : lang==='ES' ? 'Soporte' : 'Support' %>
+                                    <%= lang==='DE' ? 'Support' : lang==='ES' ? 'Soporte' : lang==='TR' ? 'Destek' : lang==='FR' ? 'Soutien' : 'Support' %>
                                 </a></li>
                             <li><a href="/<%= lang %>/Downloads">
-                                    <%= lang==='DE' ? 'Downloads' : lang==='ES' ? 'Descargas' : 'Downloads' %>
+                                    <%= lang==='DE' ? 'Downloads' : lang==='ES' ? 'Descargas' : lang==='TR' ? 'İndirmeler' : lang==='FR' ? 'Téléchargements' : 'Downloads' %>
                                 </a></li>
                             <li><a href="/industry">
                                     <%= lang==='DE' ? 'Branche & Anwendungen' : lang==='ES' ? 'Industria & Aplicaciones'
-                                        : 'Industries & Applications' %>
+                                        : lang==='TR' ? 'Sektör & Uygulamalar' : lang==='FR' ? 'Industries & Applications' : 'Industries & Applications' %>
                                 </a></li>
                             <li><a href="/<%= lang %>/technical-service">
                                     <%= lang==='DE' ? 'Technischer Service' : lang==='ES' ? 'Servicio Técnico'
-                                        : 'Technical Services' %>
+                                        : lang==='TR' ? 'Teknik Servis' : lang==='FR' ? 'Services Techniques' : 'Technical Services' %>
                                 </a></li>
                             <li><a href="/<%= lang %>/WarrantyRegistration">
                                     <%= lang==='DE' ? 'Garantieregistrierung' : lang==='ES' ? 'Registro de Garantía'
-                                        : 'Warranty Registration' %>
+                                        : lang==='TR' ? 'Garanti Kaydı' : lang==='FR' ? 'Enregistrement de Garantie' : 'Warranty Registration' %>
                                 </a></li>
                             <li><a href="/TermCondition">
                                     <%= lang==='DE' ? 'AGB' : lang==='ES' ? 'Términos y Condiciones'
-                                        : 'Terms & Condition' %>
+                                        : lang==='TR' ? 'Şartlar ve Koşullar' : lang==='FR' ? 'Conditions Générales' : 'Terms & Condition' %>
                                 </a></li>
 
 
@@ -415,7 +412,7 @@
                                 <img src="/assets/Imgs/Icons/backarrow.png" alt="Back" />
                             </span>
                             <span class="page-title">
-                                <%= lang==='DE' ? 'Sprache' : lang==='ES' ? 'Idioma' : 'Language' %>
+                                <%= lang==='DE' ? 'Sprache' : lang==='ES' ? 'Idioma' : lang==='TR' ? 'Dil' : lang==='FR' ? 'Langue' : 'Language' %>
                             </span>
                             <span class="close-menu">&#10005;</span>
                         </div>
@@ -424,6 +421,8 @@
                             <li><a href="javascript:void(0)" data-lang="EN">English</a></li>
                             <li><a href="javascript:void(0)" data-lang="ES">Español</a></li>
                             <li><a href="javascript:void(0)" data-lang="DE">Deutsch</a></li>
+                            <li><a href="javascript:void(0)" data-lang="TR">Türkçe</a></li>
+                            <li><a href="javascript:void(0)" data-lang="FR">Français</a></li>
                         </ul>
                     </div>
 
