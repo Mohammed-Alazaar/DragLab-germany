@@ -21,7 +21,7 @@ exports.uploadSingle = upload.single('productThumbnail');
 exports.uploadMultiple = upload.array('productPhotos', 5);
 
 // Dynamic field generation
-const languages = ['EN', 'ES', 'DE'];
+const languages = ['EN', 'ES', 'DE' , 'TR', 'FR'];
 
 const uploadFields = [
   // Product fields
@@ -191,7 +191,7 @@ async function uploadToCloudinaryDirectly(req, res, next) {
   }
 
   // ✅ Upload multilingual FeatureImage fields
-  const languages = ['EN', 'ES', 'DE'];
+  const languages = ['EN', 'ES', 'DE', 'TR', 'FR'];
   for (const lang of languages) {
     for (let i = 0; i < 4; i++) {
       const files = req.files[`FeatureImage_${lang}[${i}]`];
