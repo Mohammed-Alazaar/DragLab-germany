@@ -1,5 +1,10 @@
 <%- include('../../includes/customer/head.ejs') %>
-    <html lang="<%= lang %>" data-lang="<%= lang %>" data-select-option="<%= translations.selectOption %>">
+<%- include('../../includes/customer/head.ejs') %>
+<html
+  lang="<%= lang %>"
+  data-lang="<%= lang %>"
+  data-select-option="<%= translations.selectOption %>"
+  data-recaptcha-enabled="<%= recaptchaEnabled ? 'true' : 'false' %>">
 
     <link rel="stylesheet" href="/css/customer/technical-service.css">
   <% if (recaptchaEnabled) { %>
