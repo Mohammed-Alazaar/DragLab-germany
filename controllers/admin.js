@@ -27,6 +27,10 @@ const languages = ['EN', 'ES', 'DE', 'TR', 'FR'];
 const allanguages = ['EN', 'ES', 'DE', 'TR', 'FR'];
 
 
+
+
+
+
 exports.getAddProduct = (req, res, next) => {
   res.render('sellercompany/edit-product', {
 
@@ -119,7 +123,24 @@ exports.postAddProduct = async (req, res, next) => {
 
     const languages = allanguages;
     const languageData = {};
+      const metaData = {};
+    const tagsData = {};
     const validationErrors = [];
+
+
+    
+const normalizeTags = (raw) => {
+  if (!raw) return [];
+  return String(raw)
+    .split(',')
+    .map(s => s.trim())
+    .filter(Boolean)
+    .map(s => s.toLowerCase())   // normalize case
+    .map(s => s.replace(/\s+/g, ' ')) // collapse inner spaces
+    .filter((v, i, arr) => arr.indexOf(v) === i) // dedupe
+    .slice(0, 12);
+};
+
 
     // Requested publish flags (UI should be hidden for non-admin, but enforce server-side too)
     const requestedPublish = Object.fromEntries(
@@ -155,6 +176,16 @@ exports.postAddProduct = async (req, res, next) => {
       const productNameDesc = (req.body[`ProductNameDesc_${lang}`] || '').trim();
       const productDesc = (req.body[`ProductDesc_${lang}`] || '').trim();
       const whyProductDesc = (req.body[`WhyProductDesc_${lang}`] || '').trim();
+    // meta parsing stays, but keep alongside tags
+      const metaTitle = (req.body[`MetaTitle_${lang}`] || '').trim();
+      const metaDesc  = (req.body[`MetaDesc_${lang}`]  || '').trim();
+      metaData[lang] = {
+        title: metaTitle || undefined,
+        description: metaDesc || undefined
+      };
+      // Make sure your EJS input name is name="Tags_<%= lang %>"
+      tagsData[lang] = normalizeTags(req.body[`Tags_${lang}`]);
+
 
       if (!isDraft && validateThisLanguage) {
         if (!productName) validationErrors.push({ path: `ProductName_${lang}`, msg: `Product Name (${lang}) is required.` });
@@ -237,7 +268,9 @@ exports.postAddProduct = async (req, res, next) => {
         product: {
           ProductThumbnail: productThumbnail,
           ProductSketch: productSketch,
-          Language: languageData
+          Language: languageData,
+          tags: tagsData,
+          meta: metaData
         }
       });
     }
@@ -253,6 +286,8 @@ exports.postAddProduct = async (req, res, next) => {
       ProductThumbnail: productThumbnail,
       ProductSketch: productSketch,
       Language: languageData,
+         tags: tagsData,
+      meta: metaData,
       isDraft // final draft flag based on admin + publish selections
     });
 
@@ -289,38 +324,43 @@ exports.getMyproduct = (req, res, next) => {
 };
 
 
-exports.getEditProduct = (req, res, next) => {
-  const editMode = req.query.edit;
-  if (!editMode) {
+exports.getEditProduct = async (req, res, next) => {
+  try {
+    const editMode = req.query.edit;
+    if (!editMode) return res.redirect('/');
+
+    const prodId = req.params.productId;
+
+    // 🔁 CHANGED: also pull tags + meta for the form
+    const product = await Product.findById(prodId)
+      .select('Language ProductThumbnail ProductSketch isDraft tags meta slug createdAt')
+      .lean();
+
+    if (!product) return res.redirect('/');
+
+    // ✅ NEW: ensure tags/meta objects exist so EJS value bindings don’t crash
+    const ensureLangObj = (obj) => obj || { EN: [], ES: [], DE: [], TR: [], FR: [] };
+    const ensureMetaObj = (obj) => obj || { EN: {}, ES: {}, DE: {}, TR: {}, FR: {} };
+
+    product.tags = ensureLangObj(product.tags);
+    product.meta = ensureMetaObj(product.meta);
+
+    return res.render('sellercompany/edit-product', {
+      pageTitle: 'Edit Product',
+      path: '/admin/edit-product',
+      editing: editMode,
+      product,
+      hasError: false,
+      validationErrors: [],
+      errorMessage: null,
+      isAuthenticated: req.session.isLoggedIn,
+      isDraft: product.isDraft,
+      languages: allanguages
+    });
+  } catch (err) {
+    console.log(err);
     return res.redirect('/');
   }
-  const prodId = req.params.productId;
-
-  Product.findById(prodId)
-    .then(product => {
-      if (!product) {
-        return res.redirect('/');
-      }
-
-      res.render('sellercompany/edit-product', {
-        pageTitle: 'Edit Product',
-        path: '/admin/edit-product',
-        editing: editMode,
-        product: product,
-        hasError: false,
-        validationErrors: [],
-        errorMessage: null,
-        isAuthenticated: req.session.isLoggedIn,
-        isDraft: product.isDraft,
-        languages: allanguages  // <-- optional convenience
-
-        // ❌ no categories anymore
-      });
-    })
-    .catch(err => {
-      console.log(err);
-      res.redirect('/');
-    });
 };
 
 exports.postEditProduct = async (req, res, next) => {
@@ -329,13 +369,28 @@ exports.postEditProduct = async (req, res, next) => {
     const languages = allanguages;
     const languageData = {};
     const validationErrors = [];
+   // ✅ NEW: meta/tags holders
+    const metaData = {};   // per-language meta overrides
+    const tagsData = {};   // per-language tags/keywords
 
+
+        // ✅ NEW: normalize tags helper (same as add-product)
+    const normalizeTags = (raw) => {
+      if (!raw) return [];
+      return String(raw)
+        .split(',')
+        .map(s => s.trim().toLowerCase())
+        .map(s => s.replace(/\s+/g, ' '))
+        .filter(Boolean)
+        .filter((v, i, a) => a.indexOf(v) === i)
+        .slice(0, 12);
+    };
     // who is editing?
     const isAdmin = !!(req.user && (req.user.role === 'admin' || req.user.isAdmin === true));
 
     // Pull existing for publish fallback (non-admin) and old values
     const existing = await Product.findById(productId)
-      .select('Language ProductThumbnail ProductSketch isDraft')
+      .select('Language ProductThumbnail ProductSketch isDraft tags meta slug')
       .lean();
     if (!existing) return res.redirect('/admin/Myproduct');
 
@@ -387,6 +442,20 @@ exports.postEditProduct = async (req, res, next) => {
       const productDesc = (req.body[`ProductDesc_${lang}`] || '').trim();
       const whyProductDesc = (req.body[`WhyProductDesc_${lang}`] || '').trim();
 
+
+       // ✅ NEW: read meta fields per language
+      const metaTitle = (req.body[`MetaTitle_${lang}`] || '').trim();
+      const metaDesc  = (req.body[`MetaDesc_${lang}`]  || '').trim();
+      metaData[lang] = {
+        title: metaTitle || undefined,
+        description: metaDesc || undefined
+      };
+
+      // ✅ NEW: read + normalize tags per language
+      tagsData[lang] = normalizeTags(req.body[`Tags_${lang}`]);
+
+
+      
       if (validateThisLanguage) {
         if (!productName) validationErrors.push({ path: `ProductName_${lang}`, msg: `Product Name (${lang}) is required.` });
         if (!productNameDesc) validationErrors.push({ path: `ProductNameDesc_${lang}`, msg: `Short Description (${lang}) is required.` });
@@ -466,7 +535,9 @@ exports.postEditProduct = async (req, res, next) => {
           _id: productId,
           Language: languageData,
           ProductThumbnail: updatedProductThumbnail,
-          ProductSketch: updatedProductSketch
+          ProductSketch: updatedProductSketch,
+          tags: tagsData,     // ✅ NEW: preserve entered tags on error
+          meta: metaData      // ✅ NEW: preserve meta on error
         }
       });
     }
@@ -481,6 +552,10 @@ exports.postEditProduct = async (req, res, next) => {
 
     // CRUCIAL: If nothing is published, mark draft so Mongoose "required" won’t fire later.
     product.isDraft = !anyLangPublished;
+
+       // ✅ NEW: persist meta/tags
+    product.meta = metaData;
+    product.tags = tagsData;
 
     await product.save();
     console.log('✅ Product Updated');

@@ -4,6 +4,40 @@
 <link rel="stylesheet" href="/css/customer/product-details.css">
 
 <%
+  const pageTags = product?.tags?.[lang] || [];
+  const metaTitleOverride = product?.meta?.[lang]?.title;
+  const metaDescOverride  = product?.meta?.[lang]?.description;
+
+  const effectiveTitle = (metaTitleOverride && metaTitleOverride.trim()) || `${productName} | DragLab`;
+  const effectiveDesc  = (metaDescOverride && metaDescOverride.trim()) || cleanDesc;
+%>
+
+<script type="application/ld+json">
+<%
+  const baseProductLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": productName,
+    "description": effectiveDesc,
+    "image": thumbnail,
+    "brand": { "@type": "Organization", "name": "DragLab" },
+    "category": "Laboratory Equipment",
+    "releaseDate": new Date(product.createdAt).toISOString(),
+    "isAccessibleForFree": true,
+    "inLanguage": hreflangMap[lang] || "en",
+    "url": canonicalUrl,
+    "keywords": pageTags.join(', ')
+  };
+%><%= JSON.stringify(baseProductLd) %>
+</script>
+
+
+<title><%= effectiveTitle %></title>
+<meta name="description" content="<%= effectiveDesc %>">
+<meta name="keywords" content="<%= pageTags.join(', ') %>"><!-- not a ranking factor, but harmless -->
+
+
+<%
   // ===== Variables (declare ONCE) =====
   const langLower = (lang || 'EN').toLowerCase();
   const localeMap = { EN:'en_US', ES:'es_ES', DE:'de_DE', TR:'tr_TR', FR:'fr_FR' };

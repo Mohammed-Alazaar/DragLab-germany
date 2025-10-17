@@ -111,6 +111,33 @@
                                                             class="<%= validationErrors.find(e => e.path === `WhyProductDesc_${lang}`) ? 'is-invalid' : '' %>"
                                                             required><%= product.Language?.[lang]?.[0]?.WhyProductDesc || '' %></textarea>
                                                     </div>
+                                                    <!-- SEO RELATED INPUTS  -->
+                                                    <div class="input-container">
+                                                    <label for="Tags_<%= lang %>">Tags / Keywords (<%= lang %>)</label>
+                                                    <input
+                                                        type="text"
+                                                        id="Tags_<%= lang %>"
+                                                        name="Tags_<%= lang %>"
+                                                        class="tags-input"
+                                                        value="<%= (product.tags?.[lang] || []).join(', ') %>"
+                                                        placeholder="centrifuge, laboratory, DF-12, 6000 rpm" />
+                                                    <small class="text-muted">Comma separated. 3–12 concise keywords.</small>
+                                                    </div>
+
+                                                    <div class="input-container">
+                                                    <label for="MetaTitle_<%= lang %>">Meta Title (optional)</label>
+                                                    <input type="text" id="MetaTitle_<%= lang %>" name="MetaTitle_<%= lang %>"
+                                                            value="<%= product.meta?.[lang]?.title || '' %>" maxlength="60">
+                                                    <small class="text-muted">Keep under ~60 chars.</small>
+                                                    </div>
+
+                                                    <div class="input-container">
+                                                    <label for="MetaDesc_<%= lang %>">Meta Description (optional)</label>
+                                                    <input type="text" id="MetaDesc_<%= lang %>" name="MetaDesc_<%= lang %>"
+                                                            value="<%= product.meta?.[lang]?.description || '' %>" maxlength="160">
+                                                    <small class="text-muted">Keep under ~160 chars.</small>
+                                                    </div>
+                                                    <!-- SEO RELATED INPUTS  -->
 
                                                     <!-- Language-based Feature Input Section -->
                                                     <div class="language-section">

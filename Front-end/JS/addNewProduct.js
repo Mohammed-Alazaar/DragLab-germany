@@ -1,52 +1,23 @@
-
-// // for the dynamic input fields for highlitghed features
-// function addFeature() {
-//     const container = document.getElementById('dynamicFeatureContainer');
-//     const index = container.children.length;
-//     const featurePairDiv = document.createElement('div');
-//     featurePairDiv.className = 'feature-input-pair';
-
-//     // Create feature input
-//     const featureInput = document.createElement('input');
-//     featureInput.type = 'text';
-//     featureInput.name = `features[${index}][feature]`;
-//     featureInput.placeholder = `Feature ${index + 1}`;
-//     featurePairDiv.appendChild(featureInput);
-
-//     // Create feature detail input
-//     const detailInput = document.createElement('input');
-//     detailInput.type = 'text';
-//     detailInput.name = `features[${index}][featureDetail]`;
-//     detailInput.placeholder = `Feature Detail ${index + 1}`;
-//     featurePairDiv.appendChild(detailInput);
-
-//     // Create remove button
-//     const removeButton = document.createElement('button');
-//     removeButton.type = 'button';
-//     removeButton.textContent = 'Remove';
-//     removeButton.onclick = function() { removeFeature(this); };
-//     featurePairDiv.appendChild(removeButton);
-
-//     // Append the whole set to the container
-//     container.appendChild(featurePairDiv);
-// }
-
-// function removeFeature(button) {
-//     button.parentNode.remove();
-// }
-
-
-
-// Event delegation + safe defaults
+// Event delegation + safe defaults + tags init
 document.addEventListener("DOMContentLoaded", function () {
-  // default: collapse all language bodies unless they contain errors
+  // ===== 0) Helpers =====
+  const toArray = (x) => (Array.isArray(x) ? x : [x]).filter(Boolean);
+  const normalizeTags = (tags) => {
+    return toArray(tags)
+      .map(String)
+      .map(s => s.trim().toLowerCase())
+      .map(s => s.replace(/\s+/g, ' '))        // collapse inner spaces
+      .filter(Boolean)
+      .filter((v, i, a) => a.indexOf(v) === i) // dedupe
+  };
+
+  // ===== 1) Collapse logic (unchanged, just tidied) =====
   document.querySelectorAll(".language-section").forEach(section => {
     const body = section.querySelector(".language-body");
     const btn  = section.querySelector(".language-toggle");
     if (!body || !btn) return;
 
     if (body.querySelector(".is-invalid, .form-error")) {
-      // open if there are validation errors
       body.classList.remove("collapse");
       section.classList.add("is-open");
       btn.setAttribute("aria-expanded", "true");
@@ -57,7 +28,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  // click handler (works for all current/future .language-toggle)
   document.addEventListener("click", function (e) {
     const btn = e.target.closest(".language-toggle");
     if (!btn) return;
@@ -66,11 +36,72 @@ document.addEventListener("DOMContentLoaded", function () {
     const body = section && section.querySelector(".language-body");
     if (!body) return;
 
-    const isCollapsed = body.classList.toggle("collapse"); // toggle class
+    const isCollapsed = body.classList.toggle("collapse");
     section.classList.toggle("is-open", !isCollapsed);
     btn.setAttribute("aria-expanded", String(!isCollapsed));
+  });
 
-    // debug (optional): open DevTools console to see clicks firing
-    // console.log("Toggle:", { section, collapsed: isCollapsed });
+  // ===== 2) Tagify init (per-language) =====
+  const tagInputs = document.querySelectorAll('input.tags-input');
+  const tagifyInstances = new Map();
+
+  tagInputs.forEach(input => {
+    // read config from data-attrs
+    const max = Number(input.dataset.max || 12);
+    const min = Number(input.dataset.min || 0);
+    let whitelist = [];
+    try { whitelist = JSON.parse(input.dataset.whitelist || '[]'); } catch(e) { /* ignore */ }
+
+    // fallback: plain input if Tagify not present
+    if (typeof window.Tagify !== "function") {
+      // still normalize on submit (see form handler below)
+      return;
+    }
+
+    const tagify = new Tagify(input, {
+      duplicates: false,
+      maxTags: max,
+      trim: true,
+      dropdown: { enabled: 0, maxItems: 50, fuzzySearch: true },
+      whitelist
+    });
+
+    // normalize on "add"/"edit"/"blur"
+    const normalize = () => {
+      const current = (tagify.value || []).map(t => t.value);
+      const normalized = normalizeTags(current);
+      if (normalized.length !== current.length ||
+          normalized.some((v, i) => v !== current[i])) {
+        tagify.removeAllTags();
+        tagify.addTags(normalized);
+      }
+    };
+    tagify.on('add', normalize);
+    tagify.on('edit:updated', normalize);
+    tagify.on('blur', normalize);
+
+    // enforce max/min with UI hint
+    tagify.on('add', () => {
+      if (tagify.value.length > max) {
+        tagify.removeTag(tagify.value[tagify.value.length - 1].value);
+      }
+    });
+
+    tagifyInstances.set(input, tagify);
+  });
+
+  // ===== 3) Normalize + serialize on submit (Tagify or plain) =====
+  // This ensures server sees comma-separated strings you already parse.
+  document.querySelectorAll('form[action*="/admin/"][method="POST"]').forEach(form => {
+    form.addEventListener('submit', () => {
+      document.querySelectorAll('input.tags-input').forEach(input => {
+        const tagify = tagifyInstances.get(input);
+        const values = tagify
+          ? (tagify.value || []).map(t => t.value)
+          : String(input.value || '').split(',');
+        const normalized = normalizeTags(values).slice(0, Number(input.dataset.max || 12));
+        input.value = normalized.join(', ');
+      });
+    });
   });
 });

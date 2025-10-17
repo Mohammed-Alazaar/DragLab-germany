@@ -1,6 +1,16 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
+
+const KeywordsByLangSchema = new Schema({
+  EN: { type: [String], default: [] },
+  ES: { type: [String], default: [] },
+  DE: { type: [String], default: [] },
+  TR: { type: [String], default: [] },
+  FR: { type: [String], default: [] }
+}, { _id: false });
+
+
 const ModelsSchema = new Schema({
     ModelThumbnail: { type: String },
     ModelPhotos: [{ type: String }],
@@ -173,6 +183,17 @@ const ModelsSchema = new Schema({
 const productSchema = new Schema({
     ProductThumbnail: { type: String },
     ProductSketch: { type: String },
+    
+  // ✅ New: SEO fields
+  tags: { type: KeywordsByLangSchema, default: () => ({}) },  // localized keyword tags
+  meta: {
+    EN: { title: String, description: String },
+    ES: { title: String, description: String },
+    DE: { title: String, description: String },
+    TR: { title: String, description: String },
+    FR: { title: String, description: String }
+  },
+
     Language: {
         EN: [{
             features: [{
@@ -278,5 +299,44 @@ const productSchema = new Schema({
     slug: { type: String, required: false, unique: true }, // ✅ Product slug
 
 }, { timestamps: true });
+
+// ✅ Weighted text index for search (names + desc + tags)
+productSchema.index({
+  'Language.EN.0.ProductName': 'text',
+  'Language.EN.0.ProductNameDesc': 'text',
+  'Language.EN.0.ProductDesc': 'text',
+  'tags.EN': 'text',
+  'Language.ES.0.ProductName': 'text',
+  'Language.ES.0.ProductDesc': 'text',
+  'tags.ES': 'text',
+  'Language.DE.0.ProductName': 'text',
+  'Language.DE.0.ProductDesc': 'text',
+  'tags.DE': 'text',
+  'Language.TR.0.ProductName': 'text',
+  'Language.TR.0.ProductDesc': 'text',
+  'tags.TR': 'text',
+  'Language.FR.0.ProductName': 'text',
+  'Language.FR.0.ProductDesc': 'text',
+  'tags.FR': 'text'
+}, {
+  weights: {
+    'Language.EN.0.ProductName': 10,
+    'Language.ES.0.ProductName': 10,
+    'Language.DE.0.ProductName': 10,
+    'Language.TR.0.ProductName': 10,
+    'Language.FR.0.ProductName': 10,
+    'Language.EN.0.ProductDesc': 5,
+    'Language.ES.0.ProductDesc': 5,
+    'Language.DE.0.ProductDesc': 5,
+    'Language.TR.0.ProductDesc': 5,
+    'Language.FR.0.ProductDesc': 5,
+    'tags.EN': 8,
+    'tags.ES': 8,
+    'tags.DE': 8,
+    'tags.TR': 8,
+    'tags.FR': 8
+  },
+  name: 'products_text_index_multilang'
+});
 
 module.exports = mongoose.model('Product', productSchema);
