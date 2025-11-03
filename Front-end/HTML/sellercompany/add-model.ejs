@@ -99,6 +99,45 @@
                                                         <input type="text" name="ModelDesc_<%= lang %>"
                                                             value="<%= model?.Language?.[lang]?.[0]?.ModelDesc || '' %>">
                                                     </div>
+<!-- === SEO: Tags + Meta (per language) === -->
+<div class="input-container">
+  <label for="Tags_<%= lang %>">Tags / Keywords (<%= lang %>)</label>
+  <input
+    type="text"
+    id="Tags_<%= lang %>"
+    name="Tags_<%= lang %>"
+    class="tags-input"
+    value="<%= (model?.tags?.[lang] || []).join(', ') %>"
+    placeholder="distiller, 4 l/h, stainless, DF-12" />
+  <small class="text-muted">Comma separated. 3–12 concise keywords.</small>
+</div>
+
+<div class="input-container">
+  <label for="MetaTitle_<%= lang %>">Meta Title (optional)</label>
+  <input
+    type="text"
+    id="MetaTitle_<%= lang %>"
+    name="MetaTitle_<%= lang %>"
+    value="<%= model?.meta?.[lang]?.title || '' %>"
+    maxlength="60">
+  <small class="text-muted">Keep under ~60 chars.</small>
+</div>
+
+<div class="input-container">
+  <label for="MetaDesc_<%= lang %>">Meta Description (optional)</label>
+  <input
+    type="text"
+    id="MetaDesc_<%= lang %>"
+    name="MetaDesc_<%= lang %>"
+    value="<%= model?.meta?.[lang]?.description || '' %>"
+    maxlength="160">
+  <small class="text-muted">Keep under ~160 chars.</small>
+</div>
+<!-- === /SEO === -->
+
+
+
+
                                                     <!-- Fixed Overview Inputs -->
                                                     <div class="overview-section">
                                                         <h4>Overview</h4>

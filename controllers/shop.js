@@ -443,74 +443,82 @@ exports.search = async (req, res) => {
 
 
 
-
 exports.getProductDetails = async (req, res, next) => {
-    try {
-        const { lang, productSlug } = req.params;
-        const supportedLangs = allanguages; // e.g. ['EN','ES','DE','TR','FR']
-        const selectedLang = supportedLangs.includes(lang) ? lang : 'EN';
+  try {
+    const { productSlug } = req.params;
 
-        const product = await Product.findOne({ slug: productSlug }).lean();
-        if (!product) {
-            // product itself does not exist -> genuine 404/redirect
-            return res.status(404).render('404', {
-                pageTitle: 'Not found',
-                path: '/404',
-                isAuthenticated: req.session?.isLoggedIn || false,
-            });
-        }
+    // Normalize the language param to uppercase; fallback to EN
+    const rawLang = req.params.lang || 'EN';
+    const selectedLang = String(rawLang).toUpperCase();
 
-        const langData = product.Language?.[selectedLang]?.[0];
-        const enData = product.Language?.EN?.[0];
+    const supportedLangs = ['EN','ES','DE','TR','FR'];
+    const langKey = supportedLangs.includes(selectedLang) ? selectedLang : 'EN';
 
-        // Find languages where this product IS published
-        const availableLangs = (supportedLangs || [])
-            .filter(L => product?.Language?.[L]?.[0]?.publish === true);
-
-        // If current language is NOT published -> show friendly page with links
-        if (!langData || langData.publish !== true) {
-            // Prefer EN first in the list if available
-            const sortedAvailable = availableLangs.sort((a, b) => (a === 'EN' ? -1 : b === 'EN' ? 1 : 0));
-
-            // Prepare link objects for the template
-            const links = sortedAvailable.map(L => ({
-                code: L,
-                url: `/${L}/products/${product.slug}`,
-                name: ({ EN: 'English', ES: 'Español', DE: 'Deutsch', TR: 'Türkçe', FR: 'Français' }[L]) || L
-            }));
-
-            return res.status(200).render('customer/product-not-available', {
-                pageTitle: 'Product Unavailable',
-                lang: selectedLang,
-                productSlug: product.slug,
-                links,                  // array of {code, url, name} for available languages
-                hasAny: links.length > 0,
-                products: res.locals.navProducts || []   // ✅ so navbar has something to render
-
-            });
-        }
-
-        // Language is published -> render normally (and filter models by lang publish)
-        const modelsForLang = (product.Models || []).filter(m =>
-            m?.Language?.[selectedLang]?.[0]?.publish === true
-        );
-
-        // If you populate navbar via middleware, you can rely on res.locals.navProducts; otherwise fetch here.
-        const navProducts = res.locals.navProducts || [];
-
-        return res.render('customer/product-details.ejs', {
-            product,
-            lang: selectedLang,
-            translation: langData || enData,
-            models: modelsForLang,
-            products: navProducts,
-            req
-        });
-    } catch (err) {
-        console.error(err);
-        return res.redirect('/EN');
+    const product = await Product.findOne({ slug: productSlug }).lean();
+    if (!product) {
+      return res.status(404).render('404', {
+        pageTitle: 'Not found',
+        path: '/404',
+        isAuthenticated: req.session?.isLoggedIn || false,
+      });
     }
+
+    const langData = product.Language?.[langKey]?.[0];
+    const enData   = product.Language?.EN?.[0];
+
+    // Languages where product is published
+    const availableLangs = supportedLangs.filter(L => product?.Language?.[L]?.[0]?.publish === true);
+
+    // If current language not published -> friendly switch page
+    if (!langData || langData.publish !== true) {
+      const sortedAvailable = availableLangs.sort((a, b) => (a === 'EN' ? -1 : b === 'EN' ? 1 : 0));
+      const links = sortedAvailable.map(L => ({
+        code: L,
+        url: `/${L}/products/${product.slug}`,
+        name: ({ EN:'English', ES:'Español', DE:'Deutsch', TR:'Türkçe', FR:'Français' }[L]) || L
+      }));
+
+      return res.status(200).render('customer/product-not-available', {
+        pageTitle: 'Product Unavailable',
+        lang: langKey,
+        productSlug: product.slug,
+        links,
+        hasAny: links.length > 0,
+        products: res.locals.navProducts || []
+      });
+    }
+
+    // ✅ More-forgiving model filter:
+    // show model if:
+    // - current language's publish === true  OR
+    // - EN publish === true                  OR
+    // - model-level isPublished === true
+    const modelsForLang = (product.Models || []).filter(m => {
+      const langBlock = m?.Language?.[langKey]?.[0];
+      const enBlock   = m?.Language?.EN?.[0];
+      return (langBlock?.publish === true) || (enBlock?.publish === true) || (m?.isPublished === true);
+    });
+
+    // (Optional) quick debug in server logs
+    console.debug('[ProductDetails] slug=%s lang=%s models=%d',
+      product.slug, langKey, modelsForLang.length);
+
+    const navProducts = res.locals.navProducts || [];
+
+    return res.render('customer/product-details.ejs', {
+      product,
+      lang: langKey,
+      translation: langData || enData,
+      models: modelsForLang,
+      products: navProducts,
+      req
+    });
+  } catch (err) {
+    console.error(err);
+    return res.redirect('/EN');
+  }
 };
+
 
 
 exports.getModelDetailsPage = async (req, res, next) => {

@@ -16,6 +16,16 @@ const ModelsSchema = new Schema({
     ModelPhotos: [{ type: String }],
     overviewThumbnail: { type: String },
     modelcapacity: { type: String },
+      // ✅ NEW: model-level SEO
+  tags:  { type: KeywordsByLangSchema, default: () => ({}) }, // localized keywords
+  meta: {
+    EN: { title: String, description: String },
+    ES: { title: String, description: String },
+    DE: { title: String, description: String },
+    TR: { title: String, description: String },
+    FR: { title: String, description: String }
+  },
+
     Language: {
         EN: [{
             ModelName: { type: String },
@@ -302,39 +312,79 @@ const productSchema = new Schema({
 
 // ✅ Weighted text index for search (names + desc + tags)
 productSchema.index({
+ // ===== Product fields =====
   'Language.EN.0.ProductName': 'text',
   'Language.EN.0.ProductNameDesc': 'text',
   'Language.EN.0.ProductDesc': 'text',
   'tags.EN': 'text',
+
   'Language.ES.0.ProductName': 'text',
   'Language.ES.0.ProductDesc': 'text',
   'tags.ES': 'text',
+
   'Language.DE.0.ProductName': 'text',
   'Language.DE.0.ProductDesc': 'text',
   'tags.DE': 'text',
+
   'Language.TR.0.ProductName': 'text',
   'Language.TR.0.ProductDesc': 'text',
   'tags.TR': 'text',
+
   'Language.FR.0.ProductName': 'text',
   'Language.FR.0.ProductDesc': 'text',
-  'tags.FR': 'text'
+  'tags.FR': 'text',
+
+  // ===== Model fields (nested under product.Models[]) =====
+  'Models.Language.EN.0.ModelName': 'text',
+  'Models.Language.EN.0.ModelDesc': 'text',
+  'Models.tags.EN': 'text',
+
+  'Models.Language.ES.0.ModelName': 'text',
+  'Models.Language.ES.0.ModelDesc': 'text',
+  'Models.tags.ES': 'text',
+
+  'Models.Language.DE.0.ModelName': 'text',
+  'Models.Language.DE.0.ModelDesc': 'text',
+  'Models.tags.DE': 'text',
+
+  'Models.Language.TR.0.ModelName': 'text',
+  'Models.Language.TR.0.ModelDesc': 'text',
+  'Models.tags.TR': 'text',
+
+  'Models.Language.FR.0.ModelName': 'text',
+  'Models.Language.FR.0.ModelDesc': 'text',
+  'Models.tags.FR': 'text'
 }, {
   weights: {
+    // Product weights
     'Language.EN.0.ProductName': 10,
     'Language.ES.0.ProductName': 10,
     'Language.DE.0.ProductName': 10,
     'Language.TR.0.ProductName': 10,
     'Language.FR.0.ProductName': 10,
+
     'Language.EN.0.ProductDesc': 5,
     'Language.ES.0.ProductDesc': 5,
     'Language.DE.0.ProductDesc': 5,
     'Language.TR.0.ProductDesc': 5,
     'Language.FR.0.ProductDesc': 5,
-    'tags.EN': 8,
-    'tags.ES': 8,
-    'tags.DE': 8,
-    'tags.TR': 8,
-    'tags.FR': 8
+
+    'tags.EN': 8, 'tags.ES': 8, 'tags.DE': 8, 'tags.TR': 8, 'tags.FR': 8,
+
+    // Model weights (mirror products)
+    'Models.Language.EN.0.ModelName': 10,
+    'Models.Language.ES.0.ModelName': 10,
+    'Models.Language.DE.0.ModelName': 10,
+    'Models.Language.TR.0.ModelName': 10,
+    'Models.Language.FR.0.ModelName': 10,
+
+    'Models.Language.EN.0.ModelDesc': 5,
+    'Models.Language.ES.0.ModelDesc': 5,
+    'Models.Language.DE.0.ModelDesc': 5,
+    'Models.Language.TR.0.ModelDesc': 5,
+    'Models.Language.FR.0.ModelDesc': 5,
+
+    'Models.tags.EN': 8, 'Models.tags.ES': 8, 'Models.tags.DE': 8, 'Models.tags.TR': 8, 'Models.tags.FR': 8
   },
   name: 'products_text_index_multilang'
 });

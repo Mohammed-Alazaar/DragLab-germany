@@ -1,123 +1,127 @@
-
 <%- include('../../includes/customer/head.ejs') %>
-
 <link rel="stylesheet" href="/css/customer/product-details.css">
 
 <%
-  const pageTags = product?.tags?.[lang] || [];
-  const metaTitleOverride = product?.meta?.[lang]?.title;
-  const metaDescOverride  = product?.meta?.[lang]?.description;
+  // ===== One-time variables (declare once) =====
+  const allLangs   = ['EN','ES','DE','TR','FR'];
+  const hreflangMap= { EN:'en', ES:'es', DE:'de', TR:'tr', FR:'fr' };
+  const localeMap  = { EN:'en_US', ES:'es_ES', DE:'de_DE', TR:'tr_TR', FR:'fr_FR' };
+  const langLower  = (lang || 'EN').toLowerCase();
 
-  const effectiveTitle = (metaTitleOverride && metaTitleOverride.trim()) || `${productName} | DragLab`;
-  const effectiveDesc  = (metaDescOverride && metaDescOverride.trim()) || cleanDesc;
+  // Base content (localized)
+  const productName = translation?.ProductName || product?.Language?.EN?.[0]?.ProductName || 'Product';
+  const productDesc = translation?.ProductDesc || product?.Language?.EN?.[0]?.ProductDesc || '';
+  const cleanDesc   = (productDesc || '').replace(/(<([^>]+)>)/gi, '').replace(/\s+/g,' ').trim();
+
+  // Admin SEO overrides (localized)
+  const pageTags          = (product?.tags?.[lang] || []).filter(Boolean);
+  const metaTitleOverride = (product?.meta?.[lang]?.title || '').trim();
+  const metaDescOverride  = (product?.meta?.[lang]?.description || '').trim();
+
+  // Helpers to keep nice lengths
+  const trimTo = (s, n=160) => (s.length <= n ? s : s.slice(0, n).replace(/\s+\S*$/, '') + '…');
+
+  // Effective title/desc using admin first, with safe lengths
+  const effectiveTitle = metaTitleOverride || trimTo(`${productName} | DragLab`, 60);
+  const effectiveDesc  = trimTo(metaDescOverride || cleanDesc, 160);
+
+  // Keywords meta isn't used by Google; if you keep it, keep concise (<= 10)
+  const keywordList = pageTags.slice(0, 10);
+  const metaKeywords = keywordList.join(', ');
+
+  // Images + URLs
+  const rawThumb  = product?.ProductThumbnail;
+  const thumbnail = rawThumb?.startsWith('http')
+      ? rawThumb
+      : rawThumb
+        ? `https://www.drag-lab.de${rawThumb}`
+        : 'https://www.drag-lab.de/assets/Imgs/logo/logo.png';
+
+  const canonicalUrl = `https://www.drag-lab.de/${langLower}/products/${product.slug}`;
+
+  // Build structured specs from the selected language (translation -> technicalSpecifications)
+  const specProps = (translation?.technicalSpecifications || [])
+    .flatMap(sec => (sec?.rows || []).map(r => ({
+      "@type": "PropertyValue",
+      name: [sec?.sectionTitle, r?.title].filter(Boolean).join(' – ').trim(),
+      value: (r?.value || '').toString().trim()
+    })))
+    .filter(p => p.name && p.value);
+
+  // Optional: downloads as MediaObject
+  const downloadObjs = (translation?.downloads || [])
+    .map(d => ({
+      "@type": "MediaObject",
+      name: d.fileName,
+      contentUrl: d.filePath?.startsWith('http') ? d.filePath : (d.filePath ? `https://www.drag-lab.de${d.filePath}` : undefined),
+      encodingFormat: d.fileCategory,  // e.g., "application/pdf"
+      contentSize: d.fileSize
+    }))
+    .filter(x => x.name && x.contentUrl);
 %>
-
-<script type="application/ld+json">
-<%
-  const baseProductLd = {
-    "@context": "https://schema.org",
-    "@type": "Product",
-    "name": productName,
-    "description": effectiveDesc,
-    "image": thumbnail,
-    "brand": { "@type": "Organization", "name": "DragLab" },
-    "category": "Laboratory Equipment",
-    "releaseDate": new Date(product.createdAt).toISOString(),
-    "isAccessibleForFree": true,
-    "inLanguage": hreflangMap[lang] || "en",
-    "url": canonicalUrl,
-    "keywords": pageTags.join(', ')
-  };
-%><%= JSON.stringify(baseProductLd) %>
-</script>
-
 
 <title><%= effectiveTitle %></title>
 <meta name="description" content="<%= effectiveDesc %>">
-<meta name="keywords" content="<%= pageTags.join(', ') %>"><!-- not a ranking factor, but harmless -->
-
-
-<%
-  // ===== Variables (declare ONCE) =====
-  const langLower = (lang || 'EN').toLowerCase();
-  const localeMap = { EN:'en_US', ES:'es_ES', DE:'de_DE', TR:'tr_TR', FR:'fr_FR' };
-  const hreflangMap = { EN:'en',   ES:'es',   DE:'de',   TR:'tr',   FR:'fr' };
-  const allLangs = ['EN','ES','DE','TR','FR'];
-
-  const productName = translation?.ProductName || product?.Language?.EN?.[0]?.ProductName || 'Product';
-  const productDesc = translation?.ProductDesc || product?.Language?.EN?.[0]?.ProductDesc || '';
-  const cleanDesc = (productDesc || '').replace(/(<([^>]+)>)/gi, '').slice(0, 160);
-
-  const rawThumb = product?.ProductThumbnail;
-  const thumbnail = rawThumb?.startsWith('http')
-    ? rawThumb
-    : rawThumb
-      ? `https://www.drag-lab.de${rawThumb}`
-      : 'https://www.drag-lab.de/assets/Imgs/logo/logo.png';
-
-  const canonicalUrl = `https://www.drag-lab.de/${langLower}/products/${product.slug}`;
-%>
-
-<title><%= productName %> | DragLab</title>
-
-<!-- Primary SEO -->
-<meta name="description" content="<%= cleanDesc %>">
+<meta name="keywords" content="<%= metaKeywords %>"><!-- optional -->
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="<%= canonicalUrl %>">
 
-<!-- Hreflang (adds TR/FR + x-default) -->
+<!-- Hreflang -->
 <link rel="alternate" hreflang="x-default" href="https://www.drag-lab.de/en/products/<%= product.slug %>">
-<% allLangs.forEach(l => { %>
-  <link rel="alternate" hreflang="<%= hreflangMap[l] %>" href="https://www.drag-lab.de/<%= hreflangMap[l] %>/products/<%= product.slug %>">
+<% allLangs.forEach(L => { %>
+  <link rel="alternate" hreflang="<%= hreflangMap[L] %>" href="https://www.drag-lab.de/<%= hreflangMap[L] %>/products/<%= product.slug %>">
 <% }) %>
 
 <!-- Open Graph / Twitter -->
-<meta property="og:locale" content="<%= localeMap[lang] || 'en_US' %>">
-<% allLangs.filter(l => l !== lang).forEach(l => { %>
-  <meta property="og:locale:alternate" content="<%= localeMap[l] %>">
-<% }) %>
-<meta property="og:type" content="product">
 <meta property="og:site_name" content="DragLab">
-<meta property="og:title" content="<%= productName %> | DragLab">
-<meta property="og:description" content="<%= cleanDesc %>">
+<meta property="og:type" content="product">
+<meta property="og:locale" content="<%= localeMap[lang] || 'en_US' %>">
+<% allLangs.filter(L => L !== lang).forEach(L => { %>
+  <meta property="og:locale:alternate" content="<%= localeMap[L] %>">
+<% }) %>
+<meta property="og:title" content="<%= effectiveTitle %>">
+<meta property="og:description" content="<%= effectiveDesc %>">
 <meta property="og:image" content="<%= thumbnail %>">
+<meta property="og:image:alt" content="<%= productName %>">
 <meta property="og:url" content="<%= canonicalUrl %>">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="<%= productName %> | DragLab">
-<meta name="twitter:description" content="<%= cleanDesc %>">
-<meta name="twitter:image" content="<%= thumbnail %>">
+<!-- If you know the real image dimensions, set them to reduce CLS -->
+<meta property="og:image:width" content="1600">
+<meta property="og:image:height" content="900">
 
-<!-- Structured Data: Product (no invalid "price") -->
-<script type="application/ld+json">
-<%
-  const baseProductLd = {
-    "@context": "https://schema.org",
-    "@type": "Product",
-    "name": productName,
-    "description": cleanDesc,
-    "image": thumbnail,
-    "brand": { "@type": "Organization", "name": "DragLab" },
-    "category": "Laboratory Equipment",
-    "releaseDate": new Date(product.createdAt).toISOString(),
-    "isAccessibleForFree": true,
-    "inLanguage": hreflangMap[lang] || "en",
-    "url": canonicalUrl
-  };
-%><%= JSON.stringify(baseProductLd) %>
-</script>
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="<%= effectiveTitle %>">
+<meta name="twitter:description" content="<%= effectiveDesc %>">
+<meta name="twitter:image" content="<%= thumbnail %>">
+<meta name="twitter:image:alt" content="<%= productName %>">
+
+<!-- Structured Data: Product (enriched) -->
+<script type="application/ld+json" nonce="<%= nonce %>"><%- JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Product",
+  name: productName,
+  description: effectiveDesc,
+  image: thumbnail,
+  brand: { "@type": "Organization", name: "DragLab", "@id": "https://www.drag-lab.de/#brand" },
+  category: "Laboratory Equipment",
+  releaseDate: new Date(product.createdAt).toISOString(),
+  isAccessibleForFree: true,
+  inLanguage: hreflangMap[lang] || "en",
+  url: canonicalUrl,
+  keywords: keywordList.join(', '),
+  additionalProperty: specProps.length ? specProps : undefined,
+  hasPart: downloadObjs.length ? downloadObjs : undefined
+}) %></script>
 
 <!-- Structured Data: Breadcrumb -->
-<script type="application/ld+json">
-<%= JSON.stringify({
+<script type="application/ld+json" nonce="<%= nonce %>"><%- JSON.stringify({
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
-  "itemListElement": [
-    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://www.drag-lab.de" },
-    { "@type": "ListItem", "position": 2, "name": "Products", "item": `https://www.drag-lab.de/${langLower}/products` },
-    { "@type": "ListItem", "position": 3, "name": productName, "item": canonicalUrl }
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Home",     item: "https://www.drag-lab.de" },
+    { "@type": "ListItem", position: 2, name: "Products", item: `https://www.drag-lab.de/${langLower}/products` },
+    { "@type": "ListItem", position: 3, name: productName, item: canonicalUrl }
   ]
-}) %>
-</script>
+}) %></script>
 
     </head>
 
@@ -206,48 +210,54 @@
         </div>
 
 
+<% if (models && models.length > 0) { %>
+  <div class="models-container" id="target-section">
+    <h2>Models</h2>
 
+    <% models.forEach(model => {
+      const modelLang   = model.Language[lang]?.[0] || model.Language['EN']?.[0];
+      const modelName   = modelLang?.ModelName || 'Unnamed Model';
+      const modelDesc   = (modelLang?.ModelDesc || '').replace(/(<([^>]+)>)/gi, '').slice(0, 160);
+      const capacity    = model.modelcapacity || '—';
 
+      // ✅ Always show ModelPhotos (first one)
+      const rawPhotos   = Array.isArray(model.ModelPhotos) ? model.ModelPhotos : [];
+      const firstPhoto  = rawPhotos.length > 0 ? rawPhotos[0] : null;
 
+      const modelImage  = firstPhoto?.startsWith('http')
+        ? firstPhoto
+        : firstPhoto
+          ? `https://www.drag-lab.de${firstPhoto}`
+          : thumbnail; // fallback to product thumbnail if no photos
 
-        <% if (models && models.length> 0) { %>
-          <div class="models-container" id="target-section">
-            <h2>Models</h2>
+      const modelUrl    = `https://www.drag-lab.de/${langLower}/products/${product.slug}/${model.slug}`;
+    %>
 
-        <% models.forEach(model => {
-  const modelLang = model.Language[lang]?.[0] || model.Language['EN']?.[0];
-  const modelName = modelLang?.ModelName || 'Unnamed Model';
-  const modelDesc = (modelLang?.ModelDesc || '').replace(/(<([^>]+)>)/gi, '').slice(0, 160);
+      <div class="model-row">
+        <img src="<%= modelImage %>" alt="<%= modelName %>" loading="lazy">
+        <div class="model-info"><%= modelName %></div>
+        <div class="model-capacity">
+          <p style="white-space: pre-line;"><%- capacity %></p>
+        </div>
+        <a class="view-btn" href="<%= modelUrl %>">
+          <%= lang === 'ES' ? 'Ver' : lang === 'DE' ? 'Ansehen' : lang === 'TR' ? 'Görüntüle' : lang === 'FR' ? 'Voir' : 'View' %>
+        </a>
+      </div>
 
-  const rawPhotos = model.ModelPhotos;
-  const firstPhoto = Array.isArray(rawPhotos) ? rawPhotos[0] : rawPhotos;
-  const modelImage = firstPhoto?.startsWith('http')
-    ? firstPhoto
-    : firstPhoto
-      ? `https://www.drag-lab.de${firstPhoto}`
-      : thumbnail;
-
-  const modelUrl = `https://www.drag-lab.de/${langLower}/products/${product.slug}/${model.slug}`;
-%>
-<script type="application/ld+json">
-<%= JSON.stringify({
-  "@context": "https://schema.org",
-  "@type": "ProductModel",
-  "name": modelName,
-  "description": modelDesc,
-  "image": modelImage,
-  "isVariantOf": { "@type": "Product", "name": productName, "url": canonicalUrl },
-  "url": modelUrl
-}) %>
-</script>
-<% }) %>
-
-
-          </div>
-          <% } %>
-
-
-
+      <!-- JSON-LD for each model -->
+      <script type="application/ld+json" nonce="<%= nonce %>"><%- JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "ProductModel",
+        name: modelName,
+        description: modelDesc,
+        image: modelImage,
+        isVariantOf: { "@type": "Product", name: productName, url: canonicalUrl },
+        url: modelUrl,
+        keywords: (model.tags?.[lang] || []).slice(0,10).join(', ')
+      }) %></script>
+    <% }) %>
+  </div>
+<% } %>
 
 
 
