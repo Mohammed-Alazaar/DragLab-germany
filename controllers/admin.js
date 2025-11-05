@@ -854,6 +854,30 @@ const toList = (v) => (v == null ? [] : (Array.isArray(v) ? v : [v]));
 
 
 
+const parseTags = (s) =>
+  (typeof s === 'string' ? s : '')
+    .split(',')
+    .map(t => t.trim())
+    .filter(Boolean)
+    .slice(0, 12); // keep it sane
+
+const collectSeoFromBody = (langs, body) => {
+  const tags = {};
+  const meta = {};
+  langs.forEach(l => {
+    // always present in form => allow clearing
+    const t = parseTags(body[`Tags_${l}`]);
+    tags[l] = t;
+
+    const title = clean(body[`MetaTitle_${l}`]);
+    const description = clean(body[`MetaDesc_${l}`]);
+    meta[l] = { title, description };
+  });
+  return { tags, meta };
+};
+
+
+
 exports.postAddModel = async (req, res) => {
   const productId = req.params.productId;
   const languages = allanguages; // ['EN','ES','DE',...]
@@ -866,6 +890,9 @@ exports.postAddModel = async (req, res) => {
   const shouldValidate = Object.values(requestedPublish).some(Boolean);
   const mustValidateLang = (lang) => shouldValidate && (lang === 'EN' || requestedPublish[lang]);
 
+    const { tags: modelTags, meta: modelMeta } = collectSeoFromBody(languages, req.body);
+
+    
   try {
     // Slug + top-level uploads
     // Slug first
@@ -1089,6 +1116,8 @@ if (req.files?.[`downloadFiles_${lang}`]) {
           overviewThumbnail,
           modelcapacity: req.body.modelcapacity || '',
           Language: languageData,
+          tags: modelTags,
+          meta: modelMeta
         }
       });
     }
@@ -1104,7 +1133,9 @@ if (req.files?.[`downloadFiles_${lang}`]) {
       overviewThumbnail,
       modelcapacity: req.body.modelcapacity || '',
       Language: languageData,
-      isPublished: shouldValidate
+      isPublished: shouldValidate,
+      tags: modelTags,
+      meta: modelMeta
     });
 
     product.Models.push(newModel);
@@ -1133,7 +1164,9 @@ if (req.files?.[`downloadFiles_${lang}`]) {
           ModelPhotos: [],
           overviewThumbnail: '',
           modelcapacity: req.body.modelcapacity || '',
-          Language: languageData
+          Language: languageData,
+          tags: modelTags,
+          meta: modelMeta
         }
       });
     }
@@ -1157,6 +1190,8 @@ exports.postEditModel = async (req, res) => {
   );
   const shouldValidate = Object.values(requestedPublish).some(Boolean);
   const mustValidateLang = (lang) => shouldValidate && (lang === 'EN' || requestedPublish[lang]);
+
+  const { tags: modelTags, meta: modelMeta } = collectSeoFromBody(languages, req.body);
 
   try {
     const product = await Product.findById(productId);
@@ -1407,7 +1442,9 @@ exports.postEditModel = async (req, res) => {
           overviewThumbnail,
           ModelPhotos,
           modelcapacity: req.body.modelcapacity || model.modelcapacity || '',
-          Language: languageData
+          Language: languageData,
+          tags: modelTags,
+          meta: modelMeta
         }
       });
     }
@@ -1419,7 +1456,8 @@ exports.postEditModel = async (req, res) => {
     model.modelcapacity = req.body.modelcapacity || model.modelcapacity;
     model.Language = languageData;
     model.isPublished = anyLangPublished;
-
+    model.tags = modelTags;
+    model.meta = modelMeta;
     await product.save();
 
     // clear session stash on success

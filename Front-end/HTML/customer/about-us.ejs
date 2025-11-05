@@ -5,6 +5,12 @@
   <title>
     <%= pageTitle %>
   </title>
+  
+<link rel="preload"
+      as="image"
+      href="/assets/Imgs/hero/hero@2x.webp"
+      imagesrcset="/assets/Imgs/hero/hero@1x.webp 1x, /assets/Imgs/hero/hero@2x.webp 2x"
+      type="image/webp">
 
   <!-- ✅ Meta Description -->
   <meta name="description" content="<%= metaDescription %>">
@@ -172,14 +178,15 @@
       <%- include('../../includes/customer/footer.ejs') %>
 
         <!-- ✅ Custom JS file -->
-        <script nonce="<%= nonce %>">
-          window.tabsData = <% - JSON.stringify(tabs) %>;
-        </script>
+     <script nonce="<%= nonce %>">
+  window.tabsData = <%- JSON.stringify(tabs || null) %>;
+</script>
 
 
 
 
-        <script src="/js/about-us.js"></script>
+                <script src="/js/about-us.js" nonce="<%= nonce %>"></script>
+
   </body>
 
   </html>

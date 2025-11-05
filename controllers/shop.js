@@ -487,6 +487,30 @@ exports.getProductDetails = async (req, res, next) => {
         products: res.locals.navProducts || []
       });
     }
+// === SEO (meta + tags) with EN fallback ===
+const metaForLang =
+  (product.meta && (product.meta[langKey] || product.meta.EN)) || {};
+const tagsForLang =
+  (product.tags && (product.tags[langKey] || product.tags.EN)) || [];
+
+const stripHtml = (s) => String(s || '')
+  .replace(/<\/?[^>]+(>|$)/g, ' ')
+  .replace(/\s+/g, ' ')
+  .trim();
+
+const productNameBase = (langData?.ProductName || enData?.ProductName || 'Product');
+const descBase = stripHtml(langData?.ProductDesc || enData?.ProductDesc || '');
+
+const metaTitle =
+  (metaForLang.title && metaForLang.title.trim())
+    || `${productNameBase} | DragLab`;
+
+const metaDescription =
+  (metaForLang.description && metaForLang.description.trim())
+    || descBase.slice(0, 160);
+
+const keywordsArray = Array.isArray(tagsForLang) ? tagsForLang.slice(0, 12) : [];
+const keywordsCsv = keywordsArray.join(', ');
 
     // ✅ More-forgiving model filter:
     // show model if:
@@ -511,7 +535,11 @@ exports.getProductDetails = async (req, res, next) => {
       translation: langData || enData,
       models: modelsForLang,
       products: navProducts,
-      req
+      req,
+       metaTitle,
+  metaDescription,
+  keywordsCsv,
+  keywordsArray
     });
   } catch (err) {
     console.error(err);
@@ -591,6 +619,44 @@ exports.getModelDetailsPage = async (req, res, next) => {
         const productLangData =
             product.Language?.[selectedLang]?.[0] || product.Language?.EN?.[0];
 
+
+            // ✅ NEW: pick SEO (meta + tags) with EN fallback
+const metaForLang =
+  (model.meta && (model.meta[selectedLang] || model.meta.EN)) || {};
+const tagsForLang =
+  (model.tags && (model.tags[selectedLang] || model.tags.EN)) || [];
+
+// Build base text (for fallbacks)
+const modelNameBase =
+  (currentLangData?.ModelName || englishLangData?.ModelName || 'Model');
+const productNameBase =
+  (productLangData?.ProductName || 'DragLab Product');
+
+// Clean a description (strip HTML and trim)
+const stripHtml = (s) => String(s || '')
+  .replace(/<\/?[^>]+(>|$)/g, ' ')
+  .replace(/\s+/g, ' ')
+  .trim();
+
+const descBase = stripHtml(
+  currentLangData?.ModelDesc || englishLangData?.ModelDesc || ''
+);
+
+// ✅ Final SEO values (use meta overrides if present)
+const metaTitle =
+  (metaForLang.title && metaForLang.title.trim()) ||
+  `${modelNameBase} – ${productNameBase} | DragLab`;
+
+const metaDescription =
+  (metaForLang.description && metaForLang.description.trim()) ||
+  descBase.slice(0, 160);
+
+const keywordsArray = Array.isArray(tagsForLang) ? tagsForLang : [];
+const keywordsCsv = keywordsArray.join(', ');
+
+
+
+
         const translations = {
             EN: {
                 overviewTitle: 'Overview',
@@ -632,7 +698,11 @@ exports.getModelDetailsPage = async (req, res, next) => {
         const navProducts = res.locals.navProducts || [];
 
         return res.render('customer/Model-details', {
-            pageTitle: currentLangData.ModelName || 'Model Details',
+             pageTitle: metaTitle,   // keeps breadcrumbs/old places happy
+            metaTitle, 
+            metaDescription,
+            keywordsCsv,
+            keywordsArray,
             ModelName: currentLangData.ModelName || englishLangData?.ModelName || 'No Name',
             ModelNameDesc:
                 currentLangData.ModelNameDesc || englishLangData?.ModelNameDesc || 'No Description',

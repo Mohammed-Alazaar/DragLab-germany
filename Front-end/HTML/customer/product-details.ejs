@@ -60,9 +60,12 @@
     .filter(x => x.name && x.contentUrl);
 %>
 
-<title><%= effectiveTitle %></title>
-<meta name="description" content="<%= effectiveDesc %>">
-<meta name="keywords" content="<%= metaKeywords %>"><!-- optional -->
+<title><%= (typeof metaTitle !== 'undefined' && metaTitle) ? metaTitle : effectiveTitle %></title>
+<meta name="description" content="<%= (typeof metaDescription !== 'undefined' && metaDescription) ? metaDescription : effectiveDesc %>">
+<% if ((typeof keywordsCsv !== 'undefined' && keywordsCsv) || metaKeywords) { %>
+  <meta name="keywords" content="<%= (typeof keywordsCsv !== 'undefined' && keywordsCsv) ? keywordsCsv : metaKeywords %>">
+<% } %>
+
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="<%= canonicalUrl %>">
 
@@ -79,8 +82,8 @@
 <% allLangs.filter(L => L !== lang).forEach(L => { %>
   <meta property="og:locale:alternate" content="<%= localeMap[L] %>">
 <% }) %>
-<meta property="og:title" content="<%= effectiveTitle %>">
-<meta property="og:description" content="<%= effectiveDesc %>">
+<meta property="og:title" content="<%= (typeof metaTitle !== 'undefined' && metaTitle) ? metaTitle : effectiveTitle %>">
+<meta property="og:description" content="<%= (typeof metaDescription !== 'undefined' && metaDescription) ? metaDescription : effectiveDesc %>">
 <meta property="og:image" content="<%= thumbnail %>">
 <meta property="og:image:alt" content="<%= productName %>">
 <meta property="og:url" content="<%= canonicalUrl %>">
@@ -89,8 +92,8 @@
 <meta property="og:image:height" content="900">
 
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="<%= effectiveTitle %>">
-<meta name="twitter:description" content="<%= effectiveDesc %>">
+<meta name="twitter:title" content="<%= (typeof metaTitle !== 'undefined' && metaTitle) ? metaTitle : effectiveTitle %>">
+<meta name="twitter:description" content="<%= (typeof metaDescription !== 'undefined' && metaDescription) ? metaDescription : effectiveDesc %>">
 <meta name="twitter:image" content="<%= thumbnail %>">
 <meta name="twitter:image:alt" content="<%= productName %>">
 
@@ -99,7 +102,7 @@
   "@context": "https://schema.org",
   "@type": "Product",
   name: productName,
-  description: effectiveDesc,
+  description: (typeof metaDescription !== 'undefined' && metaDescription) ? metaDescription : effectiveDesc,
   image: thumbnail,
   brand: { "@type": "Organization", name: "DragLab", "@id": "https://www.drag-lab.de/#brand" },
   category: "Laboratory Equipment",
@@ -107,7 +110,7 @@
   isAccessibleForFree: true,
   inLanguage: hreflangMap[lang] || "en",
   url: canonicalUrl,
-  keywords: keywordList.join(', '),
+  keywords: (typeof keywordsCsv !== 'undefined' && keywordsCsv) ? keywordsCsv : keywordList.join(', '),
   additionalProperty: specProps.length ? specProps : undefined,
   hasPart: downloadObjs.length ? downloadObjs : undefined
 }) %></script>
