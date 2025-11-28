@@ -31,24 +31,13 @@ router.get('/:lang/Contactus', shopController.getContactus);
 router.post('/submit-contactus', shopController.postContactUs);
 
 router.get('/:lang/support', shopController.getSupport);
-router.get('/:lang/aboutus', shopController.getaboutus);
 router.get('/:lang/Articles', shopController.getArticles);
 router.get('/:lang/articles/:slug', shopController.getArticleDetails);
 router.get('/:lang/Downloads', shopController.getDownloads);
-router.get('/:lang/TermCondition', shopController.getTearmCondition);
-router.get('/:lang/PrivacyPolicy', shopController.getPrivacyPolicy);
-router.get('/:lang/DataProtection', shopController.getDataProtection);
-router.get('/:lang/imprint', shopController.getimprint);
-router.get('/:lang/CodeofEthics', shopController.getCodeofEthics);
-router.get('/:lang/quality-policy', shopController.getQualitypolicy);
 router.get('/:lang/WarrantyRegistration', shopController.getWarrantyRegistration);
 router.post('/submit-warranty', shopController.postWarrantyRegistration);
 router.get('/:lang/Industry', shopController.getIndustryPage);
 router.get('/:lang/industry/:slug', shopController.getIndustryDetails);
-router.get('/:lang/QualityPolicy', shopController.getQualityPolicy);
-router.get('/:lang/SustainabilityPolicy', shopController.getSustainabilityPolicy);
-router.get('/:lang/Qualifications', shopController.getQualifications);
-router.get('/:lang/licenses', shopController.getLicensePage);
 
 router.post('/subscribe', async (req, res) => {
   try {
@@ -84,25 +73,41 @@ router.post('/subscribe', async (req, res) => {
 
 
 
-
 router.get('/api/models/:productId', async (req, res) => {
-  const lang = req.query.lang || 'EN';
+  const lang = (req.query.lang || 'EN').toUpperCase();
 
   try {
-    const product = await Product.findById(req.params.productId);
-    if (!product) return res.status(404).json({ error: 'Product not found' });
+    const product = await Product.findById(req.params.productId)
+      .select('Models.Language Models.isPublished')
+      .lean();
 
-    const models = product.Models.map(m => ({
-      _id: m._id,
-      ModelName: m.Language[lang]?.[0]?.ModelName || m.Language['EN']?.[0]?.ModelName || 'Unnamed Model'
-    }));
+    if (!product) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
 
-    res.json({ models });
+    const models = (product.Models || [])
+      .filter(m => {
+        const langBlock = m?.Language?.[lang]?.[0];
+        const enBlock   = m?.Language?.EN?.[0];
+        return m?.isPublished === true ||
+               langBlock?.publish === true ||
+               enBlock?.publish === true;
+      })
+      .map(m => ({
+        _id: m._id,
+        ModelName:
+          m.Language?.[lang]?.[0]?.ModelName ||
+          m.Language?.EN?.[0]?.ModelName ||
+          'Unnamed Model',
+      }));
+
+    return res.json({ models });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Server error' });
+    console.error('❌ /api/models error:', err);
+    return res.status(500).json({ error: 'Server error' });
   }
 });
+
 
 router.get('/', (req, res) => {
   const acceptLang = req.headers['accept-language'] || '';

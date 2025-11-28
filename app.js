@@ -20,6 +20,18 @@ const User = require('./models/user');
 
 const app = express();
 
+// 🔎 Global timing middleware
+app.use((req, res, next) => {
+    const start = process.hrtime.bigint();
+
+    res.on('finish', () => {
+        const end = process.hrtime.bigint();
+        const ms = Number(end - start) / 1e6;
+        console.log(`⏱ ${req.method} ${req.originalUrl} took ${ms.toFixed(1)} ms`);
+    });
+
+    next();
+});
 
 const redirects = require('./util/redirects');
 
@@ -97,10 +109,12 @@ const store = new MongoDBStore({
 app.set('view engine', 'ejs');
 
 app.set('views', path.join(__dirname, 'Front-end', 'HTML'));
+app.locals.enableClarity = process.env.ENABLE_CLARITY === 'true';
 
 
 const adminRoutes = require('./routes/admin');
 const shopRoutes = require('./routes/shop');
+const staticpagesRoutes = require('./routes/staticpages');
 const authRoutes = require('./routes/auth');
 const accountRoutes = require('./routes/account');
 const accessLogStream = fs.createWriteStream(path.join(__dirname, 'access.log'), { flags: 'a' });
@@ -124,23 +138,7 @@ app.use((req, res, next) => {
     next();
 });
 
-app.use((req, res, next) => {
-    if (!req.session.user) {
-        return next();
-    }
-    User.findById(req.session.user._id)
-        .then(user => {
-            if (!user) {
-                return next();
-            }
-            req.user = user;
-            next();
-        })
-        .catch(err => {
-            next(new Error(err)); // for incide the promise
-            // throw new Error(err); for code out of the promise
-        });
-});
+
 
 app.use((req, res, next) => {
     res.locals.lang = (req.params.lang || req.query.lang || 'EN').toUpperCase();
@@ -154,9 +152,13 @@ app.use((req, res, next) => {
     next();
 });
 
+
 const Product = require('./models/product');
+const navCache = {}; // { EN: { ts, data }, ES: { ts, data }, ... }
+const NAV_CACHE_TTL_MS = 60 * 1000; // 1 minute
 
 app.use(async (req, res, next) => {
+    const t0 = Date.now();
     try {
         const supported = ['EN', 'ES', 'DE', 'TR', 'FR'];
         const m = req.path.match(/^\/(EN|ES|DE|TR|FR)\b/i);
@@ -164,10 +166,17 @@ app.use(async (req, res, next) => {
         const lang = supported.includes(langFromPath) ? langFromPath : 'EN';
         res.locals.lang = lang;
 
-        // ✅ Use $elemMatch, not ".0.publish"
+        // 🧠 Check cache first
+        const now = Date.now();
+        const cached = navCache[lang];
+        if (cached && (now - cached.ts) < NAV_CACHE_TTL_MS) {
+            res.locals.navProducts = cached.data;
+            console.log(`🌐 navProducts (lang=${lang}) served from cache in ${Date.now() - t0} ms`);
+            return next();
+        }
+
         const query = { [`Language.${lang}`]: { $elemMatch: { publish: true } } };
 
-        // ✅ Select full language arrays (no numeric index in projection)
         let navProducts = await Product.find(query)
             .select([
                 'slug',
@@ -180,7 +189,6 @@ app.use(async (req, res, next) => {
             ])
             .lean();
 
-        // ✅ Derive safe display fields and filter models by current lang publish
         navProducts = navProducts.map(p => {
             const cur = p?.Language?.[lang]?.[0] || {};
             const en = p?.Language?.EN?.[0] || {};
@@ -194,7 +202,11 @@ app.use(async (req, res, next) => {
             return { ...p, displayName, displayDesc, Models: models };
         });
 
+        // 💾 Save to cache
+        navCache[lang] = { ts: now, data: navProducts };
+
         res.locals.navProducts = navProducts;
+        console.log(`🌐 navProducts (lang=${lang}) loaded from DB in ${Date.now() - t0} ms`);
         next();
     } catch (e) {
         console.error('Navbar preload error:', e);
@@ -202,6 +214,7 @@ app.use(async (req, res, next) => {
         next();
     }
 });
+
 app.use((req, res, next) => {
     if (!req.session.user) return next();
     User.findById(req.session.user._id)
@@ -227,6 +240,7 @@ app.use(morgan('combined', { stream: accessLogStream })); // Log all requests to
 
 app.use('/admin', adminRoutes);
 app.use(shopRoutes);
+app.use(staticpagesRoutes);
 app.use(authRoutes);
 app.use(accountRoutes);
 const feedRoutes = require('./routes/feed');

@@ -1,27 +1,23 @@
 <%- include('../../includes/customer/head.ejs') %>
 <%
-  // -------- Basics / fallbacks (no optional chaining) --------
-  const langLc = (lang || 'EN').toLowerCase(); // en|es|de
-  const iTitle = (translation && translation.slideTitle) || (industry && industry.title) || 'Industry';
-  const iSubtitle = (translation && translation.subtitle) || '';
-  const iDesc = (translation && translation.description) || 'Discover solutions for this industry.';
+  const langLc = (lang || 'EN').toLowerCase();
+  const iTitle = translation.slideTitle || 'Industry';
+  const iSubtitle = translation.subtitle || '';
+  const iDesc = (translation.description || 'Discover solutions for this industry.').toString();
   const cleanDesc = iDesc.replace(/<\/?[^>]+(>|$)/g, '').replace(/\s+/g, ' ').trim().slice(0, 160);
 
-  // Slug & URLs
-  const industrySlug = (industry && industry.slug) || 'industry';
+  const industrySlug = industry.slug || 'industry';
   const canonicalUrl = `https://www.drag-lab.de/${langLc}/industry/${industrySlug}`;
 
-  // Page title per locale
   const pageTitle =
     (lang === 'ES') ? `${iTitle} | Soluciones por Industria` :
     (lang === 'DE') ? `${iTitle} | Branchenlösungen` :
                       `${iTitle} | Industry Solutions`;
 
-  // OG image (absolute)
-  const ogImage = (industry && industry.sharedSlideImage) || 'https://www.drag-lab.de/assets/Imgs/thumbnils/industry-thumbnail.webp';
+  const ogImage = industry.sharedSlideImage || 'https://www.drag-lab.de/assets/Imgs/thumbnils/industry-thumbnail.webp';
   const ogImageAbs = ogImage.startsWith('http') ? ogImage : `https://www.drag-lab.de${ogImage}`;
-  const ogImageWidth = 1200; // set real width if you know it
-  const ogImageHeight = 630; // set real height if you know it
+  const ogImageWidth = 1200;
+  const ogImageHeight = 630;
 %>
 
 <meta charset="UTF-8" />
@@ -30,6 +26,7 @@
 <meta name="description" content="<%= cleanDesc %>" />
 <link rel="canonical" href="<%= canonicalUrl %>" />
 <link rel="stylesheet" href="/css/customer/industry-details.css" />
+
 
 <!-- Hreflang cluster -->
 <link rel="alternate" hreflang="x-default" href="https://www.drag-lab.de/en/industry/<%= industrySlug %>" />
@@ -61,18 +58,18 @@
 <!-- JSON-LD: CollectionPage describing this industry and listing products -->
 <script type="application/ld+json" nonce="<%= nonce %>">
 <%
-  const prodItems = (products || []).map((product, idx) => {
-    const pLang = (product.Language && (product.Language[lang] && product.Language[lang][0])) || (product.Language && product.Language.EN && product.Language.EN[0]) || {};
-    const pName = pLang.ProductName || product.slug || 'Product';
-    const pDesc = (product.description || pLang.ProductDesc || '').toString().replace(/<\/?[^>]+(>|$)/g, '').trim().slice(0, 160);
-    const pImg = (product.ProductThumbnail && (product.ProductThumbnail.startsWith('http') ? product.ProductThumbnail : `https://www.drag-lab.de${product.ProductThumbnail}`)) || ogImageAbs;
-    const pUrl = `https://www.drag-lab.de/${langLc}/products/${product.slug}`;
+  const prodItems = (structuredProducts || []).map((p, idx) => {
+    const pDesc = p.desc.toString().replace(/<\/?[^>]+(>|$)/g, '').trim().slice(0, 160);
+    const pImg = p.thumbnail
+      ? (p.thumbnail.startsWith('http') ? p.thumbnail : `https://www.drag-lab.de${p.thumbnail}`)
+      : ogImageAbs;
+    const pUrl = `https://www.drag-lab.de/${langLc}/products/${p.slug}`;
     return {
       "@type": "ListItem",
       "position": idx + 1,
       "item": {
         "@type": "Product",
-        "name": pName,
+        "name": p.name,
         "description": pDesc,
         "image": [pImg],
         "url": pUrl,
@@ -99,6 +96,7 @@
   }
 }, null, 2) %>
 </script>
+
 
 <!-- JSON-LD: Breadcrumbs -->
 <script type="application/ld+json" nonce="<%= nonce %>">
@@ -182,47 +180,44 @@
           </div>
         </section>
 
-        <% if (products && products.length) { %>
-          <section class="slideshow-container">
-            <h2>Frequently Used Products</h2>
-            <div class="slides-wrapper" id="slidesWrapper">
-              <% products.forEach(product=> {
-                const prodLang = product.Language?.[lang]?.[0] || product.Language?.['EN']?.[0];
-                %>
-                <div class="product-slide">
-                  <a href="/<%= lang %>/products/<%= product.slug %>" class="product-card-link">
-                    <div class="product-card">
-                      <div class="product-image-wrapper">
-                        <img loading="lazy" src="<%= product.ProductThumbnail %>" alt="<%= prodLang.ProductName %>">
-                        <div class="product-bg-overlay"></div>
-                      </div>
-                      <div class="product-card-information">
-                        <h4>
-                          <%= prodLang.ProductName %>
-                        </h4>
-                        <p>
-                          <%= product.description || prodLang.ProductDesc %>
-                        </p>
-                      </div>
-                      <button class="article-btn">View Details</button>
-                    </div>
-                  </a>
-                </div>
-                <% }) %>
+        
+<% if (products && products.length) { %>
+  <section class="slideshow-container">
+    <h2>Frequently Used Products</h2>
+    <div class="slides-wrapper" id="slidesWrapper">
+      <% products.forEach(product => { %>
+        <div class="product-slide">
+          <a href="/<%= lang %>/products/<%= product.slug %>" class="product-card-link">
+            <div class="product-card">
+              <div class="product-image-wrapper">
+                <img loading="lazy"
+                     src="<%= product.thumbnail %>"
+                     alt="<%= product.name %>">
+                <div class="product-bg-overlay"></div>
+              </div>
+              <div class="product-card-information">
+                <h4><%= product.name %></h4>
+                <p><%= product.desc %></p>
+              </div>
+              <button class="article-btn">View Details</button>
             </div>
+          </a>
+        </div>
+      <% }) %>
+    </div>
 
-            <button class="slideshow-btn prev-btn" data-dir="-1">
-              <img src="/assets/Imgs/Icons/right-products-arrow.png" alt="Prev">
-            </button>
-            <button class="slideshow-btn next-btn" data-dir="1">
-              <img src="/assets/Imgs/Icons/left-products-arrow.png" alt="Next">
-            </button>
-          </section>
-          <% } %>
+    <button class="slideshow-btn prev-btn" data-dir="-1">
+      <img loading="lazy" src="/assets/Imgs/Icons/right-products-arrow.png" alt="Prev">
+    </button>
+    <button class="slideshow-btn next-btn" data-dir="1">
+      <img loading="lazy" src="/assets/Imgs/Icons/left-products-arrow.png" alt="Next">
+    </button>
+  </section>
+<% } %>
 
 
             <%- include('../../includes/customer/footer.ejs') %>
-              <script src="/js/index.js?v=1.0.1"></script>
+              <script src="/js/index.js?v=1.0.1" defer></script>
   </body>
 
   </html>

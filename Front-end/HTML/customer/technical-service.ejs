@@ -1,18 +1,16 @@
 <%- include('../../includes/customer/head.ejs') %>
-<%- include('../../includes/customer/head.ejs') %>
-<html
-  lang="<%= lang %>"
-  data-lang="<%= lang %>"
-  data-select-option="<%= translations.selectOption %>"
-  data-recaptcha-enabled="<%= recaptchaEnabled ? 'true' : 'false' %>">
 
     <link rel="stylesheet" href="/css/customer/technical-service.css">
-  <% if (recaptchaEnabled) { %>
-  <script src="https://www.google.com/recaptcha/enterprise.js?render=6LemaIMrAAAAABkGmvhvmbRSO5BbXQq7AsLB7NGU"></script>
-<% } %>
-    <title>
-        <%= t.pageTitle %> | DragLab
-    </title>
+
+    <% if (recaptchaEnabled) { %>
+      <script
+        src="https://www.google.com/recaptcha/enterprise.js?render=6LemaIMrAAAAABkGmvhvmbRSO5BbXQq7AsLB7NGU"
+        async
+        defer
+      ></script>
+    <% } %>
+
+    <title><%= t.pageTitle %> | DragLab</title>
     <meta name="description" content="<%= t.metaDescription %>">
     <meta property="og:title" content="<%= t.ogTitle %>">
     <meta property="og:description" content="<%= t.ogDescription %>">
@@ -25,10 +23,17 @@
     <link rel="alternate" hreflang="en" href="https://www.drag-lab.de/EN/WarrantyRegistration">
     <link rel="alternate" hreflang="es" href="https://www.drag-lab.de/ES/WarrantyRegistration">
     <link rel="alternate" hreflang="de" href="https://www.drag-lab.de/DE/WarrantyRegistration">
+    <link rel="alternate" hreflang="tr" href="https://www.drag-lab.de/TR/WarrantyRegistration">
+    <link rel="alternate" hreflang="fr" href="https://www.drag-lab.de/FR/WarrantyRegistration">
     <link rel="alternate" hreflang="x-default" href="https://www.drag-lab.de/EN/WarrantyRegistration">
-    </head>
+</head>
 
-    <body>
+<body
+  data-lang="<%= lang %>"
+  data-select-option="<%= translations.selectOption %>"
+  data-recaptcha-enabled="<%= recaptchaEnabled ? 'true' : 'false' %>"
+>
+
         <!-- nav-bar -->
         <%- include('../../includes/customer/navbar.ejs') %>
 
@@ -291,7 +296,7 @@
 
             <!-- Footer -->
             <%- include('../../includes/customer/footer.ejs') %>
-                <script src="/js/technical-service.js" nonce="<%= nonce %>"></script>
+                <script src="/js/technical-service.js" nonce="<%= nonce %>" defer></script>
 
     </body>
 

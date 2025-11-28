@@ -171,7 +171,8 @@
                         <%= ModelDesc %>
                     </p>
                 </div>
-                <img src="<%=modelThumbnail %>" alt="<%= pageTitle %>">
+                <img loading="eager" decoding="async" 
+                fetchpriority="high" width="1200" max-height="1500" src="<%=modelThumbnail %>" alt="<%= pageTitle %>">
             </div>
 
 
@@ -186,14 +187,14 @@
                     <% if (overview && overview.length) { %>
 
                         <div class="model-overview-img">
-                            <img src="<%=overviewThumbnail%>" alt="<%= pageTitle %>">
+                            <img loading="eager" decoding="async" src="<%=overviewThumbnail%>" alt="<%= pageTitle %>">
                         </div>
                         <div class="features-wrapper">
 
                             <div class="features-grid">
                                 <% overview.forEach(o=> { %>
                                     <div class="feature-card">
-                                        <img class="feature-img" src="<%= o.overviewImage %>"
+                                        <img loading="eager" decoding="async" class="feature-img" src="<%= o.overviewImage %>"
                                             alt="<%= o.overviewName %>">
                                         <div class="feature-content">
                                             <h3>
@@ -220,10 +221,10 @@
                     <div class="industries-container">
                         <% industry.forEach(i=> { %>
                             <div class="industry-card">
-                                <img class="industry-img" src="<%= i.industryImage %>" alt="<%= i.industryName %>" />
+                                <img loading="eager" decoding="async" class="industry-img" src="<%= i.industryImage %>" alt="<%= i.industryName %>" />
                                 <div class="overlay">
                                     <div class="icon-wrapper">
-                                        <img src="<%=i.industryLogo %>" class="icon" alt="<%= i.industryName %> Logo" />
+                                        <img loading="eager" decoding="async" src="<%=i.industryLogo %>" class="icon" alt="<%= i.industryName %> Logo" />
                                     </div>
                                     <h3>
                                         <%= i.industryName %>
