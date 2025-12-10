@@ -7,11 +7,12 @@ const WarrantyRegistration = require('../models/warrantyRegistration'); // Add a
 const TechnicalService = require('../models/technicalService'); // make sure path is correct
 const ContactUs = require('../models/contactUs');
 const Industry = require('../models/IndustryPage');
-
+const mongoose = require('mongoose');
 const CatalogCategory = require('../models/CatalogCategory'); // Add this line to import the order model
 
 const Slideshow = require('../models/slideshow'); // ✅ Make sure this is imported at the top
 const axios = require('axios'); // ✅ Import axios for HTTP requests
+const { RECAPTCHA_ENABLED } = require('../config/recaptcha');
 
 const allanguages = ['EN', 'ES', 'DE', 'TR', 'FR'];
 
@@ -1272,7 +1273,6 @@ Admin Link (optional): https://www.drag-lab.de/admin/contact-message/${doc._id}
 
 
 
-const RECAPTCHA_ENABLED = String(process.env.RECAPTCHA_ENABLED) === 'true';
 
 
 // controllers/shop.js
@@ -1493,7 +1493,7 @@ exports.geTechnicalservice = async (req, res, next) => {
       translations: t,
       products,                 // ✅ now available in EJS
       req,
-      recaptchaEnabled: RECAPTCHA_ENABLED, // if you use this flag globally
+    recaptchaEnabled: RECAPTCHA_ENABLED, 
     });
   } catch (err) {
     console.error('Technical service page error:', err);
@@ -1508,161 +1508,210 @@ const { sendCustomerEmail, notifyInternal } = require('../services/email');
 
 // controllers/technicalService.js
 
+
 exports.postTechnicalService = async (req, res) => {
-    const lang = req.query.lang?.toUpperCase() || 'EN';
-    const token = req.body['g-recaptcha-response'];
+  const lang = (req.body.lang || req.query.lang || 'EN').toUpperCase();
+  const token = req.body['g-recaptcha-response'];
+
+  try {
+    // --- reCAPTCHA (same logic as Contact Us) -----------------------
+    if (RECAPTCHA_ENABLED) {
+      if (!token) {
+        console.error('❌ Missing reCAPTCHA token (technical service)');
+        return res.redirect(`/${lang}/technical-service?error=true`);
+      }
+
+      const verifyUrl = 'https://www.google.com/recaptcha/api/siteverify';
+      const { data } = await axios.post(verifyUrl, null, {
+        params: {
+          secret: process.env.RECAPTCHA_SECRET_KEY,
+          response: token
+        }
+      });
+
+      if (!data?.success || Number(data?.score) < 0.5) {
+        console.error('❌ reCAPTCHA verification failed (technical service):', data);
+        return res.redirect(`/${lang}/technical-service?error=true`);
+      }
+    } else {
+      console.warn('⚠️ reCAPTCHA disabled via RECAPTCHA_ENABLED=false (test mode)');
+    }
+
+    // --- Extract submitted fields ----------------------------------
+    const {
+      infoType, company, department, salutation, firstName, lastName,
+      postalTown, street, country, telephone, telefax, email,
+      failureDate, deviceCategory, deviceModel, serialNo, note,
+      deviceCategoryName, deviceModelName
+    } = req.body;
+
+    // --- HARD validation for IDs before hitting Mongoose -----------
+    if (
+      !deviceCategory ||
+      !mongoose.isValidObjectId(deviceCategory) ||
+      !deviceModel ||
+      deviceModel === 'undefined' ||
+      !mongoose.isValidObjectId(deviceModel)
+    ) {
+      console.error('❌ Invalid deviceCategory/deviceModel in TechnicalService POST:', {
+        deviceCategory,
+        deviceModel
+      });
+      return res.redirect(`/${lang}/technical-service?error=true`);
+    }
+
+    // --- Resolve readable names from Product + embedded Model ------
+    let productName = '';
+    let modelName = '';
 
     try {
-        // -- reCAPTCHA (optional) -------------------------------------------------
-        if (RECAPTCHA_ENABLED) {
-            if (!token) return res.redirect(`/${lang}/technical-service/?error=true`);
+      const productDoc = await Product.findById(
+        deviceCategory,
+        { Language: 1, Models: 1 }
+      ).lean();
 
-            const verifyUrl = 'https://www.google.com/recaptcha/api/siteverify';
-            const { data } = await axios.post(verifyUrl, null, {
-                params: { secret: process.env.RECAPTCHA_SECRET_KEY, response: token }
-            });
+      if (productDoc) {
+        productName =
+          productDoc?.Language?.[lang]?.[0]?.ProductName ??
+          productDoc?.Language?.EN?.[0]?.ProductName ??
+          '';
 
-            const { success, score } = data;
-            if (!success || Number(score) < 0.5) {
-                console.error('❌ reCAPTCHA verification failed:', data);
-                return res.redirect(`/${lang}/technical-service/?error=true`);
-            }
-        } else {
-            console.warn('⚠️ reCAPTCHA disabled via RECAPTCHA_ENABLED=false (test mode)');
+        const modelSub = productDoc?.Models?.find(
+          (m) => String(m._id) === String(deviceModel)
+        );
+
+        if (modelSub) {
+          modelName =
+            modelSub?.Language?.[lang]?.[0]?.ModelName ??
+            modelSub?.Language?.EN?.[0]?.ModelName ??
+            '';
         }
+      }
+    } catch (e) {
+      console.warn('⚠️ Product/Model name lookup failed:', e?.message || e);
+    }
 
-        // -- Extract submitted fields --------------------------------------------
-        const {
-            infoType, company, department, salutation, firstName, lastName,
-            postalTown, street, country, telephone, telefax, email,
-            failureDate, deviceCategory, deviceModel, serialNo, note,
-            // (optional) if you kept the client hidden fields, we'll use ONLY as fallback
-            deviceCategoryName, deviceModelName
-        } = req.body;
+    // Fallbacks if lookup failed
+    if (!productName) productName = deviceCategoryName || deviceCategory;
+    if (!modelName) modelName = deviceModelName || deviceModel;
 
-        // -- Resolve readable names from DB (Product + embedded Model) -----------
-        let productName = '';
-        let modelName = '';
+    // --- Meta info -------------------------------------------------
+    const ipAddress = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip;
+    const userAgent = req.get('User-Agent');
 
-        try {
-            const productDoc = await Product.findById(
-                deviceCategory,
-                { Language: 1, Models: 1 }
-            ).lean();
+    // --- Persist submission ----------------------------------------
+    const doc = await TechnicalService.create({
+      infoType,
+      company,
+      department,
+      salutation,
+      firstName,
+      lastName,
+      postalTown,
+      street,
+      country,
+      telephone,
+      telefax,
+      email,
+      failureDate,
+      deviceCategory,   // valid ObjectId
+      deviceModel,      // valid ObjectId
+      serialNo,
+      note,
+      lang,
+      ipAddress,
+      userAgent
+    });
 
-            if (productDoc) {
-                productName =
-                    productDoc?.Language?.[lang]?.[0]?.ProductName ??
-                    productDoc?.Language?.EN?.[0]?.ProductName ?? '';
+    const ticketId = `TS-${doc._id.toString().slice(-6).toUpperCase()}`;
 
-                const modelSub = productDoc?.Models?.find(m => String(m._id) === String(deviceModel));
-                if (modelSub) {
-                    modelName =
-                        modelSub?.Language?.[lang]?.[0]?.ModelName ??
-                        modelSub?.Language?.EN?.[0]?.ModelName ?? '';
-                }
-            }
-        } catch (e) {
-            console.warn('⚠️ Product/Model name lookup failed:', e?.message || e);
-        }
+    // --- Flags for email templates ---------------------------------
+    const flags = {
+      isEN: lang === 'EN',
+      isES: lang === 'ES',
+      isDE: lang === 'DE',
+      isTR: lang === 'TR',
+      isFR: lang === 'FR'
+    };
 
-        // Fallbacks if lookup failed (optional: uses client-provided names, else IDs)
-        if (!productName) productName = deviceCategoryName || deviceCategory;
-        if (!modelName) modelName = deviceModelName || deviceModel;
+    // --- Customer confirmation email -------------------------------
+    await sendCustomerEmail({
+      to: email,
+      form: 'technicalSupport',
+      data: {
+        ...flags,
+        year: new Date().getFullYear(),
+        brandName: 'DragLab',
+        supportEmail: 'info@drag-lab.de',
+        ticketId,
+        deviceCategory: productName || '',
+        deviceModel: modelName || '',
+        serialNumber: serialNo || '',
+        dateOfFailure: failureDate || '',
+        technicalQuestion: note || '',
+        helpCenterUrl: `https://www.drag-lab.de/${lang}/technical-service`
+      }
+    });
 
-        // -- Meta -----------------------------------------------------------------
-        const ipAddress = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip;
-        const userAgent = req.get('User-Agent');
+    // --- Admin notification email ----------------------------------
+    const subjectMap = {
+      EN: `[Tech Support] ${firstName} ${lastName} — ${productName}/${modelName} (${ticketId})`,
+      ES: `[Soporte Técnico] ${firstName} ${lastName} — ${productName}/${modelName} (${ticketId})`,
+      DE: `[Technischer Support] ${firstName} ${lastName} — ${productName}/${modelName} (${ticketId})`,
+      TR: `[Teknik Destek] ${firstName} ${lastName} — ${productName}/${modelName} (${ticketId})`,
+      FR: `[Support Technique] ${firstName} ${lastName} — ${productName}/${modelName} (${ticketId})`
+    };
+    const internalSubject = subjectMap[lang] || subjectMap.EN;
 
-        // -- Persist submission (keep storing IDs) --------------------------------
-        const doc = await TechnicalService.create({
-            infoType, company, department, salutation, firstName, lastName,
-            postalTown, street, country, telephone, telefax, email,
-            failureDate, deviceCategory, deviceModel, serialNo, note, lang,
-            ipAddress, userAgent
-            // (optional) you can also persist resolved names:
-            // productNameResolved: productName,
-            // modelNameResolved: modelName
-        });
-
-        const ticketId = `TS-${doc._id.toString().slice(-6).toUpperCase()}`;
-
-        // -- Customer email -------------------------------------------------------
-        const flags = { isEN: lang === 'EN', isES: lang === 'ES', isDE: lang === 'DE', isTR: lang === 'TR', isFR: lang === 'FR' };
-
-        await sendCustomerEmail({
-            to: email,
-            form: 'technicalSupport',
-            data: {
-                ...flags,
-                year: new Date().getFullYear(),
-                brandName: 'DragLab',
-                supportEmail: 'info@drag-lab.de',
-                ticketId,
-                deviceCategory: productName,   // ✅ readable name
-                deviceModel: modelName,        // ✅ readable name
-                serialNumber: serialNo || '',
-                dateOfFailure: failureDate || '',
-                technicalQuestion: note || '',
-                helpCenterUrl: `https://www.drag-lab.de/${lang}/technical-service`
-            }
-        });
-
-        // -- Internal email -------------------------------------------------------
-        const subjectMap = {
-            EN: `[Tech Support] ${firstName} ${lastName} — ${productName}/${modelName} (${ticketId})`,
-            ES: `[Soporte Técnico] ${firstName} ${lastName} — ${productName}/${modelName} (${ticketId})`,
-            DE: `[Technischer Support] ${firstName} ${lastName} — ${productName}/${modelName} (${ticketId})`,
-            TR: `[Teknik Destek] ${firstName} ${lastName} — ${productName}/${modelName} (${ticketId})`,
-            FR: `[Support Technique] ${firstName} ${lastName} — ${productName}/${modelName} (${ticketId})`
-        };
-        const subject = subjectMap[lang] || subjectMap.EN;
-
-        const bodyText =
-            `New Technical Support submission
+    const bodyText =
+`New Technical Support submission
 
 Ticket: ${ticketId}
 Name: ${firstName} ${lastName}
 Email: ${email}
-Type: ${infoType || '-'}
-Company: ${company || '-'}
-Department: ${department || '-'}
+Type: ${infoType || '-' }
+Company: ${company || '-' }
+Department: ${department || '-' }
 
 Address:
-- ${street || '-'}
-- ${postalTown || '-'}
-- ${country || '-'}
+- ${street || '-' }
+- ${postalTown || '-' }
+- ${country || '-' }
 
 Contact:
-- Telephone: ${telephone || '-'}
-- Telefax: ${telefax || '-'}
+- Telephone: ${telephone || '-' }
+- Telefax: ${telefax || '-' }
 
 Device:
-- Category: ${productName || '-'}
-- Model: ${modelName || '-'}
-- Serial: ${serialNo || '-'}
+- Category: ${productName || '-' }
+- Model: ${modelName || '-' }
+- Serial: ${serialNo || '-' }
 
-Failure Date: ${failureDate || '-'}
+Failure Date: ${failureDate || '-' }
 Question/Note:
-${note || '-'}
+${note || '-' }
 
 Meta:
 - Language: ${lang}
-- IP: ${ipAddress || '-'}
-- User-Agent: ${userAgent || '-'}
+- IP: ${ipAddress || '-' }
+- User-Agent: ${userAgent || '-' }
 
 Admin Link (optional): https://www.drag-lab.de/admin/technical-requests/${doc._id}
 `;
 
-        await notifyInternal({ to: 'info@drag-lab.de', subject, text: bodyText });
+    await notifyInternal({
+      to: 'info@drag-lab.de',
+      subject: internalSubject,
+      text: bodyText
+    });
 
-        return res.redirect(`/${lang}/technical-service/?success=true`);
-    } catch (error) {
-        console.error('❌ Error in TechnicalService submission:', error);
-        return res.redirect(`/${lang}/technical-service/?error=true`);
-    }
+    return res.redirect(`/${lang}/technical-service?success=true`);
+  } catch (err) {
+    console.error('❌ Error in TechnicalService submission:', err);
+    const fallback = (req.body.lang || req.query.lang || 'EN').toUpperCase();
+    return res.redirect(`/${fallback}/technical-service?error=true`);
+  }
 };
-
 
 
 

@@ -1,11 +1,15 @@
 <%- include('../../includes/customer/head.ejs') %>
 
+<html
+  lang="<%= lang %>"
+  data-lang="<%= lang %>"
+  data-select-option="<%= t.select %>"
+  data-recaptcha-enabled="<%= recaptchaEnabled ? 'true' : 'false' %>"
+>
+  <head>
     <link rel="stylesheet" href="/css/customer/WarrantyRegistration.css">
-    <script
-        src="https://www.google.com/recaptcha/enterprise.js?render=6LemaIMrAAAAABkGmvhvmbRSO5BbXQq7AsLB7NGU"></script>
-    <title>
-        <%= t.pageTitle %> | DragLab
-    </title>
+    <script src="https://www.google.com/recaptcha/enterprise.js?render=6LemaIMrAAAAABkGmvhvmbRSO5BbXQq7AsLB7NGU"></script>
+    <title><%= t.pageTitle %> | DragLab</title>
     <meta name="description" content="<%= t.metaDescription %>">
 
     <!-- Open Graph (Facebook, LinkedIn, etc.) -->
@@ -24,6 +28,7 @@
     <link rel="alternate" hreflang="en" href="https://www.drag-lab.de/EN/WarrantyRegistration">
     <link rel="alternate" hreflang="es" href="https://www.drag-lab.de/ES/WarrantyRegistration">
     <link rel="alternate" hreflang="de" href="https://www.drag-lab.de/DE/WarrantyRegistration">
+  </head>
 
     <body>
         <%- include('../../includes/customer/navbar.ejs') %>

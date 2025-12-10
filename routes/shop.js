@@ -6,6 +6,7 @@ const isAuth = require('../middleware/is-auth');
 const WarrantyRegistration = require('../models/warrantyRegistration'); // Add at the top
 const Product = require('../models/product');
 const NewsletterSubscriber = require('../models/newsletter');
+const mongoose = require('mongoose');
 
 const geoip = require('geoip-lite');
 
@@ -75,38 +76,51 @@ router.post('/subscribe', async (req, res) => {
 
 router.get('/api/models/:productId', async (req, res) => {
   const lang = (req.query.lang || 'EN').toUpperCase();
+  const { productId } = req.params;
+
+  // 🔒 Validate productId before hitting MongoDB
+  if (!mongoose.isValidObjectId(productId)) {
+    console.error('❌ Invalid productId in /api/models:', productId);
+    return res.status(400).json({ models: [] });
+  }
 
   try {
-    const product = await Product.findById(req.params.productId)
-      .select('Models.Language Models.isPublished')
+    const product = await Product.findById(productId)
+      .select([
+        'Models._id',              // ✅ ensure subdocument _id is present
+        'Models.isPublished',
+        `Models.Language.${lang}`,
+        'Models.Language.EN'
+      ])
       .lean();
 
     if (!product) {
-      return res.status(404).json({ error: 'Product not found' });
+      return res.status(404).json({ models: [] });
     }
 
     const models = (product.Models || [])
-      .filter(m => {
+      .filter((m) => {
         const langBlock = m?.Language?.[lang]?.[0];
         const enBlock   = m?.Language?.EN?.[0];
         return m?.isPublished === true ||
                langBlock?.publish === true ||
                enBlock?.publish === true;
       })
-      .map(m => ({
-        _id: m._id,
-        ModelName:
-          m.Language?.[lang]?.[0]?.ModelName ||
-          m.Language?.EN?.[0]?.ModelName ||
-          'Unnamed Model',
-      }));
+      .map((m) => {
+        const block = m.Language?.[lang]?.[0] || m.Language?.EN?.[0] || {};
+        return {
+          _id: m._id,                                  // ✅ valid ObjectId
+          ModelName: block.ModelName || 'Unnamed Model'
+        };
+      });
 
     return res.json({ models });
   } catch (err) {
     console.error('❌ /api/models error:', err);
-    return res.status(500).json({ error: 'Server error' });
+    return res.status(500).json({ models: [] });
   }
 });
+
 
 
 router.get('/', (req, res) => {

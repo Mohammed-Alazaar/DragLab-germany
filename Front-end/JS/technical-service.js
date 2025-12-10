@@ -1,3 +1,5 @@
+
+
 document.addEventListener("DOMContentLoaded", () => {
   console.log("✅ technical-service.js loaded");
 
@@ -79,55 +81,50 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
-  // ===============================
-  // Submit with optional reCAPTCHA
-  // ===============================
-  const submitBtn = document.getElementById("techServiceSubmitBtn");
-  if (submitBtn) {
-    submitBtn.addEventListener("click", () => {
-      const form = document.getElementById("techServiceForm");
-      if (!form) return;
+// ===============================
+// Submit with optional reCAPTCHA
+// ===============================
+const submitBtn = document.getElementById("techServiceSubmitBtn");
+if (submitBtn) {
+  submitBtn.addEventListener("click", () => {
+    const form = document.getElementById("techServiceForm");
+    if (!form) return;
 
-      if (!form.checkValidity()) {
-        form.reportValidity();
-        return;
-      }
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      return;
+    }
 
-      // If reCAPTCHA is disabled, just submit
-      if (!recaptchaEnabled) {
-        console.warn("⚠️ reCAPTCHA disabled (test mode) — submitting form directly");
-        form.submit();
-        return;
-      }
+ 
 
-      // Safety: grecaptcha may not be ready if script failed
-      if (!window.grecaptcha || !grecaptcha.enterprise) {
-        console.error("❌ reCAPTCHA not available on window");
-        alert("reCAPTCHA failed to load. Please refresh the page and try again.");
-        return;
-      }
+    // Safety: grecaptcha may not be ready if script failed
+    if (!window.grecaptcha || !grecaptcha.enterprise) {
+      console.error("❌ reCAPTCHA not available on window");
+      alert("reCAPTCHA failed to load. Please refresh the page and try again.");
+      return;
+    }
 
-      grecaptcha.enterprise.ready(function () {
-        grecaptcha.enterprise
-          .execute("6LemaIMrAAAAABkGmvhvmbRSO5BbXQq7AsLB7NGU", { action: "submit" })
-          .then(function (token) {
-            console.log("✅ Token received:", token);
+    grecaptcha.enterprise.ready(function () {
+      grecaptcha.enterprise
+        .execute("6LemaIMrAAAAABkGmvhvmbRSO5BbXQq7AsLB7NGU", { action: "submit" })
+        .then(function (token) {
+          console.log("✅ Token received:", token);
 
-            const tokenInput = document.createElement("input");
-            tokenInput.type = "hidden";
-            tokenInput.name = "g-recaptcha-response";
-            tokenInput.value = token;
-            form.appendChild(tokenInput);
+          const tokenInput = document.createElement("input");
+          tokenInput.type = "hidden";
+          tokenInput.name = "g-recaptcha-response";
+          tokenInput.value = token;
+          form.appendChild(tokenInput);
 
-            form.submit();
-          })
-          .catch((err) => {
-            console.error("❌ reCAPTCHA failed:", err);
-            alert("reCAPTCHA failed to initialize. Please try again.");
-          });
-      });
+          form.submit();
+        })
+        .catch((err) => {
+          console.error("❌ reCAPTCHA failed:", err);
+          alert("reCAPTCHA failed to initialize. Please try again.");
+        });
     });
-  }
+  });
+}
 
 // For any old inline/HTML references; kept as no-op hook
 function validateTechnicalForm() {
