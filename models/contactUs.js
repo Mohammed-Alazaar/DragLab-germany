@@ -8,7 +8,8 @@ const contactUsSchema = new Schema({
   subject: { type: String, required: true },
   email: { type: String, required: true },
   message: { type: String, required: true },
-  isDone: { type: Boolean, default: false }, // Mark as Done or not
+  isDone: { type: Boolean, default: false },
+  isSpam: { type: Boolean, default: false },
   dateSubmitted: { type: Date, default: Date.now }
 });
 

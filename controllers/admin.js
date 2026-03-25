@@ -2108,11 +2108,13 @@ exports.getAllTechnicalRequests = async (req, res) => {
       };
     }));
 
+    const isAdmin = !!(req.user && (req.user.role === 'admin' || req.user.isAdmin === true));
     res.render('sellercompany/all-technical-service', {
       pageTitle: 'Technical Support Requests',
       path: '/admin/TechnicalRequests',
       requests: requestsWithModelNames,
-      isAuthenticated: req.session.isLoggedIn
+      isAuthenticated: req.session.isLoggedIn,
+      isAdmin
     });
   } catch (err) {
     console.error('Error loading technical requests:', err);
@@ -2159,6 +2161,27 @@ exports.markTechnicalRequestDone = async (req, res) => {
   }
 };
 
+
+exports.postMarkTechnicalSpam = async (req, res, next) => {
+  try {
+    const isAdmin = !!(req.user && (req.user.role === 'admin' || req.user.isAdmin === true));
+    if (!isAdmin) return res.status(403).send('Forbidden');
+    const doc = await TechnicalService.findById(req.params.id);
+    if (!doc) return res.redirect('/admin/TechnicalRequests');
+    doc.isSpam = !doc.isSpam;
+    await doc.save();
+    res.redirect('/admin/TechnicalRequests');
+  } catch (err) { console.error(err); next(err); }
+};
+
+exports.deleteTechnicalRequest = async (req, res, next) => {
+  try {
+    const isAdmin = !!(req.user && (req.user.role === 'admin' || req.user.isAdmin === true));
+    if (!isAdmin) return res.status(403).send('Forbidden');
+    await TechnicalService.findByIdAndDelete(req.params.id);
+    res.redirect('/admin/TechnicalRequests');
+  } catch (err) { console.error(err); next(err); }
+};
 
 exports.exportTechnicalRequestPDF = async (req, res) => {
   try {
@@ -2284,11 +2307,13 @@ exports.getAllWarrantyRegistrations = async (req, res) => {
       };
     }));
 
+    const isAdmin = !!(req.user && (req.user.role === 'admin' || req.user.isAdmin === true));
     res.render('sellercompany/all-warranty-registrations', {
       warranties: withModelNames,
       pageTitle: 'Warranty Registrations',
       path: '/admin/warranty-registrations',
-      isAuthenticated: req.session.isLoggedIn
+      isAuthenticated: req.session.isLoggedIn,
+      isAdmin
     });
   } catch (err) {
     console.error('Error loading warranties:', err);
@@ -2330,6 +2355,27 @@ exports.markWarrantyAsDone = async (req, res) => {
 };
 
 
+
+exports.postMarkWarrantySpam = async (req, res, next) => {
+  try {
+    const isAdmin = !!(req.user && (req.user.role === 'admin' || req.user.isAdmin === true));
+    if (!isAdmin) return res.status(403).send('Forbidden');
+    const doc = await WarrantyRegistration.findById(req.params.id);
+    if (!doc) return res.redirect('/admin/warranty-registrations');
+    doc.isSpam = !doc.isSpam;
+    await doc.save();
+    res.redirect('/admin/warranty-registrations');
+  } catch (err) { console.error(err); next(err); }
+};
+
+exports.deleteWarrantyRegistration = async (req, res, next) => {
+  try {
+    const isAdmin = !!(req.user && (req.user.role === 'admin' || req.user.isAdmin === true));
+    if (!isAdmin) return res.status(403).send('Forbidden');
+    await WarrantyRegistration.findByIdAndDelete(req.params.id);
+    res.redirect('/admin/warranty-registrations');
+  } catch (err) { console.error(err); next(err); }
+};
 
 exports.exportWarrantyToPDF = async (req, res) => {
   try {
@@ -2394,6 +2440,7 @@ exports.exportWarrantyToPDF = async (req, res) => {
 
 // Admin - List All
 exports.getAllContactUs = (req, res, next) => {
+  const isAdmin = !!(req.user && (req.user.role === 'admin' || req.user.isAdmin === true));
   ContactUs.find()
     .sort({ dateSubmitted: -1 })
     .then(messages => {
@@ -2401,6 +2448,7 @@ exports.getAllContactUs = (req, res, next) => {
         pageTitle: 'Contact Messages',
         path: '/admin/contactUs-list',
         isAuthenticated: req.session.isLoggedIn,
+        isAdmin,
         messages
       });
     })
@@ -2408,6 +2456,38 @@ exports.getAllContactUs = (req, res, next) => {
       console.error(err);
       next(err);
     });
+};
+
+// Admin only — toggle spam flag
+exports.postMarkContactUsSpam = async (req, res, next) => {
+  try {
+    const isAdmin = !!(req.user && (req.user.role === 'admin' || req.user.isAdmin === true));
+    if (!isAdmin) return res.status(403).send('Forbidden');
+
+    const message = await ContactUs.findById(req.params.id);
+    if (!message) return res.redirect('/admin/contact-messages');
+
+    message.isSpam = !message.isSpam; // toggle
+    await message.save();
+    res.redirect('/admin/contact-messages');
+  } catch (err) {
+    console.error(err);
+    next(err);
+  }
+};
+
+// Admin only — permanently delete a contact message
+exports.deleteContactUs = async (req, res, next) => {
+  try {
+    const isAdmin = !!(req.user && (req.user.role === 'admin' || req.user.isAdmin === true));
+    if (!isAdmin) return res.status(403).send('Forbidden');
+
+    await ContactUs.findByIdAndDelete(req.params.id);
+    res.redirect('/admin/contact-messages');
+  } catch (err) {
+    console.error(err);
+    next(err);
+  }
 };
 
 // Admin - View Single ContactUs
@@ -2935,3 +3015,208 @@ async function exportSubscribers(res, filter, markExtracted = false) {
 
 exports.exportAllSubscribers = (req, res) => exportSubscribers(res, {});
 exports.exportNewSubscribers = (req, res) => exportSubscribers(res, { isExtracted: false }, true);
+
+
+// ─── User Management (admin only) ────────────────────────────────────────────
+
+const bcrypt = require('bcryptjs');
+
+exports.getUsersList = async (req, res, next) => {
+    try {
+        const users = await user.find().select('-password -resetToken -resetTokenExpiration').lean();
+        const successMessage = req.flash('success')[0] || null;
+        const errorMessage = req.flash('error')[0] || null;
+        res.render('sellercompany/users-list', {
+            path: '/admin/users',
+            pageTitle: 'User Management',
+            isAuthenticated: true,
+            isAdmin: req.user.role === 'admin',
+            users,
+            currentUserId: req.user._id.toString(),
+            successMessage,
+            errorMessage
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
+exports.getAddUserForm = (req, res, next) => {
+    const errorMessage = req.flash('error')[0] || null;
+    res.render('sellercompany/add-user', {
+        path: '/admin/users/add',
+        pageTitle: 'Add User',
+        isAuthenticated: true,
+        isAdmin: req.user.role === 'admin',
+        errorMessage,
+        oldInput: { name: '', email: '', phoneNumber: '', role: 'subAdmin' },
+        validationErrors: []
+    });
+};
+
+exports.postAddUser = async (req, res, next) => {
+    const { name, email, phoneNumber, password, confirmPassword, role } = req.body;
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+        const msgs = errors.array().map(e => e.msg).join(', ');
+        return res.status(422).render('sellercompany/add-user', {
+            path: '/admin/users/add',
+            pageTitle: 'Add User',
+            isAuthenticated: true,
+            isAdmin: req.user.role === 'admin',
+            errorMessage: msgs,
+            oldInput: { name, email, phoneNumber, role },
+            validationErrors: errors.array()
+        });
+    }
+
+    if (password !== confirmPassword) {
+        return res.status(422).render('sellercompany/add-user', {
+            path: '/admin/users/add',
+            pageTitle: 'Add User',
+            isAuthenticated: true,
+            isAdmin: req.user.role === 'admin',
+            errorMessage: 'Passwords do not match.',
+            oldInput: { name, email, phoneNumber, role },
+            validationErrors: []
+        });
+    }
+
+    try {
+        const existing = await user.findOne({ email: email.toLowerCase().trim() });
+        if (existing) {
+            return res.status(422).render('sellercompany/add-user', {
+                path: '/admin/users/add',
+                pageTitle: 'Add User',
+                isAuthenticated: true,
+                isAdmin: req.user.role === 'admin',
+                errorMessage: 'A user with this email already exists.',
+                oldInput: { name, email, phoneNumber, role },
+                validationErrors: []
+            });
+        }
+        const hashedPassword = await bcrypt.hash(password, 12);
+        const newUser = new user({
+            name: name.trim(),
+            email: email.toLowerCase().trim(),
+            password: hashedPassword,
+            phoneNumber: phoneNumber.trim(),
+            role: role === 'admin' ? 'admin' : 'subAdmin'
+        });
+        await newUser.save();
+        req.flash('success', `User "${name}" created successfully.`);
+        res.redirect('/admin/users');
+    } catch (err) {
+        next(err);
+    }
+};
+
+exports.getEditUser = async (req, res, next) => {
+    try {
+        const targetUser = await user.findById(req.params.id).select('-password -resetToken -resetTokenExpiration').lean();
+        if (!targetUser) {
+            req.flash('error', 'User not found.');
+            return res.redirect('/admin/users');
+        }
+        const errorMessage = req.flash('error')[0] || null;
+        const successMessage = req.flash('success')[0] || null;
+        res.render('sellercompany/edit-user', {
+            path: '/admin/users',
+            pageTitle: 'Edit User',
+            isAuthenticated: true,
+            isAdmin: req.user.role === 'admin',
+            targetUser,
+            errorMessage,
+            successMessage,
+            validationErrors: []
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
+exports.postEditUser = async (req, res, next) => {
+    const { name, email, phoneNumber, role } = req.body;
+    const userId = req.params.id;
+
+    try {
+        const targetUser = await user.findById(userId);
+        if (!targetUser) {
+            req.flash('error', 'User not found.');
+            return res.redirect('/admin/users');
+        }
+
+        // Check email uniqueness (excluding current user)
+        const emailConflict = await user.findOne({ email: email.toLowerCase().trim(), _id: { $ne: userId } });
+        if (emailConflict) {
+            return res.status(422).render('sellercompany/edit-user', {
+                path: '/admin/users',
+                pageTitle: 'Edit User',
+                isAuthenticated: true,
+                isAdmin: req.user.role === 'admin',
+                targetUser: { ...targetUser.toObject(), name, email, phoneNumber, role },
+                errorMessage: 'A user with this email already exists.',
+                successMessage: null,
+                validationErrors: []
+            });
+        }
+
+        targetUser.name = name.trim();
+        targetUser.email = email.toLowerCase().trim();
+        targetUser.phoneNumber = phoneNumber.trim();
+        targetUser.role = role === 'admin' ? 'admin' : 'subAdmin';
+        await targetUser.save();
+
+        req.flash('success', 'User info updated successfully.');
+        res.redirect('/admin/users/edit/' + userId);
+    } catch (err) {
+        next(err);
+    }
+};
+
+exports.postDeleteUser = async (req, res, next) => {
+    const userId = req.params.id;
+
+    if (userId === req.user._id.toString()) {
+        req.flash('error', 'You cannot delete your own account.');
+        return res.redirect('/admin/users');
+    }
+
+    try {
+        await user.findByIdAndDelete(userId);
+        req.flash('success', 'User deleted successfully.');
+        res.redirect('/admin/users');
+    } catch (err) {
+        next(err);
+    }
+};
+
+exports.postChangeUserPassword = async (req, res, next) => {
+    const { newPassword, confirmNewPassword } = req.body;
+    const userId = req.params.id;
+
+    if (!newPassword || newPassword.length < 8) {
+        req.flash('error', 'Password must be at least 8 characters.');
+        return res.redirect('/admin/users/edit/' + userId);
+    }
+
+    if (newPassword !== confirmNewPassword) {
+        req.flash('error', 'Passwords do not match.');
+        return res.redirect('/admin/users/edit/' + userId);
+    }
+
+    try {
+        const targetUser = await user.findById(userId);
+        if (!targetUser) {
+            req.flash('error', 'User not found.');
+            return res.redirect('/admin/users');
+        }
+        targetUser.password = await bcrypt.hash(newPassword, 12);
+        await targetUser.save();
+        req.flash('success', 'Password changed successfully.');
+        res.redirect('/admin/users/edit/' + userId);
+    } catch (err) {
+        next(err);
+    }
+};

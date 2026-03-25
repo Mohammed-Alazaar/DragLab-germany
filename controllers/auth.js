@@ -3,6 +3,7 @@ const path = require('path'); // Add this line to import the path module
 const User = require('../models/user');
 const bcrypt = require('bcryptjs');
 const nodemailer = require('nodemailer');
+const userCache = require('../util/userCache');
 const { validationResult } = require('express-validator');
 
 
@@ -105,8 +106,10 @@ exports.postLogin = (req, res, next) => {
 
 
 exports.postLogOut = ((req, res, next) => {
+    const userId = req.session?.user?._id;
+    if (userId) userCache.invalidate(userId);
     req.session.destroy(err => {
-        console.log(err);
+        if (err) console.log(err);
         res.redirect('/EN');
     });
 });

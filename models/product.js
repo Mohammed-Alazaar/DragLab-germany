@@ -389,4 +389,13 @@ productSchema.index({
   name: 'products_text_index_multilang'
 });
 
+// Query-support indexes
+productSchema.index({ isDraft: 1 });                          // used in most find() calls
+productSchema.index({ isDraft: 1, slug: 1 });                  // product page lookups
+productSchema.index({ 'Language.EN.0.publish': 1 });
+productSchema.index({ 'Language.ES.0.publish': 1 });
+productSchema.index({ 'Language.DE.0.publish': 1 });
+productSchema.index({ 'Language.TR.0.publish': 1 });
+productSchema.index({ 'Language.FR.0.publish': 1 });
+
 module.exports = mongoose.model('Product', productSchema);

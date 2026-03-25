@@ -25,19 +25,27 @@
 
 <!-- Canonical & hreflang -->
 <link rel="canonical" href="<%= listUrl %>">
-<link rel="alternate" hreflang="en" href="https://www.drag-lab.de/EN/articles">
-<link rel="alternate" hreflang="es" href="https://www.drag-lab.de/ES/articles">
-<link rel="alternate" hreflang="de" href="https://www.drag-lab.de/DE/articles">
-<link rel="alternate" hreflang="x-default" href="https://www.drag-lab.de/EN/articles">
+<link rel="alternate" hreflang="en" href="https://www.drag-lab.de/EN/Articles">
+<link rel="alternate" hreflang="es" href="https://www.drag-lab.de/ES/Articles">
+<link rel="alternate" hreflang="de" href="https://www.drag-lab.de/DE/Articles">
+<link rel="alternate" hreflang="tr" href="https://www.drag-lab.de/TR/Articles">
+<link rel="alternate" hreflang="fr" href="https://www.drag-lab.de/FR/Articles">
+<link rel="alternate" hreflang="x-default" href="https://www.drag-lab.de/EN/Articles">
 
 <!-- Open Graph -->
+<meta property="og:type" content="website">
 <meta property="og:title" content="<%= pageTitle %>">
 <meta property="og:description" content="<%= pageDesc %>">
 <meta property="og:image" content="https://www.drag-lab.de/assets/Imgs/Icons/products/ArticlesBg.webp">
+<meta property="og:image:alt" content="<%= lang === 'ES' ? 'Banner de artículos DragLab' : lang === 'DE' ? 'DragLab Artikel-Banner' : lang === 'TR' ? 'DragLab Makale Başlığı' : lang === 'FR' ? 'Bannière articles DragLab' : 'DragLab Articles banner' %>">
 <meta property="og:url" content="<%= listUrl %>">
+<meta property="og:site_name" content="DragLab">
 
-<!-- (Optional) Remove if you prefer keeping only in head.ejs -->
-<!-- <meta name="robots" content="index, follow"> -->
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="<%= pageTitle %>">
+<meta name="twitter:description" content="<%= pageDesc %>">
+<meta name="twitter:image" content="https://www.drag-lab.de/assets/Imgs/Icons/products/ArticlesBg.webp">
 
 <link rel="stylesheet" href="/css/customer/Articles.css">
 </head>

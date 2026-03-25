@@ -1,6 +1,93 @@
 <%- include('../../includes/sellercompany/head.ejs') %>
 <link rel="stylesheet" href="/css/sellercompany/all-technical-service.css">
 
+<style>
+  .spam-row { background-color: #fff3cd !important; opacity: 0.8; }
+  .spam-row td { color: #856404; }
+  .badge-spam {
+    display: inline-block;
+    background: #ffc107; color: #333;
+    font-size: 0.7rem; font-weight: 700;
+    padding: 2px 7px; border-radius: 10px;
+    margin-left: 6px; vertical-align: middle;
+  }
+  .btn-spam {
+    background: #ffc107; color: #333;
+    border: none; padding: 4px 10px; border-radius: 4px;
+    cursor: pointer; font-size: 0.82rem; font-weight: 600; margin-right: 4px;
+  }
+  .btn-spam:hover { background: #e0a800; }
+  .btn-spam.marked { background: #6c757d; color: #fff; }
+  .btn-spam.marked:hover { background: #5a6268; }
+  .btn-delete {
+    background: #dc3545; color: #fff;
+    border: none; padding: 4px 10px; border-radius: 4px;
+    cursor: pointer; font-size: 0.82rem; font-weight: 600;
+  }
+  .btn-delete:hover { background: #b02a37; }
+
+  /* Modal overlay */
+  #delete-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+  }
+  #delete-modal.open { display: flex; }
+
+  .modal-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 36px 32px 28px;
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+  }
+  .modal-card .modal-icon {
+    font-size: 2.4rem;
+    margin-bottom: 12px;
+  }
+  .modal-card h3 {
+    margin: 0 0 8px;
+    font-size: 1.2rem;
+    color: #1a1a1a;
+  }
+  .modal-card p {
+    margin: 0 0 24px;
+    color: #555;
+    font-size: 0.93rem;
+    line-height: 1.5;
+  }
+  .modal-card p strong { color: #1a1a1a; }
+  .modal-buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+  }
+  .modal-btn-cancel {
+    flex: 1;
+    background: #f0f0f0; color: #333;
+    border: none; padding: 10px 0; border-radius: 6px;
+    cursor: pointer; font-size: 0.95rem; font-weight: 600;
+    transition: background 0.15s;
+  }
+  .modal-btn-cancel:hover { background: #ddd; }
+  .modal-btn-confirm {
+    flex: 1;
+    background: #dc3545; color: #fff;
+    border: none; padding: 10px 0; border-radius: 6px;
+    cursor: pointer; font-size: 0.95rem; font-weight: 600;
+    transition: background 0.15s;
+  }
+  .modal-btn-confirm:hover { background: #b02a37; }
+</style>
+
+</head>
+
 <body>
   <%- include('../../includes/sellercompany/navbar-dash.ejs') %>
   <section class="sidebar-content-container">
@@ -9,34 +96,109 @@
     </section>
 
     <section class="content-container">
-        <h1>Contact us Messages</h1>
+      <h1>Contact us Messages</h1>
 
-<table>
-    <thead>
-      <tr>
-        <th>First Name</th>
-        <th>Last Name</th>
-        <th>Email</th>
-        <th>Subject</th>
-        <th>Done?</th>
-        <th>Action</th>
-      </tr>
-    </thead>
-    <tbody>
-      <% messages.forEach(msg => { %>
-        <tr>
-          <td><%= msg.firstName %></td>
-          <td><%= msg.lastName %></td>
-          <td><%= msg.email %></td>
-          <td><%= msg.subject %></td>
-          <td><%= msg.isDone ? '✅ Done' : '⏳ Pending' %></td>
-          <td>
-            <a href="/admin/contact-message/<%= msg._id %>">View</a>
-          </td>
-        </tr>
-      <% }) %>
-    </tbody>
-  </table>
+      <table>
+        <thead>
+          <tr>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>Email</th>
+            <th>Subject</th>
+            <th>Done?</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% messages.forEach(function(msg) { %>
+            <tr class="<%= msg.isSpam ? 'spam-row' : '' %>">
+              <td>
+                <%= msg.firstName %>
+                <% if (msg.isSpam) { %><span class="badge-spam">SPAM</span><% } %>
+              </td>
+              <td><%= msg.lastName %></td>
+              <td><%= msg.email %></td>
+              <td><%= msg.subject %></td>
+              <td><%= msg.isDone ? '✅ Done' : '⏳ Pending' %></td>
+              <td>
+                <a href="/admin/contact-message/<%= msg._id %>" class="btn-view">View</a>
+
+                <% if (isAdmin) { %>
+                  <form method="POST" action="/admin/contactus-spam/<%= msg._id %>" style="display:inline;">
+                    <button type="submit" class="btn-spam <%= msg.isSpam ? 'marked' : '' %>">
+                      <%= msg.isSpam ? 'Unmark Spam' : 'Mark Spam' %>
+                    </button>
+                  </form>
+
+                  <form method="POST" action="/admin/contactus-delete/<%= msg._id %>" style="display:inline;" class="delete-form" data-name="<%= msg.firstName %> <%= msg.lastName %>">
+                    <button type="submit" class="btn-delete">Delete</button>
+                  </form>
+                <% } %>
+              </td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
     </section>
   </section>
+
+  <!-- Delete confirmation modal — no inline handlers, all wired in the script below -->
+  <div id="delete-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-card">
+      <div class="modal-icon">🗑️</div>
+      <h3 id="modal-title">Delete Message?</h3>
+      <p id="modal-body">This action is permanent and cannot be undone.</p>
+      <div class="modal-buttons">
+        <button id="modal-cancel" class="modal-btn-cancel">Cancel</button>
+        <button id="modal-confirm" class="modal-btn-confirm">Yes, Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <script nonce="<%= nonce %>">
+    (function () {
+      var modal      = document.getElementById('delete-modal');
+      var modalBody  = document.getElementById('modal-body');
+      var btnCancel  = document.getElementById('modal-cancel');
+      var btnConfirm = document.getElementById('modal-confirm');
+      var pendingForm = null;
+
+      function openModal(name, form) {
+        pendingForm = form;
+        modalBody.innerHTML = 'You are about to permanently delete the message from <strong>' + name + '</strong>.<br>This cannot be undone.';
+        modal.classList.add('open');
+      }
+
+      function closeModal() {
+        modal.classList.remove('open');
+        pendingForm = null;
+      }
+
+      // Wire every delete form
+      document.querySelectorAll('.delete-form').forEach(function (form) {
+        form.addEventListener('submit', function (e) {
+          e.preventDefault();
+          openModal(form.dataset.name, form);
+        });
+      });
+
+      // Cancel
+      btnCancel.addEventListener('click', closeModal);
+
+      // Confirm → actually submit the stored form
+      btnConfirm.addEventListener('click', function () {
+        if (pendingForm) pendingForm.submit();
+      });
+
+      // Close on backdrop click
+      modal.addEventListener('click', function (e) {
+        if (e.target === modal) closeModal();
+      });
+
+      // Close on Escape key
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') closeModal();
+      });
+    })();
+  </script>
 </body>

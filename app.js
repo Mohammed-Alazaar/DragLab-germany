@@ -88,7 +88,8 @@ const MONGODB_URI = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO
 
 const store = new MongoDBStore({
     uri: MONGODB_URI,
-    collection: 'sessions'
+    collection: 'sessions',
+    expires: 1000 * 60 * 60 * 24 * 7, // auto-expire sessions after 7 days
 });
 
 
@@ -104,18 +105,24 @@ const shopRoutes = require('./routes/shop');
 const staticpagesRoutes = require('./routes/staticpages');
 const authRoutes = require('./routes/auth');
 const accountRoutes = require('./routes/account');
+const sitemapRoutes = require('./routes/sitemap');
 const accessLogStream = fs.createWriteStream(path.join(__dirname, 'access.log'), { flags: 'a' });
 
-app.use(bodyParser.json({ limit: '1000mb' }));
-app.use(bodyParser.urlencoded({ limit: '1000mb', extended: true }));
+app.use(bodyParser.json({ limit: '10mb' }));
+app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
 
-app.use('/assets', express.static(path.join(__dirname, 'Front-end', 'assets')));
-app.use('/css', express.static(path.join(__dirname, 'Front-end', 'css')));
-app.use('/js', express.static(path.join(__dirname, 'Front-end', 'JS')));
-app.use('/includes', express.static(path.join(__dirname, 'Front-end', 'includes')));
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-app.use(session({ secret: ' my secret', resave: false, saveUninitialized: false, store: store }));
-app.use(express.static(path.join(__dirname, 'public')));
+// Static assets with long-term caching (versioned via filenames in production)
+const staticOpts = { maxAge: '7d', etag: true, lastModified: true };
+const immutableOpts = { maxAge: '365d', immutable: true, etag: true };
+app.use('/assets', express.static(path.join(__dirname, 'Front-end', 'assets'), immutableOpts));
+app.use('/css', express.static(path.join(__dirname, 'Front-end', 'css'), staticOpts));
+app.use('/js', express.static(path.join(__dirname, 'Front-end', 'JS'), staticOpts));
+// Note: /includes intentionally NOT served as static (contains server-side EJS templates)
+app.use('/uploads', express.static(path.join(__dirname, 'uploads'), staticOpts));
+app.use(session({ secret: process.env.SESSION_SECRET || ' my secret', resave: false, saveUninitialized: false, store: store }));
+// Sitemap routes must come before express.static so /sitemap.xml is served dynamically
+app.use(sitemapRoutes);
+app.use(express.static(path.join(__dirname, 'public'), staticOpts));
 
 app.use(flash());
 
@@ -142,7 +149,7 @@ app.use((req, res, next) => {
 
 const Product = require('./models/product');
 const navCache = {}; // { EN: { ts, data }, ES: { ts, data }, ... }
-const NAV_CACHE_TTL_MS = 60 * 1000; // 1 minute
+const NAV_CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes
 
 app.use(async (req, res, next) => {
     const t0 = Date.now();
@@ -202,13 +209,28 @@ app.use(async (req, res, next) => {
     }
 });
 
+// In-memory user cache: avoids a MongoDB lookup on every single page request.
+// TTL is short (60s) so changes (role, cart, etc.) are reflected quickly.
+const userCache = require('./util/userCache');
+
 app.use((req, res, next) => {
     if (!req.session.user) return next();
-    User.findById(req.session.user._id)
+    const userId = req.session.user._id.toString();
+
+    const cachedUser = userCache.get(userId);
+    if (cachedUser) {
+        req.user = cachedUser;
+        res.locals.user = cachedUser;
+        res.locals.isAdmin = (cachedUser.role === 'admin' || cachedUser.isAdmin === true);
+        return next();
+    }
+
+    User.findById(userId)
         .then(user => {
             if (!user) return next();
+            userCache.set(userId, user);
             req.user = user;
-            res.locals.user = user; // ensure views see the full user doc (with role)
+            res.locals.user = user;
             res.locals.isAdmin = (user.role === 'admin' || user.isAdmin === true);
             next();
         })
@@ -220,9 +242,17 @@ verifyMailTransports();
 
 
 
-// Log and compress
-app.use(compression()); // Compress all routes
-app.use(morgan('combined', { stream: accessLogStream })); // Log all requests to the console
+// Compress all responses (gzip). Threshold: only compress responses > 1KB.
+app.use(compression({ threshold: 1024 }));
+
+// HTTP request logging — skip static asset paths to reduce disk I/O
+const _staticPrefixes = ['/assets', '/css', '/js', '/uploads', '/public'];
+const _skipStatic = (req) => _staticPrefixes.some(p => req.path.startsWith(p));
+if (process.env.NODE_ENV === 'production') {
+    app.use(morgan('combined', { stream: accessLogStream, skip: _skipStatic }));
+} else {
+    app.use(morgan('dev', { skip: _skipStatic }));
+}
 
 
 app.use('/admin', adminRoutes);
@@ -257,7 +287,11 @@ const server = http.createServer(app);
 
 
 
-mongoose.connect(MONGODB_URI)
+mongoose.connect(MONGODB_URI, {
+    maxPoolSize: 20,              // allow up to 20 concurrent DB connections
+    serverSelectionTimeoutMS: 5000,
+    socketTimeoutMS: 45000,
+})
     .then(result => {
         server.listen(process.env.PORT || 3010);
         console.log(`Server running on port ${process.env.PORT || 3010}`);

@@ -48,9 +48,10 @@ document.addEventListener('DOMContentLoaded', function () {
       const c = content[key];
 
       if (tabImg && c) {
-        tabImg.src = iconActive;
-        image.src = c.img;
-        text.innerHTML = `
+        requestAnimationFrame(() => {
+          tabImg.src = iconActive;
+          image.src = c.img;
+          text.innerHTML = `
   <div class="title-icon">
     <div class="tab-icon-bg">
       <img src="${c.icon}" class="tab-icon">
@@ -60,7 +61,7 @@ document.addEventListener('DOMContentLoaded', function () {
   <h4>${c.subtitle}</h4>
   <p>${c.desc}</p>
 `;
-
+        });
       }
     });
   });

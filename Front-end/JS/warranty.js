@@ -1,6 +1,4 @@
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('✅ warranty.js loaded');
-
   const html = document.documentElement;
   const lang = (html.getAttribute('data-lang') || 'EN').toUpperCase();
   const selectOptionText = html.getAttribute('data-select-option') || 'Select';
@@ -72,38 +70,48 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 🔹 Submit with reCAPTCHA v3 (same logic, but respect recaptchaEnabled flag)
+  // 🔹 Submit with reCAPTCHA v3
   if (submitBtn && form) {
+    const originalText = submitBtn.textContent;
+
+    function setLoading(loading) {
+      submitBtn.disabled = loading;
+      submitBtn.textContent = loading ? '...' : originalText;
+    }
+
     submitBtn.addEventListener('click', function () {
       if (!form.checkValidity()) {
         form.reportValidity();
         return;
       }
 
-      submitBtn.disabled = true;
+      setLoading(true);
 
       if (!recaptchaEnabled) {
-        console.warn('⚠️ reCAPTCHA disabled (test mode) — submitting form directly');
         form.submit();
         return;
       }
 
       if (!window.grecaptcha || !window.grecaptcha.enterprise) {
-        console.error('reCAPTCHA not loaded');
-        submitBtn.disabled = false;
+        setLoading(false);
         return;
       }
+
+      // Safety net: re-enable after 10 seconds if reCAPTCHA never calls back
+      const fallback = setTimeout(() => setLoading(false), 10000);
 
       grecaptcha.enterprise.ready(function () {
         grecaptcha.enterprise
           .execute('6LemaIMrAAAAABkGmvhvmbRSO5BbXQq7AsLB7NGU', { action: 'submit' })
           .then(function (token) {
+            clearTimeout(fallback);
             if (tokenField) tokenField.value = token;
             form.submit();
           })
           .catch((e) => {
+            clearTimeout(fallback);
+            setLoading(false);
             console.error('reCAPTCHA execute failed', e);
-            submitBtn.disabled = false;
           });
       });
     });

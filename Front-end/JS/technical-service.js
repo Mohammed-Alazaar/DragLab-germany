@@ -86,6 +86,13 @@ document.addEventListener("DOMContentLoaded", () => {
 // ===============================
 const submitBtn = document.getElementById("techServiceSubmitBtn");
 if (submitBtn) {
+  const originalText = submitBtn.textContent;
+
+  function setLoading(loading) {
+    submitBtn.disabled = loading;
+    submitBtn.textContent = loading ? "..." : originalText;
+  }
+
   submitBtn.addEventListener("click", () => {
     const form = document.getElementById("techServiceForm");
     if (!form) return;
@@ -95,30 +102,32 @@ if (submitBtn) {
       return;
     }
 
- 
-
     // Safety: grecaptcha may not be ready if script failed
     if (!window.grecaptcha || !grecaptcha.enterprise) {
-      console.error("❌ reCAPTCHA not available on window");
       alert("reCAPTCHA failed to load. Please refresh the page and try again.");
       return;
     }
+
+    setLoading(true);
+
+    // Safety net: re-enable after 10 seconds if reCAPTCHA never calls back
+    const fallback = setTimeout(() => setLoading(false), 10000);
 
     grecaptcha.enterprise.ready(function () {
       grecaptcha.enterprise
         .execute("6LemaIMrAAAAABkGmvhvmbRSO5BbXQq7AsLB7NGU", { action: "submit" })
         .then(function (token) {
-          console.log("✅ Token received:", token);
-
+          clearTimeout(fallback);
           const tokenInput = document.createElement("input");
           tokenInput.type = "hidden";
           tokenInput.name = "g-recaptcha-response";
           tokenInput.value = token;
           form.appendChild(tokenInput);
-
           form.submit();
         })
         .catch((err) => {
+          clearTimeout(fallback);
+          setLoading(false);
           console.error("❌ reCAPTCHA failed:", err);
           alert("reCAPTCHA failed to initialize. Please try again.");
         });

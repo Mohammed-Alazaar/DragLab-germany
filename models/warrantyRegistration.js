@@ -10,7 +10,8 @@ const warrantyRegistrationSchema = new Schema({
   serialNo: { type: String, required: true },
   message: { type: String },
   lang: { type: String, default: 'EN' },
-  status: { type: String, enum: ['pending', 'done'], default: 'pending' }
+  status: { type: String, enum: ['pending', 'done'], default: 'pending' },
+  isSpam: { type: Boolean, default: false }
 }, { timestamps: true });
 
 module.exports = mongoose.model('WarrantyRegistration', warrantyRegistrationSchema);

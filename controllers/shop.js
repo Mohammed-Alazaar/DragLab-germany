@@ -581,74 +581,73 @@ const getLangBlock = (langObj, lang) => {
     return langObj[matchKey]?.[0]; // your schema stores each lang as [ { ... } ]
 };
 
+// Search index cache — rebuilt at most once per 10 minutes per language
+const _searchCache = {};
+const SEARCH_CACHE_TTL_MS = 10 * 60 * 1000;
+
+async function _buildSearchIndex(lang) {
+    const [products, articles] = await Promise.all([
+        Product.find({ isDraft: false })
+            .select(['slug', 'Models.slug', 'Models.isPublished', `Language.${lang}`, `Models.Language.${lang}`, 'Language.EN', 'Models.Language.EN'])
+            .lean(),
+        Article.find({ language: lang }).select(['title', 'slug']).lean()
+    ]);
+
+    const searchableData = [];
+
+    for (const product of products) {
+        const pLang = getLangBlock(product.Language, lang);
+        if (pLang && pLang.ProductName) {
+            searchableData.push({
+                type: 'product',
+                name: pLang.ProductName,
+                url: `/${lang}/products/${product.slug}`
+            });
+        }
+        for (const model of product.Models || []) {
+            if (!model.isPublished) continue;
+            const mLang = getLangBlock(model.Language, lang);
+            if (mLang && mLang.ModelName) {
+                searchableData.push({
+                    type: 'model',
+                    name: mLang.ModelName,
+                    url: `/${lang}/products/${product.slug}/${model.slug}`
+                });
+            }
+        }
+    }
+
+    for (const article of articles) {
+        searchableData.push({
+            type: 'article',
+            name: article.title,
+            url: `/${lang}/articles/${article.slug}`
+        });
+    }
+
+    return new Fuse(searchableData, { keys: ['name'], threshold: 0.4, includeScore: true });
+}
+
 exports.search = async (req, res) => {
     const query = req.query.q?.trim();
-    const lang = (req.query.lang || 'EN').toUpperCase(); // active page language
+    const lang = (req.query.lang || 'EN').toUpperCase();
 
     if (!query || query.length < 2) return res.json([]);
 
     try {
-        const products = await Product.find({ isDraft: false });
-        const articles = await Article.find({ language: lang });
-
-        const searchableData = [];
-
-        for (const product of products) {
-            const pLang = getLangBlock(product.Language, lang);
-            console.log('🔍 LANG:', lang, '| Product Language Block:', Object.keys(product.Language || {}));
-            console.log('➡️  Product Name:', pLang?.ProductName);
-            if (pLang && pLang.ProductName) {
-                searchableData.push({
-                    type: 'product',
-                    name: pLang.ProductName,
-                    url: `/${lang}/products/${product.slug}`
-                });
-            }
-
-            for (const model of product.Models || []) {
-                if (!model.isPublished) continue;
-                const mLang = getLangBlock(model.Language, lang);
-                console.log('➡️  Model Name:', mLang?.ModelName);
-
-                if (mLang && mLang.ModelName) {
-                    searchableData.push({
-                        type: 'model',
-                        name: mLang.ModelName,
-                        url: `/${lang}/products/${product.slug}/${model.slug}`
-                    });
-                }
-            }
+        const now = Date.now();
+        const cached = _searchCache[lang];
+        if (!cached || (now - cached.ts) > SEARCH_CACHE_TTL_MS) {
+            _searchCache[lang] = { fuse: await _buildSearchIndex(lang), ts: now };
         }
 
-        // Articles (already language-filtered)
-        for (const article of articles) {
-            searchableData.push({
-                type: 'article',
-                name: article.title,
-                url: `/${lang}/articles/${article.slug}`
-            });
-        }
-
-        // Optional debug to confirm structure
-        if (searchableData.length === 0) {
-            console.warn(`⚠️ No searchable items found for lang=${lang}`);
-        }
-
-        const fuse = new Fuse(searchableData, {
-            keys: ['name'],
-            threshold: 0.4,
-            includeScore: true
-        });
-
-        const results = fuse.search(query)
+        const results = _searchCache[lang].fuse.search(query)
             .sort((a, b) => a.score - b.score)
             .map(r => r.item);
 
         const grouped = { product: [], model: [], article: [] };
         for (const item of results) {
-            if (grouped[item.type].length < 5) {
-                grouped[item.type].push(item);
-            }
+            if (grouped[item.type].length < 5) grouped[item.type].push(item);
         }
 
         return res.json([...grouped.product, ...grouped.model, ...grouped.article]);
@@ -1176,7 +1175,8 @@ exports.postContactUs = async (req, res) => {
             if (!token) return res.redirect(`/${lang}/contactus?error=true`);
             const verifyUrl = 'https://www.google.com/recaptcha/api/siteverify';
             const { data } = await axios.post(verifyUrl, null, {
-                params: { secret: process.env.RECAPTCHA_SECRET_KEY, response: token }
+                params: { secret: process.env.RECAPTCHA_SECRET_KEY, response: token },
+                timeout: 5000 // 5-second cap — don't let Google hang the form
             });
             if (!data?.success || Number(data?.score) < 0.5) {
                 console.error('❌ reCAPTCHA verification failed (contact):', data);
@@ -1198,36 +1198,16 @@ exports.postContactUs = async (req, res) => {
             firstName, lastName, subject, email, message, lang, ipAddress, userAgent
         }).save();
 
-        // Human-friendly ticket (Contact Us)
+        // Redirect the user immediately — they don't need to wait for email delivery.
+        // Emails are sent asynchronously in the background after the response.
+        res.redirect(`/${lang}/contactus?success=true`);
+
+        // --- Build email payloads ---
         const ticketId = `CU-${doc._id.toString().slice(-6).toUpperCase()}`;
-
-        // --- Flags for template i18n ---
         const flags = {
-            isEN: lang === 'EN',
-            isES: lang === 'ES',
-            isDE: lang === 'DE',
-            isTR: lang === 'TR',
-            isFR: lang === 'FR'
+            isEN: lang === 'EN', isES: lang === 'ES', isDE: lang === 'DE',
+            isTR: lang === 'TR', isFR: lang === 'FR'
         };
-
-        // --- Customer confirmation (SendGrid -> FROM noreply@) ---
-        await sendCustomerEmail({
-            to: email,
-            form: 'contactUs',
-            data: {
-                ...flags,
-                year: new Date().getFullYear(),
-                brandName: 'DragLab',
-                supportEmail: 'info@drag-lab.de',  // what users see in the footer/contact line
-                ticketId,
-                fullName: `${firstName} ${lastName}`,
-                contactSubject: subject,
-                userMessage: message || '',
-                helpCenterUrl: `https://www.drag-lab.de/${lang}/contactus`
-            }
-        });
-
-        // --- Admin notification (SMTP -> info@) ---
         const subjectMap = {
             EN: `[Contact] ${firstName} ${lastName} — ${subject} (${ticketId})`,
             ES: `[Contacto] ${firstName} ${lastName} — ${subject} (${ticketId})`,
@@ -1235,34 +1215,32 @@ exports.postContactUs = async (req, res) => {
             TR: `[İletişim] ${firstName} ${lastName} — ${subject} (${ticketId})`,
             FR: `[Contact] ${firstName} ${lastName} — ${subject} (${ticketId})`
         };
-        const internalSubject = subjectMap[lang] || subjectMap.EN;
-
         const bodyText =
-            `New Contact Us submission
+            `New Contact Us submission\n\nTicket: ${ticketId}\nName: ${firstName} ${lastName}\nEmail: ${email}\nSubject: ${subject}\n\nMessage:\n${message || '-'}\n\nMeta:\n- Language: ${lang}\n- IP: ${ipAddress || '-'}\n- User-Agent: ${userAgent || '-'}\n\nAdmin Link: https://www.drag-lab.de/admin/contact-message/${doc._id}\n`;
 
-Ticket: ${ticketId}
-Name: ${firstName} ${lastName}
-Email: ${email}
-Subject: ${subject}
-
-Message:
-${message || '-'}
-
-Meta:
-- Language: ${lang}
-- IP: ${ipAddress || '-'}
-- User-Agent: ${userAgent || '-'}
-
-Admin Link (optional): https://www.drag-lab.de/admin/contact-message/${doc._id}
-`;
-
-        await notifyInternal({
-            to: 'info@drag-lab.de',
-            subject: internalSubject,
-            text: bodyText
-        });
-
-        return res.redirect(`/${lang}/contactus?success=true`);
+        // --- Send both emails in parallel, non-blocking ---
+        Promise.all([
+            sendCustomerEmail({
+                to: email,
+                form: 'contactUs',
+                data: {
+                    ...flags,
+                    year: new Date().getFullYear(),
+                    brandName: 'DragLab',
+                    supportEmail: 'info@drag-lab.de',
+                    ticketId,
+                    fullName: `${firstName} ${lastName}`,
+                    contactSubject: subject,
+                    userMessage: message || '',
+                    helpCenterUrl: `https://www.drag-lab.de/${lang}/contactus`
+                }
+            }),
+            notifyInternal({
+                to: 'info@drag-lab.de',
+                subject: subjectMap[lang] || subjectMap.EN,
+                text: bodyText
+            })
+        ]).catch(err => console.error('❌ Contact Us email delivery failed:', err));
     } catch (err) {
         console.error('❌ Error in Contact Us submission:', err);
         const fallback = (req.body.lang || req.query.lang || 'EN').toUpperCase();
@@ -1526,7 +1504,8 @@ exports.postTechnicalService = async (req, res) => {
         params: {
           secret: process.env.RECAPTCHA_SECRET_KEY,
           response: token
-        }
+        },
+        timeout: 5000 // 5-second cap — don't let Google hang the form
       });
 
       if (!data?.success || Number(data?.score) < 0.5) {
@@ -1625,35 +1604,15 @@ exports.postTechnicalService = async (req, res) => {
 
     const ticketId = `TS-${doc._id.toString().slice(-6).toUpperCase()}`;
 
-    // --- Flags for email templates ---------------------------------
+    // Redirect the user immediately — they don't need to wait for email delivery.
+    // Emails are sent asynchronously in the background after the response.
+    res.redirect(`/${lang}/technical-service?success=true`);
+
+    // --- Build email payloads ---
     const flags = {
-      isEN: lang === 'EN',
-      isES: lang === 'ES',
-      isDE: lang === 'DE',
-      isTR: lang === 'TR',
-      isFR: lang === 'FR'
+      isEN: lang === 'EN', isES: lang === 'ES', isDE: lang === 'DE',
+      isTR: lang === 'TR', isFR: lang === 'FR'
     };
-
-    // --- Customer confirmation email -------------------------------
-    await sendCustomerEmail({
-      to: email,
-      form: 'technicalSupport',
-      data: {
-        ...flags,
-        year: new Date().getFullYear(),
-        brandName: 'DragLab',
-        supportEmail: 'info@drag-lab.de',
-        ticketId,
-        deviceCategory: productName || '',
-        deviceModel: modelName || '',
-        serialNumber: serialNo || '',
-        dateOfFailure: failureDate || '',
-        technicalQuestion: note || '',
-        helpCenterUrl: `https://www.drag-lab.de/${lang}/technical-service`
-      }
-    });
-
-    // --- Admin notification email ----------------------------------
     const subjectMap = {
       EN: `[Tech Support] ${firstName} ${lastName} — ${productName}/${modelName} (${ticketId})`,
       ES: `[Soporte Técnico] ${firstName} ${lastName} — ${productName}/${modelName} (${ticketId})`,
@@ -1661,51 +1620,34 @@ exports.postTechnicalService = async (req, res) => {
       TR: `[Teknik Destek] ${firstName} ${lastName} — ${productName}/${modelName} (${ticketId})`,
       FR: `[Support Technique] ${firstName} ${lastName} — ${productName}/${modelName} (${ticketId})`
     };
-    const internalSubject = subjectMap[lang] || subjectMap.EN;
-
     const bodyText =
-`New Technical Support submission
+`New Technical Support submission\n\nTicket: ${ticketId}\nName: ${firstName} ${lastName}\nEmail: ${email}\nType: ${infoType || '-'}\nCompany: ${company || '-'}\nDepartment: ${department || '-'}\n\nAddress:\n- ${street || '-'}\n- ${postalTown || '-'}\n- ${country || '-'}\n\nContact:\n- Telephone: ${telephone || '-'}\n- Telefax: ${telefax || '-'}\n\nDevice:\n- Category: ${productName || '-'}\n- Model: ${modelName || '-'}\n- Serial: ${serialNo || '-'}\n\nFailure Date: ${failureDate || '-'}\nQuestion/Note:\n${note || '-'}\n\nMeta:\n- Language: ${lang}\n- IP: ${ipAddress || '-'}\n- User-Agent: ${userAgent || '-'}\n\nAdmin Link: https://www.drag-lab.de/admin/technical-requests/${doc._id}\n`;
 
-Ticket: ${ticketId}
-Name: ${firstName} ${lastName}
-Email: ${email}
-Type: ${infoType || '-' }
-Company: ${company || '-' }
-Department: ${department || '-' }
-
-Address:
-- ${street || '-' }
-- ${postalTown || '-' }
-- ${country || '-' }
-
-Contact:
-- Telephone: ${telephone || '-' }
-- Telefax: ${telefax || '-' }
-
-Device:
-- Category: ${productName || '-' }
-- Model: ${modelName || '-' }
-- Serial: ${serialNo || '-' }
-
-Failure Date: ${failureDate || '-' }
-Question/Note:
-${note || '-' }
-
-Meta:
-- Language: ${lang}
-- IP: ${ipAddress || '-' }
-- User-Agent: ${userAgent || '-' }
-
-Admin Link (optional): https://www.drag-lab.de/admin/technical-requests/${doc._id}
-`;
-
-    await notifyInternal({
-      to: 'info@drag-lab.de',
-      subject: internalSubject,
-      text: bodyText
-    });
-
-    return res.redirect(`/${lang}/technical-service?success=true`);
+    // --- Send both emails in parallel, non-blocking ---
+    Promise.all([
+      sendCustomerEmail({
+        to: email,
+        form: 'technicalSupport',
+        data: {
+          ...flags,
+          year: new Date().getFullYear(),
+          brandName: 'DragLab',
+          supportEmail: 'info@drag-lab.de',
+          ticketId,
+          deviceCategory: productName || '',
+          deviceModel: modelName || '',
+          serialNumber: serialNo || '',
+          dateOfFailure: failureDate || '',
+          technicalQuestion: note || '',
+          helpCenterUrl: `https://www.drag-lab.de/${lang}/technical-service`
+        }
+      }),
+      notifyInternal({
+        to: 'info@drag-lab.de',
+        subject: subjectMap[lang] || subjectMap.EN,
+        text: bodyText
+      })
+    ]).catch(err => console.error('❌ Technical Service email delivery failed:', err));
   } catch (err) {
     console.error('❌ Error in TechnicalService submission:', err);
     const fallback = (req.body.lang || req.query.lang || 'EN').toUpperCase();
@@ -1931,11 +1873,14 @@ exports.getArticleDetails = async (req, res) => {
         const article = await Article.findOne({ slug });
         if (!article) return res.redirect('/');
 
-        const lang = article.language; // ✅ Use the actual language of the opened article
+        // Use the article's language, but fall back to URL param when language is 'ALL'
+        const lang = (article.language && article.language !== 'ALL')
+            ? article.language
+            : (req.params.lang?.toUpperCase() || 'EN');
 
         const recentArticles = await Article.find({
             slug: { $ne: slug },
-            language: lang // ✅ Match only the same language
+            $or: [{ language: lang }, { language: 'ALL' }]
         }).sort({ createdAt: -1 }).limit(4);
 
 
@@ -2296,7 +2241,8 @@ exports.postWarrantyRegistration = async (req, res) => {
         if (RECAPTCHA_ENABLED && token) {
             const verifyUrl = 'https://www.google.com/recaptcha/api/siteverify';
             const { data } = await axios.post(verifyUrl, null, {
-                params: { secret: process.env.RECAPTCHA_SECRET_KEY, response: token }
+                params: { secret: process.env.RECAPTCHA_SECRET_KEY, response: token },
+                timeout: 5000 // 5-second cap — don't let Google hang the form
             });
             if (!data?.success || Number(data?.score) < 0.5) {
                 console.error('❌ reCAPTCHA verification failed (warranty):', data);
@@ -2357,30 +2303,12 @@ exports.postWarrantyRegistration = async (req, res) => {
 
         const ticketId = `WR-${doc._id.toString().slice(-6).toUpperCase()}`;
 
-        // Customer confirmation (SendGrid Dynamic Template - warrantyRegistration)
+        // Redirect the user immediately — they don't need to wait for email delivery.
+        // Emails are sent asynchronously in the background after the response.
+        res.redirect(`/${lang}/WarrantyRegistration?success=true`);
+
+        // --- Build email payloads ---
         const flags = { isEN: lang === 'EN', isES: lang === 'ES', isDE: lang === 'DE', isTR: lang === 'TR', isFR: lang === 'FR' };
-
-        await sendCustomerEmail({
-            to: email,
-            form: 'warrantyRegistration',  // <- use the new template key
-            data: {
-                ...flags,
-                year: new Date().getFullYear(),
-                brandName: 'DragLab',
-                brandLogoUrl: 'https://cdn.draglab.com/brand/draglab-logo-100.png', // optional
-                supportEmail: 'info@drag-lab.de',
-                ticketId,
-                deviceCategory: productName,
-                deviceModel: modelName,
-                serialNumber: serialNo || '',
-                datePurchased: datePurchased || '',
-                userMessage: message || '',
-                helpCenterUrl: `https://www.drag-lab.de/${lang}/WarrantyRegistration`
-            }
-        });
-
-
-        // Internal notification (SMTP fallback → SendGrid)
         const subjectMap = {
             EN: `[Warranty] ${name} — ${productName}/${modelName} (${ticketId})`,
             ES: `[Garantía] ${name} — ${productName}/${modelName} (${ticketId})`,
@@ -2388,36 +2316,31 @@ exports.postWarrantyRegistration = async (req, res) => {
             TR: `[Garanti] ${name} — ${productName}/${modelName} (${ticketId})`,
             FR: `[Garantie] ${name} — ${productName}/${modelName} (${ticketId})`
         };
-        const subject = subjectMap[lang] || subjectMap.EN;
-
         const bodyText =
-            `New Warranty Registration
+            `New Warranty Registration\n\nTicket: ${ticketId}\nName: ${name}\nEmail: ${email}\n\nDevice:\n- Category: ${productName}\n- Model: ${modelName}\n- Serial: ${serialNo || '-'}\n\nDate Purchased: ${datePurchased || '-'}\n\nMessage:\n${message || '-'}\n\nMeta:\n- Language: ${lang}\n- IP: ${ipAddress || '-'}\n- User-Agent: ${userAgent || '-'}\n\nAdmin Link: https://www.drag-lab.de/admin/warranty-registrations/${doc._id}\n`;
 
-Ticket: ${ticketId}
-Name: ${name}
-Email: ${email}
-
-Device:
-- Category: ${productName}
-- Model: ${modelName}
-- Serial: ${serialNo || '-'}
-
-Date Purchased: ${datePurchased || '-'}
-
-Message:
-${message || '-'}
-
-Meta:
-- Language: ${lang}
-- IP: ${ipAddress || '-'}
-- User-Agent: ${userAgent || '-'}
-
-Admin Link (optional): https://www.drag-lab.de/admin/warranty-registrations/${doc._id}
-`;
-
-        await notifyInternal({ to: 'info@drag-lab.de', subject, text: bodyText });
-
-        return res.redirect(`/${lang}/WarrantyRegistration?success=true`);
+        // --- Send both emails in parallel, non-blocking ---
+        Promise.all([
+            sendCustomerEmail({
+                to: email,
+                form: 'warrantyRegistration',
+                data: {
+                    ...flags,
+                    year: new Date().getFullYear(),
+                    brandName: 'DragLab',
+                    brandLogoUrl: 'https://cdn.draglab.com/brand/draglab-logo-100.png',
+                    supportEmail: 'info@drag-lab.de',
+                    ticketId,
+                    deviceCategory: productName,
+                    deviceModel: modelName,
+                    serialNumber: serialNo || '',
+                    datePurchased: datePurchased || '',
+                    userMessage: message || '',
+                    helpCenterUrl: `https://www.drag-lab.de/${lang}/WarrantyRegistration`
+                }
+            }),
+            notifyInternal({ to: 'info@drag-lab.de', subject: subjectMap[lang] || subjectMap.EN, text: bodyText })
+        ]).catch(err => console.error('❌ Warranty Registration email delivery failed:', err));
     } catch (err) {
         console.error('❌ Error in WarrantyRegistration submission:', err);
         return res.redirect(`/${lang}/WarrantyRegistration?error=true`);

@@ -1,74 +1,172 @@
 <%- include('../../includes/sellercompany/head.ejs') %>
-    <link rel="stylesheet" href="/css/sellercompany/all-technical-service.css">
-    <%- include('../../includes/sellercompany/head-end.ejs') %>
+<link rel="stylesheet" href="/css/sellercompany/all-technical-service.css">
 
-    <body>
-        <%- include('../../includes/sellercompany/navbar-dash.ejs') %>
-            <section class="sidebar-content-container">
-                <section class="sidebar-container">
-                    <%- include('../../includes/sellercompany/sidebar.ejs') %>
-                </section>
+<style>
+  .spam-row { background-color: #fff3cd !important; opacity: 0.8; }
+  .spam-row td { color: #856404; }
+  .badge-spam {
+    display: inline-block;
+    background: #ffc107; color: #333;
+    font-size: 0.7rem; font-weight: 700;
+    padding: 2px 7px; border-radius: 10px;
+    margin-left: 6px; vertical-align: middle;
+  }
+  .btn-spam {
+    background: #ffc107; color: #333;
+    border: none; padding: 4px 10px; border-radius: 4px;
+    cursor: pointer; font-size: 0.82rem; font-weight: 600; margin-right: 4px;
+  }
+  .btn-spam:hover { background: #e0a800; }
+  .btn-spam.marked { background: #6c757d; color: #fff; }
+  .btn-spam.marked:hover { background: #5a6268; }
+  .btn-delete {
+    background: #dc3545; color: #fff;
+    border: none; padding: 4px 10px; border-radius: 4px;
+    cursor: pointer; font-size: 0.82rem; font-weight: 600;
+  }
+  .btn-delete:hover { background: #b02a37; }
 
-                <section class="content-container">
-                    <h1>Technical Support Requests</h1>
-                    <% if (requests.length===0) { %>
-                        <p>No requests submitted yet.</p>
-                        <% } else { %>
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Date</th>
-                                        <th>Name</th>
-                                        <th>Company</th>
-                                        <th>Email</th>
-                                        <th>Device</th>
-                                        <th>Model</th>
-                                        <th>Note</th>
-                                        <th>Status</th> <!-- ✅ Added -->
-                                        <th>Actions</th> 
-                                    </tr>
-                                    <thead>
+  /* Modal */
+  #delete-modal {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5); z-index: 9999;
+    align-items: center; justify-content: center;
+  }
+  #delete-modal.open { display: flex; }
+  .modal-card {
+    background: #fff; border-radius: 12px;
+    padding: 36px 32px 28px; max-width: 400px;
+    width: 90%; text-align: center;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.2);
+  }
+  .modal-card .modal-icon { font-size: 2.4rem; margin-bottom: 12px; }
+  .modal-card h3 { margin: 0 0 8px; font-size: 1.2rem; color: #1a1a1a; }
+  .modal-card p { margin: 0 0 24px; color: #555; font-size: 0.93rem; line-height: 1.5; }
+  .modal-card p strong { color: #1a1a1a; }
+  .modal-buttons { display: flex; gap: 12px; justify-content: center; }
+  .modal-btn-cancel {
+    flex: 1; background: #f0f0f0; color: #333;
+    border: none; padding: 10px 0; border-radius: 6px;
+    cursor: pointer; font-size: 0.95rem; font-weight: 600;
+  }
+  .modal-btn-cancel:hover { background: #ddd; }
+  .modal-btn-confirm {
+    flex: 1; background: #dc3545; color: #fff;
+    border: none; padding: 10px 0; border-radius: 6px;
+    cursor: pointer; font-size: 0.95rem; font-weight: 600;
+  }
+  .modal-btn-confirm:hover { background: #b02a37; }
+</style>
 
-                                    <tbody>
-                                        <% requests.forEach(req=> { %>
-                                            <tr>
-                                                <td>
-                                                    <%= new Date(req.createdAt).toLocaleDateString() %>
-                                                </td>
-                                                <td>
-                                                    <%= req.salutation %>
-                                                        <%= req.firstName %>
-                                                            <%= req.lastName %>
-                                                </td>
-                                                <td>
-                                                    <%= req.company || '-' %>
-                                                </td>
-                                                <td>
-                                                    <%= req.email %>
-                                                </td>
-                                                <td>
-                                                    <%= req.deviceCategory?.Language?.EN?.[0]?.ProductName || 'N/A' %>
-                                                </td>
-                                                <td>
-                                                    <%= req.modelName %>
-                                                </td>
-                                                <td>
-                                                    <%= req.note || '-' %>
-                                                </td>
-                                                <td>
-                                                    <%= req.status === 'done' ? '✅ Done' : '⏳ Pending' %>
-                                                  </td>
-                                                  
-                                                <td>
-                                                    <a href="/admin/technical-requests/<%= req._id %>"
-                                                        class="btn-view">View</a>
-                                                </td>
+</head>
 
-                                            </tr>
-                                            <% }) %>
-                                    </tbody>
-                            </table>
-                            <% } %>
-                </section>
-            </section>
-    </body>
+<body>
+  <%- include('../../includes/sellercompany/navbar-dash.ejs') %>
+  <section class="sidebar-content-container">
+    <section class="sidebar-container">
+      <%- include('../../includes/sellercompany/sidebar.ejs') %>
+    </section>
+
+    <section class="content-container">
+      <h1>Technical Support Requests</h1>
+
+      <% if (requests.length === 0) { %>
+        <p>No requests submitted yet.</p>
+      <% } else { %>
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Name</th>
+              <th>Company</th>
+              <th>Email</th>
+              <th>Device</th>
+              <th>Model</th>
+              <th>Note</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% requests.forEach(function(r) { %>
+              <tr class="<%= r.isSpam ? 'spam-row' : '' %>">
+                <td><%= new Date(r.createdAt).toLocaleDateString() %></td>
+                <td>
+                  <%= r.salutation %> <%= r.firstName %> <%= r.lastName %>
+                  <% if (r.isSpam) { %><span class="badge-spam">SPAM</span><% } %>
+                </td>
+                <td><%= r.company || '-' %></td>
+                <td><%= r.email %></td>
+                <td><%= r.deviceCategory && r.deviceCategory.Language && r.deviceCategory.Language.EN && r.deviceCategory.Language.EN[0] ? r.deviceCategory.Language.EN[0].ProductName : 'N/A' %></td>
+                <td><%= r.modelName %></td>
+                <td><%= r.note || '-' %></td>
+                <td><%= r.status === 'done' ? '✅ Done' : '⏳ Pending' %></td>
+                <td>
+                  <a href="/admin/technical-requests/<%= r._id %>" class="btn-view">View</a>
+
+                  <% if (isAdmin) { %>
+                    <form method="POST" action="/admin/technical-requests/<%= r._id %>/spam" style="display:inline;">
+                      <button type="submit" class="btn-spam <%= r.isSpam ? 'marked' : '' %>">
+                        <%= r.isSpam ? 'Unmark Spam' : 'Mark Spam' %>
+                      </button>
+                    </form>
+
+                    <form method="POST" action="/admin/technical-requests/<%= r._id %>/delete" style="display:inline;" class="delete-form" data-name="<%= r.firstName %> <%= r.lastName %>">
+                      <button type="submit" class="btn-delete">Delete</button>
+                    </form>
+                  <% } %>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      <% } %>
+    </section>
+  </section>
+
+  <!-- Delete confirmation modal -->
+  <div id="delete-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-card">
+      <div class="modal-icon">🗑️</div>
+      <h3 id="modal-title">Delete Request?</h3>
+      <p id="modal-body">This action is permanent and cannot be undone.</p>
+      <div class="modal-buttons">
+        <button id="modal-cancel" class="modal-btn-cancel">Cancel</button>
+        <button id="modal-confirm" class="modal-btn-confirm">Yes, Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <script nonce="<%= nonce %>">
+    (function () {
+      var modal       = document.getElementById('delete-modal');
+      var modalBody   = document.getElementById('modal-body');
+      var btnCancel   = document.getElementById('modal-cancel');
+      var btnConfirm  = document.getElementById('modal-confirm');
+      var pendingForm = null;
+
+      function openModal(name, form) {
+        pendingForm = form;
+        modalBody.innerHTML = 'You are about to permanently delete the request from <strong>' + name + '</strong>.<br>This cannot be undone.';
+        modal.classList.add('open');
+      }
+
+      function closeModal() {
+        modal.classList.remove('open');
+        pendingForm = null;
+      }
+
+      document.querySelectorAll('.delete-form').forEach(function (form) {
+        form.addEventListener('submit', function (e) {
+          e.preventDefault();
+          openModal(form.dataset.name, form);
+        });
+      });
+
+      btnCancel.addEventListener('click', closeModal);
+      btnConfirm.addEventListener('click', function () { if (pendingForm) pendingForm.submit(); });
+      modal.addEventListener('click', function (e) { if (e.target === modal) closeModal(); });
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeModal(); });
+    })();
+  </script>
+</body>

@@ -1,11 +1,11 @@
 <%- include('../../includes/sellercompany/head.ejs') %>
 
-<link rel="stylesheet" href="/css/sellercompany/dashboard.css">
-<%- include('../../includes/sellercompany/head-end.ejs') %>
+  <link rel="stylesheet" href="/css/sellercompany/dashboard.css">
+  <%- include('../../includes/sellercompany/head-end.ejs') %>
 
     <body>
       <!-- nav-bar -->
-    <%- include('../../includes/sellercompany/navbar-dash.ejs') %>
+      <%- include('../../includes/sellercompany/navbar-dash.ejs') %>
         <!-- nav-bar -->
 
         <!-- Product Details -->
@@ -52,7 +52,7 @@
                 <img src="/assets/Imgs/Icons/contactUs-Messages.png" alt="contact messages">
                 <p>contact messages</p>
               </a>
-               <a href="/admin/industry-pages" class="dashboard-card">
+              <a href="/admin/industry-pages" class="dashboard-card">
                 <img src="/assets/Imgs/Icons/QUALITY-ASSURANCE-AND-TESTING.svg" alt="industries">
                 <p>industries</p>
               </a>
@@ -62,11 +62,13 @@
               </a>
 
 
+              <% if (typeof isAdmin !=='undefined' && isAdmin) { %>
+                <a class="<%= path === '/admin/users' ? 'selected' : '' %> dashboard-card" href="/admin/users">
+                  <img src="/assets/Imgs/Icons/addUser.png" alt="Users">
+                  <p>User Management</p>
+                </a>
+                <% } %>
 
-              <a href="/admin/adduser" class="dashboard-card">
-                <img src="/assets/Imgs/Icons/addUser.png" alt="Users">
-                <p>Add Admin / Seller</p>
-              </a>
             </div>
             <h2 id="External">External Links</h2>
 

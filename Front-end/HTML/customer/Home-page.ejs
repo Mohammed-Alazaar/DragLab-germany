@@ -75,7 +75,6 @@
           <img
             src="<%= slide.image %>"
             alt="<%= slide.title %>"
-            loading="lazy"
             decoding="async"
             fetchpriority="low"
             width="1600" height="900"><!-- keep same aspect for CLS -->
@@ -117,7 +116,7 @@
         <a href="/<%= lang %>/products/<%= product.slug %>" class="product-card-link">
           <div class="product-card">
             <div class="product-image-wrapper">
-              <img loading="lazy" src="<%= product.ProductThumbnail %>" alt="<%= translation.ProductName %>">
+              <img src="<%= product.ProductThumbnail %>" alt="<%= translation.ProductName %>">
               <div class="product-bg-overlay"></div>
             </div>
             <div class="product-card-information">
@@ -166,7 +165,7 @@
                     <% industryCards.forEach(industry=> { %>
                         <div class="industry-card">
                             <a href="/<%= lang %>/industry/<%= industry.slug %>">
-                                <img loading="lazy" src="<%= industry.image %>" alt="<%= industry.title %>" />
+                                <img src="<%= industry.image %>" alt="<%= industry.title %>" />
                                 <div class="overlay">
                                     <h3>
                                         <%= industry.title %>
@@ -196,7 +195,7 @@
                     <% articles.forEach(article=> { %>
                         <div class="article-slide">
                             <a href="/<%= lang %>/articles/<%= article.slug %>" class="article-card">
-                                <img loading="lazy" src="<%=article.thumbnail %>" alt="<%= article.title %>">
+                                <img src="<%=article.thumbnail %>" alt="<%= article.title %>">
                                 <div class="article-card-information">
                                     <h4>
                                         <%= article.title %>
@@ -210,10 +209,10 @@
 
 
                 <button class="article-slideshow-btn article-prev-btn" data-article-dir="-1">
-                    <img loading="lazy" src="/assets/Imgs/Icons/right-products-arrow.png" alt="Previous">
+                    <img  src="/assets/Imgs/Icons/right-products-arrow.png" alt="Previous">
                 </button>
                 <button class="article-slideshow-btn article-next-btn" data-article-dir="1">
-                    <img loading="lazy" src="/assets/Imgs/Icons/left-products-arrow.png" alt="Next">
+                    <img src="/assets/Imgs/Icons/left-products-arrow.png" alt="Next">
                 </button>
             </div>
 
@@ -228,28 +227,28 @@
                 </h2>
                 <div class="about-container">
                     <div class="about-image" id="about-img">
-                        <img loading="lazy" src="/assets/Imgs/Icons/products/img-vision.png" alt="About Image">
+                        <img src="/assets/Imgs/Icons/products/img-vision.png" alt="About Image">
                     </div>
                     <div class="about-content">
                         <div class="about-tabs">
                             <div class="about-tab active" data-tab="vision"
                                 data-icon-default="/assets/Imgs/Icons/products/vision.png"
                                 data-icon-active="/assets/Imgs/Icons/products/vision-active.png">
-                                <img loading="lazy" src="/assets/Imgs/Icons/products/vision-active.png" class="tab-icon"
+                                <img src="/assets/Imgs/Icons/products/vision-active.png" class="tab-icon"
                                     alt="<%= t.vision %>">
                                 <%= t.vision %>
                             </div>
                             <div class="about-tab" data-tab="mission"
                                 data-icon-default="/assets/Imgs/Icons/products/mission.png"
                                 data-icon-active="/assets/Imgs/Icons/products/mission-active.png">
-                                <img loading="lazy" src="/assets/Imgs/Icons/products/mission.png" class="tab-icon"
+                                <img src="/assets/Imgs/Icons/products/mission.png" class="tab-icon"
                                     alt=" <%= t.mission %>">
                                 <%= t.mission %>
                             </div>
                             <div class="about-tab" data-tab="values"
                                 data-icon-default="/assets/Imgs/Icons/products/values.png"
                                 data-icon-active="/assets/Imgs/Icons/products/values-active.png">
-                                <img loading="lazy" src="/assets/Imgs/Icons/products/values.png" class="tab-icon"
+                                <img src="/assets/Imgs/Icons/products/values.png" class="tab-icon"
                                     alt="<%= t.values %>">
                                 <%= t.values %>
                             </div>
@@ -257,7 +256,7 @@
                         <div class="about-text" id="about-text">
                             <div class="title-icon">
                                 <div class="tab-icon-bg">
-                                    <img loading="lazy" src="/assets/Imgs/Icons/products/vision-active.png"
+                                    <img  src="/assets/Imgs/Icons/products/vision-active.png"
                                         class="tab-icon" alt="<%= t.vision %>">
                                 </div>
                                 <h3>

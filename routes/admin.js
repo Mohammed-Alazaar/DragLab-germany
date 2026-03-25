@@ -7,6 +7,7 @@ const isAuth = require('../middleware/is-auth');
 const { check, body } = require('express-validator');
 const { uploadProductImages } = require('../middleware/multer-config');
 const isAdminOrSeller = require('../middleware/isAdminOrSeller');
+const isAdmin = require('../middleware/isAdmin');
 
 
 
@@ -121,6 +122,9 @@ router.get('/TechnicalRequests', isAuth, isAdminOrSeller, adminController.getAll
 router.get('/technical-requests/:id', isAuth, isAdminOrSeller, adminController.getTechnicalRequestById);
 router.post('/technical-requests/:id/done', isAuth, isAdminOrSeller, adminController.markTechnicalRequestDone);
 router.get('/technical-requests/:id/pdf', isAuth, isAdminOrSeller, adminController.exportTechnicalRequestPDF);
+// Admin-only actions
+router.post('/technical-requests/:id/spam', isAuth, isAdmin, adminController.postMarkTechnicalSpam);
+router.post('/technical-requests/:id/delete', isAuth, isAdmin, adminController.deleteTechnicalRequest);
 
 
 
@@ -130,6 +134,9 @@ router.get('/warranty-registrations', isAuth, isAdminOrSeller, adminController.g
 router.get('/warranty-registrations/:id', isAuth, isAdminOrSeller, adminController.getWarrantyRegistrationById);
 router.post('/warranty-registrations/:id/done', isAuth, isAdminOrSeller, adminController.markWarrantyAsDone);
 router.get('/warranty-registrations/:id/pdf', isAuth, isAdminOrSeller, adminController.exportWarrantyToPDF);
+// Admin-only actions
+router.post('/warranty-registrations/:id/spam', isAuth, isAdmin, adminController.postMarkWarrantySpam);
+router.post('/warranty-registrations/:id/delete', isAuth, isAdmin, adminController.deleteWarrantyRegistration);
 
 
 
@@ -137,6 +144,9 @@ router.get('/contact-messages', isAuth, isAdminOrSeller, adminController.getAllC
 router.get('/contact-message/:id', isAuth, isAdminOrSeller, adminController.getContactUsDetail);
 router.post('/mark-contactus-done', isAuth, isAdminOrSeller, adminController.postMarkContactUsDone);
 router.get('/contactus-pdf/:id', isAuth, isAdminOrSeller, adminController.exportContactUsToPDF);
+// Admin-only actions
+router.post('/contactus-spam/:id', isAuth, isAdmin, adminController.postMarkContactUsSpam);
+router.post('/contactus-delete/:id', isAuth, isAdmin, adminController.deleteContactUs);
 
 
 
@@ -153,6 +163,27 @@ router.post('/delete-industry', isAuth, isAdminOrSeller, adminController.postDel
 router.get('/newsletter', isAuth, isAdminOrSeller, adminController.getNewsletterList);
 router.post('/newsletter/export/all', adminController.exportAllSubscribers);
 router.post('/newsletter/export/new', adminController.exportNewSubscribers);
+
+
+// ─── User Management (admin only) ────────────────────────────────────────────
+
+router.get('/users', isAuth, isAdmin, adminController.getUsersList);
+
+router.get('/users/add', isAuth, isAdmin, adminController.getAddUserForm);
+router.post('/users/add', isAuth, isAdmin,
+    [
+        check('email').isEmail().withMessage('Please enter a valid email.').normalizeEmail(),
+        body('password').isLength({ min: 8 }).withMessage('Password must be at least 8 characters.').trim(),
+        body('name').trim().notEmpty().withMessage('Name is required.'),
+        body('phoneNumber').trim().notEmpty().withMessage('Phone number is required.')
+    ],
+    adminController.postAddUser
+);
+
+router.get('/users/edit/:id', isAuth, isAdmin, adminController.getEditUser);
+router.post('/users/edit/:id', isAuth, isAdmin, adminController.postEditUser);
+router.post('/users/delete/:id', isAuth, isAdmin, adminController.postDeleteUser);
+router.post('/users/change-password/:id', isAuth, isAdmin, adminController.postChangeUserPassword);
 
 
 module.exports = router;
