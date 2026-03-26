@@ -73,9 +73,203 @@ input .is-invalid {
     margin-top: 25px;
 }
 
+/* ── Technical Specifications table UI ───────────────────────── */
+
 .spec-section {
-    margin: 10px 0 0 0;
+    margin: 12px 0 0 0;
+    border: 1px solid #dde2f0;
+    border-radius: 8px;
+    overflow: hidden;
 }
+
+.spec-section-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #e9ecf4;
+    padding: 8px 12px;
+    border-bottom: 1px solid #dde2f0;
+}
+
+.spec-section-header input[type="text"] {
+    flex: 1;
+    border: none !important;
+    background: transparent !important;
+    font-weight: 700;
+    font-size: 14px;
+    color: #333;
+    padding: 4px 0 !important;
+    outline: none;
+    box-shadow: none !important;
+    width: auto !important;
+}
+
+.spec-section-header input[type="text"]::placeholder {
+    font-weight: 400;
+    color: #aaa;
+}
+
+.remove-spec-section {
+    background: none !important;
+    border: none !important;
+    color: #c0392b !important;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 2px 6px !important;
+    margin: 0 !important;
+    line-height: 1;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+}
+.remove-spec-section:hover { opacity: 1 !important; background: none !important; }
+
+.spec-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.spec-table thead tr {
+    background: #f8f9fb;
+}
+
+.spec-table th {
+    padding: 8px 12px;
+    text-align: left;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: #888;
+    font-weight: 600;
+    border-bottom: 1px solid #eee;
+}
+
+.spec-table th:last-child { width: 36px; }
+
+.spec-table td {
+    padding: 2px 6px;
+    border-bottom: 1px solid #f2f2f2;
+    vertical-align: middle;
+}
+
+.spec-table td:last-child { width: 36px; text-align: center; }
+
+.spec-table input[type="text"] {
+    width: 100% !important;
+    border: none !important;
+    background: transparent !important;
+    padding: 7px 6px !important;
+    font-size: 14px;
+    outline: none;
+    border-bottom: 1px solid transparent !important;
+    border-radius: 0 !important;
+    transition: border-color 0.15s;
+    box-sizing: border-box;
+}
+
+.spec-table input[type="text"]:focus {
+    border-bottom-color: var(--primary-Color) !important;
+    background: #f9fafe !important;
+}
+
+.remove-spec-row {
+    background: none !important;
+    border: none !important;
+    color: #c0392b !important;
+    cursor: pointer;
+    font-size: 13px;
+    padding: 4px !important;
+    margin: 0 !important;
+    opacity: 0.4;
+    transition: opacity 0.2s;
+    line-height: 1;
+}
+.remove-spec-row:hover { opacity: 1 !important; background: none !important; }
+
+.add-spec-row {
+    display: block !important;
+    width: 100% !important;
+    text-align: left !important;
+    padding: 8px 12px !important;
+    margin: 0 !important;
+    border: none !important;
+    border-top: 1px solid #f0f0f0 !important;
+    background: #fafbfd !important;
+    color: var(--primary-Color) !important;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border-radius: 0 !important;
+    transition: background 0.15s;
+}
+.add-spec-row:hover { background: #eef1fb !important; }
+
+.btn-copy-specs {
+    margin-top: 10px !important;
+    margin-left: 8px !important;
+    padding: 8px 16px !important;
+    background: #27ae60 !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 6px !important;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    transition: background 0.2s;
+}
+.btn-copy-specs:hover { background: #219150 !important; }
+
+.techspec-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.techspec-header h4 {
+    margin: 0;
+}
+
+.techspec-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.techspec-hint {
+    font-size: 12px;
+    color: #888;
+    margin: 0 0 10px 0;
+}
+
+.btn-import-specs {
+    padding: 7px 14px !important;
+    background: var(--primary-Color) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 6px !important;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    margin: 0 !important;
+    transition: opacity 0.2s;
+}
+.btn-import-specs:hover { opacity: 0.85 !important; }
+
+.btn-download-template {
+    padding: 7px 14px !important;
+    background: #f0f0f0 !important;
+    color: #333 !important;
+    border: 1px solid #ccc !important;
+    border-radius: 6px !important;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    margin: 0 !important;
+    transition: background 0.2s;
+}
+.btn-download-template:hover { background: #e0e0e0 !important; }
 
 .overview-item,
 .industry-item {

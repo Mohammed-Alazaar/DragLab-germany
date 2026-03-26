@@ -3,7 +3,7 @@
     <link rel="stylesheet" href="/css/sellercompany/addNewModel.css">
     <script src="https://cdn.tiny.cloud/1/mtjy6djndp0eitzxztgrpeyb5j51l2d31765itt3gj45jl8c/tinymce/6/tinymce.min.js"
         referrerpolicy="origin"></script>
-
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 
     <%- include('../../includes/sellercompany/head-end.ejs') %>
 
@@ -172,11 +172,18 @@
 
 
                                                     <div class="techspec-section">
-                                                        <h4>Technical Specifications</h4>
+                                                        <div class="techspec-header">
+                                                            <h4>Technical Specifications</h4>
+                                                            <div class="techspec-actions">
+                                                                <button type="button" class="btn-import-specs" data-lang="<%= lang %>">⬆ Import from Excel</button>
+                                                                <% if (lang === 'EN') { %>
+                                                                    <button type="button" id="download-specs-template" class="btn-download-template">⬇ Download Template</button>
+                                                                <% } %>
+                                                            </div>
+                                                        </div>
+                                                        <p class="techspec-hint">Format: <strong>Section</strong> | <strong>Specification</strong> | <strong>Value</strong> — prepare a separate Excel file per language.</p>
                                                         <div id="specs_<%= lang %>_container"></div>
-                                                        <button type="button" class="add-spec-section"
-                                                            data-lang="<%= lang %>">Add Specification Section</button>
-
+                                                        <button type="button" class="add-spec-section" data-lang="<%= lang %>">+ Add Section</button>
                                                     </div>
 
                                                     <h4>Downloads</h4>
