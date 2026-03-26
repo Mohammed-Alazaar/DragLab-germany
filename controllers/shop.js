@@ -959,27 +959,47 @@ exports.getModelDetailsPage = async (req, res, next) => {
     // 6) Translations for UI labels (Overview / Downloads / etc.)
     const t = modelPageTranslations[selectedLang] || modelPageTranslations.EN;
 
-    // 7) Build overview / industry arrays with shared EN images
+    // 7) Build overview array with shared EN images
     const overviewSource =
       currentLangData.overview?.length
         ? currentLangData.overview
         : englishLangData?.overview || [];
-
-    const industrySource =
-      currentLangData.industry?.length
-        ? currentLangData.industry
-        : englishLangData?.industry || [];
 
     const overview = overviewSource.map((o, i) => ({
       ...(o.toObject ? o.toObject() : o),
       overviewImage: englishLangData?.overview?.[i]?.overviewImage || ''
     }));
 
-    const industry = industrySource.map((ind, i) => ({
-      ...(ind.toObject ? ind.toObject() : ind),
-      industryImage: englishLangData?.industry?.[i]?.industryImage || '',
-      industryLogo: englishLangData?.industry?.[i]?.industryLogo || ''
-    }));
+    // 7b) Build industry array from IndustryPage references (or fallback to embedded data)
+    let industry = [];
+    if (model.industrySlugs && model.industrySlugs.length > 0) {
+      const industryDocs = await Industry.find({
+        slug: { $in: model.industrySlugs },
+        isDraft: false
+      }).lean();
+      industry = model.industrySlugs
+        .map(slug => industryDocs.find(d => d.slug === slug))
+        .filter(Boolean)
+        .map(ind => {
+          const langData = ind.Language?.[selectedLang]?.[0] || ind.Language?.EN?.[0] || {};
+          return {
+            slug: ind.slug,
+            industryImage: ind.sharedImages?.introImage || '',
+            industryName: langData.slideTitle || ind.slug
+          };
+        });
+    } else {
+      // Fallback: use legacy embedded industry data
+      const industrySource =
+        currentLangData.industry?.length
+          ? currentLangData.industry
+          : englishLangData?.industry || [];
+      industry = industrySource.map((ind, i) => ({
+        ...(ind.toObject ? ind.toObject() : ind),
+        industryImage: englishLangData?.industry?.[i]?.industryImage || '',
+        industryLogo: englishLangData?.industry?.[i]?.industryLogo || ''
+      }));
+    }
 
     const navProducts = res.locals.navProducts || [];
 

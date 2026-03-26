@@ -658,7 +658,10 @@ function buildDesiredName(inputName, extFallback, originalExt) {
 
 exports.getAddModel = (req, res, next) => {
   const productId = req.params.productId;
-  Product.findById(productId).then(product => {
+  Promise.all([
+    Product.findById(productId),
+    IndustryPage.find({ isDraft: false }).lean()
+  ]).then(([product, allIndustries]) => {
     if (!product) return res.redirect('/admin/Myproduct');
     res.render('sellercompany/add-model', {
       pageTitle: 'Add Model',
@@ -670,14 +673,18 @@ exports.getAddModel = (req, res, next) => {
       validationErrors: [],
       hasError: false,
       isAuthenticated: req.session.isLoggedIn,
-      errorMessage: null
+      errorMessage: null,
+      allIndustries
     });
   }).catch(err => next(err));
 };
 
 exports.getEditModel = (req, res, next) => {
   const { productId, modelId } = req.params;
-  Product.findById(productId).then(product => {
+  Promise.all([
+    Product.findById(productId),
+    IndustryPage.find({ isDraft: false }).lean()
+  ]).then(([product, allIndustries]) => {
     if (!product) return res.redirect('/admin/Myproduct');
     const model = product.Models.id(modelId);
     if (!model) return res.redirect('/admin/Myproduct');
@@ -692,7 +699,8 @@ exports.getEditModel = (req, res, next) => {
       validationErrors: [],
       hasError: false,
       isAuthenticated: req.session.isLoggedIn,
-      errorMessage: null
+      errorMessage: null,
+      allIndustries
     });
   }).catch(err => next(err));
 };
@@ -884,6 +892,15 @@ exports.postAddModel = async (req, res) => {
   const languageData = {};
   const validationErrors = [];
 
+  // Read selected industry slugs (max 3)
+  const rawIndustrySlugs = req.body.industrySlugs;
+  const industrySlugs = (Array.isArray(rawIndustrySlugs)
+    ? rawIndustrySlugs
+    : rawIndustrySlugs ? [rawIndustrySlugs] : []
+  ).slice(0, 4);
+
+  const allIndustries = await IndustryPage.find({ isDraft: false }).lean();
+
   const requestedPublish = Object.fromEntries(
     languages.map(l => [l, req.body[`publish_${l}`] === 'on'])
   );
@@ -962,38 +979,6 @@ exports.postAddModel = async (req, res) => {
       }
 
 
-      // Industry (3)
-      const industry = [];
-      for (let i = 0; i < 3; i++) {
-        const industryName = clean(req.body.industry?.[lang]?.[i]?.industryName);
-
-        const imageFile = req.files?.[`industryImages_${lang}[${i}]`] && req.files[`industryImages_${lang}[${i}]`][0];
-        const logoFile = req.files?.[`industryLogos_${lang}[${i}]`] && req.files[`industryLogos_${lang}[${i}]`][0];
-
-        const oldIndImg = req.body[`oldIndustryImage_${i}`] || '';
-        const oldIndLogo = req.body[`oldIndustryLogo_${i}`] || '';
-
-        const industryImage = imageFile
-          ? (await uploadToCloudinary(imageFile, {
-            folder: `draglab/models/industry/${lang}`,
-            desiredFileName: `${modelSlug}-industry-image-${i + 1}`,
-            treatAsDownload: false,
-          }))?.url || ''
-          : (lang === 'EN' ? oldIndImg : '');
-
-        const industryLogo = logoFile
-          ? (await uploadToCloudinary(logoFile, {
-            folder: `draglab/models/industry/${lang}`,
-            desiredFileName: `${modelSlug}-industry-logo-${i + 1}`,
-            treatAsDownload: false,
-          }))?.url || ''
-          : (lang === 'EN' ? oldIndLogo : '');
-
-        // ...validation for EN...
-        industry.push({ industryName, industryImage, industryLogo });
-      }
-
-
       // Technical Specifications (merge by index across variants)
       const technicalSpecifications = buildFinalSpecsForLang(groupedTechSpecs, lang);
 
@@ -1066,7 +1051,6 @@ if (req.files?.[`downloadFiles_${lang}`]) {
         ModelNameDesc,
         ModelDesc,
         overview,
-        industry,
         technicalSpecifications,
         downloads,
         publish: shouldValidate && !!requestedPublish[lang],
@@ -1109,6 +1093,7 @@ if (req.files?.[`downloadFiles_${lang}`]) {
         isDraft: !shouldValidate,
         productId,
         languages,
+        allIndustries,
         model: {
           slug: modelSlug,
           ModelThumbnail,
@@ -1117,7 +1102,8 @@ if (req.files?.[`downloadFiles_${lang}`]) {
           modelcapacity: req.body.modelcapacity || '',
           Language: languageData,
           tags: modelTags,
-          meta: modelMeta
+          meta: modelMeta,
+          industrySlugs
         }
       });
     }
@@ -1135,7 +1121,8 @@ if (req.files?.[`downloadFiles_${lang}`]) {
       Language: languageData,
       isPublished: shouldValidate,
       tags: modelTags,
-      meta: modelMeta
+      meta: modelMeta,
+      industrySlugs
     });
 
     product.Models.push(newModel);
@@ -1183,6 +1170,15 @@ exports.postEditModel = async (req, res) => {
   const { productId, modelId } = req.params;
   const languages = allanguages;
   const validationErrors = [];
+
+  // Read selected industry slugs (max 3)
+  const rawIndustrySlugs = req.body.industrySlugs;
+  const industrySlugs = (Array.isArray(rawIndustrySlugs)
+    ? rawIndustrySlugs
+    : rawIndustrySlugs ? [rawIndustrySlugs] : []
+  ).slice(0, 4);
+
+  const allIndustries = await IndustryPage.find({ isDraft: false }).lean();
 
   // publish intent: if any lang checked => publishing => validate; else draft
   const requestedPublish = Object.fromEntries(
@@ -1302,39 +1298,6 @@ exports.postEditModel = async (req, res) => {
         overview.push({ overviewName, overviewDesc, overviewImage });
       }
 
-      // ---- Industry (3)
-      const industry = [];
-      for (let i = 0; i < 3; i++) {
-        const industryName = clean(req.body.industry?.[lang]?.[i]?.industryName) || prev.industry?.[i]?.industryName || '';
-
-        const newImageFile = req.files?.[`industryImages_${lang}[${i}]`]?.[0];
-        const newLogoFile  = req.files?.[`industryLogos_${lang}[${i}]`]?.[0];
-
-        const industryImage = newImageFile
-          ? (await uploadToCloudinary(newImageFile, {
-              folder: `draglab/models/industry/${lang}`,
-              desiredFileName: `${modelSlug}-industry-image-${i + 1}`,
-              treatAsDownload: false,
-            }))?.url || ''
-          : (prev.industry?.[i]?.industryImage || '');
-
-        const industryLogo = newLogoFile
-          ? (await uploadToCloudinary(newLogoFile, {
-              folder: `draglab/models/industry/${lang}`,
-              desiredFileName: `${modelSlug}-industry-logo-${i + 1}`,
-              treatAsDownload: false,
-            }))?.url || ''
-          : (prev.industry?.[i]?.industryLogo || '');
-
-        if (validateThis && lang === 'EN') {
-          if (!industryName)  validationErrors.push({ path: `industry_${lang}_${i}_name`,  msg: `Industry ${i + 1} name (${lang}) is required.` });
-          if (!industryImage) validationErrors.push({ path: `industry_${lang}_${i}_image`, msg: `Industry ${i + 1} image (EN) is required.` });
-          if (!industryLogo)  validationErrors.push({ path: `industry_${lang}_${i}_logo`,  msg: `Industry ${i + 1} logo (EN) is required.` });
-        }
-
-        industry.push({ industryName, industryImage, industryLogo });
-      }
-
       // ---- Technical Specifications (merged by index across variants)
       let technicalSpecifications = [];
       const built = buildFinalSpecsForLang(groupedTechSpecs, lang);
@@ -1407,7 +1370,6 @@ exports.postEditModel = async (req, res) => {
         ModelNameDesc,
         ModelDesc,
         overview,
-        industry,
         technicalSpecifications,
         downloads,
         publish
@@ -1435,6 +1397,7 @@ exports.postEditModel = async (req, res) => {
         productId,
         modelId,
         languages,
+        allIndustries,
         model: {
           _id: modelId,
           slug: modelSlug,
@@ -1444,7 +1407,8 @@ exports.postEditModel = async (req, res) => {
           modelcapacity: req.body.modelcapacity || model.modelcapacity || '',
           Language: languageData,
           tags: modelTags,
-          meta: modelMeta
+          meta: modelMeta,
+          industrySlugs
         }
       });
     }
@@ -1458,6 +1422,7 @@ exports.postEditModel = async (req, res) => {
     model.isPublished = anyLangPublished;
     model.tags = modelTags;
     model.meta = modelMeta;
+    model.industrySlugs = industrySlugs.length > 0 ? industrySlugs : (model.industrySlugs || []);
     await product.save();
 
     // clear session stash on success

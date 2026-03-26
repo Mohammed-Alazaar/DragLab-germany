@@ -173,6 +173,28 @@ tinymce.init({
 // /assets/Js/addNewProduct.js  (or a models page JS)
 // Independent collapsers per language
 document.addEventListener("DOMContentLoaded", function () {
+  // Industry checkbox: enforce max 4 selections
+  function enforceMaxIndustries() {
+    const checkboxes = document.querySelectorAll('.industry-slug-checkbox');
+    const checkedCount = Array.from(checkboxes).filter(c => c.checked).length;
+    checkboxes.forEach(function (cb) {
+      if (!cb.checked) {
+        cb.disabled = checkedCount >= 4;
+        const label = cb.closest('label');
+        if (label) {
+          label.style.opacity = checkedCount >= 4 ? '0.4' : '1';
+          label.style.cursor = checkedCount >= 4 ? 'not-allowed' : 'pointer';
+        }
+      }
+    });
+  }
+  document.querySelectorAll('.industry-slug-checkbox').forEach(function (cb) {
+    cb.addEventListener('change', enforceMaxIndustries);
+  });
+  enforceMaxIndustries();
+});
+
+document.addEventListener("DOMContentLoaded", function () {
   // initialize: collapse all unless errors exist
   document.querySelectorAll(".language-section").forEach(section => {
     const body = section.querySelector(".language-body");

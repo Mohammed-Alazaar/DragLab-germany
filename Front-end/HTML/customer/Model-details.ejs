@@ -221,19 +221,16 @@
                     <div class="industries-container">
                         <% industry.forEach(i=> { %>
                             <div class="industry-card">
-                                <img loading="eager" decoding="async" class="industry-img" src="<%= i.industryImage %>" alt="<%= i.industryName %>" />
-                                <div class="overlay">
-                                    <div class="icon-wrapper">
-                                        <img loading="eager" decoding="async" src="<%=i.industryLogo %>" class="icon" alt="<%= i.industryName %> Logo" />
+                                <a href="/<%= lang %>/industry/<%= i.slug %>">
+                                    <img loading="eager" decoding="async" src="<%= i.industryImage %>" alt="<%= i.industryName %>" />
+                                    <div class="overlay">
+                                        <h3><%= i.industryName %></h3>
                                     </div>
-                                    <h3>
-                                        <%= i.industryName %>
-                                    </h3>
-                                </div>
+                                </a>
                             </div>
-                            <% }) %>
+                        <% }) %>
                     </div>
-                    <% } %>
+                <% } %>
 
             </section>
 

@@ -170,43 +170,6 @@
                                                     </div>
 
 
-                                                    <!-- Fixed Industry Inputs -->
-                                                    <div class="industry-section">
-                                                        <h4>Industries</h4>
-                                                        <% for (let i=0; i < 3; i++) { %>
-                                                            <div class="industry-item">
-                                                                <input type="text"
-                                                                    name="industry[<%= lang %>][<%= i %>][industryName]"
-                                                                    placeholder="Industry Name"
-                                                                    value="<%= model?.Language?.[lang]?.[0]?.industry?.[i]?.industryName || '' %>">
-
-                                                                <% if (lang==='EN' ) { %>
-                                                                   <% const img = model?.Language?.[lang]?.[0]?.industry?.[i]; %>
-                                                                        <% if (img?.industryImage) { %>
-                                                                            <img src="<%= img.industryImage %>"
-                                                                                style="max-width: 100px;">
-                                                                            <input type="hidden"
-                                                                                name="oldIndustryImage_<%= i %>"
-                                                                                value="<%= img.industryImage %>">
-                                                                            <% } %>
-                                                                                <% if (img?.industryLogo) { %>
-                                                                                    <img src="<%= img.industryLogo %>"
-                                                                                        style="max-width: 100px;">
-                                                                                    <input type="hidden"
-                                                                                        name="oldIndustryLogo_<%= i %>"
-                                                                                        value="<%= img.industryLogo %>">
-                                                                                    <% } %>
-
-                                                                                        <input type="file"
-                                                                                            name="industryImages_EN[<%= i %>]"
-                                                                                            accept="image/*">
-                                                                                        <input type="file"
-                                                                                            name="industryLogos_EN[<%= i %>]"
-                                                                                            accept="image/*">
-                                                                                        <% } %>
-                                                            </div>
-                                                            <% } %>
-                                                    </div>
 
                                                     <div class="techspec-section">
                                                         <h4>Technical Specifications</h4>
@@ -243,6 +206,32 @@
                                                     <% } %>
 
                                                         <% }); %>
+
+                                                        <!-- Industry Selection -->
+                                                        <div class="input-container industry-checkbox-section">
+                                                            <h3>Industries <small style="font-weight:normal; color:#666;">(select up to 4)</small></h3>
+                                                            <% if (allIndustries && allIndustries.length) { %>
+                                                                <div class="industry-checkboxes" style="display:flex; flex-wrap:wrap; gap:1rem; margin-top:.5rem;">
+                                                                    <% allIndustries.forEach(function(ind) { %>
+                                                                        <% const isChecked = model?.industrySlugs?.includes(ind.slug); %>
+                                                                        <label class="industry-checkbox-label" style="display:flex; align-items:center; gap:.5rem; cursor:pointer; border:1px solid #ddd; border-radius:8px; padding:.5rem .75rem; background: isChecked ? '#f0f4ff' : '#fff';">
+                                                                            <input type="checkbox"
+                                                                                name="industrySlugs"
+                                                                                value="<%= ind.slug %>"
+                                                                                <%= isChecked ? 'checked' : '' %>
+                                                                                class="industry-slug-checkbox">
+                                                                            <% if (ind.sharedImages?.introImage) { %>
+                                                                                <img src="<%= ind.sharedImages.introImage %>" alt="<%= ind.Language?.EN?.[0]?.slideTitle || ind.slug %>" style="width:50px; height:35px; object-fit:cover; border-radius:4px;">
+                                                                            <% } %>
+                                                                            <span><%= ind.Language?.EN?.[0]?.slideTitle || ind.slug %></span>
+                                                                        </label>
+                                                                    <% }); %>
+                                                                </div>
+                                                                <small class="text-muted" style="display:block; margin-top:.5rem;">Industries are displayed on the model page using their published images and titles.</small>
+                                                            <% } else { %>
+                                                                <p style="color:#888;">No published industries found. Please add industries first.</p>
+                                                            <% } %>
+                                                        </div>
 
                                                             <!-- Model Thumbnail -->
                                                             <div class="input-container">

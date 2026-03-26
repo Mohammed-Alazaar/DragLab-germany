@@ -296,25 +296,30 @@ section.model-overview.section {
 
 .industries-container {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 10px;
+    grid-template-columns: repeat(4, 1fr);
     width: 100%;
+    transition: transform 0.4s ease-in-out;
+    gap: 20px;
 }
 
 .industries-section:last-child {
     margin: 0 !important;
-    /* Only works if you add margin, not with grid gap */
 }
 
 .industry-card {
     position: relative;
     overflow: hidden;
-    max-height: 30rem;
-
+    min-height: 23rem;
 }
 
-.industry-img {
-    width: 100%;
+.industry-card a {
+    display: block;
+    height: 100%;
+    text-decoration: none;
+}
+
+.industry-card img {
+    width: -webkit-fill-available;
     height: 100%;
     display: block;
     object-fit: cover;
@@ -324,71 +329,31 @@ section.model-overview.section {
     position: absolute;
     bottom: 0;
     width: 100%;
-    background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
     color: white;
     text-align: center;
     padding: 20px 10px;
+    background: linear-gradient(rgb(41 60 149 / 7%) 0%, rgba(41, 60, 149, .9) 100%);
+    height: 100%;
     display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.overlay .icon {
-    width: 30px;
-    height: 30px;
-
-}
-
-.icon-wrapper {
-    background-color: white;
-    border-radius: 50%;
-    padding: 15px;
-    display: inline-flex;
     justify-content: center;
     align-items: center;
-    width: 60px;
-    height: 60px;
-    margin: 0 auto 10px auto;
-    /* center horizontally and add spacing */
 }
-
-
-
 
 .overlay h3 {
-    font-size: 24.2px;
+    font-size: 38px;
     margin: 0;
-    font-weight: 300;
+    font-weight: 600;
 }
 
-/* @media (max-width: 1250px) {
-    .industries-container {
-      grid-template-columns: repeat(1, 1fr);
-    }
-  } */
-
-/* @media (max-width: 480px) {
-    .industries-container {
-      grid-template-columns: repeat(1, 1fr);
-    }
-  } */
-
-@media (max-width: 970px) {
+@media (max-width: 1250px) {
     .industries-container {
         grid-template-columns: repeat(2, 1fr);
     }
+}
 
-    .industry-card {
-        height: 15rem;
-    }
-
-    .overlay h3 {
-        font-size: 15.2px;
-
-    }
-
-    .industries-container .industry-card:last-child {
-        grid-column: span 2;
+@media (max-width: 600px) {
+    .industries-container {
+        grid-template-columns: repeat(1, 1fr);
     }
 }
 

@@ -16,6 +16,7 @@ const ModelsSchema = new Schema({
     ModelPhotos: [{ type: String }],
     overviewThumbnail: { type: String },
     modelcapacity: { type: String },
+    industrySlugs: [{ type: String }], // References to IndustryPage slugs (max 4)
       // ✅ NEW: model-level SEO
   tags:  { type: KeywordsByLangSchema, default: () => ({}) }, // localized keywords
   meta: {
