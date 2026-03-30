@@ -1,0 +1,153 @@
+<%- include('../../includes/customer/head.ejs') %>
+<link rel="stylesheet" href="/css/customer/become-a-distributor.css">
+<%
+  const BASE = 'https://www.drag-lab.de';
+  const pageUrl = BASE + '/' + lang + '/become-a-distributor';
+%>
+
+<% if (success || error) { %>
+<meta name="robots" content="noindex,follow">
+<% } %>
+
+<title><%= pageTitle %></title>
+<meta name="description" content="<%= metaDescription %>">
+
+<link rel="canonical" href="<%= pageUrl %>">
+<link rel="alternate" hreflang="x-default" href="<%= BASE %>/EN/become-a-distributor">
+<link rel="alternate" hreflang="en" href="<%= BASE %>/EN/become-a-distributor">
+<link rel="alternate" hreflang="de" href="<%= BASE %>/DE/become-a-distributor">
+<link rel="alternate" hreflang="es" href="<%= BASE %>/ES/become-a-distributor">
+<link rel="alternate" hreflang="fr" href="<%= BASE %>/FR/become-a-distributor">
+<link rel="alternate" hreflang="tr" href="<%= BASE %>/TR/become-a-distributor">
+
+<meta property="og:title" content="<%= ogTitle %>">
+<meta property="og:description" content="<%= ogDescription %>">
+<meta property="og:image" content="<%= ogImage %>">
+<meta property="og:url" content="<%= pageUrl %>">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="<%= ogTitle %>">
+<meta name="twitter:description" content="<%= ogDescription %>">
+<meta name="twitter:image" content="<%= ogImage %>">
+
+<script type="application/ld+json" nonce="<%= nonce %>"><%- JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type":"ListItem","position":1,"name":(lang==='DE'?'Startseite':lang==='ES'?'Inicio':lang==='TR'?'Ana Sayfa':lang==='FR'?'Accueil':'Home'),"item": BASE + "/" + lang + "/"},
+    {"@type":"ListItem","position":2,"name":(lang==='DE'?'Distributor Werden':lang==='ES'?'Conviértase en Distribuidor':lang==='TR'?'Distribütör Olun':lang==='FR'?'Devenir Distributeur':'Become a Distributor'),"item": pageUrl}
+  ]
+}) %></script>
+</head>
+
+<body>
+<%- include('../../includes/customer/navbar.ejs') %>
+
+<!-- Hero -->
+<div class="dist-hero">
+  <div class="dist-hero-text">
+    <h1><%= heroTitle %></h1>
+    <p><%= heroSub %></p>
+  </div>
+</div>
+
+<!-- Success / Error -->
+<% if (success) { %>
+<div class="dist-success" style="max-width:900px;margin:2rem auto;padding:1.2rem 2rem;border-radius:8px;background:#e6f7ee;border:1px solid #27ae60;color:#1d7a42;font-weight:500;">
+  <p><%= successMsg %></p>
+</div>
+<% } else if (error) { %>
+<div class="dist-error" style="max-width:900px;margin:2rem auto;padding:1.2rem 2rem;border-radius:8px;background:#fdecea;border:1px solid #e74c3c;color:#c0392b;font-weight:500;">
+  <p><%= lang==='DE'?'Bitte füllen Sie alle Pflichtfelder aus.':lang==='ES'?'Por favor complete todos los campos requeridos.':lang==='TR'?'Lütfen tüm zorunlu alanları doldurun.':lang==='FR'?'Veuillez remplir tous les champs obligatoires.':'Please fill in all required fields.' %></p>
+</div>
+<% } %>
+
+<!-- Why Partner -->
+<section class="dist-why">
+  <div class="dist-why-inner">
+    <h2><%= whyTitle %></h2>
+    <ul class="dist-why-list">
+      <% whyPoints.forEach(point => { %>
+      <li><%= point %></li>
+      <% }) %>
+    </ul>
+  </div>
+</section>
+
+<!-- Benefits -->
+<section class="dist-benefits">
+  <div class="dist-benefits-inner">
+    <h2><%= benefitsTitle %></h2>
+    <div class="dist-benefits-grid">
+      <% benefits.forEach(b => { %>
+      <div class="dist-benefit-card">
+        <div class="dist-benefit-icon"><%= b.icon %></div>
+        <h3><%= b.title %></h3>
+        <p><%= b.desc %></p>
+      </div>
+      <% }) %>
+    </div>
+  </div>
+</section>
+
+<!-- Who We're Looking For -->
+<section class="dist-who">
+  <div class="dist-who-inner">
+    <h2><%= whoTitle %></h2>
+    <p><%= whoDesc %></p>
+  </div>
+</section>
+
+<!-- Application Form -->
+<div class="dist-form-section">
+  <h2><%= formTitle %></h2>
+  <form action="/submit-distributor-application" method="POST">
+    <input type="hidden" name="lang" value="<%= lang %>">
+    <div class="dist-form-grid">
+      <div class="form-field">
+        <label for="companyName"><%= labelCompany %> *</label>
+        <input type="text" id="companyName" name="companyName" required autocomplete="organization">
+      </div>
+      <div class="form-field">
+        <label for="country"><%= labelCountry %> *</label>
+        <input type="text" id="country" name="country" required autocomplete="country-name">
+      </div>
+      <div class="form-field">
+        <label for="website"><%= labelWebsite %></label>
+        <input type="url" id="website" name="website" placeholder="https://" autocomplete="url">
+      </div>
+      <div class="form-field">
+        <label for="yearsExperience"><%= labelYears %></label>
+        <input type="number" id="yearsExperience" name="yearsExperience" min="0" max="100">
+      </div>
+      <div class="form-field full-width">
+        <label for="currentBrands"><%= labelBrands %></label>
+        <input type="text" id="currentBrands" name="currentBrands">
+      </div>
+      <div class="form-field full-width">
+        <label for="targetMarket"><%= labelMarket %></label>
+        <input type="text" id="targetMarket" name="targetMarket">
+      </div>
+      <div class="form-field">
+        <label for="contactName"><%= labelContact %> *</label>
+        <input type="text" id="contactName" name="contactName" required autocomplete="name">
+      </div>
+      <div class="form-field">
+        <label for="email"><%= labelEmail %> *</label>
+        <input type="email" id="email" name="email" required autocomplete="email">
+      </div>
+      <div class="form-field">
+        <label for="phone"><%= labelPhone %></label>
+        <input type="tel" id="phone" name="phone" autocomplete="tel">
+      </div>
+    </div>
+    <div class="dist-submit-wrap">
+      <button type="submit" class="dist-submit-btn"><%= btnSubmit %></button>
+    </div>
+  </form>
+</div>
+
+<%- include('../../includes/customer/footer.ejs') %>
+</body>
+<%- include('../../includes/customer/script.ejs') %>
+</html>

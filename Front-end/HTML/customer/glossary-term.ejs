@@ -1,0 +1,84 @@
+<%- include('../../includes/customer/head.ejs') %>
+<link rel="stylesheet" href="/css/customer/laboratory-glossary.css">
+<%
+  const BASE = 'https://www.drag-lab.de';
+  const pageUrl = BASE + '/' + lang + '/laboratory-glossary/' + term.slug;
+%>
+
+<title><%= pageTitle %></title>
+<meta name="description" content="<%= metaDescription %>">
+
+<link rel="canonical" href="<%= pageUrl %>">
+<meta property="og:title" content="<%= ogTitle %>">
+<meta property="og:description" content="<%= ogDescription %>">
+<meta property="og:url" content="<%= pageUrl %>">
+<meta property="og:type" content="article">
+
+<script type="application/ld+json" nonce="<%= nonce %>"><%- JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "DefinedTerm",
+  "name": display.term,
+  "description": display.definition,
+  "inDefinedTermSet": BASE + "/" + lang + "/laboratory-glossary"
+}) %></script>
+
+<script type="application/ld+json" nonce="<%= nonce %>"><%- JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type":"ListItem","position":1,"name":(lang==='DE'?'Startseite':lang==='ES'?'Inicio':lang==='TR'?'Ana Sayfa':lang==='FR'?'Accueil':'Home'),"item": BASE + "/" + lang + "/"},
+    {"@type":"ListItem","position":2,"name":(lang==='DE'?'Laborglossar':lang==='ES'?'Glosario':lang==='TR'?'Sözlük':lang==='FR'?'Glossaire':'Glossary'),"item": BASE + "/" + lang + "/laboratory-glossary"},
+    {"@type":"ListItem","position":3,"name": display.term,"item": pageUrl}
+  ]
+}) %></script>
+</head>
+
+<body>
+<%- include('../../includes/customer/navbar.ejs') %>
+
+<!-- Hero -->
+<div class="gloss-detail-hero">
+  <div>
+    <% if (term.letter) { %>
+    <div class="gloss-letter-badge"><%= term.letter %></div><br>
+    <% } %>
+    <h1><%= display.term %></h1>
+  </div>
+</div>
+
+<!-- Content -->
+<div class="gloss-detail-wrapper">
+
+  <a href="/<%= lang %>/laboratory-glossary" class="gloss-back-link"><%= backLink %></a>
+
+  <!-- Definition -->
+  <div class="gloss-definition-box">
+    <%- display.definition %>
+  </div>
+
+  <!-- Description / Why It Matters -->
+  <% if (display.description) { %>
+  <div class="gloss-detail-section">
+    <h2><%= whyItMatters %></h2>
+    <p><%- display.description %></p>
+  </div>
+  <% } %>
+
+  <!-- Related Products -->
+  <% if (term.relatedProducts && term.relatedProducts.length > 0) { %>
+  <div class="gloss-detail-section">
+    <h2><%= relatedProducts %></h2>
+    <div class="gloss-related-products">
+      <% term.relatedProducts.forEach(p => { %>
+      <a href="/<%= lang %>/products/<%= p.toLowerCase().replace(/\s+/g, '-') %>" class="gloss-product-tag"><%= p %></a>
+      <% }) %>
+    </div>
+  </div>
+  <% } %>
+
+</div>
+
+<%- include('../../includes/customer/footer.ejs') %>
+</body>
+<%- include('../../includes/customer/script.ejs') %>
+</html>

@@ -9,20 +9,30 @@
     <link rel="alternate" hreflang="en" href="https://www.drag-lab.de/EN">
     <link rel="alternate" hreflang="es" href="https://www.drag-lab.de/ES">
     <link rel="alternate" hreflang="de" href="https://www.drag-lab.de/DE">
+    <link rel="alternate" hreflang="tr" href="https://www.drag-lab.de/TR">
+    <link rel="alternate" hreflang="fr" href="https://www.drag-lab.de/FR">
 
-    <title>DragLab – Scientific Equipment for Modern Labs</title>
-    <meta name="description"
-        content="Explore cutting-edge lab instruments, scientific articles, and industry solutions at DragLab.">
-    <meta name="robots" content="index, follow">
-
-    <meta property="og:title" content="DragLab – Scientific Equipment for Modern Labs">
-    <meta property="og:description"
-        content="Explore cutting-edge lab instruments, scientific articles, and industry solutions at DragLab.">
+    <%
+const homeTitle = lang === 'ES' ? 'DragLab – Equipos Científicos para Laboratorios Modernos'
+  : lang === 'DE' ? 'DragLab – Wissenschaftliche Geräte für Moderne Labore'
+  : lang === 'TR' ? 'DragLab – Modern Laboratuvarlar için Bilimsel Ekipmanlar'
+  : lang === 'FR' ? 'DragLab – Équipements Scientifiques pour Laboratoires Modernes'
+  : 'DragLab – Laboratory Equipment Manufacturer | Incubators, Ovens & Distillers';
+const homeDesc = lang === 'ES' ? 'DragLab fabrica incubadoras, hornos de secado, baños de agua y destiladores de alta calidad para laboratorios en todo el mundo.'
+  : lang === 'DE' ? 'DragLab produziert hochwertige Laborgeräte – Inkubatoren, Trockenöfen, Wasserbäder und Wasserdestillierapparate für Labore weltweit.'
+  : lang === 'TR' ? 'DragLab, dünya genelindeki laboratuvarlar için yüksek kaliteli inkübatörler, etüvler, su banyoları ve su destilasyon cihazları üretmektedir.'
+  : lang === 'FR' ? 'DragLab fabrique des équipements de laboratoire de haute qualité – incubateurs, étuves, bains-marie et distillateurs pour les laboratoires du monde entier.'
+  : 'DragLab manufactures high-quality laboratory equipment – incubators, drying ovens, water baths and water distillers for laboratories worldwide.';
+%>
+<title><%= homeTitle %></title>
+<meta name="description" content="<%= homeDesc %>">
+<meta name="robots" content="index, follow">
+<meta property="og:title" content="<%= homeTitle %>">
+<meta property="og:description" content="<%= homeDesc %>">
     <meta property="og:image" content="https://www.drag-lab.de/assets/Imgs/logo/logo.png">
     <meta property="og:url" content="https://www.drag-lab.de/<%= lang %>">
     <link rel="canonical" href="https://www.drag-lab.de/<%= lang %>">
 
-    <!-- ✅ JSON-LD must be UNESCAPED and carry nonce -->
     <script type="application/ld+json" nonce="<%= nonce %>">
 <%- JSON.stringify({
   "@context": "https://schema.org",
@@ -30,7 +40,13 @@
   "name": "DragLab",
   "url": "https://www.drag-lab.de/",
   "logo": "https://www.drag-lab.de/assets/Imgs/logo/logo.png",
-
+  "description": "DragLab is a manufacturer of high-quality laboratory equipment including incubators, drying ovens, water baths, and water distillers for laboratories worldwide.",
+  "contactPoint": {
+    "@type": "ContactPoint",
+    "contactType": "customer service",
+    "url": "https://www.drag-lab.de/EN/contactus"
+  },
+  "sameAs": []
 }) %>
 </script>
 

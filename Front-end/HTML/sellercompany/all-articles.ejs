@@ -9,50 +9,59 @@
                 <%- include('../../includes/sellercompany/sidebar.ejs') %>
             </section>
 
+            <div class="article-dashboard-container">
+                <h1>Manage Articles</h1>
+                <a href="/admin/articles/add" class="add-button">+ Add New Article</a>
 
-
-
-                <div class="article-dashboard-container">
-                    <h1>Manage Articles</h1>
-                    <a href="/admin/articles/add" class="add-button">+ Add New Article</a>
-
-                    <table>
-                        <thead>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Thumbnail</th>
+                            <th>Title</th>
+                            <th>Author</th>
+                            <th>Languages</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% articles.forEach((article, i) => {
+                           const tr = article.translations || {};
+                           const displayTitle =
+                             tr.en?.title || tr.de?.title || tr.tr?.title ||
+                             tr.fr?.title || tr.es?.title || '(No title)';
+                        %>
                             <tr>
-                                <th>Thumbnail</th>
-                                <th>Title</th>
-                                <th>Author</th>
-                                <th>Language</th> <!-- ✅ Add this -->
-                                <th>Actions</th>
+                                <td><%= (currentPage - 1) * 20 + i + 1 %></td>
+                                <td>
+                                    <% if (article.thumbnail) { %>
+                                        <img src="<%= article.thumbnail %>" width="100">
+                                    <% } else { %>
+                                        <span style="color:#aaa;">—</span>
+                                    <% } %>
+                                </td>
+                                <td><%= displayTitle %></td>
+                                <td><%= article.author || '—' %></td>
+                                <td>
+                                    <% ['en','es','de','tr','fr'].forEach(l => {
+                                       const st = tr[l]?.status || 'none';
+                                       if (st !== 'none') { %>
+                                    <span class="lang-badge lang-<%= st %>"><%= l.toUpperCase() %></span>
+                                    <% } }) %>
+                                </td>
+                                <td>
+                                    <a href="/admin/articles/edit/<%= article._id %>">Edit</a> |
+                                    <form action="/admin/articles/delete/<%= article._id %>" method="POST"
+                                        style="display:inline">
+                                        <button type="submit">Delete</button>
+                                    </form>
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            <% articles.forEach(article=> { %>
-                                <tr>
-                                    <td><img src="<%= article.thumbnail %>" width="100"></td>
-                                    <td>
-                                        <%= article.title %>
-                                    </td>
-                                    <td>
-                                        <%= article.author %>
-                                    </td>
-                                    <td>
-                                        <%= article.language %>
-                                    </td> <!-- ✅ Display language -->
-                                    <td>
-                                        <a href="/admin/articles/edit/<%= article._id %>">Edit</a> |
-                                        <form action="/admin/articles/delete/<%= article._id %>" method="POST"
-                                            style="display:inline">
-                                            <button type="submit">Delete</button>
-
-                                        </form>
-                                    </td>
-                                </tr>
-                                <% }) %>
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-            <script src="/js/all-articles.js" nonce="<%= nonce %>"></script>
-
+                        <% }) %>
+                    </tbody>
+                </table>
+                <%- include('../../includes/sellercompany/pagination.ejs') %>
+            </div>
+        </section>
+        <script src="/js/all-articles.js" nonce="<%= nonce %>"></script>
     </body>

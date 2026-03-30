@@ -1,0 +1,61 @@
+<%- include('../../includes/sellercompany/head.ejs') %>
+<link rel="stylesheet" href="/css/sellercompany/all-technical-service.css">
+
+<style nonce="<%= nonce %>">
+  .status-pub { background: #d1e7dd; color: #0f5132; }
+  .status-dft { background: #f8d7da; color: #842029; }
+  .status-badge { display: inline-block; padding: 2px 9px; border-radius: 10px; font-size: 0.76rem; font-weight: 700; text-transform: uppercase; }
+</style>
+
+<body>
+  <%- include('../../includes/sellercompany/navbar-dash.ejs') %>
+
+  <section class="sidebar-content-container">
+    <section class="sidebar-container">
+      <%- include('../../includes/sellercompany/sidebar.ejs') %>
+    </section>
+
+    <div class="article-dashboard-container">
+      <h1>Manage Case Studies</h1>
+      <a href="/admin/case-studies/add" class="add-button">+ Add New Case Study</a>
+
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Title (EN)</th>
+            <th>Industry</th>
+            <th>Location</th>
+            <th>Status</th>
+            <th>Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% caseStudies.forEach((cs, i) => {
+             const displayTitle = cs.translations?.en?.title || cs.title || '(No title)';
+          %>
+          <tr>
+            <td><%= i + 1 %></td>
+            <td><strong><%= displayTitle %></strong></td>
+            <td><%= cs.industry || '—' %></td>
+            <td><%= cs.clientLocation || '—' %></td>
+            <td><span class="status-badge <%= cs.status === 'published' ? 'status-pub' : 'status-dft' %>"><%= cs.status %></span></td>
+            <td><%= new Date(cs.createdAt).toLocaleDateString() %></td>
+            <td>
+              <a href="/admin/case-studies/edit/<%= cs._id %>">Edit</a> |
+              <form action="/admin/case-studies/delete/<%= cs._id %>" method="POST" style="display:inline"
+                    onsubmit="return confirm('Delete this case study?')">
+                <button type="submit" style="background:none;border:none;color:#dc3545;cursor:pointer;font-weight:600;font-size:0.9rem;">Delete</button>
+              </form>
+            </td>
+          </tr>
+          <% }) %>
+          <% if (caseStudies.length === 0) { %>
+          <tr><td colspan="7" style="text-align:center;color:#aaa;padding:2rem;">No case studies yet. <a href="/admin/case-studies/add">Add one</a>.</td></tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</body>

@@ -1,0 +1,67 @@
+<%- include('../../includes/sellercompany/head.ejs') %>
+<link rel="stylesheet" href="/css/sellercompany/all-technical-service.css">
+
+<style nonce="<%= nonce %>">
+  .status-badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; }
+  .status-new { background: #cfe2ff; color: #084298; }
+  .status-under_review { background: #fff3cd; color: #664d03; }
+  .status-accepted { background: #d1e7dd; color: #0f5132; }
+  .status-rejected { background: #f8d7da; color: #842029; }
+  .filter-bar { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+  .filter-btn { padding: 5px 14px; border-radius: 50px; border: 2px solid #dee2e6; background: #fff; cursor: pointer; font-size: 0.85rem; text-decoration: none; color: #2c3e50; font-weight: 600; }
+  .filter-btn.active, .filter-btn:hover { background: #0d3b6e; border-color: #0d3b6e; color: #fff; }
+</style>
+
+<body>
+  <%- include('../../includes/sellercompany/navbar-dash.ejs') %>
+
+  <section class="sidebar-content-container">
+    <section class="sidebar-container">
+      <%- include('../../includes/sellercompany/sidebar.ejs') %>
+    </section>
+
+    <div class="article-dashboard-container">
+      <h1>Distributor Applications</h1>
+
+      <div class="filter-bar">
+        <a href="/admin/distributor-applications" class="filter-btn <%= !statusFilter ? 'active' : '' %>">All</a>
+        <a href="/admin/distributor-applications?status=new" class="filter-btn <%= statusFilter === 'new' ? 'active' : '' %>">New</a>
+        <a href="/admin/distributor-applications?status=under_review" class="filter-btn <%= statusFilter === 'under_review' ? 'active' : '' %>">Under Review</a>
+        <a href="/admin/distributor-applications?status=accepted" class="filter-btn <%= statusFilter === 'accepted' ? 'active' : '' %>">Accepted</a>
+        <a href="/admin/distributor-applications?status=rejected" class="filter-btn <%= statusFilter === 'rejected' ? 'active' : '' %>">Rejected</a>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Company</th>
+            <th>Country</th>
+            <th>Contact</th>
+            <th>Email</th>
+            <th>Status</th>
+            <th>Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% applications.forEach((app, i) => { %>
+          <tr>
+            <td><%= i + 1 %></td>
+            <td><strong><%= app.companyName %></strong><% if (app.website) { %><br><small><a href="<%= app.website %>" target="_blank">Website</a></small><% } %></td>
+            <td><%= app.country %></td>
+            <td><%= app.contactName || '—' %></td>
+            <td><a href="mailto:<%= app.email %>"><%= app.email %></a></td>
+            <td><span class="status-badge status-<%= app.status %>"><%= app.status.replace('_', ' ') %></span></td>
+            <td><%= new Date(app.createdAt).toLocaleDateString() %></td>
+            <td><a href="/admin/distributor-applications/<%= app._id %>">View</a></td>
+          </tr>
+          <% }) %>
+          <% if (applications.length === 0) { %>
+          <tr><td colspan="8" style="text-align:center;color:#aaa;padding:2rem;">No applications yet.</td></tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</body>

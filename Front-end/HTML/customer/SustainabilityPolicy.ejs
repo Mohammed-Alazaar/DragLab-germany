@@ -13,7 +13,19 @@
 <link rel="alternate" hreflang="en" href="https://www.drag-lab.de/EN/SustainabilityPolicy">
 <link rel="alternate" hreflang="es" href="https://www.drag-lab.de/ES/SustainabilityPolicy">
 <link rel="alternate" hreflang="de" href="https://www.drag-lab.de/DE/SustainabilityPolicy">
+<link rel="alternate" hreflang="tr" href="https://www.drag-lab.de/TR/SustainabilityPolicy">
+<link rel="alternate" hreflang="fr" href="https://www.drag-lab.de/FR/SustainabilityPolicy">
 <link rel="alternate" hreflang="x-default" href="https://www.drag-lab.de/EN/SustainabilityPolicy">
+<script type="application/ld+json" nonce="<%= nonce %>">
+<%- JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": (typeof pageTitle !== 'undefined' ? pageTitle : 'Sustainability Policy') + ' | DragLab',
+  "url": `https://www.drag-lab.de/${lang}/SustainabilityPolicy`,
+  "inLanguage": (lang || 'EN').toLowerCase(),
+  "publisher": { "@type": "Organization", "name": "DragLab", "url": "https://www.drag-lab.de/" }
+}) %>
+</script>
 </head>
 
 <body>

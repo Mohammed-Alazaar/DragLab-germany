@@ -13,6 +13,17 @@ const CatalogCategory = require('../models/CatalogCategory'); // Add this line t
 const Slideshow = require('../models/slideshow'); // ✅ Make sure this is imported at the top
 const axios = require('axios'); // ✅ Import axios for HTTP requests
 const { RECAPTCHA_ENABLED } = require('../config/recaptcha');
+const geoip = require('geoip-lite');
+
+const cloudinary = require('../util/cloudinaryConfig');
+
+// New page models
+const Quote = require('../models/quote');
+const DistributorApplication = require('../models/distributorApplication');
+const FAQ = require('../models/faq');
+const CaseStudy = require('../models/caseStudy');
+const Glossary = require('../models/glossary');
+// notifyInternal is available from the existing require at line ~1544 in this file
 
 const allanguages = ['EN', 'ES', 'DE', 'TR', 'FR'];
 
@@ -43,7 +54,8 @@ exports.getStaticPage = (req, res) => {
 
 exports.getHomePage = async (req, res, next) => {
     try {
-        const lang = (req.params.lang || req.query.lang || 'EN').toUpperCase();
+        const lang    = (req.params.lang || req.query.lang || 'EN').toUpperCase();
+        const langKey = lang.toLowerCase();
 
 
 
@@ -179,7 +191,7 @@ exports.getHomePage = async (req, res, next) => {
 
         // Fetch all non-draft products; we'll filter by language publish below
        // ✅ Only fetch what you need for homepage cards
-const [products, slides, articles] = await Promise.all([
+const [products, rawSlides, rawArticles] = await Promise.all([
   Product.find({ isDraft: false })
     .select([
       'slug',
@@ -192,16 +204,34 @@ const [products, slides, articles] = await Promise.all([
     ])
     .limit(12)                // show max 12 featured products
     .lean(),
-  Slideshow.find({ $or: [{ language: lang }, { language: 'ALL' }] })
+  Slideshow.find({ [`translations.${langKey}.status`]: 'published' })
     .sort({ createdAt: -1 })
-    .limit(5)                 // don’t pull 100 slides if you only show a few
+    .limit(5)
     .lean(),
-  Article.find({ $or: [{ language: lang }, { language: 'ALL' }] })
+  Article.find({ [`translations.${langKey}.status`]: 'published' })
     .sort({ createdAt: -1 })
-    .limit(6)                 // homepage teaser only
+    .limit(6)
     .lean(),
 ]);
 
+
+        // Map slides to flat structure for the template
+        const slides = rawSlides.map(s => ({
+            _id:   s._id,
+            image: s.image,
+            title: s.translations?.[langKey]?.title || '',
+            desc:  s.translations?.[langKey]?.desc  || ''
+        }));
+
+        // Map articles to flat structure for the template
+        const articles = rawArticles.map(a => ({
+            _id:       a._id,
+            thumbnail: a.thumbnail,
+            title:     a.translations?.[langKey]?.title || '',
+            slug:      a.translations?.[langKey]?.slug  || '',
+            summary:   a.translations?.[langKey]?.summary || '',
+            body:      a.translations?.[langKey]?.body  || ''
+        }));
 
         // Keep only products that are PUBLISHED in current language
         const publishedProducts = products.filter(p => {
@@ -1059,7 +1089,7 @@ exports.getContactus = (req, res, next) => {
     const translations = {
         EN: {
             pageTitle: 'Contact Us - DragLab',
-            metaDescription: 'Have a question or need help? Contact DragLab for fast support and expert assistance. We’re here to help you.',
+            metaDescription: 'Have a question or need help? Contact DragLab for fast support and expert assistance. We\'re here to help you.',
             ogTitle: 'Contact Us | DragLab',
             ogDescription: 'Need assistance with laboratory equipment or service inquiries? Contact DragLab Technologies today.',
             ogImage: DEFAULT_OG,
@@ -1212,10 +1242,21 @@ exports.postContactUs = async (req, res) => {
         // --- Meta ---
         const ipAddress = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip;
         const userAgent = req.get('User-Agent');
+        const referrer  = req.get('Referer') || null;
+
+        // --- Geo lookup ---
+        const geo = geoip.lookup(ipAddress);
+        const geoLocation = {
+            country: geo?.country || null,
+            region:  geo?.region  || null,
+            city:    geo?.city    || null,
+            isp:     geo?.org     || null
+        };
 
         // --- Persist submission ---
         const doc = await new ContactUs({
-            firstName, lastName, subject, email, message, lang, ipAddress, userAgent
+            firstName, lastName, subject, email, message,
+            lang, ipAddress, userAgent, referrer, geoLocation
         }).save();
 
         // Redirect the user immediately — they don't need to wait for email delivery.
@@ -1837,41 +1878,38 @@ exports.getSupport = (req, res, next) => {
 
 
 exports.getArticles = async (req, res) => {
-    const lang = req.params.lang?.toUpperCase() || 'EN';
+    const lang    = (req.params.lang || 'EN').toUpperCase();
+    const langKey = lang.toLowerCase();
 
     const seoTranslations = {
-        EN: {
-            pageTitle: 'Articles - DragLab',
-            metaDescription: 'Explore insights, innovations, and expert knowledge in lab technology through DragLab’s latest articles.'
-        },
-        ES: {
-            pageTitle: 'Artículos - DragLab',
-            metaDescription: 'Explore conocimientos, innovaciones y experiencia en tecnología de laboratorio a través de los artículos de DragLab.'
-        },
-        DE: {
-            pageTitle: 'Artikel - DragLab',
-            metaDescription: 'Entdecken Sie Einblicke, Innovationen und Fachwissen über Labortechnologie in den neuesten Artikeln von DragLab.'
-        },
-        TR: {
-            pageTitle: 'Makaleler - DragLab',
-            metaDescription: 'DragLab’ın en son makaleleri aracılığıyla laboratuvar teknolojisindeki içgörüler, yenilikler ve uzman bilgilerini keşfedin.'
-        },
-        FR: {
-            pageTitle: 'Articles - DragLab',
-            metaDescription: 'Explorez les idées, les innovations et l\'expertise en technologie de laboratoire à travers les derniers articles de DragLab.'
-        }
+        EN: { pageTitle: 'Articles - DragLab', metaDescription: 'Explore insights, innovations, and expert knowledge in lab technology through DragLab\'s latest articles.' },
+        ES: { pageTitle: 'Artículos - DragLab', metaDescription: 'Explore conocimientos, innovaciones y experiencia en tecnología de laboratorio a través de los artículos de DragLab.' },
+        DE: { pageTitle: 'Artikel - DragLab',   metaDescription: 'Entdecken Sie Einblicke, Innovationen und Fachwissen über Labortechnologie in den neuesten Artikeln von DragLab.' },
+        TR: { pageTitle: 'Makaleler - DragLab', metaDescription: 'DragLab\'ın en son makaleleri aracılığıyla laboratuvar teknolojisindeki içgörüler, yenilikler ve uzman bilgilerini keşfedin.' },
+        FR: { pageTitle: 'Articles - DragLab',  metaDescription: 'Explorez les idées, les innovations et l\'expertise en technologie de laboratoire à travers les derniers articles de DragLab.' }
     };
-
     const t = seoTranslations[lang] || seoTranslations['EN'];
 
     try {
-        const articles = await Article.find({
-            $or: [
-                { language: lang },
-                { language: 'ALL' }
-            ]
-        }).sort({ createdAt: -1 });
+        const raw = await Article.find({ [`translations.${langKey}.status`]: 'published' })
+            .sort({ createdAt: -1 });
 
+        const articles = raw.map(a => {
+            const tr = a.translations[langKey];
+            return {
+                _id: a._id,
+                thumbnail: a.thumbnail,
+                author: a.author,
+                category: a.category,
+                slug: tr.slug,
+                title: tr.title,
+                summary: tr.summary,
+                body: tr.body,
+                tags: tr.tags,
+                createdAt: a.createdAt,
+                updatedAt: a.updatedAt
+            };
+        });
 
         res.render('customer/Articles', {
             articles,
@@ -1887,28 +1925,52 @@ exports.getArticles = async (req, res) => {
 
 
 exports.getArticleDetails = async (req, res) => {
-    const { slug } = req.params;
+    const { slug }  = req.params;
+    const lang      = (req.params.lang || 'EN').toUpperCase();
+    const langKey   = lang.toLowerCase();
 
     try {
-        const article = await Article.findOne({ slug });
-        if (!article) return res.redirect('/');
+        const raw = await Article.findOne({ [`translations.${langKey}.slug`]: slug });
+        if (!raw) return res.redirect('/');
 
-        // Use the article's language, but fall back to URL param when language is 'ALL'
-        const lang = (article.language && article.language !== 'ALL')
-            ? article.language
-            : (req.params.lang?.toUpperCase() || 'EN');
+        const tr = raw.translations[langKey];
+        const article = {
+            _id:       raw._id,
+            thumbnail: raw.thumbnail,
+            author:    raw.author,
+            category:  raw.category,
+            slug:      tr.slug,
+            title:     tr.title,
+            summary:   tr.summary,
+            body:      tr.body,
+            tags:      tr.tags,
+            createdAt: raw.createdAt,
+            updatedAt: raw.updatedAt
+        };
 
-        const recentArticles = await Article.find({
-            slug: { $ne: slug },
-            $or: [{ language: lang }, { language: 'ALL' }]
+        const recentRaw = await Article.find({
+            _id: { $ne: raw._id },
+            [`translations.${langKey}.status`]: 'published'
         }).sort({ createdAt: -1 }).limit(4);
 
+        const recentArticles = recentRaw.map(a => ({
+            _id:       a._id,
+            thumbnail: a.thumbnail,
+            title:     a.translations[langKey].title,
+            slug:      a.translations[langKey].slug
+        }));
 
-        res.render('customer/article-details', {
-            article,
-            recentArticles,
-            lang
-        });
+        // Build per-language slug map so the navbar switcher can link to the right slug
+        const langSlugs = {};
+        const LANGS = ['en', 'es', 'de', 'tr', 'fr'];
+        for (const l of LANGS) {
+            const t = raw.translations[l];
+            if (t && t.status === 'published' && t.slug) {
+                langSlugs[l.toUpperCase()] = t.slug;
+            }
+        }
+
+        res.render('customer/article-details', { article, recentArticles, lang, langSlugs });
     } catch (err) {
         console.error(err);
         res.redirect('/');
@@ -2404,10 +2466,10 @@ exports.getIndustryPage = async (req, res, next) => {
                 FR: 'Solutions Industrielles'
             }[lang],
             metaDescription: {
-                EN: 'Read DragLab’s Industry Solutions and learn how we can help your business.',
+                EN: "Read DragLab's Industry Solutions and learn how we can help your business.",
                 ES: 'Lea las Soluciones para la Industria de DragLab y descubra cómo podemos ayudar a su negocio.',
                 DE: 'Lesen Sie die Branchenspezifischen Lösungen von DragLab und erfahren Sie, wie wir Ihnen helfen können.',
-                TR: 'DragLab’ın Endüstri Çözümleri’ni okuyun ve işinize nasıl yardımcı olabileceğimizi öğrenin.',
+                TR: "DragLab'ın Endüstri Çözümleri'ni okuyun ve işinize nasıl yardımcı olabileceğimizi öğrenin.",
                 FR: 'Lisez les Solutions Industrielles de DragLab et découvrez comment nous pouvons aider votre entreprise.'
             }[lang],
             industryCards
@@ -2547,6 +2609,663 @@ exports.getIndustryDetails = async (req, res) => {
       path: '/industry',
       isAuthenticated: req.session?.isLoggedIn || false,
     });
+  }
+};
+
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// PAGE 1: REQUEST A QUOTE
+// ═══════════════════════════════════════════════════════════════════════════════
+
+exports.getRequestQuote = async (req, res) => {
+  try {
+    const lang = (req.params.lang || 'EN').toUpperCase();
+
+    const t = {
+      EN: {
+        pageTitle: 'Request a Quote – DragLab Laboratory Equipment',
+        metaDescription: 'Request a custom quote for DragLab laboratory equipment. Fast response from our sales team.',
+        ogTitle: 'Request a Quote | DragLab',
+        ogDescription: 'Get a tailored quote for incubators, ovens, water stills and more.',
+        ogImage: 'https://www.drag-lab.de/assets/Imgs/Icons/products/quote-BC.png',
+        heroTitle: 'Request a Quote for Laboratory Equipment',
+        heroSub: 'Professional lab equipment solutions tailored to your requirements',
+        trustISO: 'ISO 9001 Certified',
+        trustCE: 'CE Compliance',
+        trustGlobal: 'Global Distribution',
+        trustWarranty: '2-Year Warranty',
+        sectionProduct: 'Product Information',
+        sectionCustomer: 'Your Information',
+        sectionDetails: 'Request Details',
+        labelCategory: 'Product Category',
+        labelModel: 'Product Model / Reference',
+        labelQuantity: 'Quantity',
+        labelCompany: 'Company Name',
+        labelCountry: 'Country',
+        labelIndustry: 'Industry',
+        labelContact: 'Contact Name',
+        labelEmail: 'Email Address',
+        labelPhone: 'Phone Number',
+        labelMessage: 'Additional Requirements',
+        labelDeadline: 'Delivery Deadline',
+        labelFile: 'Attach Specification File (optional)',
+        btnSubmit: 'Request Quote',
+        successMsg: 'Thank you! Your quote request has been received. We will respond within 1 business day.',
+        required: 'Required fields are marked with *',
+        categories: ['Incubators', 'Ovens & Furnaces', 'Water Stills & Baths', 'Centrifuges', 'Autoclaves', 'Other']
+      },
+      ES: {
+        pageTitle: 'Solicitar Cotización – DragLab Equipos de Laboratorio',
+        metaDescription: 'Solicite una cotización personalizada para equipos de laboratorio DragLab.',
+        ogTitle: 'Solicitar Cotización | DragLab',
+        ogDescription: 'Obtenga una cotización personalizada para incubadoras, hornos y más.',
+        ogImage: 'https://www.drag-lab.de/assets/Imgs/Icons/products/quote-BC.png',
+        heroTitle: 'Solicitar Cotización de Equipos de Laboratorio',
+        heroSub: 'Soluciones profesionales de laboratorio adaptadas a sus necesidades',
+        trustISO: 'Certificado ISO 9001', trustCE: 'Cumplimiento CE', trustGlobal: 'Distribución Global', trustWarranty: 'Garantía 2 Años',
+        sectionProduct: 'Información del Producto', sectionCustomer: 'Su Información', sectionDetails: 'Detalles de la Solicitud',
+        labelCategory: 'Categoría de Producto', labelModel: 'Modelo / Referencia', labelQuantity: 'Cantidad',
+        labelCompany: 'Nombre de la Empresa', labelCountry: 'País', labelIndustry: 'Industria',
+        labelContact: 'Nombre de Contacto', labelEmail: 'Correo Electrónico', labelPhone: 'Teléfono',
+        labelMessage: 'Requisitos Adicionales', labelDeadline: 'Fecha de Entrega', labelFile: 'Adjuntar Especificación (opcional)',
+        btnSubmit: 'Solicitar Cotización',
+        successMsg: 'Gracias. Su solicitud de cotización ha sido recibida. Responderemos en 1 día hábil.',
+        required: 'Los campos requeridos están marcados con *',
+        categories: ['Incubadoras', 'Hornos y Estufas', 'Destiladores y Baños', 'Centrífugas', 'Autoclaves', 'Otro']
+      },
+      DE: {
+        pageTitle: 'Angebot Anfragen – DragLab Laborgeräte',
+        metaDescription: 'Fordern Sie ein individuelles Angebot für DragLab Laborgeräte an.',
+        ogTitle: 'Angebot Anfragen | DragLab',
+        ogDescription: 'Erhalten Sie ein maßgeschneidertes Angebot für Inkubatoren, Öfen und mehr.',
+        ogImage: 'https://www.drag-lab.de/assets/Imgs/Icons/products/quote-BC.png',
+        heroTitle: 'Angebot für Laborgeräte Anfragen',
+        heroSub: 'Professionelle Laborlösungen nach Ihren Anforderungen',
+        trustISO: 'ISO 9001 Zertifiziert', trustCE: 'CE-Konformität', trustGlobal: 'Weltweiter Vertrieb', trustWarranty: '2 Jahre Garantie',
+        sectionProduct: 'Produktinformation', sectionCustomer: 'Ihre Angaben', sectionDetails: 'Anfragedetails',
+        labelCategory: 'Produktkategorie', labelModel: 'Produktmodell / Referenz', labelQuantity: 'Menge',
+        labelCompany: 'Firmenname', labelCountry: 'Land', labelIndustry: 'Branche',
+        labelContact: 'Ansprechpartner', labelEmail: 'E-Mail-Adresse', labelPhone: 'Telefonnummer',
+        labelMessage: 'Weitere Anforderungen', labelDeadline: 'Liefertermin', labelFile: 'Spezifikation anhängen (optional)',
+        btnSubmit: 'Angebot Anfragen',
+        successMsg: 'Vielen Dank! Ihre Angebotsanfrage ist eingegangen. Wir antworten innerhalb von 1 Werktag.',
+        required: 'Pflichtfelder sind mit * markiert',
+        categories: ['Inkubatoren', 'Öfen & Muffelöfen', 'Wasseraufbereitung & Bäder', 'Zentrifugen', 'Autoklaven', 'Sonstiges']
+      },
+      TR: {
+        pageTitle: 'Fiyat Teklifi İste – DragLab Laboratuvar Ekipmanları',
+        metaDescription: 'DragLab laboratuvar ekipmanları için özel fiyat teklifi alın.',
+        ogTitle: 'Fiyat Teklifi İste | DragLab',
+        ogDescription: 'İnkübatörler, fırınlar ve daha fazlası için özelleştirilmiş teklif alın.',
+        ogImage: 'https://www.drag-lab.de/assets/Imgs/Icons/products/quote-BC.png',
+        heroTitle: 'Laboratuvar Ekipmanı Fiyat Teklifi İste',
+        heroSub: 'Gereksinimlerinize göre profesyonel laboratuvar çözümleri',
+        trustISO: 'ISO 9001 Sertifikalı', trustCE: 'CE Uyumluluğu', trustGlobal: 'Global Dağıtım', trustWarranty: '2 Yıl Garanti',
+        sectionProduct: 'Ürün Bilgisi', sectionCustomer: 'Bilgileriniz', sectionDetails: 'Talep Detayları',
+        labelCategory: 'Ürün Kategorisi', labelModel: 'Ürün Modeli', labelQuantity: 'Miktar',
+        labelCompany: 'Şirket Adı', labelCountry: 'Ülke', labelIndustry: 'Sektör',
+        labelContact: 'İletişim Kişisi', labelEmail: 'E-posta Adresi', labelPhone: 'Telefon',
+        labelMessage: 'Ek Gereksinimler', labelDeadline: 'Teslimat Tarihi', labelFile: 'Spesifikasyon Dosyası Ekle (isteğe bağlı)',
+        btnSubmit: 'Teklif İste',
+        successMsg: 'Teşekkürler! Teklif talebiniz alındı. 1 iş günü içinde yanıt vereceğiz.',
+        required: 'Zorunlu alanlar * ile işaretlenmiştir',
+        categories: ['İnkübatörler', 'Fırınlar', 'Su Damıtıcılar ve Banyolar', 'Santrifüjler', 'Otoklavlar', 'Diğer']
+      },
+      FR: {
+        pageTitle: 'Demande de Devis – DragLab Équipements de Laboratoire',
+        metaDescription: 'Demandez un devis personnalisé pour les équipements DragLab.',
+        ogTitle: 'Demande de Devis | DragLab',
+        ogDescription: 'Obtenez un devis sur mesure pour incubateurs, fours et plus encore.',
+        ogImage: 'https://www.drag-lab.de/assets/Imgs/Icons/products/quote-BC.png',
+        heroTitle: 'Demande de Devis pour Équipements de Laboratoire',
+        heroSub: 'Solutions professionnelles adaptées à vos besoins',
+        trustISO: 'Certifié ISO 9001', trustCE: 'Conformité CE', trustGlobal: 'Distribution Mondiale', trustWarranty: 'Garantie 2 Ans',
+        sectionProduct: 'Informations Produit', sectionCustomer: 'Vos Informations', sectionDetails: 'Détails de la Demande',
+        labelCategory: 'Catégorie de Produit', labelModel: 'Modèle / Référence', labelQuantity: 'Quantité',
+        labelCompany: 'Nom de la Société', labelCountry: 'Pays', labelIndustry: 'Secteur',
+        labelContact: 'Nom du Contact', labelEmail: 'Adresse E-mail', labelPhone: 'Numéro de Téléphone',
+        labelMessage: 'Exigences Supplémentaires', labelDeadline: 'Date de Livraison', labelFile: 'Joindre Spécification (optionnel)',
+        btnSubmit: 'Demander un Devis',
+        successMsg: 'Merci ! Votre demande de devis a été reçue. Nous répondrons dans 1 jour ouvré.',
+        required: 'Les champs obligatoires sont marqués d\'un *',
+        categories: ['Incubateurs', 'Fours & Moufles', 'Bains & Distillateurs', 'Centrifugeuses', 'Autoclaves', 'Autre']
+      }
+    };
+
+    const tr = t[lang] || t.EN;
+
+    // Fetch all published products with their embedded models
+    const rawProducts = await Product.find({ isDraft: false })
+      .select('Language slug Models ProductThumbnail')
+      .lean();
+
+    const productsData = rawProducts.map(p => {
+      const productName = p.Language?.[lang]?.[0]?.ProductName
+        || p.Language?.EN?.[0]?.ProductName
+        || '';
+      if (!productName) return null;
+      const models = (p.Models || []).map(m => ({
+        slug: m.slug || String(m._id),
+        name: m.Language?.[lang]?.[0]?.ModelName || m.Language?.EN?.[0]?.ModelName || '',
+        capacity: m.modelcapacity || ''
+      })).filter(m => m.name);
+      const rawThumb = p.ProductThumbnail || '';
+      let thumbnail = rawThumb;
+      if (rawThumb && rawThumb.includes('cloudinary.com') && rawThumb.includes('/upload/')) {
+        thumbnail = rawThumb.replace('/upload/', '/upload/w_300,h_220,c_pad,b_white,q_auto,f_auto/');
+      }
+      return {
+        slug: p.slug || String(p._id),
+        name: productName,
+        thumbnail,
+        models
+      };
+    }).filter(Boolean);
+
+    res.render('customer/request-a-quote', {
+      lang,
+      ...tr,
+      path: `/${lang}/request-a-quote`,
+      success: req.query.success === '1',
+      error: req.query.error || null,
+      productsData
+    });
+  } catch (err) {
+    console.error('getRequestQuote error:', err);
+    res.status(500).render('500', { pageTitle: 'Error', path: '/', isAuthenticated: false });
+  }
+};
+
+exports.postRequestQuote = async (req, res) => {
+  try {
+    const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.connection.remoteAddress;
+    const {
+      companyName, country, industry, contactName, email, phone,
+      message, deliveryDeadline, lang
+    } = req.body;
+
+    // bodyParser extended:true (qs) strips [] suffix → req.body.selectedModels
+    const selectedProducts = [].concat(req.body.selectedProducts || req.body['selectedProducts[]'] || []);
+    const selectedModels   = [].concat(req.body.selectedModels   || req.body['selectedModels[]']   || []);
+    const selectedModelQtys = [].concat(req.body.selectedModelQtys || []);
+    const modelQtyLines = selectedModels.map((m, i) => {
+      const qty = parseInt(selectedModelQtys[i], 10);
+      return `${m} × ${(qty > 0 ? qty : 1)}`;
+    });
+
+    if (!companyName || !country || !email) {
+      return res.redirect(`/${lang || 'EN'}/request-a-quote?error=1`);
+    }
+
+    // Upload attachment to Cloudinary if provided
+    let fileAttachmentUrl = '';
+    if (req.file && req.file.buffer) {
+      try {
+        const ext = path.extname(req.file.originalname).toLowerCase();
+        const isImage = ['.jpg', '.jpeg', '.png', '.gif', '.webp'].includes(ext);
+        // Include extension in public_id so Cloudinary URL preserves the format
+        const publicId = `quote-attachment-${Date.now()}${ext}`;
+        fileAttachmentUrl = await new Promise((resolve, reject) => {
+          cloudinary.uploader.upload_stream(
+            {
+              folder: 'draglab/quotes',
+              resource_type: isImage ? 'image' : 'raw',
+              public_id: publicId,
+              use_filename: false,
+            },
+            (err, result) => { if (err) reject(err); else resolve(result.secure_url); }
+          ).end(req.file.buffer);
+        });
+      } catch (uploadErr) {
+        console.error('Quote attachment upload error:', uploadErr);
+      }
+    }
+
+    const quote = new Quote({
+      companyName, country, industry, contactName, email, phone,
+      productCategory:  selectedProducts.join(', '),
+      productModel:     modelQtyLines.join('\n'),
+      quantity:         null,
+      message,
+      fileAttachment:   fileAttachmentUrl || undefined,
+      deliveryDeadline: deliveryDeadline || null,
+      lang: (lang || 'EN').toUpperCase(),
+      ipAddress: ip
+    });
+    await quote.save();
+
+    const modelsHtml = modelQtyLines.length
+      ? modelQtyLines.map(l => `<li>${l}</li>`).join('') : '—';
+    const attachHtml = fileAttachmentUrl
+      ? `<p><strong>Attachment:</strong> <a href="${fileAttachmentUrl}">${req.file.originalname}</a></p>` : '';
+
+    notifyInternal({
+      to: 'info@drag-lab.de',
+      subject: `New Quote Request from ${companyName} (${country})`,
+      html: `<h2>New Quote Request</h2>
+             <p><strong>Company:</strong> ${companyName}</p>
+             <p><strong>Country:</strong> ${country}</p>
+             <p><strong>Contact:</strong> ${contactName || '—'}</p>
+             <p><strong>Email:</strong> ${email}</p>
+             <p><strong>Phone:</strong> ${phone || '—'}</p>
+             <p><strong>Industry:</strong> ${industry || '—'}</p>
+             <p><strong>Products:</strong> ${selectedProducts.join(', ') || '—'}</p>
+             <p><strong>Models &amp; Quantities:</strong><ul>${modelsHtml}</ul></p>
+             <p><strong>Deadline:</strong> ${deliveryDeadline || '—'}</p>
+             <p><strong>Message:</strong> ${message || '—'}</p>
+             ${attachHtml}`,
+      text: `New Quote Request from ${companyName} – ${email}`
+    }).catch(e => console.error('Quote email error:', e));
+
+    return res.redirect(`/${(lang || 'EN').toUpperCase()}/request-a-quote?success=1`);
+  } catch (err) {
+    console.error('postRequestQuote error:', err);
+    return res.redirect('/EN/request-a-quote?error=1');
+  }
+};
+
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// PAGE 2: BECOME A DISTRIBUTOR
+// ═══════════════════════════════════════════════════════════════════════════════
+
+exports.getBecomDistributor = async (req, res) => {
+  try {
+    const lang = (req.params.lang || 'EN').toUpperCase();
+
+    const t = {
+      EN: {
+        pageTitle: 'Become a DragLab Distributor – Partner With Us',
+        metaDescription: 'Join the DragLab global distributor network. Apply to become an authorised distributor of premium laboratory equipment.',
+        ogTitle: 'Become a Distributor | DragLab',
+        ogDescription: 'Partner with DragLab and distribute world-class laboratory equipment in your region.',
+        ogImage: 'https://www.drag-lab.de/assets/Imgs/Icons/products/distributor-BC.png',
+        heroTitle: 'Become a DragLab Distributor',
+        heroSub: 'Partner with a leading European laboratory equipment manufacturer',
+        whyTitle: 'Why Partner With DragLab?',
+        whyPoints: ['Exclusive territorial rights', 'ISO 9001 certified product range', 'Marketing and technical support', 'Competitive margin structure', 'Training and certification programs', 'Dedicated partner account manager'],
+        benefitsTitle: 'Partner Benefits',
+        benefits: [
+          { icon: '🏆', title: 'Premium Products', desc: 'Access to our full range of CE-certified lab equipment' },
+          { icon: '📊', title: 'Business Growth', desc: 'Proven business model with strong market demand' },
+          { icon: '🤝', title: 'Full Support', desc: 'Sales, technical and marketing support from our team' }
+        ],
+        whoTitle: 'Who We Are Looking For',
+        whoDesc: 'We seek established companies with experience in laboratory or scientific equipment distribution, a strong local network, and a commitment to quality service.',
+        formTitle: 'Distributor Application Form',
+        labelCompany: 'Company Name', labelCountry: 'Country', labelWebsite: 'Company Website',
+        labelYears: 'Years in Business', labelBrands: 'Current Brands / Products You Distribute',
+        labelMarket: 'Target Market', labelContact: 'Contact Name', labelEmail: 'Email Address',
+        labelPhone: 'Phone Number', btnSubmit: 'Submit Application',
+        successMsg: 'Thank you for your application! Our partnership team will review it and contact you within 3 business days.'
+      },
+      ES: {
+        pageTitle: 'Conviértase en Distribuidor DragLab – Asóciese Con Nosotros',
+        metaDescription: 'Únase a la red global de distribuidores DragLab.',
+        ogTitle: 'Conviértase en Distribuidor | DragLab',
+        ogDescription: 'Asóciese con DragLab y distribuya equipos de laboratorio de clase mundial.',
+        ogImage: 'https://www.drag-lab.de/assets/Imgs/Icons/products/distributor-BC.png',
+        heroTitle: 'Conviértase en Distribuidor DragLab',
+        heroSub: 'Asóciese con un fabricante líder europeo de equipos de laboratorio',
+        whyTitle: '¿Por qué Asociarse con DragLab?',
+        whyPoints: ['Derechos territoriales exclusivos', 'Gama certificada ISO 9001', 'Soporte técnico y de marketing', 'Estructura de márgenes competitiva', 'Programas de capacitación', 'Gerente de cuenta dedicado'],
+        benefitsTitle: 'Beneficios del Socio',
+        benefits: [
+          { icon: '🏆', title: 'Productos Premium', desc: 'Acceso a toda nuestra gama de equipos certificados CE' },
+          { icon: '📊', title: 'Crecimiento Empresarial', desc: 'Modelo de negocio probado con fuerte demanda' },
+          { icon: '🤝', title: 'Soporte Completo', desc: 'Apoyo comercial, técnico y de marketing' }
+        ],
+        whoTitle: 'A Quién Buscamos',
+        whoDesc: 'Buscamos empresas establecidas con experiencia en distribución de equipos de laboratorio y una sólida red local.',
+        formTitle: 'Formulario de Solicitud',
+        labelCompany: 'Nombre de la Empresa', labelCountry: 'País', labelWebsite: 'Sitio Web',
+        labelYears: 'Años en el Negocio', labelBrands: 'Marcas Actuales que Distribuye',
+        labelMarket: 'Mercado Objetivo', labelContact: 'Nombre de Contacto', labelEmail: 'Correo Electrónico',
+        labelPhone: 'Teléfono', btnSubmit: 'Enviar Solicitud',
+        successMsg: 'Gracias por su solicitud. Nuestro equipo le contactará en 3 días hábiles.'
+      },
+      DE: {
+        pageTitle: 'DragLab Distributor Werden – Partnerschaft',
+        metaDescription: 'Werden Sie autorisierter DragLab-Distributor und vertreiben Sie Premium-Laborgeräte.',
+        ogTitle: 'Distributor Werden | DragLab',
+        ogDescription: 'Partnerschaft mit DragLab für den weltweiten Vertrieb von Laborgeräten.',
+        ogImage: 'https://www.drag-lab.de/assets/Imgs/Icons/products/distributor-BC.png',
+        heroTitle: 'DragLab Distributor Werden',
+        heroSub: 'Partnerschaft mit einem führenden europäischen Laborgerätehersteller',
+        whyTitle: 'Warum DragLab Partner Werden?',
+        whyPoints: ['Exklusive Gebietsrechte', 'ISO 9001 zertifiziertes Sortiment', 'Marketing- und Technik-Support', 'Wettbewerbsfähige Margenstruktur', 'Schulungs- und Zertifizierungsprogramme', 'Dedizierter Partneransprechpartner'],
+        benefitsTitle: 'Partnervorteile',
+        benefits: [
+          { icon: '🏆', title: 'Premium-Produkte', desc: 'Zugang zu unserem gesamten CE-zertifizierten Sortiment' },
+          { icon: '📊', title: 'Geschäftswachstum', desc: 'Bewährtes Geschäftsmodell mit starker Marktnachfrage' },
+          { icon: '🤝', title: 'Vollständige Unterstützung', desc: 'Vertriebs-, technischer und Marketing-Support' }
+        ],
+        whoTitle: 'Wen Wir Suchen',
+        whoDesc: 'Wir suchen etablierte Unternehmen mit Erfahrung im Laborgerätevertrieb und einem starken lokalen Netzwerk.',
+        formTitle: 'Bewerbungsformular',
+        labelCompany: 'Firmenname', labelCountry: 'Land', labelWebsite: 'Firmenwebseite',
+        labelYears: 'Jahre im Geschäft', labelBrands: 'Aktuelle Marken / Produkte',
+        labelMarket: 'Zielmarkt', labelContact: 'Ansprechpartner', labelEmail: 'E-Mail-Adresse',
+        labelPhone: 'Telefon', btnSubmit: 'Bewerbung Einreichen',
+        successMsg: 'Vielen Dank für Ihre Bewerbung! Unser Team meldet sich innerhalb von 3 Werktagen.'
+      },
+      TR: {
+        pageTitle: 'DragLab Distribütörü Olun – Ortaklık',
+        metaDescription: 'DragLab global distribütör ağına katılın.',
+        ogTitle: 'Distribütör Olun | DragLab',
+        ogDescription: 'DragLab ile ortak olun ve bölgenizde dünya standartlarında laboratuvar ekipmanları dağıtın.',
+        ogImage: 'https://www.drag-lab.de/assets/Imgs/Icons/products/distributor-BC.png',
+        heroTitle: 'DragLab Distribütörü Olun',
+        heroSub: 'Önde gelen Avrupalı laboratuvar ekipman üreticisiyle ortaklık kurun',
+        whyTitle: 'Neden DragLab Ortağı Olmalısınız?',
+        whyPoints: ['Özel bölge hakları', 'ISO 9001 sertifikalı ürün yelpazesi', 'Pazarlama ve teknik destek', 'Rekabetçi marj yapısı', 'Eğitim ve sertifikasyon programları', 'Özel hesap yöneticisi'],
+        benefitsTitle: 'Ortak Avantajları',
+        benefits: [
+          { icon: '🏆', title: 'Premium Ürünler', desc: 'CE sertifikalı ürün yelpazemize tam erişim' },
+          { icon: '📊', title: 'İş Büyümesi', desc: 'Güçlü pazar talebiyle kanıtlanmış iş modeli' },
+          { icon: '🤝', title: 'Tam Destek', desc: 'Satış, teknik ve pazarlama desteği' }
+        ],
+        whoTitle: 'Kimleri Arıyoruz',
+        whoDesc: 'Laboratuvar ekipmanı dağıtımında deneyimli, güçlü yerel ağa sahip köklü şirketler arıyoruz.',
+        formTitle: 'Başvuru Formu',
+        labelCompany: 'Şirket Adı', labelCountry: 'Ülke', labelWebsite: 'Şirket Web Sitesi',
+        labelYears: 'İş Yılı', labelBrands: 'Mevcut Markalar',
+        labelMarket: 'Hedef Pazar', labelContact: 'İletişim Kişisi', labelEmail: 'E-posta',
+        labelPhone: 'Telefon', btnSubmit: 'Başvuru Gönder',
+        successMsg: 'Başvurunuz için teşekkürler! Ortaklık ekibimiz 3 iş günü içinde sizinle iletişime geçecektir.'
+      },
+      FR: {
+        pageTitle: 'Devenir Distributeur DragLab – Partenariat',
+        metaDescription: 'Rejoignez le réseau mondial de distributeurs DragLab.',
+        ogTitle: 'Devenir Distributeur | DragLab',
+        ogDescription: 'Partenariat avec DragLab pour distribuer des équipements de laboratoire de classe mondiale.',
+        ogImage: 'https://www.drag-lab.de/assets/Imgs/Icons/products/distributor-BC.png',
+        heroTitle: 'Devenir Distributeur DragLab',
+        heroSub: 'Partenariat avec un fabricant européen leader en équipements de laboratoire',
+        whyTitle: 'Pourquoi Collaborer avec DragLab ?',
+        whyPoints: ['Droits territoriaux exclusifs', 'Gamme certifiée ISO 9001', 'Support marketing et technique', 'Structure de marges compétitive', 'Programmes de formation', 'Responsable partenaire dédié'],
+        benefitsTitle: 'Avantages Partenaire',
+        benefits: [
+          { icon: '🏆', title: 'Produits Premium', desc: 'Accès à toute notre gamme certifiée CE' },
+          { icon: '📊', title: 'Croissance des Affaires', desc: 'Modèle éprouvé avec forte demande marché' },
+          { icon: '🤝', title: 'Support Complet', desc: 'Support commercial, technique et marketing' }
+        ],
+        whoTitle: 'Qui Nous Cherchons',
+        whoDesc: 'Nous recherchons des sociétés expérimentées dans la distribution d\'équipements scientifiques avec un réseau local solide.',
+        formTitle: 'Formulaire de Candidature',
+        labelCompany: 'Nom de la Société', labelCountry: 'Pays', labelWebsite: 'Site Web',
+        labelYears: 'Années d\'Activité', labelBrands: 'Marques Actuelles Distribuées',
+        labelMarket: 'Marché Cible', labelContact: 'Nom du Contact', labelEmail: 'Adresse E-mail',
+        labelPhone: 'Numéro de Téléphone', btnSubmit: 'Soumettre la Candidature',
+        successMsg: 'Merci pour votre candidature ! Notre équipe partenariat vous contactera sous 3 jours ouvrés.'
+      }
+    };
+
+    const tr = t[lang] || t.EN;
+    res.render('customer/become-a-distributor', {
+      lang,
+      ...tr,
+      path: `/${lang}/become-a-distributor`,
+      success: req.query.success === '1',
+      error: req.query.error || null
+    });
+  } catch (err) {
+    console.error('getBecomDistributor error:', err);
+    res.status(500).render('500', { pageTitle: 'Error', path: '/', isAuthenticated: false });
+  }
+};
+
+exports.postDistributorApplication = async (req, res) => {
+  try {
+    const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.connection.remoteAddress;
+    const { companyName, country, website, yearsExperience, currentBrands, targetMarket, contactName, email, phone, lang } = req.body;
+
+    if (!companyName || !country || !email || !contactName) {
+      return res.redirect(`/${lang || 'EN'}/become-a-distributor?error=1`);
+    }
+
+    const app = new DistributorApplication({
+      companyName, country, website,
+      yearsExperience: yearsExperience ? parseInt(yearsExperience) : null,
+      currentBrands, targetMarket, contactName, email, phone,
+      lang: (lang || 'EN').toUpperCase(),
+      ipAddress: ip
+    });
+    await app.save();
+
+    notifyInternal({
+      to: 'info@drag-lab.de',
+      subject: `New Distributor Application from ${companyName} (${country})`,
+      html: `<h2>New Distributor Application</h2>
+             <p><strong>Company:</strong> ${companyName}</p>
+             <p><strong>Country:</strong> ${country}</p>
+             <p><strong>Website:</strong> ${website || '—'}</p>
+             <p><strong>Years in Business:</strong> ${yearsExperience || '—'}</p>
+             <p><strong>Current Brands:</strong> ${currentBrands || '—'}</p>
+             <p><strong>Target Market:</strong> ${targetMarket || '—'}</p>
+             <p><strong>Contact:</strong> ${contactName}</p>
+             <p><strong>Email:</strong> ${email}</p>
+             <p><strong>Phone:</strong> ${phone || '—'}</p>`,
+      text: `New Distributor Application from ${companyName} – ${email}`
+    }).catch(e => console.error('Distributor email error:', e));
+
+    return res.redirect(`/${(lang || 'EN').toUpperCase()}/become-a-distributor?success=1`);
+  } catch (err) {
+    console.error('postDistributorApplication error:', err);
+    return res.redirect('/EN/become-a-distributor?error=1');
+  }
+};
+
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// PAGE 3: KNOWLEDGE BASE / FAQ
+// ═══════════════════════════════════════════════════════════════════════════════
+
+exports.getKnowledgeBase = async (req, res) => {
+  try {
+    const lang = (req.params.lang || 'EN').toUpperCase();
+    const activeCategory = req.query.category || 'All';
+
+    const query = { status: 'published', lang };
+    if (activeCategory && activeCategory !== 'All') query.category = activeCategory;
+
+    const faqs = await FAQ.find(query).sort({ category: 1, order: 1 }).lean();
+
+    // Group by category
+    const grouped = {};
+    faqs.forEach(faq => {
+      if (!grouped[faq.category]) grouped[faq.category] = [];
+      grouped[faq.category].push(faq);
+    });
+
+    const categories = ['All', 'Installation', 'Maintenance', 'Troubleshooting', 'Warranty', 'Product Usage', 'General'];
+
+    const t = {
+      EN: { pageTitle: 'Knowledge Base & FAQ – DragLab', metaDescription: 'Find answers to frequently asked questions about DragLab laboratory equipment installation, maintenance, and troubleshooting.', heroTitle: 'Knowledge Base', heroSub: 'Answers to your most common questions', searchPlaceholder: 'Search questions...', noResults: 'No FAQs found for this category yet.', ogTitle: 'Knowledge Base | DragLab', ogDescription: 'FAQ and support articles for DragLab laboratory equipment.' },
+      ES: { pageTitle: 'Base de Conocimiento – DragLab', metaDescription: 'Encuentre respuestas a preguntas frecuentes sobre equipos DragLab.', heroTitle: 'Base de Conocimiento', heroSub: 'Respuestas a sus preguntas más frecuentes', searchPlaceholder: 'Buscar preguntas...', noResults: 'No hay preguntas frecuentes para esta categoría todavía.', ogTitle: 'Base de Conocimiento | DragLab', ogDescription: 'Preguntas frecuentes sobre equipos de laboratorio DragLab.' },
+      DE: { pageTitle: 'Wissensdatenbank & FAQ – DragLab', metaDescription: 'Finden Sie Antworten auf häufig gestellte Fragen zu DragLab Laborgeräten.', heroTitle: 'Wissensdatenbank', heroSub: 'Antworten auf Ihre häufigsten Fragen', searchPlaceholder: 'Fragen suchen...', noResults: 'Noch keine FAQs für diese Kategorie.', ogTitle: 'Wissensdatenbank | DragLab', ogDescription: 'FAQ und Support-Artikel für DragLab Laborgeräte.' },
+      TR: { pageTitle: 'Bilgi Bankası & SSS – DragLab', metaDescription: 'DragLab laboratuvar ekipmanları hakkında sık sorulan sorulara cevaplar bulun.', heroTitle: 'Bilgi Bankası', heroSub: 'En sık sorulan sorularınızın yanıtları', searchPlaceholder: 'Soru ara...', noResults: 'Bu kategori için henüz SSS bulunmamaktadır.', ogTitle: 'Bilgi Bankası | DragLab', ogDescription: 'DragLab laboratuvar ekipmanları için SSS.' },
+      FR: { pageTitle: 'Base de Connaissances & FAQ – DragLab', metaDescription: 'Trouvez des réponses aux questions fréquentes sur les équipements DragLab.', heroTitle: 'Base de Connaissances', heroSub: 'Réponses à vos questions les plus courantes', searchPlaceholder: 'Rechercher des questions...', noResults: 'Aucune FAQ pour cette catégorie pour l\'instant.', ogTitle: 'Base de Connaissances | DragLab', ogDescription: 'FAQ et articles de support pour les équipements DragLab.' }
+    };
+
+    const tr = t[lang] || t.EN;
+    res.render('customer/knowledge-base', {
+      lang, ...tr, faqs, grouped, categories, activeCategory,
+      path: `/${lang}/knowledge-base`
+    });
+  } catch (err) {
+    console.error('getKnowledgeBase error:', err);
+    res.status(500).render('500', { pageTitle: 'Error', path: '/', isAuthenticated: false });
+  }
+};
+
+exports.getKnowledgeBaseCategory = async (req, res) => {
+  req.query.category = req.params.category;
+  return exports.getKnowledgeBase(req, res);
+};
+
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// PAGE 4: CASE STUDIES
+// ═══════════════════════════════════════════════════════════════════════════════
+
+exports.getCaseStudies = async (req, res) => {
+  try {
+    const lang = (req.params.lang || 'EN').toUpperCase();
+    const langKey = lang.toLowerCase();
+
+    const caseStudies = await CaseStudy.find({ status: 'published' }).sort({ createdAt: -1 }).lean();
+
+    // Attach localized display data
+    const localizedStudies = caseStudies.map(cs => {
+      const tr = cs.translations?.[langKey] || cs.translations?.en || {};
+      return {
+        ...cs,
+        displayTitle: tr.title || cs.title || '',
+        displaySummary: tr.summary || '',
+        displaySlug: tr.slug || cs.slug || cs._id.toString()
+      };
+    });
+
+    const t = {
+      EN: { pageTitle: 'Case Studies – DragLab Laboratory Equipment', metaDescription: 'Real-world success stories from our global laboratory clients.', heroTitle: 'Case Studies', heroSub: 'Real solutions. Proven results.', readMore: 'Read More', ogTitle: 'Case Studies | DragLab', ogDescription: 'Discover how DragLab equipment has solved laboratory challenges worldwide.' },
+      ES: { pageTitle: 'Casos de Estudio – DragLab', metaDescription: 'Historias de éxito reales de nuestros clientes de laboratorio.', heroTitle: 'Casos de Estudio', heroSub: 'Soluciones reales. Resultados probados.', readMore: 'Leer Más', ogTitle: 'Casos de Estudio | DragLab', ogDescription: 'Descubra cómo los equipos DragLab han resuelto desafíos en laboratorios de todo el mundo.' },
+      DE: { pageTitle: 'Fallstudien – DragLab Laborgeräte', metaDescription: 'Echte Erfolgsgeschichten unserer globalen Laborkunden.', heroTitle: 'Fallstudien', heroSub: 'Echte Lösungen. Nachgewiesene Ergebnisse.', readMore: 'Mehr Lesen', ogTitle: 'Fallstudien | DragLab', ogDescription: 'Entdecken Sie, wie DragLab-Geräte Laborherausforderungen weltweit lösen.' },
+      TR: { pageTitle: 'Vaka Çalışmaları – DragLab Laboratuvar Ekipmanları', metaDescription: 'Küresel laboratuvar müşterilerimizden gerçek başarı hikayeleri.', heroTitle: 'Vaka Çalışmaları', heroSub: 'Gerçek çözümler. Kanıtlanmış sonuçlar.', readMore: 'Devamını Oku', ogTitle: 'Vaka Çalışmaları | DragLab', ogDescription: 'DragLab ekipmanlarının dünya genelindeki laboratuvar sorunlarını nasıl çözdüğünü keşfedin.' },
+      FR: { pageTitle: 'Études de Cas – DragLab Équipements de Laboratoire', metaDescription: 'Témoignages de réussite de nos clients laboratoires mondiaux.', heroTitle: 'Études de Cas', heroSub: 'Vraies solutions. Résultats prouvés.', readMore: 'Lire la Suite', ogTitle: 'Études de Cas | DragLab', ogDescription: 'Découvrez comment les équipements DragLab ont résolu des défis en laboratoire dans le monde entier.' }
+    };
+
+    const tr = t[lang] || t.EN;
+    res.render('customer/case-studies', {
+      lang, ...tr, caseStudies: localizedStudies,
+      path: `/${lang}/case-studies`
+    });
+  } catch (err) {
+    console.error('getCaseStudies error:', err);
+    res.status(500).render('500', { pageTitle: 'Error', path: '/', isAuthenticated: false });
+  }
+};
+
+exports.getCaseStudyDetail = async (req, res) => {
+  try {
+    const lang = (req.params.lang || 'EN').toUpperCase();
+    const langKey = lang.toLowerCase();
+    const { slug } = req.params;
+
+    const cs = await CaseStudy.findOne({
+      $or: [{ slug }, { [`translations.${langKey}.slug`]: slug }],
+      status: 'published'
+    }).lean();
+
+    if (!cs) return res.status(404).render('404', { pageTitle: 'Not Found', path: '/', isAuthenticated: false });
+
+    const tr = cs.translations?.[langKey] || cs.translations?.en || {};
+    const display = {
+      title: tr.title || cs.title || '',
+      clientProfile: tr.clientProfile || '',
+      problem: tr.problem || cs.problem || '',
+      solution: tr.solution || cs.solution || '',
+      results: tr.results || cs.results || '',
+      summary: tr.summary || ''
+    };
+
+    const t = {
+      EN: { pageTitle: `${display.title} – DragLab Case Study`, clientProfile: 'Client Profile', problem: 'The Challenge', solution: 'Our Solution', results: 'Results Achieved', productsUsed: 'Products Used', backLink: 'Back to Case Studies', ogTitle: `${display.title} | DragLab`, ogDescription: display.summary || display.problem },
+      ES: { pageTitle: `${display.title} – Caso de Estudio DragLab`, clientProfile: 'Perfil del Cliente', problem: 'El Desafío', solution: 'Nuestra Solución', results: 'Resultados', productsUsed: 'Productos Utilizados', backLink: 'Volver a Casos de Estudio', ogTitle: `${display.title} | DragLab`, ogDescription: display.summary || display.problem },
+      DE: { pageTitle: `${display.title} – DragLab Fallstudie`, clientProfile: 'Kundenprofil', problem: 'Die Herausforderung', solution: 'Unsere Lösung', results: 'Ergebnisse', productsUsed: 'Verwendete Produkte', backLink: 'Zurück zu Fallstudien', ogTitle: `${display.title} | DragLab`, ogDescription: display.summary || display.problem },
+      TR: { pageTitle: `${display.title} – DragLab Vaka Çalışması`, clientProfile: 'Müşteri Profili', problem: 'Zorluk', solution: 'Çözümümüz', results: 'Elde Edilen Sonuçlar', productsUsed: 'Kullanılan Ürünler', backLink: 'Vaka Çalışmalarına Dön', ogTitle: `${display.title} | DragLab`, ogDescription: display.summary || display.problem },
+      FR: { pageTitle: `${display.title} – Étude de Cas DragLab`, clientProfile: 'Profil Client', problem: 'Le Défi', solution: 'Notre Solution', results: 'Résultats Obtenus', productsUsed: 'Produits Utilisés', backLink: 'Retour aux Études de Cas', ogTitle: `${display.title} | DragLab`, ogDescription: display.summary || display.problem }
+    };
+
+    const translations = t[lang] || t.EN;
+    res.render('customer/case-study-detail', {
+      lang, ...translations, caseStudy: cs, display,
+      path: `/${lang}/case-studies/${slug}`
+    });
+  } catch (err) {
+    console.error('getCaseStudyDetail error:', err);
+    res.status(500).render('500', { pageTitle: 'Error', path: '/', isAuthenticated: false });
+  }
+};
+
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// PAGE 5: LABORATORY GLOSSARY
+// ═══════════════════════════════════════════════════════════════════════════════
+
+exports.getLaboratoryGlossary = async (req, res) => {
+  try {
+    const lang = (req.params.lang || 'EN').toUpperCase();
+    const langKey = lang.toLowerCase();
+
+    const terms = await Glossary.find({ status: 'published' }).sort({ letter: 1, term: 1 }).lean();
+
+    // Attach localized display data & group by letter
+    const grouped = {};
+    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+
+    terms.forEach(term => {
+      const tr = term.translations?.[langKey] || term.translations?.en || {};
+      const displayTerm = tr.term || term.term;
+      const displayDef = tr.definition || term.definition;
+      const letter = (term.letter || displayTerm.charAt(0).toUpperCase());
+      if (!grouped[letter]) grouped[letter] = [];
+      grouped[letter].push({ ...term, displayTerm, displayDef });
+    });
+
+    const availableLetters = Object.keys(grouped).sort();
+
+    const t = {
+      EN: { pageTitle: 'Laboratory Glossary – DragLab', metaDescription: 'Comprehensive glossary of laboratory equipment terms and definitions.', heroTitle: 'Laboratory Glossary', heroSub: 'Your A–Z guide to laboratory equipment terminology', searchPlaceholder: 'Search terms...', noResults: 'No terms found.', ogTitle: 'Laboratory Glossary | DragLab', ogDescription: 'Browse definitions of laboratory equipment terms from A to Z.' },
+      ES: { pageTitle: 'Glosario de Laboratorio – DragLab', metaDescription: 'Glosario completo de términos de equipos de laboratorio.', heroTitle: 'Glosario de Laboratorio', heroSub: 'Su guía A–Z de terminología de equipos de laboratorio', searchPlaceholder: 'Buscar términos...', noResults: 'No se encontraron términos.', ogTitle: 'Glosario de Laboratorio | DragLab', ogDescription: 'Explore definiciones de términos de equipos de laboratorio de la A a la Z.' },
+      DE: { pageTitle: 'Laborglossar – DragLab', metaDescription: 'Umfassendes Glossar mit Laborgerätebegriffen und -definitionen.', heroTitle: 'Laborglossar', heroSub: 'Ihr A–Z-Leitfaden zur Laborgeräteterminologie', searchPlaceholder: 'Begriffe suchen...', noResults: 'Keine Begriffe gefunden.', ogTitle: 'Laborglossar | DragLab', ogDescription: 'Definitionen von Laborgerätebegriffen von A bis Z.' },
+      TR: { pageTitle: 'Laboratuvar Sözlüğü – DragLab', metaDescription: 'Kapsamlı laboratuvar ekipman terimleri ve tanımları sözlüğü.', heroTitle: 'Laboratuvar Sözlüğü', heroSub: 'A\'dan Z\'ye laboratuvar ekipman terminoloji rehberiniz', searchPlaceholder: 'Terim ara...', noResults: 'Terim bulunamadı.', ogTitle: 'Laboratuvar Sözlüğü | DragLab', ogDescription: 'A\'dan Z\'ye laboratuvar ekipman terimi tanımları.' },
+      FR: { pageTitle: 'Glossaire de Laboratoire – DragLab', metaDescription: 'Glossaire complet des termes et définitions d\'équipements de laboratoire.', heroTitle: 'Glossaire de Laboratoire', heroSub: 'Votre guide A–Z de la terminologie des équipements de laboratoire', searchPlaceholder: 'Rechercher des termes...', noResults: 'Aucun terme trouvé.', ogTitle: 'Glossaire de Laboratoire | DragLab', ogDescription: 'Parcourez les définitions des termes d\'équipements de laboratoire de A à Z.' }
+    };
+
+    const tr = t[lang] || t.EN;
+    res.render('customer/laboratory-glossary', {
+      lang, ...tr, grouped, alphabet, availableLetters,
+      path: `/${lang}/laboratory-glossary`
+    });
+  } catch (err) {
+    console.error('getLaboratoryGlossary error:', err);
+    res.status(500).render('500', { pageTitle: 'Error', path: '/', isAuthenticated: false });
+  }
+};
+
+exports.getGlossaryTerm = async (req, res) => {
+  try {
+    const lang = (req.params.lang || 'EN').toUpperCase();
+    const langKey = lang.toLowerCase();
+    const { slug } = req.params;
+
+    const term = await Glossary.findOne({ slug, status: 'published' }).lean();
+    if (!term) return res.status(404).render('404', { pageTitle: 'Not Found', path: '/', isAuthenticated: false });
+
+    const tr = term.translations?.[langKey] || term.translations?.en || {};
+    const display = {
+      term: tr.term || term.term,
+      definition: tr.definition || term.definition,
+      description: tr.description || term.description || ''
+    };
+
+    const t = {
+      EN: { pageTitle: `${display.term} – Laboratory Glossary | DragLab`, metaDescription: display.definition, whyItMatters: 'Why It Matters', whereUsed: 'Where It\'s Used', relatedProducts: 'Related Products', backLink: 'Back to Glossary', ogTitle: `${display.term} | DragLab Glossary`, ogDescription: display.definition },
+      ES: { pageTitle: `${display.term} – Glosario | DragLab`, metaDescription: display.definition, whyItMatters: 'Por qué es Importante', whereUsed: 'Dónde se Usa', relatedProducts: 'Productos Relacionados', backLink: 'Volver al Glosario', ogTitle: `${display.term} | Glosario DragLab`, ogDescription: display.definition },
+      DE: { pageTitle: `${display.term} – Laborglossar | DragLab`, metaDescription: display.definition, whyItMatters: 'Warum es Wichtig ist', whereUsed: 'Wo es Verwendet Wird', relatedProducts: 'Verwandte Produkte', backLink: 'Zurück zum Glossar', ogTitle: `${display.term} | DragLab Glossar`, ogDescription: display.definition },
+      TR: { pageTitle: `${display.term} – Laboratuvar Sözlüğü | DragLab`, metaDescription: display.definition, whyItMatters: 'Neden Önemli', whereUsed: 'Nerede Kullanılır', relatedProducts: 'İlgili Ürünler', backLink: 'Sözlüğe Dön', ogTitle: `${display.term} | DragLab Sözlük`, ogDescription: display.definition },
+      FR: { pageTitle: `${display.term} – Glossaire de Laboratoire | DragLab`, metaDescription: display.definition, whyItMatters: 'Pourquoi c\'est Important', whereUsed: 'Où c\'est Utilisé', relatedProducts: 'Produits Associés', backLink: 'Retour au Glossaire', ogTitle: `${display.term} | Glossaire DragLab`, ogDescription: display.definition }
+    };
+
+    const translations = t[lang] || t.EN;
+    res.render('customer/glossary-term', {
+      lang, ...translations, term, display,
+      path: `/${lang}/laboratory-glossary/${slug}`
+    });
+  } catch (err) {
+    console.error('getGlossaryTerm error:', err);
+    res.status(500).render('500', { pageTitle: 'Error', path: '/', isAuthenticated: false });
   }
 };
 

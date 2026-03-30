@@ -2,6 +2,11 @@ const path = require('path');
 const express = require('express');
 const shopController = require('../controllers/shop');
 const router = express.Router();
+const multer = require('multer');
+const uploadQuoteAttachment = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 }
+}).single('quoteAttachment');
 const isAuth = require('../middleware/is-auth');
 const WarrantyRegistration = require('../models/warrantyRegistration'); // Add at the top
 const Product = require('../models/product');
@@ -139,5 +144,26 @@ router.get('/', (req, res) => {
 
 //shop/getting home page => GET
 router.get('/:lang', shopController.getHomePage);
+
+
+// ── PAGE 1: Request a Quote ──────────────────────────────────────────────────
+router.get('/:lang/request-a-quote', shopController.getRequestQuote);
+router.post('/submit-quote', uploadQuoteAttachment, shopController.postRequestQuote);
+
+// ── PAGE 2: Become a Distributor ─────────────────────────────────────────────
+router.get('/:lang/become-a-distributor', shopController.getBecomDistributor);
+router.post('/submit-distributor-application', shopController.postDistributorApplication);
+
+// ── PAGE 3: Knowledge Base / FAQ ─────────────────────────────────────────────
+router.get('/:lang/knowledge-base', shopController.getKnowledgeBase);
+router.get('/:lang/knowledge-base/:category', shopController.getKnowledgeBaseCategory);
+
+// ── PAGE 4: Case Studies ─────────────────────────────────────────────────────
+router.get('/:lang/case-studies', shopController.getCaseStudies);
+router.get('/:lang/case-studies/:slug', shopController.getCaseStudyDetail);
+
+// ── PAGE 5: Laboratory Glossary ──────────────────────────────────────────────
+router.get('/:lang/laboratory-glossary', shopController.getLaboratoryGlossary);
+router.get('/:lang/laboratory-glossary/:slug', shopController.getGlossaryTerm);
 
 module.exports = router;

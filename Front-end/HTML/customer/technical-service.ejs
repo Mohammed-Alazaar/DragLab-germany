@@ -14,18 +14,41 @@
     <meta name="description" content="<%= t.metaDescription %>">
     <meta property="og:title" content="<%= t.ogTitle %>">
     <meta property="og:description" content="<%= t.ogDescription %>">
-    <meta property="og:url" content="https://www.drag-lab.de/<%= lang %>/WarrantyRegistration">
+    <meta property="og:url" content="https://www.drag-lab.de/<%= lang %>/technical-service">
     <meta property="og:type" content="website">
     <meta name="twitter:title" content="<%= t.ogTitle %>">
     <meta name="twitter:description" content="<%= t.ogDescription %>">
     <meta name="twitter:card" content="summary">
-    <link rel="canonical" href="https://www.drag-lab.de/<%= lang %>/WarrantyRegistration">
-    <link rel="alternate" hreflang="en" href="https://www.drag-lab.de/EN/WarrantyRegistration">
-    <link rel="alternate" hreflang="es" href="https://www.drag-lab.de/ES/WarrantyRegistration">
-    <link rel="alternate" hreflang="de" href="https://www.drag-lab.de/DE/WarrantyRegistration">
-    <link rel="alternate" hreflang="tr" href="https://www.drag-lab.de/TR/WarrantyRegistration">
-    <link rel="alternate" hreflang="fr" href="https://www.drag-lab.de/FR/WarrantyRegistration">
-    <link rel="alternate" hreflang="x-default" href="https://www.drag-lab.de/EN/WarrantyRegistration">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://www.drag-lab.de/<%= lang %>/technical-service">
+    <link rel="alternate" hreflang="x-default" href="https://www.drag-lab.de/EN/technical-service">
+    <link rel="alternate" hreflang="en" href="https://www.drag-lab.de/EN/technical-service">
+    <link rel="alternate" hreflang="es" href="https://www.drag-lab.de/ES/technical-service">
+    <link rel="alternate" hreflang="de" href="https://www.drag-lab.de/DE/technical-service">
+    <link rel="alternate" hreflang="tr" href="https://www.drag-lab.de/TR/technical-service">
+    <link rel="alternate" hreflang="fr" href="https://www.drag-lab.de/FR/technical-service">
+<script type="application/ld+json" nonce="<%= nonce %>">
+<%- JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Service",
+  "name": t.pageTitle,
+  "description": t.metaDescription,
+  "provider": { "@type": "Organization", "name": "DragLab", "url": "https://www.drag-lab.de/" },
+  "url": `https://www.drag-lab.de/${lang}/technical-service`,
+  "areaServed": "Worldwide",
+  "serviceType": "Technical Service & Repair"
+}) %>
+</script>
+<script type="application/ld+json" nonce="<%= nonce %>">
+<%- JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": (lang==='DE'?'Startseite':lang==='ES'?'Inicio':lang==='TR'?'Ana Sayfa':lang==='FR'?'Accueil':'Home'), "item": `https://www.drag-lab.de/${lang}` },
+    { "@type": "ListItem", "position": 2, "name": t.pageTitle || 'Technical Service', "item": `https://www.drag-lab.de/${lang}/technical-service` }
+  ]
+}) %>
+</script>
 </head>
 
 <body

@@ -17,7 +17,19 @@
     <link rel="alternate" hreflang="en" href="https://www.drag-lab.de/EN/PrivacyPolicy">
     <link rel="alternate" hreflang="es" href="https://www.drag-lab.de/ES/PrivacyPolicy">
     <link rel="alternate" hreflang="de" href="https://www.drag-lab.de/DE/PrivacyPolicy">
+    <link rel="alternate" hreflang="tr" href="https://www.drag-lab.de/TR/PrivacyPolicy">
+    <link rel="alternate" hreflang="fr" href="https://www.drag-lab.de/FR/PrivacyPolicy">
     <link rel="alternate" hreflang="x-default" href="https://www.drag-lab.de/EN/PrivacyPolicy">
+<script type="application/ld+json" nonce="<%= nonce %>">
+<%- JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": (typeof pageTitle !== 'undefined' ? pageTitle : 'Privacy Policy') + ' | DragLab',
+  "url": `https://www.drag-lab.de/${lang}/PrivacyPolicy`,
+  "inLanguage": (lang || 'EN').toLowerCase(),
+  "publisher": { "@type": "Organization", "name": "DragLab", "url": "https://www.drag-lab.de/" }
+}) %>
+</script>
     </head>
 
 

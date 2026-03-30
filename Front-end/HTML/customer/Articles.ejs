@@ -9,7 +9,7 @@
     : 'Explore DragLab articles and updates on laboratory equipment and technology.'
   );
 
-  const listUrl = 'https://www.drag-lab.de/' + lang + '/articles';
+  const listUrl = 'https://www.drag-lab.de/' + lang + '/Articles';
 
   // Helper to sanitize body -> text
   function toText(html) {
@@ -48,6 +48,22 @@
 <meta name="twitter:image" content="https://www.drag-lab.de/assets/Imgs/Icons/products/ArticlesBg.webp">
 
 <link rel="stylesheet" href="/css/customer/Articles.css">
+<script type="application/ld+json" nonce="<%= nonce %>">
+<%- JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "name": pageTitle,
+  "description": pageDesc,
+  "url": listUrl,
+  "inLanguage": (lang || 'EN').toLowerCase(),
+  "publisher": { "@type": "Organization", "name": "DragLab", "url": "https://www.drag-lab.de/" },
+  "hasPart": (articles || []).slice(0, 10).map(a => ({
+    "@type": "Article",
+    "name": a.title || '',
+    "url": `https://www.drag-lab.de/${lang}/articles/${a.slug || ''}`
+  }))
+}) %>
+</script>
 </head>
 
 <body>

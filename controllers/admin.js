@@ -3,6 +3,13 @@ const Product = require('../models/product'); // Add this line to import the Pro
 const Slideshow = require('../models/slideshow');
 const user = require('../models/user');
 const CatalogCategory = require('../models/CatalogCategory');
+
+// New page models
+const Quote = require('../models/quote');
+const DistributorApplication = require('../models/distributorApplication');
+const FAQ = require('../models/faq');
+const CaseStudy = require('../models/caseStudy');
+const Glossary = require('../models/glossary');
 const TechnicalService = require('../models/technicalService');
 const WarrantyRegistration = require('../models/warrantyRegistration');
 const ContactUs = require('../models/contactUs');
@@ -304,23 +311,28 @@ const normalizeTags = (raw) => {
 
 
 
-exports.getMyproduct = (req, res, next) => {
-  Product.find()
-    // .select('ProductName Productprice productThumbnail description warranty quantity InternalMemory Company deliveryTimeFrom deliveryTimeTo category feature1 featureDetail1 feature2 featureDetail2 userId')
-    // .populate('userId', 'name')
-
-    .then(products => {
-      res.render('sellercompany/my-products', {
-        pageTitle: 'My Product',
-        path: '/admin/Myproduct',
-        prods: products,
-        isAuthenticated: req.session.isLoggedIn
-      });
-    })
-    .catch(err => {
-      console.log(err);
+exports.getMyproduct = async (req, res, next) => {
+  try {
+    const PAGE_SIZE = 10;
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const totalItems = await Product.countDocuments();
+    const totalPages = Math.ceil(totalItems / PAGE_SIZE);
+    const products = await Product.find()
+      .skip((page - 1) * PAGE_SIZE)
+      .limit(PAGE_SIZE);
+    res.render('sellercompany/my-products', {
+      pageTitle: 'My Product',
+      path: '/admin/Myproduct',
+      prods: products,
+      isAuthenticated: req.session.isLoggedIn,
+      currentPage: page,
+      totalPages,
+      totalItems,
+      baseUrl: '/admin/Myproduct'
     });
-
+  } catch (err) {
+    next(err);
+  }
 };
 
 
@@ -338,7 +350,7 @@ exports.getEditProduct = async (req, res, next) => {
 
     if (!product) return res.redirect('/');
 
-    // ✅ NEW: ensure tags/meta objects exist so EJS value bindings don’t crash
+    // ✅ NEW: ensure tags/meta objects exist so EJS value bindings don't crash
     const ensureLangObj = (obj) => obj || { EN: [], ES: [], DE: [], TR: [], FR: [] };
     const ensureMetaObj = (obj) => obj || { EN: {}, ES: {}, DE: {}, TR: {}, FR: {} };
 
@@ -433,7 +445,7 @@ exports.postEditProduct = async (req, res, next) => {
       const effectivePublish = !!effectivePublishMap[lang];
 
       // Validate this language only when something is being published:
-      // - EN always when publishing (even if EN isn’t toggled)
+      // - EN always when publishing (even if EN isn't toggled)
       // - Any other lang only if its publish is toggled
       const validateThisLanguage = anyLangPublished && (lang === 'EN' || effectivePublish);
 
@@ -550,7 +562,7 @@ exports.postEditProduct = async (req, res, next) => {
     product.ProductThumbnail = updatedProductThumbnail;
     product.ProductSketch = updatedProductSketch;
 
-    // CRUCIAL: If nothing is published, mark draft so Mongoose "required" won’t fire later.
+    // CRUCIAL: If nothing is published, mark draft so Mongoose "required" won't fire later.
     product.isDraft = !anyLangPublished;
 
        // ✅ NEW: persist meta/tags
@@ -1443,200 +1455,165 @@ exports.postEditModel = async (req, res) => {
 
 
 
-exports.getAllSlides = (req, res) => {
-  Slideshow.find()
-    .then(slides => {
+const SLIDE_LANGS = ['en', 'es', 'de', 'tr', 'fr'];
 
-      res.render('sellercompany/indexSlide', {
-        path: '/admin/slideshow',
-        slides,
-        pageTitle: 'Slideshow',
-        editing: false,
-        validationErrors: [],
-        hasError: false,
-        isAuthenticated: req.session.isLoggedIn,
-        errorMessage: null
-      });
-    })
-    .catch(err => console.log(err));
+exports.getAllSlides = async (req, res) => {
+  try {
+    const slides = await Slideshow.find().sort({ createdAt: -1 });
+    res.render('sellercompany/indexSlide', {
+      path: '/admin/slideshow',
+      slides,
+      pageTitle: 'Slideshow',
+      isAuthenticated: req.session.isLoggedIn
+    });
+  } catch (err) { console.log(err); }
 };
 
 exports.getAddSlideForm = (req, res) => {
   res.render('sellercompany/add-indexSlide', {
-
     path: '/admin/addslideshow',
-    pageTitle: 'Slideshow',
+    pageTitle: 'Add Slide',
     editing: false,
-    validationErrors: [],
-    hasError: false,
     isAuthenticated: req.session.isLoggedIn,
-    errorMessage: null,
     slide: null
-
-
-
   });
-
 };
 
 exports.postAddSlide = async (req, res) => {
-  const { title, desc, language } = req.body;
   const imageFile = req.files?.slideshowImage?.[0];
-
-  console.log("📝 Received form data:", req.body);
-  console.log("🗂️ Files received:", req.files);
-
   try {
-    if (!imageFile) throw new Error("No image file uploaded.");
+    if (!imageFile) throw new Error('No image file uploaded.');
+    const uploaded = await uploadToCloudinary(imageFile, { folder: 'slideshow' });
+    if (!uploaded?.url) throw new Error('Upload returned no URL');
 
-    console.log("🌐 Uploading image to Cloudinary...");
-    const uploaded = await uploadToCloudinary(imageFile, {
-      folder: 'slideshow'
-    });
+    const translations = {};
+    for (const l of SLIDE_LANGS) {
+      translations[l] = {
+        title:  (req.body[l + '_title']  || '').trim(),
+        desc:   (req.body[l + '_desc']   || '').trim(),
+        status: req.body[l + '_status']  || 'none'
+      };
+    }
 
-    // ✅ Set the returned Cloudinary URL
-    const image = uploaded?.url;
-
-    console.log("✅ Image Path from Cloudinary:", image);
-
-    if (!image) throw new Error("Upload returned no URL");
-
-    const slide = new Slideshow({
-      title,
-      desc,
-      language,
-      image, // ✅ Save actual image URL
-    });
-
-    await slide.save();
-    console.log("✅ Slide saved successfully.");
+    await new Slideshow({ image: uploaded.url, translations }).save();
     res.redirect('/admin/slideshow');
   } catch (err) {
-    console.error("🔥 Error adding slide:", err);
-    res.status(500).send("Error adding slide.");
+    console.error('Error adding slide:', err);
+    res.status(500).send('Error adding slide.');
   }
 };
 
-
-
-
-
-exports.getEditSlideForm = (req, res) => {
-  Slideshow.findById(req.params.id)
-    .then(slide => {
-      res.render('sellercompany/add-indexSlide', {
-
-        slide,
-        pageTitle: 'Edit slide',
-        path: '/admin/edit-slide',
-        editing: true,
-        validationErrors: [],
-        hasError: false,
-        isAuthenticated: req.session.isLoggedIn,
-        errorMessage: null
-      });
-    })
-    .catch(err => console.log(err));
+exports.getEditSlideForm = async (req, res) => {
+  try {
+    const slide = await Slideshow.findById(req.params.id);
+    if (!slide) return res.redirect('/admin/slideshow');
+    res.render('sellercompany/add-indexSlide', {
+      slide,
+      pageTitle: 'Edit Slide',
+      path: '/admin/edit-slide',
+      editing: true,
+      isAuthenticated: req.session.isLoggedIn
+    });
+  } catch (err) { console.log(err); }
 };
+
 exports.postEditSlide = async (req, res) => {
   try {
-    const { title, desc, language } = req.body;
-
-    // 1) Load the slide
     const slide = await Slideshow.findById(req.params.id);
     if (!slide) return res.status(404).send('Slide not found');
 
-    // 2) Update text fields
-    slide.title = title;
-    slide.desc = desc;
-    slide.language = language;
-
-    // 3) If a new image was provided, upload & replace
     const newFile = req.files?.slideshowImage?.[0];
     if (newFile) {
-      // Upload to Cloudinary (sets newFile.cloudinaryUrl)
-      const uploaded = await uploadToCloudinary(newFile, {
-        folder: 'slideshow'
-      });
-
-      if (!uploaded?.url) {
-        console.error('❌ Upload returned no URL');
-        return res.status(500).send('Failed to upload image');
-      }
-
-      // Optionally delete old image
       try {
         if (slide.image) {
-          const last = slide.image.split('/').pop();
-          const oldPublicId = last?.includes('.') ? last.split('.')[0] : last;
-          await cloudinary.uploader.destroy(`draglab/slideshow/${oldPublicId}`);
+          const oldPublicId = slide.image.split('/').pop().split('.')[0];
+          await cloudinary.uploader.destroy('slideshow/' + oldPublicId);
         }
-      } catch (e) {
-        console.warn('⚠️ Failed to delete old Cloudinary asset:', e.message);
-      }
-
-      // ✅ Save new image URL
+      } catch (e) { /* ignore */ }
+      const uploaded = await uploadToCloudinary(newFile, { folder: 'slideshow' });
+      if (!uploaded?.url) return res.status(500).send('Failed to upload image');
       slide.image = uploaded.url;
+    }
+
+    for (const l of SLIDE_LANGS) {
+      slide.translations[l] = {
+        title:  (req.body[l + '_title']  || '').trim(),
+        desc:   (req.body[l + '_desc']   || '').trim(),
+        status: req.body[l + '_status']  || 'none'
+      };
     }
 
     await slide.save();
     res.redirect('/admin/slideshow');
   } catch (err) {
-    console.error('❌ Error updating slide:', err);
+    console.error('Error updating slide:', err);
     res.status(500).send('Internal Server Error');
   }
 };
 
-
-
-
-
-
-exports.deleteSlide = (req, res) => {
-  Slideshow.findById(req.params.id)
-    .then(async (slide) => {
-      if (slide.image) {
-        // ✅ Extract the publicId more dynamically
-        const publicId = slide.image.split('/').pop().split('.')[0]; // Get only the last segment before `.webp`
-
-        try {
-          const result = await cloudinary.uploader.destroy(`draglab/slideshow/${publicId}`);
-          console.log('✅ Image deleted from Cloudinary:', result);
-        } catch (err) {
-          console.error('❌ Failed to delete image from Cloudinary:', err.message);
-        }
-      }
-
-      return Slideshow.findByIdAndDelete(req.params.id);
-    })
-    .then(() => {
-      console.log('✅ Slide deleted successfully!');
-      res.redirect('/admin/slideshow');
-    })
-    .catch(err => {
-      console.error('❌ Error deleting slide:', err.message);
-      res.status(500).send('Internal Server Error');
-    });
+exports.deleteSlide = async (req, res) => {
+  try {
+    const slide = await Slideshow.findById(req.params.id);
+    if (!slide) return res.redirect('/admin/slideshow');
+    if (slide.image) {
+      try {
+        const publicId = slide.image.split('/').pop().split('.')[0];
+        await cloudinary.uploader.destroy('slideshow/' + publicId);
+      } catch (e) { /* ignore */ }
+    }
+    await Slideshow.findByIdAndDelete(req.params.id);
+    res.redirect('/admin/slideshow');
+  } catch (err) {
+    console.error('Error deleting slide:', err);
+    res.status(500).send('Internal Server Error');
+  }
 };
-
-
-
 
 // Articles controllers 
 
 
 // GET: All Articles
-exports.getAllArticles = (req, res) => {
-  Article.find()
-    .then(articles => {
-      res.render('sellercompany/all-articles', {
-        path: '/admin/articles',
-        pageTitle: 'Articles',
-        articles,
-        isAuthenticated: req.session.isLoggedIn
-      });
-    })
-    .catch(err => console.log(err));
+// Helper: generate a unique slug for a given language
+async function generateUniqueSlug(title, articleId, lang) {
+  const base = slugify(title || 'article', { lower: true, strict: true }) || 'article';
+  let slug = base;
+  let i = 1;
+  while (true) {
+    const query = { [`translations.${lang}.slug`]: slug };
+    if (articleId) query._id = { $ne: articleId };
+    const existing = await Article.findOne(query);
+    if (!existing) break;
+    i++;
+    slug = `${base}-${i}`;
+  }
+  return slug;
+}
+
+const ARTICLE_LANGS = ['en', 'es', 'de', 'tr', 'fr'];
+
+exports.getAllArticles = async (req, res, next) => {
+  try {
+    const PAGE_SIZE = 20;
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const totalItems = await Article.countDocuments();
+    const totalPages = Math.ceil(totalItems / PAGE_SIZE);
+    const articles = await Article.find()
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * PAGE_SIZE)
+      .limit(PAGE_SIZE);
+    res.render('sellercompany/all-articles', {
+      path: '/admin/articles',
+      pageTitle: 'Articles',
+      articles,
+      isAuthenticated: req.session.isLoggedIn,
+      currentPage: page,
+      totalPages,
+      totalItems,
+      baseUrl: '/admin/articles'
+    });
+  } catch (err) {
+    next(err);
+  }
 };
 
 // GET: Add Article Form
@@ -1645,47 +1622,49 @@ exports.getAddArticle = (req, res) => {
     path: '/admin/add-article',
     pageTitle: 'Add Article',
     editing: false,
-    validationErrors: [],
-    hasError: false,
     isAuthenticated: req.session.isLoggedIn,
-    errorMessage: null,
     article: null
   });
 };
 
 // POST: Add New Article
-
 exports.postAddArticle = async (req, res) => {
-  const { title, author, body, language, summary, category } = req.body;
-  // tags as comma-separated -> array
-  const tags = (req.body.tags || '')
-    .split(',')
-    .map(t => t.trim())
-    .filter(Boolean);
-
-  const slug = slugify(title || 'untitled-article', { lower: true, strict: true });
+  const author   = (req.body.author || '').trim();
+  const category = req.body.category || 'News';
 
   const file = req.files?.thumbnail?.[0];
   let thumbnail = '';
-
   if (file) {
     try {
-      const result = await new Promise((resolve, reject) => {
+      thumbnail = await new Promise((resolve, reject) => {
         cloudinary.uploader.upload_stream(
           { resource_type: 'image', folder: 'draglab/articles', public_id: file.originalname.split('.')[0], format: 'webp' },
           (error, r) => error ? reject(error) : resolve(r.secure_url)
         ).end(file.buffer);
       });
-      thumbnail = result;
     } catch (err) {
       console.error('Cloudinary upload error:', err.message);
       return res.status(500).send('Failed to upload thumbnail');
     }
   }
 
+  const translations = {};
+  for (const l of ARTICLE_LANGS) {
+    const title   = (req.body[`${l}_title`]   || '').trim();
+    const summary = (req.body[`${l}_summary`] || '').trim();
+    const body    = req.body[`${l}_body`]    || '';
+    const tags    = (req.body[`${l}_tags`]   || '').split(',').map(t => t.trim()).filter(Boolean);
+    const status  = req.body[`${l}_status`]  || 'none';
+
+    let slug = '';
+    if (title) slug = await generateUniqueSlug(title, null, l);
+
+    const publishedAt = (status === 'published') ? new Date() : undefined;
+    translations[l] = { title, slug, body, summary, tags, status, publishedAt };
+  }
+
   try {
-    const newArticle = new Article({ title, author, body, language, thumbnail, slug, summary, category, tags });
-    await newArticle.save();
+    await new Article({ author, category, thumbnail, translations }).save();
     res.redirect('/admin/articles');
   } catch (err) {
     console.error('Error adding article:', err);
@@ -1694,62 +1673,72 @@ exports.postAddArticle = async (req, res) => {
 };
 
 // GET: Edit Article Form
-exports.getEditArticle = (req, res) => {
-  Article.findById(req.params.articleId)
-    .then(article => {
-      if (!article) return res.redirect('/admin/articles');
-
-      res.render('sellercompany/add-article', {
-        article,
-        pageTitle: 'Edit Article',
-        path: '/admin/edit-article',
-        editing: true,
-        validationErrors: [],
-        hasError: false,
-        isAuthenticated: req.session.isLoggedIn,
-        errorMessage: null
-      });
-    })
-    .catch(err => console.log(err));
+exports.getEditArticle = async (req, res) => {
+  try {
+    const article = await Article.findById(req.params.articleId);
+    if (!article) return res.redirect('/admin/articles');
+    res.render('sellercompany/add-article', {
+      article,
+      pageTitle: 'Edit Article',
+      path: '/admin/edit-article',
+      editing: true,
+      isAuthenticated: req.session.isLoggedIn
+    });
+  } catch (err) {
+    console.error(err);
+    res.redirect('/admin/articles');
+  }
 };
 
 // POST: Edit Article
 exports.postEditArticle = async (req, res) => {
-  const { title, author, body, language, summary, category } = req.body;
-  const tags = (req.body.tags || '')
-    .split(',')
-    .map(t => t.trim())
-    .filter(Boolean);
-  const file = req.files?.thumbnail?.[0];
+  const author   = (req.body.author || '').trim();
+  const category = req.body.category || 'News';
+  const file     = req.files?.thumbnail?.[0];
 
   try {
     const article = await Article.findById(req.params.articleId);
     if (!article) return res.redirect('/admin/articles');
 
-    article.title = title;
-    article.author = author;
-    article.body = body;
-    article.language = language;
-    article.summary = summary;
-    article.category = category || article.category;
-    article.tags = tags;
+    article.author   = author;
+    article.category = category;
 
     if (file) {
-      // delete old from Cloudinary
       if (article.thumbnail) {
         const publicId = article.thumbnail.split('/draglab/articles/')[1]?.replace('.webp', '');
         if (publicId) {
           try { await cloudinary.uploader.destroy(`draglab/articles/${publicId}`); } catch { }
         }
       }
-      // upload new
-      const uploaded = await new Promise((resolve, reject) => {
+      article.thumbnail = await new Promise((resolve, reject) => {
         cloudinary.uploader.upload_stream(
           { resource_type: 'image', folder: 'draglab/articles', public_id: file.originalname.split('.')[0], format: 'webp' },
           (error, r) => error ? reject(error) : resolve(r.secure_url)
         ).end(file.buffer);
       });
-      article.thumbnail = uploaded;
+    }
+
+    for (const l of ARTICLE_LANGS) {
+      const title   = (req.body[`${l}_title`]   || '').trim();
+      const summary = (req.body[`${l}_summary`] || '').trim();
+      const body    = req.body[`${l}_body`]    || '';
+      const tags    = (req.body[`${l}_tags`]   || '').split(',').map(t => t.trim()).filter(Boolean);
+      const status  = req.body[`${l}_status`]  || 'none';
+      const existing = article.translations[l] || {};
+
+      let slug = existing.slug || '';
+      if (title && title !== existing.title) {
+        slug = await generateUniqueSlug(title, article._id, l);
+      } else if (!slug && title) {
+        slug = await generateUniqueSlug(title, article._id, l);
+      }
+
+      let publishedAt = existing.publishedAt;
+      if (status === 'published' && existing.status !== 'published') {
+        publishedAt = new Date();
+      }
+
+      article.translations[l] = { title, slug, body, summary, tags, status, publishedAt };
     }
 
     await article.save();
@@ -1760,29 +1749,25 @@ exports.postEditArticle = async (req, res) => {
   }
 };
 
-
 // POST: Delete Article
-exports.postDeleteArticle = (req, res) => {
-  Article.findById(req.params.articleId)
-    .then(async (article) => {
-      if (article.thumbnail) {
-        const publicId = article.thumbnail.split('/draglab/articles/')[1].replace('.webp', '');
+exports.postDeleteArticle = async (req, res) => {
+  try {
+    const article = await Article.findById(req.params.articleId);
+    if (!article) return res.redirect('/admin/articles');
 
-        try {
-          const result = await cloudinary.uploader.destroy(`draglab/articles/${publicId}`);
-          console.log('Thumbnail deleted from Cloudinary:', result);
-        } catch (err) {
-          console.error('Failed to delete image from Cloudinary:', err.message);
-        }
+    if (article.thumbnail) {
+      const publicId = article.thumbnail.split('/draglab/articles/')[1]?.replace('.webp', '');
+      if (publicId) {
+        try { await cloudinary.uploader.destroy(`draglab/articles/${publicId}`); } catch { }
       }
+    }
 
-      return Article.findByIdAndDelete(req.params.articleId);
-    })
-    .then(() => {
-      console.log('Article deleted');
-      res.redirect('/admin/articles');
-    })
-    .catch(err => console.log(err));
+    await Article.findByIdAndDelete(req.params.articleId);
+    res.redirect('/admin/articles');
+  } catch (err) {
+    console.error(err);
+    res.redirect('/admin/articles');
+  }
 };
 
 
@@ -2054,24 +2039,36 @@ exports.deleteFile = async (req, res) => {
 
 exports.getAllTechnicalRequests = async (req, res) => {
   try {
+    const PAGE_SIZE = 20;
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const totalItems = await TechnicalService.countDocuments();
+    const totalPages = Math.ceil(totalItems / PAGE_SIZE);
+
     const requests = await TechnicalService.find()
       .populate('deviceCategory')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * PAGE_SIZE)
+      .limit(PAGE_SIZE);
 
-    // For each request, get the corresponding model name
-    const requestsWithModelNames = await Promise.all(requests.map(async (req) => {
+    // Batch-fetch all products needed for model names (fixes N+1 query)
+    const productIds = [...new Set(
+      requests.filter(r => r.deviceCategory).map(r => r.deviceCategory._id.toString())
+    )];
+    const productMap = {};
+    if (productIds.length) {
+      const products = await Product.find({ _id: { $in: productIds } }).select('Models');
+      products.forEach(p => { productMap[p._id.toString()] = p; });
+    }
+
+    const requestsWithModelNames = requests.map(r => {
       let modelName = 'None';
-      if (req.deviceCategory && req.deviceModel) {
-        const product = await Product.findById(req.deviceCategory._id);
-        const model = product?.Models?.id(req.deviceModel);
+      if (r.deviceCategory && r.deviceModel) {
+        const product = productMap[r.deviceCategory._id.toString()];
+        const model = product?.Models?.id(r.deviceModel);
         modelName = model?.Language?.EN?.[0]?.ModelName || 'None';
       }
-
-      return {
-        ...req.toObject(),
-        modelName
-      };
-    }));
+      return { ...r.toObject(), modelName };
+    });
 
     const isAdmin = !!(req.user && (req.user.role === 'admin' || req.user.isAdmin === true));
     res.render('sellercompany/all-technical-service', {
@@ -2079,7 +2076,11 @@ exports.getAllTechnicalRequests = async (req, res) => {
       path: '/admin/TechnicalRequests',
       requests: requestsWithModelNames,
       isAuthenticated: req.session.isLoggedIn,
-      isAdmin
+      isAdmin,
+      currentPage: page,
+      totalPages,
+      totalItems,
+      baseUrl: '/admin/TechnicalRequests'
     });
   } catch (err) {
     console.error('Error loading technical requests:', err);
@@ -2259,18 +2260,35 @@ exports.exportTechnicalRequestPDF = async (req, res) => {
 
 exports.getAllWarrantyRegistrations = async (req, res) => {
   try {
+    const PAGE_SIZE = 20;
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const totalItems = await WarrantyRegistration.countDocuments();
+    const totalPages = Math.ceil(totalItems / PAGE_SIZE);
+
     const warranties = await WarrantyRegistration.find()
       .populate('deviceCategory')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * PAGE_SIZE)
+      .limit(PAGE_SIZE);
 
-    const withModelNames = await Promise.all(warranties.map(async (reg) => {
-      const product = await Product.findById(reg.deviceCategory);
+    // Batch-fetch all products needed for model names (fixes N+1 query)
+    const productIds = [...new Set(
+      warranties.filter(r => r.deviceCategory).map(r => r.deviceCategory._id.toString())
+    )];
+    const productMap = {};
+    if (productIds.length) {
+      const products = await Product.find({ _id: { $in: productIds } }).select('Models');
+      products.forEach(p => { productMap[p._id.toString()] = p; });
+    }
+
+    const withModelNames = warranties.map(reg => {
+      const product = productMap[reg.deviceCategory?._id?.toString()];
       const model = product?.Models?.id(reg.deviceModel);
       return {
         ...reg.toObject(),
         modelName: model?.Language?.EN?.[0]?.ModelName || 'None'
       };
-    }));
+    });
 
     const isAdmin = !!(req.user && (req.user.role === 'admin' || req.user.isAdmin === true));
     res.render('sellercompany/all-warranty-registrations', {
@@ -2278,7 +2296,11 @@ exports.getAllWarrantyRegistrations = async (req, res) => {
       pageTitle: 'Warranty Registrations',
       path: '/admin/warranty-registrations',
       isAuthenticated: req.session.isLoggedIn,
-      isAdmin
+      isAdmin,
+      currentPage: page,
+      totalPages,
+      totalItems,
+      baseUrl: '/admin/warranty-registrations'
     });
   } catch (err) {
     console.error('Error loading warranties:', err);
@@ -2404,23 +2426,32 @@ exports.exportWarrantyToPDF = async (req, res) => {
 
 
 // Admin - List All
-exports.getAllContactUs = (req, res, next) => {
-  const isAdmin = !!(req.user && (req.user.role === 'admin' || req.user.isAdmin === true));
-  ContactUs.find()
-    .sort({ dateSubmitted: -1 })
-    .then(messages => {
-      res.render('sellercompany/contactUs-list', {
-        pageTitle: 'Contact Messages',
-        path: '/admin/contactUs-list',
-        isAuthenticated: req.session.isLoggedIn,
-        isAdmin,
-        messages
-      });
-    })
-    .catch(err => {
-      console.error(err);
-      next(err);
+exports.getAllContactUs = async (req, res, next) => {
+  try {
+    const PAGE_SIZE = 20;
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const isAdmin = !!(req.user && (req.user.role === 'admin' || req.user.isAdmin === true));
+    const totalItems = await ContactUs.countDocuments();
+    const totalPages = Math.ceil(totalItems / PAGE_SIZE);
+    const messages = await ContactUs.find()
+      .sort({ dateSubmitted: -1 })
+      .skip((page - 1) * PAGE_SIZE)
+      .limit(PAGE_SIZE);
+    res.render('sellercompany/contactUs-list', {
+      pageTitle: 'Contact Messages',
+      path: '/admin/contactUs-list',
+      isAuthenticated: req.session.isLoggedIn,
+      isAdmin,
+      messages,
+      currentPage: page,
+      totalPages,
+      totalItems,
+      baseUrl: '/admin/contact-messages'
     });
+  } catch (err) {
+    console.error(err);
+    next(err);
+  }
 };
 
 // Admin only — toggle spam flag
@@ -2930,13 +2961,28 @@ exports.postDeleteIndustry = async (req, res) => {
 
 
 
-exports.getNewsletterList = async (req, res) => {
-  const subscribers = await NewsletterSubscriber.find().sort({ subscribedAt: -1 });
-  res.render('sellercompany/newsletter-list', {
-    pageTitle: 'Newsletter Subscribers',
-    path: '/admin/newsletter',
-    subscribers
-  });
+exports.getNewsletterList = async (req, res, next) => {
+  try {
+    const PAGE_SIZE = 50;
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const totalItems = await NewsletterSubscriber.countDocuments();
+    const totalPages = Math.ceil(totalItems / PAGE_SIZE);
+    const subscribers = await NewsletterSubscriber.find()
+      .sort({ subscribedAt: -1 })
+      .skip((page - 1) * PAGE_SIZE)
+      .limit(PAGE_SIZE);
+    res.render('sellercompany/newsletter-list', {
+      pageTitle: 'Newsletter Subscribers',
+      path: '/admin/newsletter',
+      subscribers,
+      currentPage: page,
+      totalPages,
+      totalItems,
+      baseUrl: '/admin/newsletter'
+    });
+  } catch (err) {
+    next(err);
+  }
 };
 
 
@@ -2988,7 +3034,15 @@ const bcrypt = require('bcryptjs');
 
 exports.getUsersList = async (req, res, next) => {
     try {
-        const users = await user.find().select('-password -resetToken -resetTokenExpiration').lean();
+        const PAGE_SIZE = 20;
+        const page = Math.max(1, parseInt(req.query.page) || 1);
+        const totalItems = await user.countDocuments();
+        const totalPages = Math.ceil(totalItems / PAGE_SIZE);
+        const users = await user.find()
+            .select('-password -resetToken -resetTokenExpiration')
+            .skip((page - 1) * PAGE_SIZE)
+            .limit(PAGE_SIZE)
+            .lean();
         const successMessage = req.flash('success')[0] || null;
         const errorMessage = req.flash('error')[0] || null;
         res.render('sellercompany/users-list', {
@@ -2999,7 +3053,11 @@ exports.getUsersList = async (req, res, next) => {
             users,
             currentUserId: req.user._id.toString(),
             successMessage,
-            errorMessage
+            errorMessage,
+            currentPage: page,
+            totalPages,
+            totalItems,
+            baseUrl: '/admin/users'
         });
     } catch (err) {
         next(err);
@@ -3184,4 +3242,720 @@ exports.postChangeUserPassword = async (req, res, next) => {
     } catch (err) {
         next(err);
     }
+};
+
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ADMIN: QUOTES
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Builds two lookup maps for a given language:
+ *   modelMap:   { [localizedModelName]   → englishModelName }
+ *   productMap: { [localizedProductName] → englishProductName }
+ * Returns empty maps when lang is 'EN' (no lookup needed).
+ */
+async function buildEnNameMaps(lang) {
+  if (!lang || lang === 'EN') return { modelMap: {}, productMap: {} };
+  const products = await Product.find(
+    { isDraft: false },
+    { [`Language.${lang}`]: 1, 'Language.EN': 1, [`Models.Language.${lang}`]: 1, 'Models.Language.EN': 1 }
+  ).lean();
+
+  const modelMap = {};
+  const productMap = {};
+  products.forEach(p => {
+    const langProdName = p.Language?.[lang]?.[0]?.ProductName;
+    const enProdName   = p.Language?.EN?.[0]?.ProductName;
+    if (langProdName && enProdName && langProdName !== enProdName) {
+      productMap[langProdName] = enProdName;
+    }
+    (p.Models || []).forEach(m => {
+      const langName = m.Language?.[lang]?.[0]?.ModelName;
+      const enName   = m.Language?.EN?.[0]?.ModelName;
+      if (langName && enName && langName !== enName) {
+        modelMap[langName] = enName;
+      }
+    });
+  });
+  return { modelMap, productMap };
+}
+
+exports.getAllQuotes = async (req, res) => {
+  try {
+    const statusFilter = req.query.status || '';
+    const query = statusFilter ? { status: statusFilter } : {};
+    const quotes = await Quote.find(query).sort({ createdAt: -1 }).lean();
+    const isAdmin = !!(req.user && (req.user.role === 'admin' || req.user.isAdmin === true));
+    res.render('sellercompany/all-quotes', {
+      pageTitle: 'Quote Requests',
+      path: '/admin/quotes',
+      quotes,
+      statusFilter,
+      isAdmin,
+      nonce: res.locals.nonce
+    });
+  } catch (err) {
+    console.error('getAllQuotes error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+exports.getQuoteDetail = async (req, res) => {
+  try {
+    const quote = await Quote.findById(req.params.id).lean();
+    if (!quote) return res.status(404).send('Quote not found');
+
+    // Build EN-name lookup maps for non-English quotes
+    const { modelMap, productMap } = await buildEnNameMaps(quote.lang);
+
+    // Parse model lines and attach English names
+    const modelLines = quote.productModel
+      ? quote.productModel.split('\n').map(l => {
+          const parts = l.split(' × ');
+          const name = parts[0] ? parts[0].trim() : l.trim();
+          const qty  = parts[1] ? parts[1].trim() : '1';
+          return { name, qty, enName: modelMap[name] || null };
+        }).filter(r => r.name)
+      : [];
+
+    // Enrich product category names with English equivalents
+    const productCategoryEN = quote.productCategory
+      ? quote.productCategory.split(', ').map(n => productMap[n.trim()] || null).filter(Boolean).join(', ')
+      : null;
+
+    res.render('sellercompany/quote-details', {
+      pageTitle: 'Quote Details',
+      path: '/admin/quotes',
+      quote,
+      modelLines,
+      productCategoryEN: productCategoryEN || null,
+      nonce: res.locals.nonce
+    });
+  } catch (err) {
+    console.error('getQuoteDetail error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+exports.postUpdateQuoteStatus = async (req, res) => {
+  try {
+    const { status } = req.body;
+    await Quote.findByIdAndUpdate(req.params.id, { status });
+    res.redirect('/admin/quotes/' + req.params.id);
+  } catch (err) {
+    console.error('postUpdateQuoteStatus error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+exports.getQuotePdf = async (req, res) => {
+  try {
+    const quote = await Quote.findById(req.params.id).lean();
+    if (!quote) return res.status(404).send('Quote not found');
+
+    const PRIMARY  = '#293C95';
+    const DARK     = '#1a2e4a';
+    const GREY     = '#7f8c8d';
+    const LIGHT_BG = '#F4F6FB';
+
+    const doc = new PDFDocument({ margin: 50, size: 'A4' });
+    const filename = `Quote_${quote.companyName.replace(/[^a-z0-9]/gi, '_')}_${quote._id}.pdf`;
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    doc.pipe(res);
+
+    /* ── Register Unicode fonts (supports Turkish, German, French, etc.) ── */
+    const fontDir = require('path').resolve(__dirname, '../Front-end/assets/fonts');
+    doc.registerFont('Regular',  `${fontDir}/Aptos.ttf`);
+    doc.registerFont('Bold',     `${fontDir}/Aptos-Bold.ttf`);
+    doc.registerFont('SemiBold', `${fontDir}/Aptos-SemiBold.ttf`);
+
+    const pageW = doc.page.width - 100; // usable width (margins 50 each side)
+    const COL_QTY = 55; // fixed width for the quantity column
+    const COL_NAME = pageW - COL_QTY - 10; // name column width
+
+    /* ── Header ── */
+    doc.rect(0, 0, doc.page.width, 70).fill(PRIMARY);
+    doc.fillColor('#ffffff').font('Bold').fontSize(20)
+       .text('DragLab GmbH', 50, 22);
+    doc.fillColor('rgba(255,255,255,0.75)').font('Regular').fontSize(10)
+       .text('www.drag-lab.de', 50, 46);
+    doc.fillColor('#ffffff').font('Bold').fontSize(13)
+       .text('QUOTE REQUEST', 50, 26, { align: 'right' });
+    doc.fillColor('rgba(255,255,255,0.75)').font('Regular').fontSize(9)
+       .text(`ID: ${quote._id}`, 50, 45, { align: 'right' });
+
+    /* ── Meta row ── */
+    doc.y = 90;
+    const submitted = new Date(quote.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
+    doc.fillColor(GREY).font('Regular').fontSize(9)
+       .text(`Submitted: ${submitted}   |   Language: ${quote.lang}   |   Status: ${quote.status.toUpperCase()}`,
+             50, doc.y, { align: 'right', width: pageW });
+    doc.moveDown(0.6);
+    doc.moveTo(50, doc.y).lineTo(50 + pageW, doc.y).strokeColor('#dee2e6').lineWidth(1).stroke();
+    doc.moveDown(1);
+
+    /* ── Section title helper ── */
+    function sectionTitle(label) {
+      doc.moveDown(0.3);
+      const sy = doc.y;
+      doc.rect(50, sy, pageW, 22).fill(LIGHT_BG);
+      doc.fillColor(PRIMARY).font('Bold').fontSize(10)
+         .text(label.toUpperCase(), 58, sy + 6, { width: pageW - 16 });
+      doc.moveDown(0.9);
+    }
+
+    /* ── Customer Information ── */
+    sectionTitle('Customer Information');
+
+    doc.fillColor(GREY).font('Bold').fontSize(8).text('COMPANY');
+    doc.fillColor(DARK).font('Regular').fontSize(10).text(quote.companyName);
+    doc.moveDown(0.3);
+
+    doc.fillColor(GREY).font('Bold').fontSize(8).text('COUNTRY');
+    doc.fillColor(DARK).font('Regular').fontSize(10).text(quote.country || '—');
+    doc.moveDown(0.3);
+
+    if (quote.industry) {
+      doc.fillColor(GREY).font('Bold').fontSize(8).text('INDUSTRY');
+      doc.fillColor(DARK).font('Regular').fontSize(10).text(quote.industry);
+      doc.moveDown(0.3);
+    }
+
+    doc.fillColor(GREY).font('Bold').fontSize(8).text('CONTACT NAME');
+    doc.fillColor(DARK).font('Regular').fontSize(10).text(quote.contactName || '—');
+    doc.moveDown(0.3);
+
+    doc.fillColor(GREY).font('Bold').fontSize(8).text('EMAIL');
+    doc.fillColor(DARK).font('Regular').fontSize(10).text(quote.email);
+    doc.moveDown(0.3);
+
+    if (quote.phone) {
+      doc.fillColor(GREY).font('Bold').fontSize(8).text('PHONE');
+      doc.fillColor(DARK).font('Regular').fontSize(10).text(quote.phone);
+      doc.moveDown(0.3);
+    }
+
+    /* ── Products & Models ── */
+    doc.moveDown(0.8);
+    sectionTitle('Products & Models Requested');
+
+    // Build EN name maps for non-English quotes
+    const { modelMap: pdfModelMap, productMap: pdfProductMap } = await buildEnNameMaps(quote.lang);
+
+    if (quote.productCategory) {
+      doc.fillColor(GREY).font('Bold').fontSize(8).text('SELECTED PRODUCTS');
+      const catEN = quote.productCategory.split(', ')
+        .map(n => pdfProductMap[n.trim()] ? `${n.trim()} (${pdfProductMap[n.trim()]})` : n.trim())
+        .join(', ');
+      doc.fillColor(DARK).font('Regular').fontSize(10).text(catEN, { width: pageW });
+      doc.moveDown(0.6);
+    }
+
+    const modelLines = quote.productModel
+      ? quote.productModel.split('\n').map(l => {
+          const parts = l.split(' × ');
+          const name = (parts[0] || l).trim();
+          return { name, qty: (parts[1] || '1').trim(), enName: pdfModelMap[name] || null };
+        }).filter(r => r.name)
+      : [];
+
+    if (modelLines.length) {
+      /* Table header */
+      const tY = doc.y;
+      doc.rect(50, tY, pageW, 22).fill(PRIMARY);
+      doc.fillColor('#ffffff').font('Bold').fontSize(9)
+         .text('MODEL', 58, tY + 6, { width: COL_NAME });
+      doc.fillColor('#ffffff').font('Bold').fontSize(9)
+         .text('QTY', 50 + COL_NAME + 10, tY + 6, { width: COL_QTY, align: 'center' });
+      doc.y = tY + 22;
+
+      /* Table rows — dynamic height based on text wrap */
+      const ROW_PAD_V = 6; // top+bottom padding inside each row
+      const ROW_FONT_SIZE = 10;
+
+      modelLines.forEach((row, i) => {
+        const displayName = row.enName ? `${row.name}  (${row.enName})` : row.name;
+
+        // Calculate how tall this row needs to be
+        doc.font('Regular').fontSize(ROW_FONT_SIZE);
+        const textH = doc.heightOfString(displayName, { width: COL_NAME - 8 });
+        const rowH  = textH + ROW_PAD_V * 2;
+
+        const rowY = doc.y;
+
+        // Stripe background
+        if (i % 2 === 0) doc.rect(50, rowY, pageW, rowH).fill('#f4f6fb');
+
+        // Model name — allowed to wrap
+        doc.fillColor(DARK).font('Regular').fontSize(ROW_FONT_SIZE)
+           .text(displayName, 58, rowY + ROW_PAD_V, { width: COL_NAME - 8, lineBreak: true });
+
+        // Quantity — vertically centred in the row
+        const qtyY = rowY + (rowH - ROW_FONT_SIZE) / 2 - 1;
+        doc.fillColor(PRIMARY).font('Bold').fontSize(ROW_FONT_SIZE)
+           .text(row.qty, 50 + COL_NAME + 10, qtyY, { width: COL_QTY, align: 'center' });
+
+        // Thin bottom border
+        doc.moveTo(50, rowY + rowH).lineTo(50 + pageW, rowY + rowH)
+           .strokeColor('#e0e4ef').lineWidth(0.5).stroke();
+
+        doc.y = rowY + rowH;
+      });
+      doc.moveDown(0.5);
+    } else {
+      doc.fillColor(GREY).font('Regular').fontSize(10).text('No models selected.');
+    }
+
+    /* ── Request Details ── */
+    doc.moveDown(0.5);
+    sectionTitle('Request Details');
+
+    if (quote.deliveryDeadline) {
+      doc.fillColor(GREY).font('Bold').fontSize(8).text('DELIVERY DEADLINE');
+      doc.fillColor(DARK).font('Regular').fontSize(10)
+         .text(new Date(quote.deliveryDeadline).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }));
+      doc.moveDown(0.4);
+    }
+
+    if (quote.message) {
+      doc.fillColor(GREY).font('Bold').fontSize(8).text('MESSAGE / REQUIREMENTS');
+      doc.moveDown(0.2);
+      const msgY = doc.y;
+      const msgText = quote.message;
+      doc.font('Regular').fontSize(10);
+      const msgH = doc.heightOfString(msgText, { width: pageW - 16 }) + 16;
+      doc.rect(50, msgY, pageW, msgH).fill(LIGHT_BG);
+      doc.fillColor(DARK).font('Regular').fontSize(10)
+         .text(msgText, 58, msgY + 8, { width: pageW - 16 });
+      doc.y = msgY + msgH;
+      doc.moveDown(0.6);
+    }
+
+    if (quote.fileAttachment) {
+      doc.fillColor(GREY).font('Bold').fontSize(8).text('ATTACHED SPECIFICATION FILE');
+      doc.fillColor(PRIMARY).font('Regular').fontSize(9)
+         .text(quote.fileAttachment, { link: quote.fileAttachment, underline: true });
+      doc.moveDown(0.4);
+    }
+
+    /* ── Footer (flows after content — never forces an extra page) ── */
+    doc.moveDown(1.5);
+    doc.moveTo(50, doc.y).lineTo(50 + pageW, doc.y).strokeColor('#dee2e6').lineWidth(0.5).stroke();
+    doc.moveDown(0.4);
+    doc.fillColor(GREY).font('Regular').fontSize(8)
+       .text('DragLab GmbH  ·  www.drag-lab.de  ·  info@drag-lab.de',
+             { align: 'center', width: pageW });
+
+    doc.end();
+  } catch (err) {
+    console.error('getQuotePdf error:', err);
+    res.status(500).send('Could not generate PDF');
+  }
+};
+
+
+// Admin only — toggle spam flag on a quote
+exports.postMarkQuoteSpam = async (req, res) => {
+  try {
+    const isAdmin = !!(req.user && (req.user.role === 'admin' || req.user.isAdmin === true));
+    if (!isAdmin) return res.status(403).send('Forbidden');
+    const quote = await Quote.findById(req.params.id);
+    if (!quote) return res.redirect('/admin/quotes');
+    quote.isSpam = !quote.isSpam;
+    await quote.save();
+    res.redirect('/admin/quotes');
+  } catch (err) {
+    console.error('postMarkQuoteSpam error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+// Admin only — permanently delete a quote
+exports.deleteQuote = async (req, res) => {
+  try {
+    const isAdmin = !!(req.user && (req.user.role === 'admin' || req.user.isAdmin === true));
+    if (!isAdmin) return res.status(403).send('Forbidden');
+    await Quote.findByIdAndDelete(req.params.id);
+    res.redirect('/admin/quotes');
+  } catch (err) {
+    console.error('deleteQuote error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ADMIN: DISTRIBUTOR APPLICATIONS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+exports.getAllDistributorApplications = async (req, res) => {
+  try {
+    const statusFilter = req.query.status || '';
+    const query = statusFilter ? { status: statusFilter } : {};
+    const applications = await DistributorApplication.find(query).sort({ createdAt: -1 }).lean();
+    res.render('sellercompany/all-distributor-applications', {
+      pageTitle: 'Distributor Applications',
+      path: '/admin/distributor-applications',
+      applications,
+      statusFilter,
+      nonce: res.locals.nonce
+    });
+  } catch (err) {
+    console.error('getAllDistributorApplications error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+exports.getDistributorApplicationDetail = async (req, res) => {
+  try {
+    const application = await DistributorApplication.findById(req.params.id).lean();
+    if (!application) return res.status(404).send('Application not found');
+    res.render('sellercompany/distributor-application-details', {
+      pageTitle: 'Distributor Application Details',
+      path: '/admin/distributor-applications',
+      application,
+      nonce: res.locals.nonce
+    });
+  } catch (err) {
+    console.error('getDistributorApplicationDetail error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+exports.postUpdateDistributorStatus = async (req, res) => {
+  try {
+    const { status } = req.body;
+    await DistributorApplication.findByIdAndUpdate(req.params.id, { status });
+    res.redirect('/admin/distributor-applications/' + req.params.id);
+  } catch (err) {
+    console.error('postUpdateDistributorStatus error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ADMIN: FAQs
+// ═══════════════════════════════════════════════════════════════════════════════
+
+exports.getAllFaqs = async (req, res) => {
+  try {
+    const faqs = await FAQ.find().sort({ lang: 1, category: 1, order: 1 }).lean();
+    res.render('sellercompany/all-faqs', {
+      pageTitle: 'Manage FAQs',
+      path: '/admin/faqs',
+      faqs,
+      nonce: res.locals.nonce
+    });
+  } catch (err) {
+    console.error('getAllFaqs error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+exports.getAddFaq = (req, res) => {
+  res.render('sellercompany/add-faq', {
+    pageTitle: 'Add FAQ',
+    path: '/admin/faqs',
+    editing: false,
+    faq: null,
+    nonce: res.locals.nonce
+  });
+};
+
+exports.postAddFaq = async (req, res) => {
+  try {
+    const { question, answer, category, lang, status, relatedProducts, order, slug } = req.body;
+    const faq = new FAQ({
+      question, answer, category, lang: (lang || 'EN').toUpperCase(),
+      status: status || 'draft',
+      relatedProducts: relatedProducts ? relatedProducts.split(',').map(s => s.trim()).filter(Boolean) : [],
+      order: order ? parseInt(order) : 0,
+      slug: slug || question.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+    });
+    await faq.save();
+    res.redirect('/admin/faqs');
+  } catch (err) {
+    console.error('postAddFaq error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+exports.getEditFaq = async (req, res) => {
+  try {
+    const faq = await FAQ.findById(req.params.id).lean();
+    if (!faq) return res.status(404).send('FAQ not found');
+    res.render('sellercompany/add-faq', {
+      pageTitle: 'Edit FAQ',
+      path: '/admin/faqs',
+      editing: true,
+      faq,
+      nonce: res.locals.nonce
+    });
+  } catch (err) {
+    console.error('getEditFaq error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+exports.postEditFaq = async (req, res) => {
+  try {
+    const { question, answer, category, lang, status, relatedProducts, order, slug } = req.body;
+    await FAQ.findByIdAndUpdate(req.params.id, {
+      question, answer, category, lang: (lang || 'EN').toUpperCase(),
+      status: status || 'draft',
+      relatedProducts: relatedProducts ? relatedProducts.split(',').map(s => s.trim()).filter(Boolean) : [],
+      order: order ? parseInt(order) : 0,
+      slug: slug || question.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+    });
+    res.redirect('/admin/faqs');
+  } catch (err) {
+    console.error('postEditFaq error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+exports.postDeleteFaq = async (req, res) => {
+  try {
+    await FAQ.findByIdAndDelete(req.params.id);
+    res.redirect('/admin/faqs');
+  } catch (err) {
+    console.error('postDeleteFaq error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ADMIN: CASE STUDIES
+// ═══════════════════════════════════════════════════════════════════════════════
+
+exports.getAllCaseStudies = async (req, res) => {
+  try {
+    const caseStudies = await CaseStudy.find().sort({ createdAt: -1 }).lean();
+    res.render('sellercompany/all-case-studies', {
+      pageTitle: 'Manage Case Studies',
+      path: '/admin/case-studies',
+      caseStudies,
+      nonce: res.locals.nonce
+    });
+  } catch (err) {
+    console.error('getAllCaseStudies error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+exports.getAddCaseStudy = (req, res) => {
+  res.render('sellercompany/add-case-study', {
+    pageTitle: 'Add Case Study',
+    path: '/admin/case-studies',
+    editing: false,
+    caseStudy: null,
+    nonce: res.locals.nonce
+  });
+};
+
+exports.postAddCaseStudy = async (req, res) => {
+  try {
+    const { slug, clientType, clientLocation, clientSize, industry, problem, solution, results, status } = req.body;
+    const langs = ['en', 'es', 'de', 'tr', 'fr'];
+    const translations = {};
+    langs.forEach(l => {
+      translations[l] = {
+        title: req.body[`title_${l}`] || '',
+        slug: req.body[`slug_${l}`] || '',
+        clientProfile: req.body[`clientProfile_${l}`] || '',
+        problem: req.body[`problem_${l}`] || '',
+        solution: req.body[`solution_${l}`] || '',
+        results: req.body[`results_${l}`] || '',
+        summary: req.body[`summary_${l}`] || '',
+        status: req.body[`status_${l}`] || 'draft'
+      };
+    });
+    const cs = new CaseStudy({
+      title: translations.en.title || req.body.title_en,
+      slug: slug || (translations.en.title || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
+      clientType, clientLocation, clientSize, industry, problem, solution, results,
+      status: status || 'draft',
+      translations
+    });
+    await cs.save();
+    res.redirect('/admin/case-studies');
+  } catch (err) {
+    console.error('postAddCaseStudy error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+exports.getEditCaseStudy = async (req, res) => {
+  try {
+    const caseStudy = await CaseStudy.findById(req.params.id).lean();
+    if (!caseStudy) return res.status(404).send('Case study not found');
+    res.render('sellercompany/add-case-study', {
+      pageTitle: 'Edit Case Study',
+      path: '/admin/case-studies',
+      editing: true,
+      caseStudy,
+      nonce: res.locals.nonce
+    });
+  } catch (err) {
+    console.error('getEditCaseStudy error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+exports.postEditCaseStudy = async (req, res) => {
+  try {
+    const { slug, clientType, clientLocation, clientSize, industry, problem, solution, results, status } = req.body;
+    const langs = ['en', 'es', 'de', 'tr', 'fr'];
+    const translations = {};
+    langs.forEach(l => {
+      translations[l] = {
+        title: req.body[`title_${l}`] || '',
+        slug: req.body[`slug_${l}`] || '',
+        clientProfile: req.body[`clientProfile_${l}`] || '',
+        problem: req.body[`problem_${l}`] || '',
+        solution: req.body[`solution_${l}`] || '',
+        results: req.body[`results_${l}`] || '',
+        summary: req.body[`summary_${l}`] || '',
+        status: req.body[`status_${l}`] || 'draft'
+      };
+    });
+    await CaseStudy.findByIdAndUpdate(req.params.id, {
+      title: translations.en.title,
+      slug: slug || (translations.en.title || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
+      clientType, clientLocation, clientSize, industry, problem, solution, results,
+      status: status || 'draft',
+      translations
+    });
+    res.redirect('/admin/case-studies');
+  } catch (err) {
+    console.error('postEditCaseStudy error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+exports.postDeleteCaseStudy = async (req, res) => {
+  try {
+    await CaseStudy.findByIdAndDelete(req.params.id);
+    res.redirect('/admin/case-studies');
+  } catch (err) {
+    console.error('postDeleteCaseStudy error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ADMIN: GLOSSARY
+// ═══════════════════════════════════════════════════════════════════════════════
+
+exports.getAllGlossary = async (req, res) => {
+  try {
+    const terms = await Glossary.find().sort({ letter: 1, term: 1 }).lean();
+    res.render('sellercompany/all-glossary', {
+      pageTitle: 'Manage Glossary',
+      path: '/admin/glossary',
+      terms,
+      nonce: res.locals.nonce
+    });
+  } catch (err) {
+    console.error('getAllGlossary error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+exports.getAddGlossary = (req, res) => {
+  res.render('sellercompany/add-glossary', {
+    pageTitle: 'Add Glossary Term',
+    path: '/admin/glossary',
+    editing: false,
+    term: null,
+    nonce: res.locals.nonce
+  });
+};
+
+exports.postAddGlossary = async (req, res) => {
+  try {
+    const { term, definition, description, status, relatedProducts } = req.body;
+    const slug = req.body.slug || term.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    const letter = term.charAt(0).toUpperCase();
+    const langs = ['en', 'es', 'de', 'tr', 'fr'];
+    const translations = {};
+    langs.forEach(l => {
+      translations[l] = {
+        term: req.body[`term_${l}`] || '',
+        definition: req.body[`definition_${l}`] || '',
+        description: req.body[`description_${l}`] || '',
+        status: req.body[`status_${l}`] || 'draft'
+      };
+    });
+    const entry = new Glossary({
+      term, slug, definition, description, letter,
+      status: status || 'draft',
+      relatedProducts: relatedProducts ? relatedProducts.split(',').map(s => s.trim()).filter(Boolean) : [],
+      translations
+    });
+    await entry.save();
+    res.redirect('/admin/glossary');
+  } catch (err) {
+    console.error('postAddGlossary error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+exports.getEditGlossary = async (req, res) => {
+  try {
+    const term = await Glossary.findById(req.params.id).lean();
+    if (!term) return res.status(404).send('Term not found');
+    res.render('sellercompany/add-glossary', {
+      pageTitle: 'Edit Glossary Term',
+      path: '/admin/glossary',
+      editing: true,
+      term,
+      nonce: res.locals.nonce
+    });
+  } catch (err) {
+    console.error('getEditGlossary error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+exports.postEditGlossary = async (req, res) => {
+  try {
+    const { term, definition, description, status, relatedProducts } = req.body;
+    const slug = req.body.slug || term.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    const letter = term.charAt(0).toUpperCase();
+    const langs = ['en', 'es', 'de', 'tr', 'fr'];
+    const translations = {};
+    langs.forEach(l => {
+      translations[l] = {
+        term: req.body[`term_${l}`] || '',
+        definition: req.body[`definition_${l}`] || '',
+        description: req.body[`description_${l}`] || '',
+        status: req.body[`status_${l}`] || 'draft'
+      };
+    });
+    await Glossary.findByIdAndUpdate(req.params.id, {
+      term, slug, definition, description, letter,
+      status: status || 'draft',
+      relatedProducts: relatedProducts ? relatedProducts.split(',').map(s => s.trim()).filter(Boolean) : [],
+      translations
+    });
+    res.redirect('/admin/glossary');
+  } catch (err) {
+    console.error('postEditGlossary error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+exports.postDeleteGlossary = async (req, res) => {
+  try {
+    await Glossary.findByIdAndDelete(req.params.id);
+    res.redirect('/admin/glossary');
+  } catch (err) {
+    console.error('postDeleteGlossary error:', err);
+    res.status(500).send('Server error');
+  }
 };

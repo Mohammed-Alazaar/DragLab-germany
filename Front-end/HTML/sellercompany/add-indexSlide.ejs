@@ -1,70 +1,140 @@
 <%- include('../../includes/sellercompany/head.ejs') %>
-
-    <link rel="stylesheet" href="/css/sellercompany/add-indexSlide.css">
-
+    <link rel="stylesheet" href="/css/sellercompany/add-article.css">
     <%- include('../../includes/sellercompany/head-end.ejs') %>
 
-        <body>
-            <%- include('../../includes/sellercompany/navbar-dash.ejs') %>
-                <section class="sidebar-content-container">
-                    <section class="sidebar-container">
-                        <%- include('../../includes/sellercompany/sidebar.ejs') %>
-                    </section>
+    <body>
+        <%- include('../../includes/sellercompany/navbar-dash.ejs') %>
+        <section class="sidebar-content-container">
+            <section class="sidebar-container">
+                <%- include('../../includes/sellercompany/sidebar.ejs') %>
+            </section>
 
+            <div class="form-container">
+                <h1><%= editing ? 'Edit Slide' : 'Add New Slide' %></h1>
 
-                    <section class="slideshow-dashboard-container">
-                        <h2>
-                            <%= editing ? 'Edit Slide' : 'Add New Slide' %>
-                        </h2>
-                        <form action="<%= editing ? '/admin/slideshow/edit/' + slide._id : '/admin/slideshow/add' %>"
-                            method="POST" enctype="multipart/form-data">
+                <form action="<%= editing ? '/admin/slideshow/edit/' + slide._id : '/admin/slideshow/add' %>"
+                    method="POST" enctype="multipart/form-data">
 
-                            <input type="text" name="title" placeholder="Slide Title" value="<%= slide?.title || '' %>"
-                                required>
+                    <!-- Shared image -->
+                    <label for="slideshowImage">Slide Image (shared for all languages)</label>
+                    <% if (editing && slide.image) { %>
+                        <img src="<%= slide.image %>" alt="Current slide image">
+                    <% } %>
+                    <input type="file" id="slideshowImage" name="slideshowImage" accept="image/*"
+                        <%= editing ? '' : 'required' %>>
 
-                            <textarea name="desc" placeholder="Description" required><%= slide?.desc || '' %></textarea>
-
-                            <% if (editing && slide.image) { %>
-                                <img src="<%=slide.image %>" width="150">
+                    <!-- Language tabs -->
+                    <%
+                      const LANGS = [
+                        { key: 'en', label: 'EN', name: 'English' },
+                        { key: 'es', label: 'ES', name: 'Spanish' },
+                        { key: 'de', label: 'DE', name: 'German' },
+                        { key: 'tr', label: 'TR', name: 'Turkish' },
+                        { key: 'fr', label: 'FR', name: 'French' }
+                      ];
+                    %>
+                    <div class="lang-tabs-header">
+                        <div class="lang-tabs">
+                            <% LANGS.forEach((l, idx) => {
+                               const t = slide?.translations?.[l.key];
+                               const st = t?.status || 'none';
+                            %>
+                            <button type="button"
+                                class="lang-tab-btn <%= idx === 0 ? 'active' : '' %>"
+                                data-lang="<%= l.key %>">
+                                <% if (st === 'published') { %><span class="tab-dot dot-published"></span>
+                                <% } else if (st === 'draft') { %><span class="tab-dot dot-draft"></span>
                                 <% } %>
+                                <%= l.label %> <span class="lang-full-name"><%= l.name %></span>
+                            </button>
+                            <% }) %>
+                        </div>
+                    </div>
 
-                                    <label for="language">Slide Language</label>
-                                    <select name="language" required>
-                                        <option value="ALL" <%=slide?.language==='ALL' ? 'selected' : '' %>>All
-                                            Languages</option>
-                                        <option value="EN" <%=slide?.language==='EN' ? 'selected' : '' %>>English
-                                        </option>
-                                        <option value="ES" <%=slide?.language==='ES' ? 'selected' : '' %>>Spanish
-                                        </option>
-                                        <option value="DE" <%=slide?.language==='DE' ? 'selected' : '' %>>Germany
-                                        </option>
-                                        <option value="TR" <%=slide?.language==='TR' ? 'selected' : '' %>>Turkish
-                                        </option>
-                                        <option value="FR" <%=slide?.language==='FR' ? 'selected' : '' %>>French
-                                        </option>
-                                    </select>
+                    <% LANGS.forEach((l, idx) => {
+                       const t = slide?.translations?.[l.key] || {};
+                       const currentStatus = t.status || 'none';
+                    %>
+                    <div id="tab-<%= l.key %>" class="lang-tab-content <%= idx === 0 ? 'active' : '' %>">
+                        <input type="hidden" id="status_<%= l.key %>" name="<%= l.key %>_status"
+                               value="<%= currentStatus %>">
 
-                                    <input type="file" name="slideshowImage" <%=editing ? '' : 'required' %>>
+                        <label>Title (<%= l.name %>)</label>
+                        <input type="text" name="<%= l.key %>_title" value="<%= t.title || '' %>">
 
-                                    <div class="form-buttons">
-                                        <button type="submit">
-                                            <%= editing ? 'Update' : 'Add' %> Slide
-                                        </button>
-                                        <a href="/admin/slideshow" class="cancel-button">Cancel</a>
-                                    </div>
+                        <label>Description (<%= l.name %>)</label>
+                        <textarea name="<%= l.key %>_desc" rows="4"><%= t.desc || '' %></textarea>
 
-                        </form>
-                    </section>
+                        <div class="status-section">
+                            <label>Publication status for <%= l.name %></label>
+                            <div class="status-buttons" id="status-btns-<%= l.key %>">
+                                <button type="button"
+                                    class="status-btn btn-draft <%= currentStatus === 'draft' ? 'active' : '' %>"
+                                    data-lang="<%= l.key %>" data-val="draft">
+                                    Save as Draft
+                                </button>
+                                <button type="button"
+                                    class="status-btn btn-publish <%= currentStatus === 'published' ? 'active' : '' %>"
+                                    data-lang="<%= l.key %>" data-val="published">
+                                    Publish
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <% }) %>
 
+                    <div class="form-buttons">
+                        <button type="submit"><%= editing ? 'Update Slide' : 'Save Slide' %></button>
+                        <a href="/admin/slideshow" class="cancel-button">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </section>
 
+        <script nonce="<%= nonce %>">
+        (function () {
+            var initialized = {};
 
-                </section>
+            function showTab(lang) {
+                document.querySelectorAll('.lang-tab-content').forEach(function (el) { el.classList.remove('active'); });
+                document.querySelectorAll('.lang-tab-btn').forEach(function (el) { el.classList.remove('active'); });
+                var c = document.getElementById('tab-' + lang);
+                if (c) c.classList.add('active');
+                var b = document.querySelector('.lang-tab-btn[data-lang="' + lang + '"]');
+                if (b) b.classList.add('active');
+            }
 
+            document.querySelectorAll('.lang-tab-btn').forEach(function (btn) {
+                btn.addEventListener('click', function () { showTab(this.dataset.lang); });
+            });
 
-
-
-
-                <script src="/assets/js/nav-bar.js"></script>
-        </body>
-
-        </html>
+            document.querySelectorAll('.status-btn').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    var lang = this.dataset.lang;
+                    var val = this.dataset.val;
+                    var hidden = document.getElementById('status_' + lang);
+                    var container = document.getElementById('status-btns-' + lang);
+                    if (hidden.value === val) {
+                        hidden.value = 'none';
+                        container.querySelectorAll('.status-btn').forEach(function (b) { b.classList.remove('active'); });
+                    } else {
+                        hidden.value = val;
+                        container.querySelectorAll('.status-btn').forEach(function (b) { b.classList.remove('active'); });
+                        this.classList.add('active');
+                    }
+                    var tabBtn = document.querySelector('.lang-tab-btn[data-lang="' + lang + '"]');
+                    if (tabBtn) {
+                        var dot = tabBtn.querySelector('.tab-dot');
+                        if (dot) dot.remove();
+                        if (hidden.value === 'published' || hidden.value === 'draft') {
+                            var newDot = document.createElement('span');
+                            newDot.className = 'tab-dot dot-' + hidden.value;
+                            tabBtn.insertBefore(newDot, tabBtn.firstChild);
+                        }
+                    }
+                });
+            });
+        })();
+        </script>
+    </body>
+</html>

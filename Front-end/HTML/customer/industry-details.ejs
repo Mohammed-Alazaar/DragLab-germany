@@ -7,7 +7,7 @@
   const cleanDesc = iDesc.replace(/<\/?[^>]+(>|$)/g, '').replace(/\s+/g, ' ').trim().slice(0, 160);
 
   const industrySlug = industry.slug || 'industry';
-  const canonicalUrl = `https://www.drag-lab.de/${langLc}/industry/${industrySlug}`;
+  const canonicalUrl = `https://www.drag-lab.de/${lang}/industry/${industrySlug}`;
 
   const pageTitle =
     (lang === 'ES') ? `${iTitle} | Soluciones por Industria` :
@@ -29,10 +29,13 @@
 
 
 <!-- Hreflang cluster -->
-<link rel="alternate" hreflang="x-default" href="https://www.drag-lab.de/en/industry/<%= industrySlug %>" />
-<link rel="alternate" hreflang="en" href="https://www.drag-lab.de/en/industry/<%= industrySlug %>" />
-<link rel="alternate" hreflang="es" href="https://www.drag-lab.de/es/industry/<%= industrySlug %>" />
-<link rel="alternate" hreflang="de" href="https://www.drag-lab.de/de/industry/<%= industrySlug %>" />
+<link rel="alternate" hreflang="x-default" href="https://www.drag-lab.de/EN/industry/<%= industrySlug %>" />
+<link rel="alternate" hreflang="en" href="https://www.drag-lab.de/EN/industry/<%= industrySlug %>" />
+<link rel="alternate" hreflang="es" href="https://www.drag-lab.de/ES/industry/<%= industrySlug %>" />
+<link rel="alternate" hreflang="de" href="https://www.drag-lab.de/DE/industry/<%= industrySlug %>" />
+<link rel="alternate" hreflang="tr" href="https://www.drag-lab.de/TR/industry/<%= industrySlug %>">
+<link rel="alternate" hreflang="fr" href="https://www.drag-lab.de/FR/industry/<%= industrySlug %>">
+<meta name="robots" content="index, follow">
 
 <!-- Open Graph -->
 <meta property="og:type" content="website" />
@@ -40,7 +43,7 @@
 <meta property="og:title" content="<%= pageTitle %> | DragLab" />
 <meta property="og:description" content="<%= cleanDesc %>" />
 <meta property="og:url" content="<%= canonicalUrl %>" />
-<meta property="og:locale" content="<%= lang === 'ES' ? 'es_ES' : (lang === 'DE' ? 'de_DE' : 'en_US') %>" />
+<meta property="og:locale" content="<%= lang === 'ES' ? 'es_ES' : lang === 'DE' ? 'de_DE' : lang === 'TR' ? 'tr_TR' : lang === 'FR' ? 'fr_FR' : 'en_US' %>" />
 <meta property="og:image" content="<%= ogImageAbs %>" />
 <meta property="og:image:alt" content="<%= iTitle %>" />
 <meta property="og:image:width" content="<%= ogImageWidth %>" />
@@ -63,7 +66,7 @@
     const pImg = p.thumbnail
       ? (p.thumbnail.startsWith('http') ? p.thumbnail : `https://www.drag-lab.de${p.thumbnail}`)
       : ogImageAbs;
-    const pUrl = `https://www.drag-lab.de/${langLc}/products/${p.slug}`;
+    const pUrl = `https://www.drag-lab.de/${lang}/products/${p.slug}`;
     return {
       "@type": "ListItem",
       "position": idx + 1,
@@ -104,8 +107,8 @@
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
   "itemListElement": [
-    { "@type": "ListItem", "position": 1, "name": (lang === 'ES' ? 'Inicio' : (lang === 'DE' ? 'Startseite' : 'Home')), "item": `https://www.drag-lab.de/${langLc}` },
-    { "@type": "ListItem", "position": 2, "name": (lang === 'ES' ? 'Industrias' : (lang === 'DE' ? 'Branchen' : 'Industry')), "item": `https://www.drag-lab.de/${langLc}/industry` },
+    { "@type": "ListItem", "position": 1, "name": (lang === 'ES' ? 'Inicio' : (lang === 'DE' ? 'Startseite' : 'Home')), "item": `https://www.drag-lab.de/${lang}` },
+    { "@type": "ListItem", "position": 2, "name": (lang === 'ES' ? 'Industrias' : (lang === 'DE' ? 'Branchen' : 'Industry')), "item": `https://www.drag-lab.de/${lang}/Industry` },
     { "@type": "ListItem", "position": 3, "name": iTitle, "item": canonicalUrl }
   ]
 }, null, 2) %>

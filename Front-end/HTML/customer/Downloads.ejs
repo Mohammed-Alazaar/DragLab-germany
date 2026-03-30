@@ -7,20 +7,22 @@
   <meta name="description" content="<%= translations.metaDescription %>">
   <meta name="robots" content="index,follow">
 
-  <!-- Canonical + hreflang (lowercase paths, consistent domain) -->
-  <link rel="canonical" href="https://www.drag-lab.de/<%= lang.toLowerCase() %>/downloads">
-  <link rel="alternate" hreflang="x-default" href="https://www.drag-lab.de/en/downloads">
-  <link rel="alternate" hreflang="en" href="https://www.drag-lab.de/en/downloads">
-  <link rel="alternate" hreflang="es" href="https://www.drag-lab.de/es/downloads">
-  <link rel="alternate" hreflang="de" href="https://www.drag-lab.de/de/downloads">
+  <!-- Canonical + hreflang -->
+  <link rel="canonical" href="https://www.drag-lab.de/<%= lang %>/Downloads">
+  <link rel="alternate" hreflang="x-default" href="https://www.drag-lab.de/EN/Downloads">
+  <link rel="alternate" hreflang="en" href="https://www.drag-lab.de/EN/Downloads">
+  <link rel="alternate" hreflang="es" href="https://www.drag-lab.de/ES/Downloads">
+  <link rel="alternate" hreflang="de" href="https://www.drag-lab.de/DE/Downloads">
+  <link rel="alternate" hreflang="tr" href="https://www.drag-lab.de/TR/Downloads">
+  <link rel="alternate" hreflang="fr" href="https://www.drag-lab.de/FR/Downloads">
 
   <!-- Open Graph -->
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="DragLab">
   <meta property="og:title" content="<%= translations.pageTitle %> | DragLab">
   <meta property="og:description" content="<%= translations.ogDescription %>">
-  <meta property="og:url" content="https://www.drag-lab.de/<%= lang.toLowerCase() %>/downloads">
-  <meta property="og:locale" content="<%= lang === 'EN' ? 'en_US' : (lang === 'ES' ? 'es_ES' : 'de_DE') %>">
+  <meta property="og:url" content="https://www.drag-lab.de/<%= lang %>/Downloads">
+  <meta property="og:locale" content="<%= lang==='EN'?'en_US':lang==='ES'?'es_ES':lang==='DE'?'de_DE':lang==='TR'?'tr_TR':'fr_FR' %>">
   <meta property="og:image" content="https://www.drag-lab.de/assets/Imgs/og/downloads-og.jpg">
   <meta property="og:image:alt" content="DragLab Downloads – catalogs, manuals, certificates">
 
@@ -41,7 +43,7 @@
   "@type": "WebPage",
   "name": translations.pageTitle + " | DragLab",
   "inLanguage": lang.toLowerCase(),
-  "url": `https://www.drag-lab.de/${lang.toLowerCase()}/downloads`,
+  "url": `https://www.drag-lab.de/${lang}/Downloads`,
   "description": translations.metaDescription,
   "breadcrumb": {
   "@type": "BreadcrumbList",
@@ -53,13 +55,13 @@
         const map = { EN: 'Home', ES: 'Inicio', DE: 'Startseite', TR: 'Ana Sayfa', FR: 'Accueil' };
         return map[lang] || 'Home';
       })(),
-      "item": `https://www.drag-lab.de/${lang.toLowerCase()}`
+      "item": `https://www.drag-lab.de/${lang}`
     },
     {
       "@type": "ListItem",
       "position": 2,
       "name": translations.pageTitle,
-      "item": `https://www.drag-lab.de/${lang.toLowerCase()}/downloads`
+      "item": `https://www.drag-lab.de/${lang}/Downloads`
     }
   ]
 }

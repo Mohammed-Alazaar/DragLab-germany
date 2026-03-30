@@ -266,9 +266,8 @@
 }
 
 #search {
-    width: 289px;
+    width: 200px;
     padding: 10px 4px 17px 44px;
-
     border: none;
     font-size: 16px;
     background-color: #DEE3EB;
@@ -305,13 +304,61 @@ select#languageSwitcher {
 }
 
 .navLeft {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+.nav-search-wrap {
     position: relative;
+}
+
+/* ── Quote button (desktop) ── */
+.nav-quote-btn {
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+    padding: 9px 16px;
+    background: #0d3b6e;
+    color: #fff !important;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 14px !important;
+    text-decoration: none !important;
+    transition: background 0.2s;
+    flex-shrink: 0;
+    line-height: 1.2;
+}
+.nav-quote-btn:hover {
+    background: #c9a227;
+    color: #fff !important;
+}
+
+/* ── Mobile quote button ── */
+.mobile-quote-li {
+    padding: 8px 0 !important;
+}
+.mobile-quote-btn {
+    display: block;
+    text-align: center;
+    background: #0d3b6e;
+    color: #fff !important;
+    padding: 16px 24px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 22px !important;
+    text-decoration: none !important;
+    transition: background 0.2s;
+}
+.mobile-quote-btn:hover {
+    background: #c9a227;
 }
 
 @media only screen and (min-width: 1024px) and (max-width: 1335px) {
 
     #search {
-        width: 150px;
+        width: 110px;
     }
 
     .menu li {
@@ -332,6 +379,11 @@ select#languageSwitcher {
 
     .modelsContainer ul {
         gap: 0;
+    }
+
+    .nav-quote-btn {
+        padding: 8px 10px;
+        font-size: 12px !important;
     }
 
 }

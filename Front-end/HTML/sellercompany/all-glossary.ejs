@@ -1,0 +1,66 @@
+<%- include('../../includes/sellercompany/head.ejs') %>
+<link rel="stylesheet" href="/css/sellercompany/all-technical-service.css">
+
+<style nonce="<%= nonce %>">
+  .status-pub { background: #d1e7dd; color: #0f5132; }
+  .status-dft { background: #f8d7da; color: #842029; }
+  .status-badge { display: inline-block; padding: 2px 9px; border-radius: 10px; font-size: 0.76rem; font-weight: 700; text-transform: uppercase; }
+  .letter-badge { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: #0d3b6e; color: #fff; border-radius: 50%; font-weight: 800; font-size: 0.88rem; }
+</style>
+
+<body>
+  <%- include('../../includes/sellercompany/navbar-dash.ejs') %>
+
+  <section class="sidebar-content-container">
+    <section class="sidebar-container">
+      <%- include('../../includes/sellercompany/sidebar.ejs') %>
+    </section>
+
+    <div class="article-dashboard-container">
+      <h1>Manage Glossary</h1>
+      <a href="/admin/glossary/add" class="add-button">+ Add New Term</a>
+
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Letter</th>
+            <th>Term</th>
+            <th>Slug</th>
+            <th>Status</th>
+            <th>Translations</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% terms.forEach((term, i) => { %>
+          <tr>
+            <td><%= i + 1 %></td>
+            <td><span class="letter-badge"><%= term.letter || term.term.charAt(0).toUpperCase() %></span></td>
+            <td><strong><%= term.term %></strong></td>
+            <td><code style="font-size:0.8rem;color:#6c757d;"><%= term.slug %></code></td>
+            <td><span class="status-badge <%= term.status === 'published' ? 'status-pub' : 'status-dft' %>"><%= term.status %></span></td>
+            <td>
+              <% ['en','es','de','tr','fr'].forEach(l => {
+                 const hasTr = term.translations && term.translations[l] && term.translations[l].term;
+              %>
+              <span style="display:inline-block;padding:1px 6px;border-radius:8px;font-size:0.72rem;font-weight:700;margin:1px;background:<%= hasTr ? '#d1e7dd' : '#f8d7da' %>;color:<%= hasTr ? '#0f5132' : '#842029' %>"><%= l.toUpperCase() %></span>
+              <% }) %>
+            </td>
+            <td>
+              <a href="/admin/glossary/edit/<%= term._id %>">Edit</a> |
+              <form action="/admin/glossary/delete/<%= term._id %>" method="POST" style="display:inline"
+                    onsubmit="return confirm('Delete this term?')">
+                <button type="submit" style="background:none;border:none;color:#dc3545;cursor:pointer;font-weight:600;font-size:0.9rem;">Delete</button>
+              </form>
+            </td>
+          </tr>
+          <% }) %>
+          <% if (terms.length === 0) { %>
+          <tr><td colspan="7" style="text-align:center;color:#aaa;padding:2rem;">No glossary terms yet. <a href="/admin/glossary/add">Add one</a>.</td></tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</body>

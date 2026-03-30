@@ -87,13 +87,85 @@ form button[type="submit"]:hover {
 }
 
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    .form-container {
-        padding: 20px;
-    }
+/* ── Language tabs ──────────────────────────────────── */
+.lang-tabs-header { margin-top: 28px; }
 
-    form button[type="submit"] {
-        font-size: 16px;
-    }
+.lang-tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 2px solid #ddd;
+  flex-wrap: wrap;
+}
+
+.lang-tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border: 1px solid #ddd;
+  border-bottom: none;
+  background: #f5f5f5;
+  color: #555;
+  cursor: pointer;
+  font-size: 0.88rem;
+  font-weight: 700;
+  border-radius: 6px 6px 0 0;
+  transition: background 0.15s;
+}
+.lang-tab-btn:hover { background: #e8e8e8; }
+.lang-tab-btn.active {
+  background: #fff;
+  color: var(--primary-Color);
+  border-bottom: 2px solid #fff;
+  margin-bottom: -2px;
+}
+.lang-full-name { font-weight: 400; font-size: 0.8rem; color: inherit; }
+
+.tab-dot {
+  display: inline-block;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+}
+.dot-published { background: #28a745; }
+.dot-draft     { background: #ffc107; }
+
+.lang-tab-content { display: none; padding-top: 20px; }
+.lang-tab-content.active { display: block; }
+
+/* ── Status section ─────────────────────────────────── */
+.status-section {
+  margin-top: 20px;
+  padding: 16px 20px;
+  background: #f9f9f9;
+  border: 1px solid #e4e4e4;
+  border-radius: 6px;
+}
+.status-section label { margin-top: 0; font-size: 0.9rem; color: #444; }
+
+.status-buttons { display: flex; gap: 10px; margin-top: 10px; }
+
+.status-btn {
+  flex: 1;
+  padding: 10px;
+  border: 2px solid #ddd;
+  background: #fff;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border-radius: 6px;
+  transition: all 0.15s;
+  color: #555;
+}
+.status-btn:hover { border-color: #aaa; background: #f0f0f0; }
+.status-btn.active.btn-draft    { background: #fff3cd; border-color: #ffc107; color: #856404; }
+.status-btn.active.btn-publish  { background: #d4edda; border-color: #28a745; color: #155724; }
+
+.status-meta { margin: 8px 0 0; font-size: 0.8rem; color: #888; }
+
+/* ── Responsive adjustments ─────────────────────────── */
+@media (max-width: 768px) {
+    .form-container { padding: 20px; }
+    form button[type="submit"] { font-size: 16px; }
+    .lang-tab-btn { padding: 7px 12px; }
+    .lang-full-name { display: none; }
 }

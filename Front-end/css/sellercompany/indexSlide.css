@@ -96,3 +96,8 @@
         text-align: center;
     }
 }
+
+.lang-badges { margin: 6px 0; }
+.lang-badge { display: inline-block; padding: 2px 7px; border-radius: 4px; font-size: 0.72rem; font-weight: 700; margin: 2px 2px 0 0; }
+.lang-badge.lang-published { background: #d4edda; color: #155724; }
+.lang-badge.lang-draft     { background: #fff3cd; color: #856404; }

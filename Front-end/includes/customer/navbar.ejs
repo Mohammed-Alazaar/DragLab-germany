@@ -188,13 +188,16 @@
 
 
             <div class="navLeft">
-                <div class="navMidRight">
-                    <input type="text" id="search" name="search" placeholder="Search..">
-                    <img src="/assets/Imgs/Icons/search.png" alt="search" class="search-icon">
-
+                <div class="nav-search-wrap">
+                    <div class="navMidRight">
+                        <input type="text" id="search" name="search" placeholder="Search..">
+                        <img src="/assets/Imgs/Icons/search.png" alt="search" class="search-icon">
+                    </div>
+                    <div id="searchResults" class="search-results"></div>
                 </div>
-                <div id="searchResults" class="search-results"></div>
-
+                <a href="/<%= lang %>/request-a-quote" class="nav-quote-btn" id="navQuoteBtn">
+                    <%= lang==='DE' ? 'Angebot anfragen' : lang==='ES' ? 'Cotizar' : lang==='TR' ? 'Teklif Al' : lang==='FR' ? 'Devis' : 'Get a Quote' %>
+                </a>
             </div>
 
 
@@ -242,6 +245,11 @@
                     <li><a href="/<%= lang %>/Contactus">
                             <%= lang==='DE' ? 'Kontakt' : lang==='ES' ? 'Contáctanos' : lang==='TR' ? 'İletişim' : lang==='FR' ? 'Contactez-nous' : 'Contact Us' %>
                         </a></li>
+                    <li class="mobile-quote-li">
+                        <a href="/<%= lang %>/request-a-quote" class="mobile-quote-btn" id="navQuoteBtnMobile">
+                            <%= lang==='DE' ? 'Angebot anfragen' : lang==='ES' ? 'Solicitar Cotización' : lang==='TR' ? 'Teklif Al' : lang==='FR' ? 'Demander un Devis' : 'Request a Quote' %>
+                        </a>
+                    </li>
                     <li data-goto-page="languagePage">
                         Language
                         <img src="/assets/Imgs/Icons/Down-arrow-blue.png" alt="Down arrow" />

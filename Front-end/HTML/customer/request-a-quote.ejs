@@ -1,0 +1,339 @@
+<%- include('../../includes/customer/head.ejs') %>
+<link rel="stylesheet" href="/css/customer/request-a-quote.css">
+<%
+  const BASE = 'https://www.drag-lab.de';
+  const pageUrl = BASE + '/' + lang + '/request-a-quote';
+%>
+
+<% if (success || error) { %>
+<meta name="robots" content="noindex,follow">
+<% } %>
+
+<title><%= pageTitle %></title>
+<meta name="description" content="<%= metaDescription %>">
+<link rel="canonical" href="<%= pageUrl %>">
+<link rel="alternate" hreflang="x-default" href="<%= BASE %>/EN/request-a-quote">
+<link rel="alternate" hreflang="en"         href="<%= BASE %>/EN/request-a-quote">
+<link rel="alternate" hreflang="de"         href="<%= BASE %>/DE/request-a-quote">
+<link rel="alternate" hreflang="es"         href="<%= BASE %>/ES/request-a-quote">
+<link rel="alternate" hreflang="fr"         href="<%= BASE %>/FR/request-a-quote">
+<link rel="alternate" hreflang="tr"         href="<%= BASE %>/TR/request-a-quote">
+<meta property="og:title"       content="<%= ogTitle %>">
+<meta property="og:description" content="<%= ogDescription %>">
+<meta property="og:image"       content="<%= ogImage %>">
+<meta property="og:url"         content="<%= pageUrl %>">
+<meta property="og:type"        content="website">
+<meta name="twitter:card"        content="summary_large_image">
+<meta name="twitter:title"       content="<%= ogTitle %>">
+<meta name="twitter:description" content="<%= ogDescription %>">
+<meta name="twitter:image"       content="<%= ogImage %>">
+<script type="application/ld+json" nonce="<%= nonce %>"><%- JSON.stringify({
+  "@context":"https://schema.org",
+  "@type":"BreadcrumbList",
+  "itemListElement":[
+    {"@type":"ListItem","position":1,"name":(lang==='DE'?'Startseite':lang==='ES'?'Inicio':lang==='TR'?'Ana Sayfa':lang==='FR'?'Accueil':'Home'),"item":BASE+"/"+lang},
+    {"@type":"ListItem","position":2,"name":(lang==='DE'?'Angebot Anfragen':lang==='ES'?'Solicitar Cotización':lang==='TR'?'Fiyat Teklifi İste':lang==='FR'?'Demande de Devis':'Request a Quote'),"item":pageUrl}
+  ]
+}) %></script>
+</head>
+
+<body>
+<%- include('../../includes/customer/navbar.ejs') %>
+
+<!-- ── Hero (same pattern as contact-us / technical-service) ── -->
+<div class="slide">
+  <div class="slide-text">
+    <h1><%= heroTitle %></h1>
+    <p><%= heroSub %></p>
+ 
+  </div>
+  <img src="/assets/Imgs/Icons/products/contactus-BC.png" alt="<%= heroTitle %>" loading="eager">
+</div>
+
+<!-- ── Trust Bar ── -->
+<div class="rq-trust-bar">
+  <div class="rq-trust-inner">
+    <div class="rq-trust-item"><span class="rq-trust-icon">✓</span><span><%= trustISO %></span></div>
+    <div class="rq-trust-item"><span class="rq-trust-icon">CE</span><span><%= trustCE %></span></div>
+    <div class="rq-trust-item"><span class="rq-trust-icon">🌍</span><span><%= trustGlobal %></span></div>
+    <div class="rq-trust-item"><span class="rq-trust-icon">★</span><span><%= trustWarranty %></span></div>
+  </div>
+</div>
+
+<!-- ── Alerts ── -->
+<% if (success) { %>
+<div class="rq-alert rq-alert--ok">
+  <strong>✓</strong>
+  <span><%= successMsg %></span>
+</div>
+<% } else if (error) { %>
+<div class="rq-alert rq-alert--err">
+  <strong>!</strong>
+  <span><%= lang==='DE'?'Bitte füllen Sie alle Pflichtfelder aus.':lang==='ES'?'Por favor complete todos los campos requeridos.':lang==='TR'?'Lütfen tüm zorunlu alanları doldurun.':lang==='FR'?'Veuillez remplir tous les champs obligatoires.':'Please fill in all required fields.' %></span>
+</div>
+<% } %>
+
+<!-- ══════════════ FORM ══════════════ -->
+<div class="rq-page" id="rq-form">
+  <form action="/submit-quote" method="POST" enctype="multipart/form-data">
+    <input type="hidden" name="lang" value="<%= lang %>">
+
+    <!-- ── Section A: Products ── -->
+    <section class="rq-section">
+      <div class="rq-section-header">
+        <h2><%= sectionProduct %></h2>
+        <p class="rq-section-hint">
+          <%= lang==='DE'?'Klicken Sie auf ein Produkt, um Modelle anzuzeigen. Mehrfachauswahl möglich.':lang==='ES'?'Haga clic en un producto para ver sus modelos. Puede seleccionar varios.':lang==='TR'?'Modelleri görmek için bir ürüne tıklayın. Çoklu seçim desteklenir.':lang==='FR'?'Cliquez sur un produit pour voir ses modèles. Sélection multiple possible.':'Click a product to view its models. Multiple selections allowed.' %>
+        </p>
+      </div>
+
+      <!-- Product Cards -->
+      <div class="rq-products" id="rq-products">
+        <% if (productsData && productsData.length) { %>
+          <% productsData.forEach(function(prod) { %>
+          <div class="rq-prod-card" data-slug="<%= prod.slug %>" data-models='<%- JSON.stringify(prod.models) %>'>
+            <input type="checkbox" name="selectedProducts[]" value="<%= prod.name %>" class="rq-prod-input" aria-label="<%= prod.name %>">
+            <div class="rq-prod-img">
+              <% if (prod.thumbnail) { %>
+                <img src="<%= prod.thumbnail %>" alt="<%= prod.name %>" loading="lazy">
+              <% } else { %>
+                <div class="rq-prod-no-img"></div>
+              <% } %>
+            </div>
+            <div class="rq-prod-info">
+              <p class="rq-prod-name"><%= prod.name %></p>
+              <% if (prod.models.length) { %>
+                <span class="rq-prod-count"><%= prod.models.length %> <%= lang==='DE'?'Modelle':lang==='ES'?'modelos':lang==='TR'?'model':lang==='FR'?'modèles':'models' %></span>
+              <% } %>
+            </div>
+            <span class="rq-prod-tick">✓</span>
+          </div>
+          <% }) %>
+        <% } else { %>
+          <p style="color:#7f8c8d;padding:1rem 0;">
+            <%= lang==='DE'?'Keine Produkte verfügbar.':lang==='ES'?'No hay productos disponibles.':'No products available.' %>
+          </p>
+        <% } %>
+      </div>
+
+      <!-- Model Panels inserted by JS -->
+      <div id="rq-model-panels"></div>
+
+    </section>
+
+    <!-- ── Section B: Customer Info ── -->
+    <section class="rq-section">
+      <div class="rq-section-header">
+        <h2><%= sectionCustomer %></h2>
+      </div>
+      <div class="rq-grid">
+        <div class="rq-field">
+          <label for="companyName"><%= labelCompany %> <span class="rq-req">*</span></label>
+          <input type="text" id="companyName" name="companyName" required autocomplete="organization">
+        </div>
+        <div class="rq-field">
+          <label for="country"><%= labelCountry %> <span class="rq-req">*</span></label>
+          <input type="text" id="country" name="country" required autocomplete="country-name">
+        </div>
+        <div class="rq-field">
+          <label for="industry"><%= labelIndustry %></label>
+          <input type="text" id="industry" name="industry" placeholder="e.g. Pharmaceutical, Research">
+        </div>
+        <div class="rq-field">
+          <label for="contactName"><%= labelContact %></label>
+          <input type="text" id="contactName" name="contactName" autocomplete="name">
+        </div>
+        <div class="rq-field">
+          <label for="email"><%= labelEmail %> <span class="rq-req">*</span></label>
+          <input type="email" id="email" name="email" required autocomplete="email">
+        </div>
+        <div class="rq-field">
+          <label for="phone"><%= labelPhone %></label>
+          <input type="tel" id="phone" name="phone" autocomplete="tel">
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Section C: Details ── -->
+    <section class="rq-section">
+      <div class="rq-section-header">
+        <h2><%= sectionDetails %></h2>
+      </div>
+      <div class="rq-grid">
+        <div class="rq-field rq-field--full">
+          <label for="message"><%= labelMessage %></label>
+          <textarea id="message" name="message" rows="5" placeholder="<%= lang==='DE'?'Technische Anforderungen, Liefermenge, Einsatzzweck…':lang==='ES'?'Requisitos técnicos, cantidad de entrega, propósito…':lang==='TR'?'Teknik gereksinimler, teslimat miktarı, kullanım amacı…':lang==='FR'?'Exigences techniques, quantité de livraison, usage prévu…':'Technical requirements, delivery quantity, intended use…' %>"></textarea>
+        </div>
+        <div class="rq-field">
+          <label for="deliveryDeadline"><%= labelDeadline %></label>
+          <input type="date" id="deliveryDeadline" name="deliveryDeadline">
+        </div>
+        <div class="rq-field rq-field--full">
+          <label for="quoteAttachment"><%= labelFile %></label>
+          <div class="rq-file-wrap">
+            <input type="file" id="quoteAttachment" name="quoteAttachment"
+                   accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx,.xls,.xlsx"
+                   class="rq-file-input">
+            <span class="rq-file-hint">JPG, PNG, PDF, Word, Excel &mdash; max 10 MB</span>
+          </div>
+        </div>
+      </div>
+
+      <p class="rq-required-note"><span class="rq-req">*</span> <%= required %></p>
+
+      <div class="rq-submit-row">
+        <button type="submit" class="rq-submit-btn"><%= btnSubmit %></button>
+        <p class="rq-response-note">
+          <%= lang==='DE'?'Wir antworten innerhalb von 24–48 Stunden.':lang==='ES'?'Responderemos en 24–48 horas.':lang==='TR'?'24–48 saat içinde yanıt vereceğiz.':lang==='FR'?'Nous répondrons sous 24–48 heures.':'We respond within 24–48 hours.' %>
+        </p>
+      </div>
+    </section>
+
+  </form>
+</div>
+
+<%- include('../../includes/customer/footer.ejs') %>
+</body>
+
+<script nonce="<%= nonce %>">
+(function () {
+  var panels  = document.getElementById('rq-model-panels');
+  var cards   = document.querySelectorAll('.rq-prod-card');
+
+  var lblModels   = '<%= lang==="DE"?"Modelle auswählen":lang==="ES"?"Seleccionar modelos":lang==="TR"?"Model seçin":lang==="FR"?"Sélectionner les modèles":"Select models" %>';
+  var lblCapacity = '<%= lang==="DE"?"Kapazität":lang==="ES"?"Capacidad":lang==="TR"?"Kapasite":lang==="FR"?"Capacité":"Capacity" %>';
+  var lblQty      = '<%= lang==="DE"?"Menge":lang==="ES"?"Cantidad":lang==="TR"?"Miktar":lang==="FR"?"Quantité":"Qty" %>';
+
+  function buildPanel(slug, name, models) {
+    var html = '<div class="rq-model-panel" id="mpanel-' + slug + '">';
+    html += '<div class="rq-model-panel-title">' + name + ' &mdash; <span>' + lblModels + '</span></div>';
+    html += '<div class="rq-model-grid">';
+    models.forEach(function (m) {
+      /* No inline onchange — handled by delegated listener below */
+      html += '<div class="rq-model-row" data-model-slug="' + (m.slug || '').replace(/"/g, '') + '">';
+      html += '<label class="rq-model-label">';
+      html += '<input type="checkbox" class="rq-model-cb" name="selectedModels[]" value="' + m.name.replace(/"/g, '&quot;') + '">';
+      html += '<span class="rq-model-check"></span>';
+      html += '<span class="rq-model-text">';
+      html += '<strong>' + m.name + '</strong>';
+      if (m.capacity) html += '<small>' + lblCapacity + ': ' + m.capacity + '</small>';
+      html += '</span>';
+      html += '</label>';
+      html += '<div class="rq-model-qty-col">';
+      html += '<span class="rq-qty-label">' + lblQty + '</span>';
+      html += '<input type="number" name="selectedModelQtys[]" min="1" value="0" disabled class="rq-qty-num">';
+      html += '</div>';
+      html += '</div>';
+    });
+    html += '</div></div>';
+    return html;
+  }
+
+  /* Event delegation — one listener handles all model checkboxes, present and future */
+  panels.addEventListener('change', function (e) {
+    if (!e.target.classList.contains('rq-model-cb')) return;
+    var cb  = e.target;
+    var row = cb.closest('.rq-model-row');
+    if (!row) return;
+    row.classList.toggle('rq-model-row--on', cb.checked);
+    var qty = row.querySelector('.rq-qty-num');
+    if (qty) {
+      qty.disabled = !cb.checked;
+      if (cb.checked) qty.value = 1;
+      else qty.value = 0;
+    }
+  });
+
+  cards.forEach(function (card) {
+    card.addEventListener('click', function (e) {
+      if (e.target.tagName === 'INPUT') return;
+      var input  = card.querySelector('.rq-prod-input');
+      var slug   = card.dataset.slug;
+      var name   = card.querySelector('.rq-prod-name').textContent.trim();
+      var models = JSON.parse(card.dataset.models || '[]');
+
+      input.checked = !input.checked;
+      card.classList.toggle('rq-prod-card--on', input.checked);
+
+      var existing = document.getElementById('mpanel-' + slug);
+      if (input.checked) {
+        if (!existing && models.length) {
+          panels.insertAdjacentHTML('beforeend', buildPanel(slug, name, models));
+          var newPanel = document.getElementById('mpanel-' + slug);
+          if (newPanel) setTimeout(function () { newPanel.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 80);
+        }
+      } else {
+        if (existing) existing.remove();
+      }
+    });
+  });
+
+  /* ── Auto-select from URL params (?product=slug&model=slug) ── */
+  (function () {
+    var params      = new URLSearchParams(window.location.search);
+    var productSlug = params.get('product');
+    var modelSlug   = params.get('model');
+    if (!productSlug) return;
+
+    var card = document.querySelector('.rq-prod-card[data-slug="' + productSlug + '"]');
+    if (!card) return;
+
+    /* Expand the card directly using in-scope variables */
+    var input  = card.querySelector('.rq-prod-input');
+    var slug   = card.dataset.slug;
+    var name   = card.querySelector('.rq-prod-name').textContent.trim();
+    var models = JSON.parse(card.dataset.models || '[]');
+
+    input.checked = true;
+    card.classList.add('rq-prod-card--on');
+
+    var existing = document.getElementById('mpanel-' + slug);
+    if (!existing && models.length) {
+      panels.insertAdjacentHTML('beforeend', buildPanel(slug, name, models));
+    }
+
+    var panel = document.getElementById('mpanel-' + productSlug);
+    if (!panel) return;
+
+    if (modelSlug) {
+      var row = panel.querySelector('.rq-model-row[data-model-slug="' + modelSlug + '"]');
+      if (row) {
+        var cb = row.querySelector('.rq-model-cb');
+        if (cb && !cb.checked) {
+          cb.checked = true;
+          /* Enable the qty input */
+          var qty = row.querySelector('.rq-qty-num');
+          if (qty) qty.disabled = false;
+          row.classList.add('rq-model-row--on');
+        }
+        setTimeout(function () {
+          row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          row.classList.add('rq-autoselect-highlight');
+          setTimeout(function () { row.classList.remove('rq-autoselect-highlight'); }, 2000);
+        }, 100);
+        return;
+      }
+    }
+
+    /* No model slug — scroll to the product panel */
+    setTimeout(function () {
+      panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+  }());
+})();
+</script>
+
+<style nonce="<%= nonce %>">
+  @keyframes rq-pulse {
+    0%   { background: transparent; }
+    35%  { background: rgba(201,162,39,0.28); box-shadow: 0 0 0 3px rgba(201,162,39,0.35); }
+    100% { background: transparent; box-shadow: none; }
+  }
+  .rq-autoselect-highlight {
+    animation: rq-pulse 2s ease-out;
+    border-radius: 8px;
+  }
+</style>
+
+<%- include('../../includes/customer/script.ejs') %>
+</html>

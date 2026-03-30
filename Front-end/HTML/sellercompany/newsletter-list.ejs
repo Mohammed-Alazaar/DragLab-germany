@@ -17,6 +17,7 @@
                     <table>
                         <thead>
                             <tr>
+                                <th>#</th>
                                 <th>Email</th>
                                 <th>Language</th>
                                 <th>Subscribed At</th>
@@ -27,8 +28,9 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <% subscribers.forEach(sub=> { %>
+                            <% subscribers.forEach((sub, i) => { %>
                                 <tr>
+                                    <td><%= (currentPage - 1) * 50 + i + 1 %></td>
                                     <td>
                                         <%= sub.email %>
                                     </td>
@@ -55,6 +57,7 @@
                                 <% }) %>
                         </tbody>
                     </table>
+                    <%- include('../../includes/sellercompany/pagination.ejs') %>
 
                     <form method="POST" action="/admin/newsletter/export/all">
                         <button type="submit">📁 Export All</button>

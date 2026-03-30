@@ -1,0 +1,60 @@
+<%- include('../../includes/sellercompany/head.ejs') %>
+<link rel="stylesheet" href="/css/sellercompany/all-technical-service.css">
+
+<style nonce="<%= nonce %>">
+  .status-pub { background: #d1e7dd; color: #0f5132; }
+  .status-dft { background: #f8d7da; color: #842029; }
+  .status-badge { display: inline-block; padding: 2px 9px; border-radius: 10px; font-size: 0.76rem; font-weight: 700; text-transform: uppercase; }
+  .lang-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.76rem; font-weight: 700; background: #e8f0fa; color: #0d3b6e; }
+</style>
+
+<body>
+  <%- include('../../includes/sellercompany/navbar-dash.ejs') %>
+
+  <section class="sidebar-content-container">
+    <section class="sidebar-container">
+      <%- include('../../includes/sellercompany/sidebar.ejs') %>
+    </section>
+
+    <div class="article-dashboard-container">
+      <h1>Manage FAQs</h1>
+      <a href="/admin/faqs/add" class="add-button">+ Add New FAQ</a>
+
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Question</th>
+            <th>Category</th>
+            <th>Lang</th>
+            <th>Status</th>
+            <th>Order</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% faqs.forEach((faq, i) => { %>
+          <tr>
+            <td><%= i + 1 %></td>
+            <td><%= faq.question.length > 80 ? faq.question.substring(0, 80) + '…' : faq.question %></td>
+            <td><%= faq.category %></td>
+            <td><span class="lang-badge"><%= faq.lang %></span></td>
+            <td><span class="status-badge <%= faq.status === 'published' ? 'status-pub' : 'status-dft' %>"><%= faq.status %></span></td>
+            <td><%= faq.order %></td>
+            <td>
+              <a href="/admin/faqs/edit/<%= faq._id %>">Edit</a> |
+              <form action="/admin/faqs/delete/<%= faq._id %>" method="POST" style="display:inline"
+                    onsubmit="return confirm('Delete this FAQ?')">
+                <button type="submit" style="background:none;border:none;color:#dc3545;cursor:pointer;font-weight:600;font-size:0.9rem;">Delete</button>
+              </form>
+            </td>
+          </tr>
+          <% }) %>
+          <% if (faqs.length === 0) { %>
+          <tr><td colspan="7" style="text-align:center;color:#aaa;padding:2rem;">No FAQs yet. <a href="/admin/faqs/add">Add one</a>.</td></tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</body>

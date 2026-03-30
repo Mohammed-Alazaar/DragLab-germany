@@ -43,9 +43,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function changeLanguage(lang) {
+        // If we're on an article detail page and have per-language slugs, use them
+        if (window.__articleLangSlugs) {
+            const slug = window.__articleLangSlugs[lang];
+            if (slug) {
+                window.location.href = '/' + lang + '/articles/' + slug;
+            } else {
+                // That language version isn't published — go to the articles list
+                window.location.href = '/' + lang + '/Articles';
+            }
+            return;
+        }
         const currentPath = window.location.pathname;
         const updatedPath = currentPath.replace(/\/(EN|ES|DE|TR|FR)/, '/' + lang);
-          updateCurrentLangDisplay(); // optional since page reloads
         window.location.href = updatedPath === currentPath ? `/${lang}` : updatedPath;
     }
 
@@ -292,6 +302,26 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
 updateCurrentLangDisplay();
+
+/* ── Quote button: build context-aware URL ── */
+function buildQuoteUrl() {
+    var lang = getCurrentLang();
+    var base = '/' + lang + '/request-a-quote';
+    var path = window.location.pathname;
+    // Model page: /{lang}/products/{productSlug}/{modelSlug}
+    var modelMatch = path.match(/\/(?:EN|ES|DE|TR|FR)\/products\/([^/]+)\/([^/]+?)\/?$/i);
+    if (modelMatch) return base + '?product=' + modelMatch[1] + '&model=' + modelMatch[2];
+    // Product page: /{lang}/products/{productSlug}
+    var productMatch = path.match(/\/(?:EN|ES|DE|TR|FR)\/products\/([^/]+?)\/?$/i);
+    if (productMatch) return base + '?product=' + productMatch[1];
+    return base;
+}
+
+var navQuoteBtn = document.getElementById('navQuoteBtn');
+if (navQuoteBtn) navQuoteBtn.href = buildQuoteUrl();
+
+var navQuoteBtnMobile = document.getElementById('navQuoteBtnMobile');
+if (navQuoteBtnMobile) navQuoteBtnMobile.href = buildQuoteUrl();
 
 });
 

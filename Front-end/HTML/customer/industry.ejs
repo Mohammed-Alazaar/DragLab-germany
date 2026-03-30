@@ -1,26 +1,25 @@
 <%- include('../../includes/customer/head.ejs') %>
 
     <%
-  const langLc = (lang || 'EN').toLowerCase(); // en|es|de
+const langLc = (lang || 'EN').toLowerCase();
+const pageTitle =
+  lang === 'ES' ? 'Soluciones por Industria | DragLab'
+  : lang === 'DE' ? 'Branchenlösungen | DragLab'
+  : lang === 'TR' ? 'Endüstri Çözümleri | DragLab'
+  : lang === 'FR' ? 'Solutions par Secteur | DragLab'
+  : 'Industry Solutions | DragLab';
 
-  const pageTitle =
-    (lang === 'ES')
-      ? 'Soluciones por Industria | DragLab'
-      : (lang === 'DE')
-        ? 'Branchenlösungen | DragLab'
-        : 'Industry Solutions | DragLab';
+const metaDesc =
+  lang === 'ES' ? 'Descubra cómo DragLab ofrece equipos de laboratorio fiables para múltiples industrias, desde investigación hasta producción.'
+  : lang === 'DE' ? 'Entdecken Sie, wie DragLab zuverlässige Laborgeräte für zahlreiche Branchen liefert – von Forschung bis Produktion.'
+  : lang === 'TR' ? 'DragLab\'ın araştırmadan üretime kadar pek çok sektör için güvenilir laboratuvar ekipmanları nasıl sunduğunu keşfedin.'
+  : lang === 'FR' ? 'Découvrez comment DragLab fournit des équipements de laboratoire fiables pour de nombreux secteurs, de la recherche à la production.'
+  : 'Discover how DragLab provides reliable lab equipment solutions for a wide range of industries, from research to production.';
 
-  const metaDesc =
-    (lang === 'ES')
-      ? 'Descubra cómo DragLab ofrece equipos de laboratorio fiables para múltiples industrias, desde investigación hasta producción.'
-      : (lang === 'DE')
-        ? 'Entdecken Sie, wie DragLab zuverlässige Laborgeräte für zahlreiche Branchen liefert – von Forschung bis Produktion.'
-        : 'Discover how DragLab provides reliable lab equipment solutions for a wide range of industries, from research to production.';
-
-  const canonicalUrl = `https://www.drag-lab.de/${langLc}/industry`;
-  const ogImage = 'https://www.drag-lab.de/assets/Imgs/thumbnils/industry-thumbnail.webp';
-  const ogImageWidth = 1200;
-  const ogImageHeight = 630;
+const canonicalUrl = `https://www.drag-lab.de/${lang}/Industry`;
+const ogImage = 'https://www.drag-lab.de/assets/Imgs/thumbnils/industry-thumbnail.webp';
+const ogImageWidth = 1200;
+const ogImageHeight = 630;
 %>
 
 
@@ -33,10 +32,12 @@
         <link rel="canonical" href="<%= canonicalUrl %>">
 
         <!-- Hreflang cluster (self + alternates) -->
-        <link rel="alternate" hreflang="x-default" href="https://www.drag-lab.de/en/industry">
-        <link rel="alternate" hreflang="en" href="https://www.drag-lab.de/en/industry">
-        <link rel="alternate" hreflang="es" href="https://www.drag-lab.de/es/industry">
-        <link rel="alternate" hreflang="de" href="https://www.drag-lab.de/de/industry">
+        <link rel="alternate" hreflang="x-default" href="https://www.drag-lab.de/EN/Industry">
+        <link rel="alternate" hreflang="en" href="https://www.drag-lab.de/EN/Industry">
+        <link rel="alternate" hreflang="es" href="https://www.drag-lab.de/ES/Industry">
+        <link rel="alternate" hreflang="de" href="https://www.drag-lab.de/DE/Industry">
+        <link rel="alternate" hreflang="tr" href="https://www.drag-lab.de/TR/Industry">
+        <link rel="alternate" hreflang="fr" href="https://www.drag-lab.de/FR/Industry">
 
         <!-- Open Graph -->
         <meta property="og:type" content="website">
@@ -44,7 +45,7 @@
         <meta property="og:title" content="<%= pageTitle %>">
         <meta property="og:description" content="<%= metaDesc %>">
         <meta property="og:url" content="<%= canonicalUrl %>">
-        <meta property="og:locale" content="<%= lang === 'ES' ? 'es_ES' : (lang === 'DE' ? 'de_DE' : 'en_US') %>">
+        <meta property="og:locale" content="<%= lang === 'ES' ? 'es_ES' : lang === 'DE' ? 'de_DE' : lang === 'TR' ? 'tr_TR' : lang === 'FR' ? 'fr_FR' : 'en_US' %>">
         <meta property="og:image" content="<%= ogImage %>">
         <meta property="og:image:alt" content="DragLab Industry Solutions">
         <meta property="og:image:width" content="<%= ogImageWidth %>">
@@ -66,7 +67,7 @@
   const industryItems = (industryCards || []).map((ind, idx) => ({
     "@type": "ListItem",
     "position": idx + 1,
-    "url": `https://www.drag-lab.de/${langLc}/industry/${ind.slug}`,
+    "url": `https://www.drag-lab.de/${lang}/industry/${ind.slug}`,
     "name": ind.title
   }));
 %>
@@ -97,13 +98,25 @@
   "itemListElement": [
     { "@type": "ListItem", "position": 1, "name":
       (lang === 'ES') ? 'Inicio' : (lang === 'DE' ? 'Startseite' : 'Home'),
-      "item": `https://www.drag-lab.de/${langLc}` },
+      "item": `https://www.drag-lab.de/${lang}` },
     { "@type": "ListItem", "position": 2, "name":
       (lang === 'ES') ? 'Soluciones por Industria' :
       (lang === 'DE') ? 'Branchenlösungen' : 'Industry Solutions',
       "item": canonicalUrl }
   ]
 }, null, 2) %>
+</script>
+
+        <script type="application/ld+json" nonce="<%= nonce %>">
+<%- JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "name": pageTitle,
+  "description": metaDesc,
+  "url": canonicalUrl,
+  "inLanguage": langLc,
+  "publisher": { "@type": "Organization", "name": "DragLab", "url": "https://www.drag-lab.de/" }
+}) %>
 </script>
 
         </head>

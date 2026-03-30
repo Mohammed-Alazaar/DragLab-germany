@@ -76,6 +76,7 @@
         <table>
           <thead>
             <tr>
+              <th>#</th>
               <th>Date</th>
               <th>Name</th>
               <th>Company</th>
@@ -88,8 +89,9 @@
             </tr>
           </thead>
           <tbody>
-            <% requests.forEach(function(r) { %>
+            <% requests.forEach(function(r, i) { %>
               <tr class="<%= r.isSpam ? 'spam-row' : '' %>">
+                <td><%= (currentPage - 1) * 20 + i + 1 %></td>
                 <td><%= new Date(r.createdAt).toLocaleDateString() %></td>
                 <td>
                   <%= r.salutation %> <%= r.firstName %> <%= r.lastName %>
@@ -121,6 +123,7 @@
           </tbody>
         </table>
       <% } %>
+      <%- include('../../includes/sellercompany/pagination.ejs') %>
     </section>
   </section>
 

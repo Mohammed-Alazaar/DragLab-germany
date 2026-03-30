@@ -1,0 +1,300 @@
+/* ── become-a-distributor.css ── */
+
+/* Hero */
+.dist-hero {
+    position: relative;
+    display: flex;
+    height: 60vh;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #0a1628 0%, #1a2e4a 60%, #0d3b6e 100%);
+    overflow: hidden;
+}
+
+.dist-hero-text {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    z-index: 2;
+    align-items: center;
+    padding: 0 15%;
+    text-align: center;
+}
+
+.dist-hero-text h1 {
+    font-size: 2.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #fff;
+    letter-spacing: 1px;
+    line-height: 1.2;
+}
+
+.dist-hero-text p {
+    font-size: 1.2rem;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+@media (max-width: 768px) {
+    .dist-hero { height: 40vh; }
+    .dist-hero-text h1 { font-size: 1.6rem; }
+    .dist-hero-text p { font-size: 1rem; }
+    .dist-hero-text { padding: 0 5%; }
+}
+
+/* Why Partner Section */
+.dist-why {
+    background: #f8f9fb;
+    padding: 4rem 2rem;
+}
+
+.dist-why-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    align-items: center;
+}
+
+.dist-why h2 {
+    grid-column: 1 / -1;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #0d3b6e;
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.dist-why-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    grid-column: 1 / -1;
+    max-width: 600px;
+    justify-self: center;
+}
+
+.dist-why-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.8rem;
+    font-size: 1rem;
+    color: #2c3e50;
+}
+
+.dist-why-list li::before {
+    content: '✓';
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    background: #0d3b6e;
+    color: #fff;
+    border-radius: 50%;
+    font-size: 0.75rem;
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+/* Benefits Section */
+.dist-benefits {
+    padding: 4rem 2rem;
+    background: #fff;
+}
+
+.dist-benefits-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.dist-benefits h2 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #0d3b6e;
+    text-align: center;
+    margin-bottom: 2.5rem;
+}
+
+.dist-benefits-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+}
+
+.dist-benefit-card {
+    background: #f8f9fb;
+    border: 1px solid #e4e8ef;
+    border-radius: 10px;
+    padding: 2rem 1.5rem;
+    text-align: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.dist-benefit-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(13,59,110,0.1);
+}
+
+.dist-benefit-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+}
+
+.dist-benefit-card h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #0d3b6e;
+    margin-bottom: 0.6rem;
+}
+
+.dist-benefit-card p {
+    font-size: 0.95rem;
+    color: #7f8c8d;
+    line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+    .dist-benefits-grid { grid-template-columns: 1fr; }
+}
+
+/* Who We're Looking For */
+.dist-who {
+    background: #0d3b6e;
+    color: #fff;
+    padding: 4rem 2rem;
+    text-align: center;
+}
+
+.dist-who-inner {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.dist-who h2 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 1.2rem;
+}
+
+.dist-who p {
+    font-size: 1.1rem;
+    line-height: 1.7;
+    color: rgba(255,255,255,0.85);
+}
+
+/* Application Form */
+.dist-form-section {
+    max-width: 900px;
+    margin: 3rem auto;
+    padding: 0 2rem 4rem;
+}
+
+.dist-form-section h2 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #0d3b6e;
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.dist-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.2rem;
+}
+
+.dist-form-grid .full-width {
+    grid-column: 1 / -1;
+}
+
+.form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.form-field label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.form-field input,
+.form-field select,
+.form-field textarea {
+    padding: 0.75rem 1rem;
+    border: 1.5px solid #d1d8e0;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    color: #2c3e50;
+    background: #fff;
+    transition: border-color 0.2s;
+    width: 100%;
+    box-sizing: border-box;
+    font-family: inherit;
+}
+
+.form-field input:focus,
+.form-field select:focus,
+.form-field textarea:focus {
+    outline: none;
+    border-color: #0d3b6e;
+    box-shadow: 0 0 0 3px rgba(13,59,110,0.1);
+}
+
+.dist-submit-wrap {
+    margin-top: 2rem;
+    text-align: center;
+}
+
+.dist-submit-btn {
+    background: #0d3b6e;
+    color: #fff;
+    border: none;
+    padding: 1rem 3rem;
+    font-size: 1.05rem;
+    font-weight: 700;
+    border-radius: 6px;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: background 0.2s, transform 0.1s;
+}
+
+.dist-submit-btn:hover {
+    background: #c9a227;
+    transform: translateY(-1px);
+}
+
+.dist-success, .dist-error {
+    max-width: 900px;
+    margin: 2rem auto;
+    padding: 1.2rem 2rem;
+    border-radius: 8px;
+    font-weight: 500;
+}
+
+.dist-success {
+    background: #e6f7ee;
+    border: 1px solid #27ae60;
+    color: #1d7a42;
+}
+
+.dist-error {
+    background: #fdecea;
+    border: 1px solid #e74c3c;
+    color: #c0392b;
+}
+
+@media (max-width: 768px) {
+    .dist-form-grid { grid-template-columns: 1fr; }
+    .dist-form-grid .full-width { grid-column: 1; }
+    .dist-form-section { padding: 0 1rem 3rem; }
+    .dist-submit-btn { width: 100%; }
+}

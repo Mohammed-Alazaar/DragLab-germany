@@ -76,6 +76,7 @@
         <table>
           <thead>
             <tr>
+              <th>#</th>
               <th>Date</th>
               <th>Name</th>
               <th>Email</th>
@@ -86,8 +87,9 @@
             </tr>
           </thead>
           <tbody>
-            <% warranties.forEach(function(reg) { %>
+            <% warranties.forEach(function(reg, i) { %>
               <tr class="<%= reg.isSpam ? 'spam-row' : '' %>">
+                <td><%= (currentPage - 1) * 20 + i + 1 %></td>
                 <td><%= new Date(reg.createdAt).toLocaleDateString() %></td>
                 <td>
                   <%= reg.name %>
@@ -117,6 +119,7 @@
           </tbody>
         </table>
       <% } %>
+      <%- include('../../includes/sellercompany/pagination.ejs') %>
     </section>
   </section>
 

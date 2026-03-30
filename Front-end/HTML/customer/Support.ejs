@@ -6,18 +6,41 @@
 <title><%= content.pageTitle %> | DragLab</title>
 <meta name="description" content="<%= content.heroDesc %>">
 <link rel="canonical" href="https://www.drag-lab.de/<%= lang %>/support">
+<link rel="alternate" hreflang="x-default" href="https://www.drag-lab.de/EN/support">
 <link rel="alternate" hreflang="en" href="https://www.drag-lab.de/EN/support">
 <link rel="alternate" hreflang="es" href="https://www.drag-lab.de/ES/support">
 <link rel="alternate" hreflang="de" href="https://www.drag-lab.de/DE/support">
+<link rel="alternate" hreflang="tr" href="https://www.drag-lab.de/TR/support">
+<link rel="alternate" hreflang="fr" href="https://www.drag-lab.de/FR/support">
 <meta property="og:title" content="<%= content.pageTitle %> | DragLab">
 <meta property="og:description" content="<%= content.heroDesc %>">
 <meta property="og:url" content="https://www.drag-lab.de/<%= lang %>/support">
 <meta property="og:type" content="website">
-<meta name="twitter:card" content="summary">
+<meta name="robots" content="index, follow">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="<%= content.pageTitle %> | DragLab">
 <meta name="twitter:description" content="<%= content.heroDesc %>">
+<meta property="og:image" content="https://www.drag-lab.de/assets/Imgs/Icons/products/support.webp">
+<meta name="twitter:image" content="https://www.drag-lab.de/assets/Imgs/Icons/products/support.webp">
 
 <script src="https://www.google.com/recaptcha/enterprise.js?render=6LdBFQkrAAAAALGPy8986JpxndbqzY1_6kEDxH1s"></script>
+<script type="application/ld+json" nonce="<%= nonce %>">
+<%- JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": (content && content.pageTitle) ? content.pageTitle + ' | DragLab' : 'Support | DragLab',
+  "url": `https://www.drag-lab.de/${lang}/support`,
+  "inLanguage": (lang || 'EN').toLowerCase(),
+  "publisher": { "@type": "Organization", "name": "DragLab", "url": "https://www.drag-lab.de/" },
+  "breadcrumb": {
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": (lang==='DE'?'Startseite':lang==='ES'?'Inicio':lang==='TR'?'Ana Sayfa':lang==='FR'?'Accueil':'Home'), "item": `https://www.drag-lab.de/${(lang||'EN').toLowerCase()}` },
+      { "@type": "ListItem", "position": 2, "name": (content && content.pageTitle) || 'Support', "item": `https://www.drag-lab.de/${lang}/support` }
+    ]
+  }
+}) %>
+</script>
 
 <body>
     <!-- nav-bar -->

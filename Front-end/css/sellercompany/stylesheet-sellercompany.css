@@ -76,3 +76,65 @@ section.content-container {
   }
 
 }
+
+/* ── Pagination ─────────────────────────────────────────────────────────── */
+.admin-pagination {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 24px 0 8px;
+}
+
+.page-btn {
+  display: inline-block;
+  min-width: 36px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+  color: var(--primary-Color, #293c95);
+  background: #f0f2fb;
+  border: 1px solid #d5d9f0;
+  transition: background 0.15s, color 0.15s;
+  cursor: pointer;
+}
+
+.page-btn:hover {
+  background: var(--primary-Color, #293c95);
+  color: #fff;
+  border-color: var(--primary-Color, #293c95);
+}
+
+.page-btn.active {
+  background: var(--primary-Color, #293c95);
+  color: #fff;
+  border-color: var(--primary-Color, #293c95);
+  cursor: default;
+  pointer-events: none;
+}
+
+.page-btn.disabled {
+  color: #bbb;
+  background: #f5f5f5;
+  border-color: #e0e0e0;
+  cursor: default;
+  pointer-events: none;
+}
+
+.page-ellipsis {
+  padding: 6px 4px;
+  color: #888;
+  font-size: 0.88rem;
+  user-select: none;
+}
+
+.page-info {
+  margin-left: 10px;
+  font-size: 0.83rem;
+  color: #666;
+  white-space: nowrap;
+}
+/* ── /Pagination ─────────────────────────────────────────────────────────── */

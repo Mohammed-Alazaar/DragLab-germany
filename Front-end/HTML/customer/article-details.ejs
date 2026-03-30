@@ -158,5 +158,8 @@
 
   <%- include('../../includes/customer/footer.ejs') %>
   <%- include('../../includes/customer/script.ejs') %>
+  <script nonce="<%= nonce %>">
+    window.__articleLangSlugs = <%- JSON.stringify(langSlugs || {}) %>;
+  </script>
 </body>
 </html>

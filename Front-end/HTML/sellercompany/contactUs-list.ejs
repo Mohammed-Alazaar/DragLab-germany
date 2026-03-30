@@ -101,17 +101,21 @@
       <table>
         <thead>
           <tr>
+            <th>#</th>
             <th>First Name</th>
             <th>Last Name</th>
             <th>Email</th>
             <th>Subject</th>
+            <th>Country</th>
+            <th>Lang</th>
             <th>Done?</th>
             <th>Action</th>
           </tr>
         </thead>
         <tbody>
-          <% messages.forEach(function(msg) { %>
+          <% messages.forEach(function(msg, i) { %>
             <tr class="<%= msg.isSpam ? 'spam-row' : '' %>">
+              <td><%= (currentPage - 1) * 20 + i + 1 %></td>
               <td>
                 <%= msg.firstName %>
                 <% if (msg.isSpam) { %><span class="badge-spam">SPAM</span><% } %>
@@ -119,6 +123,8 @@
               <td><%= msg.lastName %></td>
               <td><%= msg.email %></td>
               <td><%= msg.subject %></td>
+              <td><%= msg.geoLocation?.country || '-' %></td>
+              <td><%= msg.lang || '-' %></td>
               <td><%= msg.isDone ? '✅ Done' : '⏳ Pending' %></td>
               <td>
                 <a href="/admin/contact-message/<%= msg._id %>" class="btn-view">View</a>
@@ -139,6 +145,7 @@
           <% }); %>
         </tbody>
       </table>
+      <%- include('../../includes/sellercompany/pagination.ejs') %>
     </section>
   </section>
 

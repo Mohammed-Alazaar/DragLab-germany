@@ -186,4 +186,42 @@ router.post('/users/delete/:id', isAuth, isAdmin, adminController.postDeleteUser
 router.post('/users/change-password/:id', isAuth, isAdmin, adminController.postChangeUserPassword);
 
 
+// ── PAGE 1: Quotes ────────────────────────────────────────────────────────────
+router.get('/quotes', isAuth, isAdminOrSeller, adminController.getAllQuotes);
+router.get('/quotes/:id/pdf', isAuth, isAdminOrSeller, adminController.getQuotePdf);
+router.get('/quotes/:id', isAuth, isAdminOrSeller, adminController.getQuoteDetail);
+router.post('/quotes/:id/status', isAuth, isAdminOrSeller, adminController.postUpdateQuoteStatus);
+router.post('/quotes/:id/spam', isAuth, isAdmin, adminController.postMarkQuoteSpam);
+router.post('/quotes/:id/delete', isAuth, isAdmin, adminController.deleteQuote);
+
+// ── PAGE 2: Distributor Applications ─────────────────────────────────────────
+router.get('/distributor-applications', isAuth, isAdminOrSeller, adminController.getAllDistributorApplications);
+router.get('/distributor-applications/:id', isAuth, isAdminOrSeller, adminController.getDistributorApplicationDetail);
+router.post('/distributor-applications/:id/status', isAuth, isAdminOrSeller, adminController.postUpdateDistributorStatus);
+
+// ── PAGE 3: FAQs ──────────────────────────────────────────────────────────────
+router.get('/faqs', isAuth, isAdminOrSeller, adminController.getAllFaqs);
+router.get('/faqs/add', isAuth, isAdminOrSeller, adminController.getAddFaq);
+router.post('/faqs/add', isAuth, isAdminOrSeller, adminController.postAddFaq);
+router.get('/faqs/edit/:id', isAuth, isAdminOrSeller, adminController.getEditFaq);
+router.post('/faqs/edit/:id', isAuth, isAdminOrSeller, adminController.postEditFaq);
+router.post('/faqs/delete/:id', isAuth, isAdminOrSeller, adminController.postDeleteFaq);
+
+// ── PAGE 4: Case Studies ──────────────────────────────────────────────────────
+router.get('/case-studies', isAuth, isAdminOrSeller, adminController.getAllCaseStudies);
+router.get('/case-studies/add', isAuth, isAdminOrSeller, adminController.getAddCaseStudy);
+router.post('/case-studies/add', isAuth, isAdminOrSeller, adminController.postAddCaseStudy);
+router.get('/case-studies/edit/:id', isAuth, isAdminOrSeller, adminController.getEditCaseStudy);
+router.post('/case-studies/edit/:id', isAuth, isAdminOrSeller, adminController.postEditCaseStudy);
+router.post('/case-studies/delete/:id', isAuth, isAdminOrSeller, adminController.postDeleteCaseStudy);
+
+// ── PAGE 5: Glossary ──────────────────────────────────────────────────────────
+router.get('/glossary', isAuth, isAdminOrSeller, adminController.getAllGlossary);
+router.get('/glossary/add', isAuth, isAdminOrSeller, adminController.getAddGlossary);
+router.post('/glossary/add', isAuth, isAdminOrSeller, adminController.postAddGlossary);
+router.get('/glossary/edit/:id', isAuth, isAdminOrSeller, adminController.getEditGlossary);
+router.post('/glossary/edit/:id', isAuth, isAdminOrSeller, adminController.postEditGlossary);
+router.post('/glossary/delete/:id', isAuth, isAdminOrSeller, adminController.postDeleteGlossary);
+
+
 module.exports = router;

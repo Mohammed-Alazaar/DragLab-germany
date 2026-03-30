@@ -38,9 +38,22 @@
 <meta name="twitter:image" content="<%= baseUrl %>/assets/Imgs/logo/logo.png">
 
 <link rel="canonical" href="<%= baseUrl %>/<%= lang %>/imprint">
+<link rel="alternate" hreflang="x-default" href="<%= baseUrl %>/EN/imprint">
 <link rel="alternate" hreflang="en" href="<%= baseUrl %>/EN/imprint">
 <link rel="alternate" hreflang="es" href="<%= baseUrl %>/ES/imprint">
 <link rel="alternate" hreflang="de" href="<%= baseUrl %>/DE/imprint">
+<link rel="alternate" hreflang="tr" href="<%= baseUrl %>/TR/imprint">
+<link rel="alternate" hreflang="fr" href="<%= baseUrl %>/FR/imprint">
+<script type="application/ld+json" nonce="<%= nonce %>">
+<%- JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": (meta[lang]?.title || meta.EN.title),
+  "url": `${baseUrl}/${lang}/imprint`,
+  "inLanguage": (lang || 'EN').toLowerCase(),
+  "publisher": { "@type": "Organization", "name": "DragLab", "url": "https://www.drag-lab.de/" }
+}) %>
+</script>
 
 </head>
 

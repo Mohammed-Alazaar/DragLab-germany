@@ -2,7 +2,22 @@
   "permissions": {
     "allow": [
       "Bash(find '/c/draglab marketıng mohammed/GitHub/DragLab-germany/Front-end/css' -name *.css -exec ls -lh {})",
-      "Bash(2)"
+      "Bash(2)",
+      "Bash(powershell -Command \"Get-Content 'C:\\\\draglab marketıng mohammed\\\\GitHub\\\\DragLab-germany\\\\controllers\\\\shop.js' | Select-Object -Index 1851 | Format-Hex\" 2>&1)",
+      "Bash(node:*)",
+      "Bash(head -20 echo \"---\" grep -n \"canonical\\\\|lang\\\\|CDN_BASE\\\\|drag-lab\" \"C:/draglab marketıng mohammed/GitHub/DragLab-germany/Front-end/HTML/customer/Model-details.ejs\")",
+      "Bash(head -15 echo \"---\" grep -n \"canonicalUrl\\\\|canonical\\\\|lang\" \"C:/draglab marketıng mohammed/GitHub/DragLab-germany/Front-end/HTML/customer/industry-details.ejs\")",
+      "Bash(grep -r \"nodemailer\\\\|sgMail\\\\|sendgrid\\\\|SendGrid\" 'C:\\\\draglab marketıng mohammed\\\\GitHub\\\\DragLab-germany' --include=*.js)",
+      "Bash(find 'C:\\\\draglab marketıng mohammed\\\\GitHub\\\\DragLab-germany' -name *mail* -o -name *email*)",
+      "Bash(ls \"C:\\\\draglab marketıng mohammed\\\\GitHub\\\\DragLab-germany\\\\models\"\" | grep -E \"quote)",
+      "Bash(distributor)",
+      "Bash(faq)",
+      "Bash(caseStudy)",
+      "Bash(glossary\" && echo \"=== Customer EJS ===\" && ls \"C:draglab marketıng mohammedGitHubDragLab-germanyFront-endHTMLcustomer\"\")",
+      "Bash(ls \"C:\\\\draglab marketıng mohammed\\\\GitHub\\\\DragLab-germany\\\\Front-end\\\\HTML\\\\sellercompany\"\" | grep -E \"quote)",
+      "Bash(case-stud)",
+      "Bash(glossary\" && echo \"=== Customer CSS ===\" && ls \"C:draglab marketıng mohammedGitHubDragLab-germanyFront-endCSScustomer\"\")",
+      "Bash(xargs grep:*)"
     ]
   }
 }

@@ -1,49 +1,32 @@
-// models/article.js
+// models/articles.js
 const mongoose = require('mongoose');
-const slugify = require('slugify');
 const Schema = mongoose.Schema;
 
-const ArticleSchema = new Schema({
-  title:   { type: String, required: true, trim: true },
-  slug:    { type: String, required: true, unique: true, index: true },
-  author:  { type: String, trim: true },
-  summary: { type: String, trim: true },                 // ✅ NEW (for meta description)
-  thumbnail: String,
-  body: String,
+const translationSchema = new Schema({
+  title:       { type: String, trim: true, default: '' },
+  slug:        { type: String, default: '' },
+  body:        { type: String, default: '' },
+  summary:     { type: String, trim: true, default: '' },
+  tags:        { type: [String], default: [] },
+  status:      { type: String, enum: ['none', 'draft', 'published'], default: 'none' },
+  publishedAt: { type: Date }
+}, { _id: false });
 
-  // ✅ NEW (drives <meta property="article:section">)
-  category: {
+const ArticleSchema = new Schema({
+  thumbnail: { type: String, default: '' },
+  author:    { type: String, trim: true, default: '' },
+  category:  {
     type: String,
-    enum: ['News', 'Products', 'Industries', 'Company', 'Tutorials','Scientific', 'Other'],
+    enum: ['News', 'Products', 'Industries', 'Company', 'Tutorials', 'Scientific', 'Other'],
     default: 'News'
   },
-
-  // ✅ NEW (drives multiple <meta property="article:tag">)
-  tags: { type: [String], default: [], index: true },
-
-  language: {
-    type: String,
-    enum: ['EN', 'ES', 'DE', 'TR', 'FR', 'ALL'],
-    default: 'EN',
-    required: true
+  translations: {
+    en: { type: translationSchema, default: () => ({}) },
+    es: { type: translationSchema, default: () => ({}) },
+    de: { type: translationSchema, default: () => ({}) },
+    tr: { type: translationSchema, default: () => ({}) },
+    fr: { type: translationSchema, default: () => ({}) }
   }
 }, { timestamps: true });
-
-// Optional: auto-generate a unique slug if missing or title changed
-ArticleSchema.pre('validate', async function (next) {
-  if (!this.slug && this.title) {
-    this.slug = slugify(this.title, { lower: true, strict: true });
-  }
-  // Ensure uniqueness by suffixing -2, -3, ...
-  if (this.isModified('slug')) {
-    const base = this.slug;
-    let i = 1;
-    while (await mongoose.models.Article.findOne({ _id: { $ne: this._id }, slug: this.slug })) {
-      i += 1;
-      this.slug = `${base}-${i}`;
-    }
-  }
-  next();
-});
 
 module.exports = mongoose.model('Article', ArticleSchema);

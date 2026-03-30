@@ -1,6 +1,9 @@
 <%- include('../../includes/customer/head.ejs') %>
 <link rel="stylesheet" href="/css/customer/model-unavailable.css">
-<title>Model Unavailable</title>
+<title><% if(lang==='DE'){ %>Modell nicht verfügbar<% } else if(lang==='ES'){ %>Modelo no disponible<% } else if(lang==='TR'){ %>Model mevcut değil<% } else if(lang==='FR'){ %>Modèle non disponible<% } else { %>Model Not Available<% } %> | DragLab</title>
+<meta name="description" content="<% if(lang==='DE'){ %>Dieses Modell ist in der aktuellen Sprache nicht verfügbar. Bitte wählen Sie eine andere Sprache.<% } else if(lang==='ES'){ %>Este modelo no está disponible en el idioma actual. Por favor, elija otro idioma.<% } else { %>This model is not available in the current language. Please choose another language.<% } %>">
+<meta name="robots" content="noindex, follow">
+<link rel="canonical" href="https://www.drag-lab.de/<%= lang||'EN' %>/products/<%= productSlug %>">
 </head>
 <body>
   <%- include('../../includes/customer/navbar.ejs') %>

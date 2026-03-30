@@ -3,7 +3,7 @@
   <link rel="stylesheet" href="/css/customer/PrivacyPolicy.css">
   <meta property="og:title" content="DragLab | Licenses & Attributions">
   <meta property="og:description" content="Details on third-party image and icon attributions for DragLab website.">
-  <meta property="og:url" content="https://www.drag-lab.de/<%= lang %>/license">
+  <meta property="og:url" content="https://www.drag-lab.de/<%= lang %>/licenses">
   <meta property="og:type" content="website">
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="DragLab | Licenses & Attributions">
@@ -12,11 +12,30 @@
     <%= pageTitle %> | DragLab
   </title>
   <meta name="description" content="<%= metaDescription %>">
-  <link rel="canonical" href="https://www.drag-lab.de/<%= lang %>/license">
-  <link rel="alternate" hreflang="en" href="https://www.drag-lab.de/EN/license">
-  <link rel="alternate" hreflang="es" href="https://www.drag-lab.de/ES/license">
-  <link rel="alternate" hreflang="de" href="https://www.drag-lab.de/DE/license">
-  <link rel="alternate" hreflang="x-default" href="https://www.drag-lab.de/EN/license">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://www.drag-lab.de/<%= lang %>/licenses">
+  <link rel="alternate" hreflang="x-default" href="https://www.drag-lab.de/EN/licenses">
+  <link rel="alternate" hreflang="en" href="https://www.drag-lab.de/EN/licenses">
+  <link rel="alternate" hreflang="es" href="https://www.drag-lab.de/ES/licenses">
+  <link rel="alternate" hreflang="de" href="https://www.drag-lab.de/DE/licenses">
+  <link rel="alternate" hreflang="tr" href="https://www.drag-lab.de/TR/licenses">
+  <link rel="alternate" hreflang="fr" href="https://www.drag-lab.de/FR/licenses">
+<script type="application/ld+json" nonce="<%= nonce %>">
+<%- JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": (pageTitle || "Licenses & Attributions") + " | DragLab",
+  "url": "https://www.drag-lab.de/" + lang + "/licenses",
+  "inLanguage": lang.toLowerCase(),
+  "breadcrumb": {
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": (lang==='DE'?'Startseite':lang==='ES'?'Inicio':lang==='TR'?'Ana Sayfa':lang==='FR'?'Accueil':'Home'), "item": "https://www.drag-lab.de/" + lang },
+      { "@type": "ListItem", "position": 2, "name": "Licenses & Attributions", "item": "https://www.drag-lab.de/" + lang + "/licenses" }
+    ]
+  }
+}) %>
+</script>
   </head>
 
   <body>
