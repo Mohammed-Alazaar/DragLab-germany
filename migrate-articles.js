@@ -13,7 +13,7 @@ require('dotenv').config();
 const mongoose = require('mongoose');
 
 // ── Connection ──────────────────────────────────────────────────────────────
-const MONGODB_URI = `mongodb+srv://mhmdalazr:${process.env.MONGO_PASSWORD}@cluster0.r8u1rna.mongodb.net/?appName=Cluster0&retryWrites=true&w=majority&ssl=true`;
+const MONGODB_URI = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@cluster0.yrit4.mongodb.net/${process.env.MONGO_DATABASE}?retryWrites=true&w=majority&ssl=true`;
 
 // ── Article model (use the raw collection, no schema enforcement) ────────────
 const Article = mongoose.model(
@@ -32,6 +32,19 @@ function toKey(lang) {
 async function run() {
   await mongoose.connect(MONGODB_URI);
   console.log('Connected to MongoDB');
+
+  // Drop the old top-level slug unique index if it exists.
+  // Slugs are now stored inside translations.*.slug, not at the root.
+  try {
+    await Article.collection.dropIndex('slug_1');
+    console.log('Dropped old slug_1 index');
+  } catch (e) {
+    if (e.codeName === 'IndexNotFound') {
+      console.log('No slug_1 index to drop (already gone)');
+    } else {
+      console.warn('Could not drop slug_1 index:', e.message);
+    }
+  }
 
   // Find every article that is still in the old format.
   // Old format: has a top-level `language` field OR has a top-level `title` field.

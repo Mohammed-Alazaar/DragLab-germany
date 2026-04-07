@@ -59,8 +59,12 @@ app.get('/:lang/license', (req, res) => {
 });
 
 // Lowercase route aliases (Express is case-insensitive for letters but hyphens are different)
-app.get('/:lang/qualifications', (req, res) => {
-    res.redirect(301, `/${req.params.lang}/Qualifications`);
+app.get('/:lang/qualifications', (req, res, next) => {
+    // Only redirect if the path is actually lowercase (not already /Qualifications)
+    if (req.path.includes('/qualifications') && !req.path.includes('/Qualifications')) {
+        return res.redirect(301, `/${req.params.lang}/Qualifications`);
+    }
+    next();
 });
 
 // Group F: old short model slugs that were missing the series prefix
