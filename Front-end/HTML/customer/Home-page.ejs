@@ -132,7 +132,7 @@ const homeDesc = lang === 'ES' ? 'DragLab fabrica incubadoras, hornos de secado,
         <a href="/<%= lang %>/products/<%= product.slug %>" class="product-card-link">
           <div class="product-card">
             <div class="product-image-wrapper">
-              <img src="<%= product.ProductThumbnail %>" alt="<%= translation.ProductName %>">
+              <img src="<%= product.ProductThumbnail %>" alt="<%= translation.ProductName %>" loading="lazy" decoding="async">
               <div class="product-bg-overlay"></div>
             </div>
             <div class="product-card-information">
@@ -154,10 +154,10 @@ const homeDesc = lang === 'ES' ? 'DragLab fabrica incubadoras, hornos de secado,
     <% }) %>
   </div>
 
-  <button class="slideshow-btn prev-btn" data-dir="-1">
+  <button class="slideshow-btn prev-btn" data-dir="-1" aria-label="<%= lang==='DE' ? 'Vorherige' : lang==='ES' ? 'Anterior' : lang==='TR' ? 'Önceki' : lang==='FR' ? 'Précédent' : 'Previous' %>">
     <img src="/assets/Imgs/Icons/right-products-arrow.png" alt="">
   </button>
-  <button class="slideshow-btn next-btn" data-dir="1">
+  <button class="slideshow-btn next-btn" data-dir="1" aria-label="<%= lang==='DE' ? 'Nächste' : lang==='ES' ? 'Siguiente' : lang==='TR' ? 'Sonraki' : lang==='FR' ? 'Suivant' : 'Next' %>">
     <img src="/assets/Imgs/Icons/left-products-arrow.png" alt="">
   </button>
 </div>
@@ -181,7 +181,7 @@ const homeDesc = lang === 'ES' ? 'DragLab fabrica incubadoras, hornos de secado,
                     <% industryCards.forEach(industry=> { %>
                         <div class="industry-card">
                             <a href="/<%= lang %>/industry/<%= industry.slug %>">
-                                <img src="<%= industry.image %>" alt="<%= industry.title %>" />
+                                <img src="<%= industry.image %>" alt="<%= industry.title %>" loading="lazy" decoding="async">
                                 <div class="overlay">
                                     <h3>
                                         <%= industry.title %>
@@ -211,7 +211,7 @@ const homeDesc = lang === 'ES' ? 'DragLab fabrica incubadoras, hornos de secado,
                     <% articles.forEach(article=> { %>
                         <div class="article-slide">
                             <a href="/<%= lang %>/articles/<%= article.slug %>" class="article-card">
-                                <img src="<%=article.thumbnail %>" alt="<%= article.title %>">
+                                <img src="<%= article.thumbnail %>" alt="<%= article.title %>" loading="lazy" decoding="async">
                                 <div class="article-card-information">
                                     <h4>
                                         <%= article.title %>
@@ -224,11 +224,11 @@ const homeDesc = lang === 'ES' ? 'DragLab fabrica incubadoras, hornos de secado,
                 </div>
 
 
-                <button class="article-slideshow-btn article-prev-btn" data-article-dir="-1">
-                    <img  src="/assets/Imgs/Icons/right-products-arrow.png" alt="Previous">
+                <button class="article-slideshow-btn article-prev-btn" data-article-dir="-1" aria-label="<%= lang==='DE' ? 'Vorheriger Artikel' : lang==='ES' ? 'Artículo anterior' : lang==='TR' ? 'Önceki makale' : lang==='FR' ? 'Article précédent' : 'Previous article' %>">
+                    <img src="/assets/Imgs/Icons/right-products-arrow.png" alt="">
                 </button>
-                <button class="article-slideshow-btn article-next-btn" data-article-dir="1">
-                    <img src="/assets/Imgs/Icons/left-products-arrow.png" alt="Next">
+                <button class="article-slideshow-btn article-next-btn" data-article-dir="1" aria-label="<%= lang==='DE' ? 'Nächster Artikel' : lang==='ES' ? 'Siguiente artículo' : lang==='TR' ? 'Sonraki makale' : lang==='FR' ? 'Article suivant' : 'Next article' %>">
+                    <img src="/assets/Imgs/Icons/left-products-arrow.png" alt="">
                 </button>
             </div>
 
@@ -301,7 +301,7 @@ const homeDesc = lang === 'ES' ? 'DragLab fabrica incubadoras, hornos de secado,
 
 
             <%- include('../../includes/customer/footer.ejs') %>
-                <script src="/js/index.js?v=1.0.1"></script>
+                <script src="/js/index.js?v=1.1.0" defer></script>
                 <!-- after all HTML and just before </body> -->
                 <script nonce="<%= nonce %>">
                     window.tabsData = <%- JSON.stringify({
@@ -327,7 +327,7 @@ const homeDesc = lang === 'ES' ? 'DragLab fabrica incubadoras, hornos de secado,
                 </script>
 
 
-                <script src="/js/about-us.js" nonce="<%= nonce %>"></script>
+                <script src="/js/about-us.js" defer nonce="<%= nonce %>"></script>
 
 
     </body>

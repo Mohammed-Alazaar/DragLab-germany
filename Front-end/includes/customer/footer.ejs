@@ -28,7 +28,7 @@
     </div> -->
     <div class="footer-container">
         <div class="footer-left">
-            <img src="/assets/Imgs/logo/DragLab-Logo.png" alt="DragLab Logo" class="footer-logo">
+            <img src="/assets/Imgs/logo/DragLab-Logo.png" alt="DragLab Logo" class="footer-logo" width="180" height="50">
             <p>
                 <%= lang==='DE'
                     ? 'DragLab ist ein Hersteller und globaler Anbieter von allgemeiner Laborausrüstung für Forschungseinrichtungen, industrielle Labore und Gesundheitseinrichtungen. Unsere Produkte sind darauf ausgelegt, Laborexperten mit Präzision und Zuverlässigkeit zu unterstützen.'
@@ -45,10 +45,10 @@
 
         <div class="footer-links">
             <div class="footer-column">
-                <h4>
+                <h3>
                     <%= lang==='DE' ? 'Neuigkeiten & Veranstaltungen' : lang==='ES' ? 'Noticias y Eventos'
                         : lang==='TR' ? 'Haberler & Etkinlikler' : lang==='FR' ? 'Actualités & Événements' : 'News & Events' %>
-                </h4>
+                </h3>
                 <ul>
                     <li><a href="/<%= lang %>/Articles">
                             <%= lang==='DE' ? 'Neuigkeiten' : lang==='ES' ? 'Noticias' : lang==='TR' ? 'Haberler' : lang==='FR' ? 'Actualités' : 'News' %>
@@ -63,9 +63,9 @@
             </div>
 
             <div class="footer-column">
-                <h4>
+                <h3>
                     <%= lang==='DE' ? 'Über Uns' : lang==='ES' ? 'Sobre Nosotros' : lang==='TR' ? 'Hakkımızda' : lang==='FR' ? 'À Propos' : 'About Us' %>
-                </h4>
+                </h3>
                 <ul>
                     <li><a href="/<%= lang %>/QualityPolicy">
                             <%= lang==='DE' ? 'Qualitätspolitik' : lang==='ES' ? 'Política de Calidad'
@@ -81,9 +81,9 @@
             </div>
 
             <div class="footer-column">
-                <h4>
+                <h3>
                     <%= lang==='DE' ? 'Support' : lang==='ES' ? 'Soporte' : lang==='TR' ? 'Destek' : lang==='FR' ? 'Soutien' : 'Support' %>
-                </h4>
+                </h3>
                 <ul>
                     <li><a href="/<%= lang %>/technical-service">
                             <%= lang==='DE' ? 'Technischer Service' : lang==='ES' ? 'Servicio Técnico'
@@ -102,7 +102,7 @@
             <div class="footer-column contactusFooter">
                 <h4>
                     <%= lang==='DE' ? 'Kontakt' : lang==='ES' ? 'Contáctanos' : lang==='TR' ? 'İletişim' : lang==='FR' ? 'Contactez-nous' : 'Contact Us' %>
-                </h4>
+                </h3>
                 <ul>
                     <li><span class="highlighted">
                             <%= lang==='DE' ? 'Adresse:' : lang==='ES' ? 'Dirección:' : lang==='TR' ? 'Adres:' : lang==='FR' ? 'Adresse:' : 'Address:' %>
@@ -171,3 +171,141 @@
     </div>
 </footer>
 <script src="/js/footer.js" defer nonce="<%= nonce %>"></script>
+
+<!-- ── Promo Popup ── -->
+<style nonce="<%= nonce %>">
+  .promo-popup {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    align-items: center;
+    justify-content: center;
+  }
+  .promo-popup__overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, .55);
+    backdrop-filter: blur(3px);
+  }
+  .promo-popup__box {
+    position: relative;
+    background: #fff;
+    border-radius: 16px;
+    padding: 48px 40px 40px;
+    max-width: 480px;
+    width: calc(100% - 32px);
+    box-shadow: 0 24px 64px rgba(0, 0, 0, .22);
+    text-align: center;
+    animation: promoFadeIn .35s ease;
+  }
+  @keyframes promoFadeIn {
+    from { opacity: 0; transform: translateY(24px) scale(.97); }
+    to   { opacity: 1; transform: translateY(0)    scale(1);   }
+  }
+  .promo-popup__close {
+    position: absolute;
+    top: 14px;
+    right: 18px;
+    background: none;
+    border: none;
+    font-size: 1.6rem;
+    line-height: 1;
+    color: #888;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: color .2s, background .2s;
+  }
+  .promo-popup__close:hover { color: #222; background: #f0f0f0; }
+  .promo-popup__icon {
+    height: 64px;
+    margin: 0 auto 20px;
+    display: block;
+  }
+  .promo-popup__title {
+    font-size: 1.45rem;
+    font-weight: 700;
+    color: #293C95;
+    margin: 0 0 10px;
+    line-height: 1.25;
+  }
+  .promo-popup__subtitle {
+    font-size: .95rem;
+    color: #555;
+    margin: 0 0 28px;
+    line-height: 1.55;
+  }
+  .promo-popup__buttons {
+    display: flex;
+    gap: 14px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .promo-popup__btn {
+    display: inline-block;
+    padding: 13px 22px;
+    border-radius: 8px;
+    font-size: .93rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background .2s, transform .15s, box-shadow .2s;
+    min-width: 170px;
+  }
+  .promo-popup__btn:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,.15); }
+  .promo-popup__btn--primary {
+    background: #293C95;
+    color: #fff;
+  }
+  .promo-popup__btn--primary:hover { background: #1e2e7a; }
+  .promo-popup__btn--secondary {
+    background: #fff;
+    color: #293C95;
+    border: 2px solid #293C95;
+  }
+  .promo-popup__btn--secondary:hover { background: #eef0fb; }
+  @media (max-width: 480px) {
+    .promo-popup__box { padding: 40px 20px 28px; }
+    .promo-popup__btn { min-width: 100%; }
+  }
+</style>
+
+<div id="promo-popup" class="promo-popup" role="dialog" aria-modal="true" aria-labelledby="promo-popup-title">
+  <div class="promo-popup__overlay"></div>
+  <div class="promo-popup__box">
+    <button class="promo-popup__close" aria-label="Close">&times;</button>
+    <img src="/assets/Imgs/logo/DragLab-Logo.png" alt="DragLab" class="promo-popup__icon">
+    <h2 id="promo-popup-title" class="promo-popup__title">
+      <%= lang === 'DE' ? 'Entdecken Sie unsere Angebote'
+        : lang === 'ES' ? 'Descubre nuestras ofertas'
+        : lang === 'TR' ? 'Tekliflerimizi Keşfedin'
+        : lang === 'FR' ? 'Découvrez nos offres'
+        : 'Ready to take the next step?' %>
+    </h2>
+    <p class="promo-popup__subtitle">
+      <%= lang === 'DE' ? 'Werden Sie Distributor oder fordern Sie ein individuelles Angebot für DragLab-Laborgeräte an.'
+        : lang === 'ES' ? 'Conviértase en distribuidor o solicite una cotización personalizada para equipos DragLab.'
+        : lang === 'TR' ? 'Distribütör olun veya DragLab laboratuvar ekipmanları için kişisel teklif alın.'
+        : lang === 'FR' ? 'Devenez distributeur ou demandez un devis personnalisé pour les équipements DragLab.'
+        : 'Become an authorized distributor or request a personalized quote for DragLab laboratory equipment.' %>
+    </p>
+    <div class="promo-popup__buttons">
+      <a href="/<%= lang %>/become-a-distributor" class="promo-popup__btn promo-popup__btn--primary">
+        <%= lang === 'DE' ? 'Distributor werden'
+          : lang === 'ES' ? 'Ser Distribuidor'
+          : lang === 'TR' ? 'Distribütör Ol'
+          : lang === 'FR' ? 'Devenir Distributeur'
+          : 'Become a Distributor' %>
+      </a>
+      <a href="/<%= lang %>/request-a-quote" class="promo-popup__btn promo-popup__btn--secondary">
+        <%= lang === 'DE' ? 'Angebot anfordern'
+          : lang === 'ES' ? 'Solicitar Cotización'
+          : lang === 'TR' ? 'Teklif İste'
+          : lang === 'FR' ? 'Demander un Devis'
+          : 'Request a Quote' %>
+      </a>
+    </div>
+  </div>
+</div>
+
+<script src="/js/promo-popup.js" defer nonce="<%= nonce %>"></script>

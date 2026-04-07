@@ -10,7 +10,8 @@ const Industry = require('../models/IndustryPage');
 const mongoose = require('mongoose');
 const CatalogCategory = require('../models/CatalogCategory'); // Add this line to import the order model
 
-const Slideshow = require('../models/slideshow'); // ✅ Make sure this is imported at the top
+const Slideshow = require('../models/slideshow');
+const Testimonial = require('../models/testimonial'); // ✅ Make sure this is imported at the top
 const axios = require('axios'); // ✅ Import axios for HTTP requests
 const { RECAPTCHA_ENABLED } = require('../config/recaptcha');
 const geoip = require('geoip-lite');
@@ -23,6 +24,7 @@ const DistributorApplication = require('../models/distributorApplication');
 const FAQ = require('../models/faq');
 const CaseStudy = require('../models/caseStudy');
 const Glossary = require('../models/glossary');
+const GlossaryCategory = require('../models/GlossaryCategory');
 // notifyInternal is available from the existing require at line ~1544 in this file
 
 const allanguages = ['EN', 'ES', 'DE', 'TR', 'FR'];
@@ -620,7 +622,9 @@ async function _buildSearchIndex(lang) {
         Product.find({ isDraft: false })
             .select(['slug', 'Models.slug', 'Models.isPublished', `Language.${lang}`, `Models.Language.${lang}`, 'Language.EN', 'Models.Language.EN'])
             .lean(),
-        Article.find({ language: lang }).select(['title', 'slug']).lean()
+        Article.find({ [`translations.${lang.toLowerCase()}.status`]: 'published' })
+          .select([`translations.${lang.toLowerCase()}.title`, `translations.${lang.toLowerCase()}.slug`])
+          .lean()
     ]);
 
     const searchableData = [];
@@ -648,11 +652,14 @@ async function _buildSearchIndex(lang) {
     }
 
     for (const article of articles) {
-        searchableData.push({
-            type: 'article',
-            name: article.title,
-            url: `/${lang}/articles/${article.slug}`
-        });
+        const tr = article.translations?.[lang.toLowerCase()];
+        if (tr && tr.title) {
+            searchableData.push({
+                type: 'article',
+                name: tr.title,
+                url: `/${lang}/articles/${tr.slug}`
+            });
+        }
     }
 
     return new Fuse(searchableData, { keys: ['name'], threshold: 0.4, includeScore: true });
@@ -1934,18 +1941,28 @@ exports.getArticleDetails = async (req, res) => {
         if (!raw) return res.redirect('/');
 
         const tr = raw.translations[langKey];
+
+        // Compute reading stats from plain-text body
+        const plainBody = (tr.body || '').replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim();
+        const wordCount = plainBody.split(/\s+/).filter(Boolean).length;
+        const readingTimeMin = Math.max(1, Math.round(wordCount / 220));
+
         const article = {
-            _id:       raw._id,
-            thumbnail: raw.thumbnail,
-            author:    raw.author,
-            category:  raw.category,
-            slug:      tr.slug,
-            title:     tr.title,
-            summary:   tr.summary,
-            body:      tr.body,
-            tags:      tr.tags,
-            createdAt: raw.createdAt,
-            updatedAt: raw.updatedAt
+            _id:            raw._id,
+            thumbnail:      raw.thumbnail,
+            author:         raw.author,
+            category:       raw.category,
+            slug:           tr.slug,
+            title:          tr.title,
+            summary:        tr.summary,
+            body:           tr.body,
+            tags:           tr.tags,
+            publishedAt:    tr.publishedAt || raw.createdAt,
+            createdAt:      raw.createdAt,
+            updatedAt:      raw.updatedAt,
+            wordCount,
+            readingTimeMin,
+            plainBody:      plainBody.slice(0, 5000)
         };
 
         const recentRaw = await Article.find({
@@ -1970,7 +1987,7 @@ exports.getArticleDetails = async (req, res) => {
             }
         }
 
-        res.render('customer/article-details', { article, recentArticles, lang, langSlugs });
+        res.render('customer/article-details', { article, recentArticles, lang, langSlugs, nonce: res.locals.nonce });
     } catch (err) {
         console.error(err);
         res.redirect('/');
@@ -2768,7 +2785,8 @@ exports.getRequestQuote = async (req, res) => {
       path: `/${lang}/request-a-quote`,
       success: req.query.success === '1',
       error: req.query.error || null,
-      productsData
+      productsData,
+      recaptchaEnabled: RECAPTCHA_ENABLED
     });
   } catch (err) {
     console.error('getRequestQuote error:', err);
@@ -2795,6 +2813,23 @@ exports.postRequestQuote = async (req, res) => {
 
     if (!companyName || !country || !email) {
       return res.redirect(`/${lang || 'EN'}/request-a-quote?error=1`);
+    }
+
+    // --- reCAPTCHA verification ---
+    const recaptchaToken = req.body['g-recaptcha-response'];
+    if (RECAPTCHA_ENABLED) {
+      if (!recaptchaToken) {
+        console.error('❌ Missing reCAPTCHA token (quote request)');
+        return res.redirect(`/${lang || 'EN'}/request-a-quote?error=1`);
+      }
+      const { data: rcData } = await axios.post('https://www.google.com/recaptcha/api/siteverify', null, {
+        params: { secret: process.env.RECAPTCHA_SECRET_KEY, response: recaptchaToken },
+        timeout: 5000
+      });
+      if (!rcData?.success || Number(rcData?.score) < 0.5) {
+        console.error('❌ reCAPTCHA failed (quote request):', rcData);
+        return res.redirect(`/${lang || 'EN'}/request-a-quote?error=1`);
+      }
     }
 
     // Upload attachment to Cloudinary if provided
@@ -2839,25 +2874,59 @@ exports.postRequestQuote = async (req, res) => {
     const attachHtml = fileAttachmentUrl
       ? `<p><strong>Attachment:</strong> <a href="${fileAttachmentUrl}">${req.file.originalname}</a></p>` : '';
 
-    notifyInternal({
-      to: 'info@drag-lab.de',
-      subject: `New Quote Request from ${companyName} (${country})`,
-      html: `<h2>New Quote Request</h2>
-             <p><strong>Company:</strong> ${companyName}</p>
-             <p><strong>Country:</strong> ${country}</p>
-             <p><strong>Contact:</strong> ${contactName || '—'}</p>
-             <p><strong>Email:</strong> ${email}</p>
-             <p><strong>Phone:</strong> ${phone || '—'}</p>
-             <p><strong>Industry:</strong> ${industry || '—'}</p>
-             <p><strong>Products:</strong> ${selectedProducts.join(', ') || '—'}</p>
-             <p><strong>Models &amp; Quantities:</strong><ul>${modelsHtml}</ul></p>
-             <p><strong>Deadline:</strong> ${deliveryDeadline || '—'}</p>
-             <p><strong>Message:</strong> ${message || '—'}</p>
-             ${attachHtml}`,
-      text: `New Quote Request from ${companyName} – ${email}`
-    }).catch(e => console.error('Quote email error:', e));
+    res.redirect(`/${(lang || 'EN').toUpperCase()}/request-a-quote?success=1`);
 
-    return res.redirect(`/${(lang || 'EN').toUpperCase()}/request-a-quote?success=1`);
+    // Send emails async after redirect
+    const quoteTicketId = `QR-${quote._id.toString().slice(-6).toUpperCase()}`;
+    Promise.all([
+      // Confirmation to customer
+      notifyInternal({
+        to: email,
+        subject: `Your Quote Request Has Been Received – DragLab (${quoteTicketId})`,
+        html: `<!DOCTYPE html><html><body style="font-family:Arial,sans-serif;color:#1a1a2e;max-width:600px;margin:0 auto;padding:20px">
+          <div style="background:#293C95;padding:24px 28px;border-radius:8px 8px 0 0">
+            <h1 style="color:#fff;margin:0;font-size:22px">DragLab GmbH</h1>
+            <p style="color:rgba(255,255,255,0.75);margin:4px 0 0;font-size:13px">www.drag-lab.de</p>
+          </div>
+          <div style="border:1px solid #e2e8f0;border-top:none;border-radius:0 0 8px 8px;padding:28px">
+            <h2 style="color:#293C95;margin-top:0">Quote Request Received</h2>
+            <p>Dear <strong>${contactName || companyName}</strong>,</p>
+            <p>Thank you for your quote request. We have received your submission and our sales team will get back to you as soon as possible.</p>
+            <table style="width:100%;border-collapse:collapse;margin:20px 0;font-size:14px">
+              <tr style="background:#EEF1FB"><td style="padding:8px 12px;font-weight:bold;color:#293C95;width:40%">Reference</td><td style="padding:8px 12px">${quoteTicketId}</td></tr>
+              <tr><td style="padding:8px 12px;font-weight:bold;color:#293C95">Company</td><td style="padding:8px 12px">${companyName}</td></tr>
+              <tr style="background:#EEF1FB"><td style="padding:8px 12px;font-weight:bold;color:#293C95">Country</td><td style="padding:8px 12px">${country}</td></tr>
+              ${industry ? `<tr><td style="padding:8px 12px;font-weight:bold;color:#293C95">Industry</td><td style="padding:8px 12px">${industry}</td></tr>` : ''}
+              ${selectedProducts.length ? `<tr style="background:#EEF1FB"><td style="padding:8px 12px;font-weight:bold;color:#293C95">Products</td><td style="padding:8px 12px">${selectedProducts.join(', ')}</td></tr>` : ''}
+              ${modelQtyLines.length ? `<tr><td style="padding:8px 12px;font-weight:bold;color:#293C95;vertical-align:top">Models &amp; Quantities</td><td style="padding:8px 12px">${modelQtyLines.map(l => `<div>${l}</div>`).join('')}</td></tr>` : ''}
+              ${deliveryDeadline ? `<tr style="background:#EEF1FB"><td style="padding:8px 12px;font-weight:bold;color:#293C95">Deadline</td><td style="padding:8px 12px">${deliveryDeadline}</td></tr>` : ''}
+            </table>
+            <p style="font-size:13px;color:#6b7280">If you have any questions, please contact us at <a href="mailto:info@drag-lab.de" style="color:#293C95">info@drag-lab.de</a>.</p>
+            <hr style="border:none;border-top:1px solid #e2e8f0;margin:24px 0">
+            <p style="font-size:12px;color:#9ca3af;margin:0">DragLab GmbH · www.drag-lab.de</p>
+          </div>
+        </body></html>`
+      }),
+      // Internal notification
+      notifyInternal({
+        to: 'info@drag-lab.de',
+        subject: `New Quote Request from ${companyName} (${country}) — ${quoteTicketId}`,
+        html: `<h2>New Quote Request — ${quoteTicketId}</h2>
+               <p><strong>Company:</strong> ${companyName}</p>
+               <p><strong>Country:</strong> ${country}</p>
+               <p><strong>Contact:</strong> ${contactName || '—'}</p>
+               <p><strong>Email:</strong> ${email}</p>
+               <p><strong>Phone:</strong> ${phone || '—'}</p>
+               <p><strong>Industry:</strong> ${industry || '—'}</p>
+               <p><strong>Products:</strong> ${selectedProducts.join(', ') || '—'}</p>
+               <p><strong>Models &amp; Quantities:</strong><ul>${modelsHtml}</ul></p>
+               <p><strong>Deadline:</strong> ${deliveryDeadline || '—'}</p>
+               <p><strong>Message:</strong> ${message || '—'}</p>
+               ${attachHtml}
+               <p><strong>Admin Link:</strong> <a href="https://www.drag-lab.de/admin/quotes/${quote._id}">View in Admin</a></p>`,
+        text: `New Quote Request from ${companyName} – ${email} — ${quoteTicketId}`
+      })
+    ]).catch(e => console.error('❌ Quote email error:', e));
   } catch (err) {
     console.error('postRequestQuote error:', err);
     return res.redirect('/EN/request-a-quote?error=1');
@@ -2894,10 +2963,25 @@ exports.getBecomDistributor = async (req, res) => {
         whoDesc: 'We seek established companies with experience in laboratory or scientific equipment distribution, a strong local network, and a commitment to quality service.',
         formTitle: 'Distributor Application Form',
         labelCompany: 'Company Name', labelCountry: 'Country', labelWebsite: 'Company Website',
-        labelYears: 'Years in Business', labelBrands: 'Current Brands / Products You Distribute',
-        labelMarket: 'Target Market', labelContact: 'Contact Name', labelEmail: 'Email Address',
-        labelPhone: 'Phone Number', btnSubmit: 'Submit Application',
-        successMsg: 'Thank you for your application! Our partnership team will review it and contact you within 3 business days.'
+        labelOverview: 'Company Overview',
+        overviewHint: 'Briefly describe your company, core activities, and experience in laboratory or scientific equipment.',
+        labelEstablished: 'Company Established',
+        labelBrands: 'Current Brands / Products You Distribute',
+        labelIndustry: 'Industry Focus',
+        industryHint: 'Select all that apply',
+        labelSalesChannels: 'Sales Channels',
+        labelSalesVolume: 'Estimated Annual Sales Volume (EUR)',
+        labelTerritory: 'Requested Distribution Territory',
+        territoryHint: 'Country or region you want to cover',
+        labelMarket: 'Target Market / Customer Segments',
+        marketHint: 'e.g. universities, hospitals, private labs, etc.',
+        labelBrochure: 'Upload Company Profile / Brochure',
+        labelContact: 'Contact Name', labelEmail: 'Email Address', labelPhone: 'Phone Number',
+        btnSubmit: 'Submit Application',
+        industryOptions: ['Universities / Research Labs', 'Hospitals / Clinical Labs', 'Industrial Laboratories', 'Pharmaceutical', 'Food & Beverage', 'Others'],
+        salesChannelOptions: ['Direct Sales Team (Field Sales)', 'Distributors / Resellers Network', 'Online / eCommerce (Website / Marketplaces)', 'Public Tenders (Government / Universities / Public Hospitals)', 'Private Tenders / RFQs (Private Sector Projects)', 'Key Account Management (Large Institutions / Hospitals)', 'OEM / Project-Based Sales', 'Retail / Showroom Sales', 'Other (please specify)'],
+        successMsg: 'Thank you for your application! Our partnership team will review it and contact you within 3 business days.',
+        trustISO: 'ISO 9001 Certified', trustCE: 'CE Compliance', trustGlobal: '50+ Countries', trustTerritory: 'Exclusive Territory'
       },
       ES: {
         pageTitle: 'Conviértase en Distribuidor DragLab – Asóciese Con Nosotros',
@@ -2919,10 +3003,25 @@ exports.getBecomDistributor = async (req, res) => {
         whoDesc: 'Buscamos empresas establecidas con experiencia en distribución de equipos de laboratorio y una sólida red local.',
         formTitle: 'Formulario de Solicitud',
         labelCompany: 'Nombre de la Empresa', labelCountry: 'País', labelWebsite: 'Sitio Web',
-        labelYears: 'Años en el Negocio', labelBrands: 'Marcas Actuales que Distribuye',
-        labelMarket: 'Mercado Objetivo', labelContact: 'Nombre de Contacto', labelEmail: 'Correo Electrónico',
-        labelPhone: 'Teléfono', btnSubmit: 'Enviar Solicitud',
-        successMsg: 'Gracias por su solicitud. Nuestro equipo le contactará en 3 días hábiles.'
+        labelOverview: 'Descripción de la Empresa',
+        overviewHint: 'Describa brevemente su empresa, actividades principales y experiencia en equipos de laboratorio.',
+        labelEstablished: 'Año de Fundación de la Empresa',
+        labelBrands: 'Marcas / Productos Actuales que Distribuye',
+        labelIndustry: 'Enfoque de Industria',
+        industryHint: 'Seleccione todos los que apliquen',
+        labelSalesChannels: 'Canales de Venta',
+        labelSalesVolume: 'Volumen de Ventas Anual Estimado (EUR)',
+        labelTerritory: 'Territorio de Distribución Solicitado',
+        territoryHint: 'País o región que desea cubrir',
+        labelMarket: 'Mercado Objetivo / Segmentos de Clientes',
+        marketHint: 'p.ej. universidades, hospitales, laboratorios privados, etc.',
+        labelBrochure: 'Subir Perfil / Folleto de la Empresa',
+        labelContact: 'Nombre de Contacto', labelEmail: 'Correo Electrónico', labelPhone: 'Teléfono',
+        btnSubmit: 'Enviar Solicitud',
+        industryOptions: ['Universidades / Labs. de Investigación', 'Hospitales / Labs. Clínicos', 'Laboratorios Industriales', 'Farmacéutica', 'Alimentos y Bebidas', 'Otros'],
+        salesChannelOptions: ['Equipo de Ventas Directas (Campo)', 'Red de Distribuidores / Revendedores', 'Online / eCommerce (Sitio Web / Mercados)', 'Licitaciones Públicas (Gobierno / Universidades / Hospitales Públicos)', 'Licitaciones Privadas / RFQs (Proyectos del Sector Privado)', 'Gestión de Cuentas Clave (Grandes Instituciones / Hospitales)', 'OEM / Ventas por Proyectos', 'Venta al Por Menor / Showroom', 'Otro (especifique)'],
+        successMsg: 'Gracias por su solicitud. Nuestro equipo le contactará en 3 días hábiles.',
+        trustISO: 'Certificado ISO 9001', trustCE: 'Conformidad CE', trustGlobal: '+50 Países', trustTerritory: 'Territorio Exclusivo'
       },
       DE: {
         pageTitle: 'DragLab Distributor Werden – Partnerschaft',
@@ -2944,10 +3043,25 @@ exports.getBecomDistributor = async (req, res) => {
         whoDesc: 'Wir suchen etablierte Unternehmen mit Erfahrung im Laborgerätevertrieb und einem starken lokalen Netzwerk.',
         formTitle: 'Bewerbungsformular',
         labelCompany: 'Firmenname', labelCountry: 'Land', labelWebsite: 'Firmenwebseite',
-        labelYears: 'Jahre im Geschäft', labelBrands: 'Aktuelle Marken / Produkte',
-        labelMarket: 'Zielmarkt', labelContact: 'Ansprechpartner', labelEmail: 'E-Mail-Adresse',
-        labelPhone: 'Telefon', btnSubmit: 'Bewerbung Einreichen',
-        successMsg: 'Vielen Dank für Ihre Bewerbung! Unser Team meldet sich innerhalb von 3 Werktagen.'
+        labelOverview: 'Unternehmensüberblick',
+        overviewHint: 'Beschreiben Sie kurz Ihr Unternehmen, Kernaktivitäten und Erfahrung mit Laborgeräten.',
+        labelEstablished: 'Unternehmensgründungsjahr',
+        labelBrands: 'Aktuelle Marken / Produkte',
+        labelIndustry: 'Branchenfokus',
+        industryHint: 'Alle zutreffenden auswählen',
+        labelSalesChannels: 'Vertriebskanäle',
+        labelSalesVolume: 'Geschätztes Jahresvolumen (EUR)',
+        labelTerritory: 'Gewünschtes Vertriebsgebiet',
+        territoryHint: 'Land oder Region, die Sie abdecken möchten',
+        labelMarket: 'Zielmarkt / Kundensegmente',
+        marketHint: 'z.B. Universitäten, Krankenhäuser, private Labore, etc.',
+        labelBrochure: 'Unternehmensprofil / Broschüre Hochladen',
+        labelContact: 'Ansprechpartner', labelEmail: 'E-Mail-Adresse', labelPhone: 'Telefon',
+        btnSubmit: 'Bewerbung Einreichen',
+        industryOptions: ['Universitäten / Forschungslabore', 'Krankenhäuser / Klinische Labore', 'Industrielabore', 'Pharmazeutisch', 'Lebensmittel & Getränke', 'Sonstiges'],
+        salesChannelOptions: ['Direktvertrieb / Außendienst', 'Händler / Wiederverkäufer-Netzwerk', 'Online / eCommerce (Website / Marktplätze)', 'Öffentliche Ausschreibungen (Behörden / Universitäten / Krankenhäuser)', 'Private Ausschreibungen / Anfragen (Privatwirtschaft)', 'Key Account Management (Großinstitutionen / Krankenhäuser)', 'OEM / Projektbasierter Vertrieb', 'Einzelhandel / Showroom-Verkauf', 'Sonstiges (bitte angeben)'],
+        successMsg: 'Vielen Dank für Ihre Bewerbung! Unser Team meldet sich innerhalb von 3 Werktagen.',
+        trustISO: 'ISO 9001 Zertifiziert', trustCE: 'CE-Konformität', trustGlobal: '50+ Länder', trustTerritory: 'Exklusives Gebiet'
       },
       TR: {
         pageTitle: 'DragLab Distribütörü Olun – Ortaklık',
@@ -2969,10 +3083,25 @@ exports.getBecomDistributor = async (req, res) => {
         whoDesc: 'Laboratuvar ekipmanı dağıtımında deneyimli, güçlü yerel ağa sahip köklü şirketler arıyoruz.',
         formTitle: 'Başvuru Formu',
         labelCompany: 'Şirket Adı', labelCountry: 'Ülke', labelWebsite: 'Şirket Web Sitesi',
-        labelYears: 'İş Yılı', labelBrands: 'Mevcut Markalar',
-        labelMarket: 'Hedef Pazar', labelContact: 'İletişim Kişisi', labelEmail: 'E-posta',
-        labelPhone: 'Telefon', btnSubmit: 'Başvuru Gönder',
-        successMsg: 'Başvurunuz için teşekkürler! Ortaklık ekibimiz 3 iş günü içinde sizinle iletişime geçecektir.'
+        labelOverview: 'Şirket Genel Bakış',
+        overviewHint: 'Şirketinizi, temel faaliyetlerini ve laboratuvar ekipmanlarındaki deneyimini kısaca açıklayın.',
+        labelEstablished: 'Şirket Kuruluş Yılı',
+        labelBrands: 'Mevcut Dağıttığınız Markalar / Ürünler',
+        labelIndustry: 'Sektör Odağı',
+        industryHint: 'Geçerli olanları seçin',
+        labelSalesChannels: 'Satış Kanalları',
+        labelSalesVolume: 'Tahmini Yıllık Satış Hacmi (EUR)',
+        labelTerritory: 'Talep Edilen Dağıtım Bölgesi',
+        territoryHint: 'Kapsam dahil etmek istediğiniz ülke veya bölge',
+        labelMarket: 'Hedef Pazar / Müşteri Segmentleri',
+        marketHint: 'örn. üniversiteler, hastaneler, özel laboratuvarlar, vb.',
+        labelBrochure: 'Şirket Profili / Broşür Yükle',
+        labelContact: 'İletişim Kişisi', labelEmail: 'E-posta', labelPhone: 'Telefon',
+        btnSubmit: 'Başvuru Gönder',
+        industryOptions: ['Üniversiteler / Araştırma Laboratuvarları', 'Hastaneler / Klinik Laboratuvarlar', 'Endüstriyel Laboratuvarlar', 'İlaç', 'Gıda & İçecek', 'Diğer'],
+        salesChannelOptions: ['Doğrudan Satış Ekibi (Saha Satışı)', 'Distribütör / Bayi Ağı', 'Online / e-Ticaret (Web Sitesi / Pazaryerleri)', 'Kamu İhaleleri (Devlet / Üniversiteler / Kamu Hastaneleri)', 'Özel İhaleler / Teklif Talepleri (Özel Sektör Projeleri)', 'Kilit Hesap Yönetimi (Büyük Kurumlar / Hastaneler)', 'OEM / Proje Bazlı Satış', 'Perakende / Showroom Satışı', 'Diğer (lütfen belirtin)'],
+        successMsg: 'Başvurunuz için teşekkürler! Ortaklık ekibimiz 3 iş günü içinde sizinle iletişime geçecektir.',
+        trustISO: 'ISO 9001 Sertifikalı', trustCE: 'CE Uyumluluğu', trustGlobal: '50+ Ülke', trustTerritory: 'Özel Bölge Hakları'
       },
       FR: {
         pageTitle: 'Devenir Distributeur DragLab – Partenariat',
@@ -2994,10 +3123,25 @@ exports.getBecomDistributor = async (req, res) => {
         whoDesc: 'Nous recherchons des sociétés expérimentées dans la distribution d\'équipements scientifiques avec un réseau local solide.',
         formTitle: 'Formulaire de Candidature',
         labelCompany: 'Nom de la Société', labelCountry: 'Pays', labelWebsite: 'Site Web',
-        labelYears: 'Années d\'Activité', labelBrands: 'Marques Actuelles Distribuées',
-        labelMarket: 'Marché Cible', labelContact: 'Nom du Contact', labelEmail: 'Adresse E-mail',
-        labelPhone: 'Numéro de Téléphone', btnSubmit: 'Soumettre la Candidature',
-        successMsg: 'Merci pour votre candidature ! Notre équipe partenariat vous contactera sous 3 jours ouvrés.'
+        labelOverview: 'Présentation de l\'Entreprise',
+        overviewHint: 'Décrivez brièvement votre entreprise, ses activités principales et son expérience en équipements de laboratoire.',
+        labelEstablished: 'Année de Création de l\'Entreprise',
+        labelBrands: 'Marques / Produits Actuellement Distribués',
+        labelIndustry: 'Secteur d\'Activité',
+        industryHint: 'Sélectionnez tout ce qui s\'applique',
+        labelSalesChannels: 'Canaux de Vente',
+        labelSalesVolume: 'Volume de Ventes Annuel Estimé (EUR)',
+        labelTerritory: 'Territoire de Distribution Souhaité',
+        territoryHint: 'Pays ou région que vous souhaitez couvrir',
+        labelMarket: 'Marché Cible / Segments Clients',
+        marketHint: 'ex. universités, hôpitaux, laboratoires privés, etc.',
+        labelBrochure: 'Télécharger Profil / Brochure d\'Entreprise',
+        labelContact: 'Nom du Contact', labelEmail: 'Adresse E-mail', labelPhone: 'Numéro de Téléphone',
+        btnSubmit: 'Soumettre la Candidature',
+        industryOptions: ['Universités / Labos de Recherche', 'Hôpitaux / Labos Cliniques', 'Laboratoires Industriels', 'Pharmaceutique', 'Alimentation & Boissons', 'Autres'],
+        salesChannelOptions: ['Équipe de Vente Directe (Terrain)', 'Réseau de Distributeurs / Revendeurs', 'Online / eCommerce (Site Web / Marketplaces)', 'Appels d\'Offres Publics (Gouvernement / Universités / Hôpitaux)', 'Appels d\'Offres Privés / RFQs (Projets Secteur Privé)', 'Gestion de Comptes Clés (Grandes Institutions / Hôpitaux)', 'OEM / Ventes par Projets', 'Vente au Détail / Showroom', 'Autre (préciser)'],
+        successMsg: 'Merci pour votre candidature ! Notre équipe partenariat vous contactera sous 3 jours ouvrés.',
+        trustISO: 'Certifié ISO 9001', trustCE: 'Conformité CE', trustGlobal: '+50 Pays', trustTerritory: 'Territoire Exclusif'
       }
     };
 
@@ -3007,7 +3151,8 @@ exports.getBecomDistributor = async (req, res) => {
       ...tr,
       path: `/${lang}/become-a-distributor`,
       success: req.query.success === '1',
-      error: req.query.error || null
+      error: req.query.error || null,
+      recaptchaEnabled: RECAPTCHA_ENABLED
     });
   } catch (err) {
     console.error('getBecomDistributor error:', err);
@@ -3018,38 +3163,128 @@ exports.getBecomDistributor = async (req, res) => {
 exports.postDistributorApplication = async (req, res) => {
   try {
     const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.connection.remoteAddress;
-    const { companyName, country, website, yearsExperience, currentBrands, targetMarket, contactName, email, phone, lang } = req.body;
+    const {
+      companyName, country, website, companyOverview,
+      companyEstablished, annualSalesVolume, distributionTerritory,
+      currentBrands, targetMarket,
+      contactName, email, phone, lang
+    } = req.body;
+
+    const industryFocus = [].concat(req.body.industryFocus || []).filter(Boolean);
+    const salesChannels = [].concat(req.body.salesChannels || []).filter(Boolean);
+    const salesChannelsOther = req.body.salesChannelsOther || '';
 
     if (!companyName || !country || !email || !contactName) {
       return res.redirect(`/${lang || 'EN'}/become-a-distributor?error=1`);
     }
 
+    // --- reCAPTCHA verification ---
+    const recaptchaToken = req.body['g-recaptcha-response'];
+    if (RECAPTCHA_ENABLED) {
+      if (!recaptchaToken) {
+        console.error('❌ Missing reCAPTCHA token (distributor application)');
+        return res.redirect(`/${lang || 'EN'}/become-a-distributor?error=1`);
+      }
+      const { data: rcData } = await axios.post('https://www.google.com/recaptcha/api/siteverify', null, {
+        params: { secret: process.env.RECAPTCHA_SECRET_KEY, response: recaptchaToken },
+        timeout: 5000
+      });
+      if (!rcData?.success || Number(rcData?.score) < 0.5) {
+        console.error('❌ reCAPTCHA failed (distributor application):', rcData);
+        return res.redirect(`/${lang || 'EN'}/become-a-distributor?error=1`);
+      }
+    }
+
+    // Upload brochure to Cloudinary if provided
+    let companyProfileUrl = '';
+    if (req.file && req.file.buffer) {
+      try {
+        const ext = path.extname(req.file.originalname).toLowerCase();
+        const isImage = ['.jpg', '.jpeg', '.png', '.gif', '.webp'].includes(ext);
+        const publicId = `distributor-brochure-${Date.now()}${ext}`;
+        companyProfileUrl = await new Promise((resolve, reject) => {
+          cloudinary.uploader.upload_stream(
+            {
+              folder: 'draglab/distributors',
+              resource_type: isImage ? 'image' : 'raw',
+              public_id: publicId,
+              use_filename: false
+            },
+            (err, result) => { if (err) reject(err); else resolve(result.secure_url); }
+          ).end(req.file.buffer);
+        });
+      } catch (uploadErr) {
+        console.error('Distributor brochure upload error:', uploadErr);
+      }
+    }
+
     const app = new DistributorApplication({
-      companyName, country, website,
-      yearsExperience: yearsExperience ? parseInt(yearsExperience) : null,
-      currentBrands, targetMarket, contactName, email, phone,
+      companyName, country, website, companyOverview,
+      companyEstablished, industryFocus, salesChannels, salesChannelsOther,
+      annualSalesVolume, companyProfileUrl,
+      distributionTerritory, currentBrands, targetMarket,
+      contactName, email, phone,
       lang: (lang || 'EN').toUpperCase(),
       ipAddress: ip
     });
     await app.save();
 
-    notifyInternal({
-      to: 'info@drag-lab.de',
-      subject: `New Distributor Application from ${companyName} (${country})`,
-      html: `<h2>New Distributor Application</h2>
-             <p><strong>Company:</strong> ${companyName}</p>
-             <p><strong>Country:</strong> ${country}</p>
-             <p><strong>Website:</strong> ${website || '—'}</p>
-             <p><strong>Years in Business:</strong> ${yearsExperience || '—'}</p>
-             <p><strong>Current Brands:</strong> ${currentBrands || '—'}</p>
-             <p><strong>Target Market:</strong> ${targetMarket || '—'}</p>
-             <p><strong>Contact:</strong> ${contactName}</p>
-             <p><strong>Email:</strong> ${email}</p>
-             <p><strong>Phone:</strong> ${phone || '—'}</p>`,
-      text: `New Distributor Application from ${companyName} – ${email}`
-    }).catch(e => console.error('Distributor email error:', e));
+    res.redirect(`/${(lang || 'EN').toUpperCase()}/become-a-distributor?success=1`);
 
-    return res.redirect(`/${(lang || 'EN').toUpperCase()}/become-a-distributor?success=1`);
+    // Send emails async after redirect
+    const distTicketId = `DA-${app._id.toString().slice(-6).toUpperCase()}`;
+    Promise.all([
+      // Confirmation to applicant
+      notifyInternal({
+        to: email,
+        subject: `Your Distributor Application Has Been Received – DragLab (${distTicketId})`,
+        html: `<!DOCTYPE html><html><body style="font-family:Arial,sans-serif;color:#1a1a2e;max-width:600px;margin:0 auto;padding:20px">
+          <div style="background:#293C95;padding:24px 28px;border-radius:8px 8px 0 0">
+            <h1 style="color:#fff;margin:0;font-size:22px">DragLab GmbH</h1>
+            <p style="color:rgba(255,255,255,0.75);margin:4px 0 0;font-size:13px">www.drag-lab.de</p>
+          </div>
+          <div style="border:1px solid #e2e8f0;border-top:none;border-radius:0 0 8px 8px;padding:28px">
+            <h2 style="color:#293C95;margin-top:0">Distributor Application Received</h2>
+            <p>Dear <strong>${contactName}</strong>,</p>
+            <p>Thank you for applying to become a DragLab distributor. We have received your application and our partnership team will review it and contact you shortly.</p>
+            <table style="width:100%;border-collapse:collapse;margin:20px 0;font-size:14px">
+              <tr style="background:#EEF1FB"><td style="padding:8px 12px;font-weight:bold;color:#293C95;width:40%">Reference</td><td style="padding:8px 12px">${distTicketId}</td></tr>
+              <tr><td style="padding:8px 12px;font-weight:bold;color:#293C95">Company</td><td style="padding:8px 12px">${companyName}</td></tr>
+              <tr style="background:#EEF1FB"><td style="padding:8px 12px;font-weight:bold;color:#293C95">Country</td><td style="padding:8px 12px">${country}</td></tr>
+              ${website ? `<tr><td style="padding:8px 12px;font-weight:bold;color:#293C95">Website</td><td style="padding:8px 12px">${website}</td></tr>` : ''}
+              ${distributionTerritory ? `<tr style="background:#EEF1FB"><td style="padding:8px 12px;font-weight:bold;color:#293C95">Territory</td><td style="padding:8px 12px">${distributionTerritory}</td></tr>` : ''}
+              ${industryFocus.length ? `<tr><td style="padding:8px 12px;font-weight:bold;color:#293C95">Industry Focus</td><td style="padding:8px 12px">${industryFocus.join(', ')}</td></tr>` : ''}
+            </table>
+            <p style="font-size:13px;color:#6b7280">If you have any questions, please contact us at <a href="mailto:info@drag-lab.de" style="color:#293C95">info@drag-lab.de</a>.</p>
+            <hr style="border:none;border-top:1px solid #e2e8f0;margin:24px 0">
+            <p style="font-size:12px;color:#9ca3af;margin:0">DragLab GmbH · www.drag-lab.de</p>
+          </div>
+        </body></html>`
+      }),
+      // Internal notification
+      notifyInternal({
+        to: 'info@drag-lab.de',
+        subject: `New Distributor Application from ${companyName} (${country}) — ${distTicketId}`,
+        html: `<h2>New Distributor Application — ${distTicketId}</h2>
+               <p><strong>Company:</strong> ${companyName}</p>
+               <p><strong>Country:</strong> ${country}</p>
+               <p><strong>Website:</strong> ${website || '—'}</p>
+               <p><strong>Overview:</strong> ${companyOverview || '—'}</p>
+               <p><strong>Company Established:</strong> ${companyEstablished || '—'}</p>
+               <p><strong>Industry Focus:</strong> ${industryFocus.length ? industryFocus.join(', ') : '—'}</p>
+               <p><strong>Sales Channels:</strong> ${salesChannels.length ? salesChannels.join(', ') : '—'}${salesChannelsOther ? ` — Other: ${salesChannelsOther}` : ''}</p>
+               <p><strong>Annual Sales Volume:</strong> ${annualSalesVolume || '—'}</p>
+               <p><strong>Distribution Territory:</strong> ${distributionTerritory || '—'}</p>
+               <p><strong>Current Brands:</strong> ${currentBrands || '—'}</p>
+               <p><strong>Target Market:</strong> ${targetMarket || '—'}</p>
+               <p><strong>Contact:</strong> ${contactName}</p>
+               <p><strong>Email:</strong> ${email}</p>
+               <p><strong>Phone:</strong> ${phone || '—'}</p>
+               ${companyProfileUrl ? `<p><strong>Brochure:</strong> <a href="${companyProfileUrl}">${companyProfileUrl}</a></p>` : ''}
+               <p><strong>Admin Link:</strong> <a href="https://www.drag-lab.de/admin/distributor-applications/${app._id}">View in Admin</a></p>`,
+        text: `New Distributor Application from ${companyName} – ${email} — ${distTicketId}`
+      })
+    ]).catch(e => console.error('❌ Distributor email error:', e));
   } catch (err) {
     console.error('postDistributorApplication error:', err);
     return res.redirect('/EN/become-a-distributor?error=1');
@@ -3064,12 +3299,24 @@ exports.postDistributorApplication = async (req, res) => {
 exports.getKnowledgeBase = async (req, res) => {
   try {
     const lang = (req.params.lang || 'EN').toUpperCase();
+    const langKey = lang.toLowerCase();
     const activeCategory = req.query.category || 'All';
+    const activeProduct  = req.query.product  || '';
 
-    const query = { status: 'published', lang };
+    const query = { [`translations.${langKey}.status`]: 'published' };
     if (activeCategory && activeCategory !== 'All') query.category = activeCategory;
+    if (activeProduct) query.relatedProducts = activeProduct;
 
-    const faqs = await FAQ.find(query).sort({ category: 1, order: 1 }).lean();
+    const rawFaqs = await FAQ.find(query).sort({ category: 1, order: 1 }).lean();
+
+    // Map to flat objects for the template
+    const faqs = rawFaqs.map(f => ({
+      _id:      f._id,
+      category: f.category,
+      order:    f.order,
+      question: f.translations?.[langKey]?.question || '',
+      answer:   f.translations?.[langKey]?.answer   || ''
+    }));
 
     // Group by category
     const grouped = {};
@@ -3078,19 +3325,34 @@ exports.getKnowledgeBase = async (req, res) => {
       grouped[faq.category].push(faq);
     });
 
+    // Build list of products that appear in published FAQs for this language (for filter dropdown)
+    const allPublished = await FAQ.find({ [`translations.${langKey}.status`]: 'published' })
+      .select('relatedProducts relatedProductNames').lean();
+    const productMap = {};
+    allPublished.forEach(function(f) {
+      (f.relatedProducts || []).forEach(function(id, idx) {
+        if (id && !productMap[id]) {
+          productMap[id] = (f.relatedProductNames || [])[idx] || id;
+        }
+      });
+    });
+    const filterProducts = Object.entries(productMap)
+      .map(function([id, name]) { return { id, name }; })
+      .sort(function(a, b) { return a.name.localeCompare(b.name); });
+
     const categories = ['All', 'Installation', 'Maintenance', 'Troubleshooting', 'Warranty', 'Product Usage', 'General'];
 
     const t = {
-      EN: { pageTitle: 'Knowledge Base & FAQ – DragLab', metaDescription: 'Find answers to frequently asked questions about DragLab laboratory equipment installation, maintenance, and troubleshooting.', heroTitle: 'Knowledge Base', heroSub: 'Answers to your most common questions', searchPlaceholder: 'Search questions...', noResults: 'No FAQs found for this category yet.', ogTitle: 'Knowledge Base | DragLab', ogDescription: 'FAQ and support articles for DragLab laboratory equipment.' },
-      ES: { pageTitle: 'Base de Conocimiento – DragLab', metaDescription: 'Encuentre respuestas a preguntas frecuentes sobre equipos DragLab.', heroTitle: 'Base de Conocimiento', heroSub: 'Respuestas a sus preguntas más frecuentes', searchPlaceholder: 'Buscar preguntas...', noResults: 'No hay preguntas frecuentes para esta categoría todavía.', ogTitle: 'Base de Conocimiento | DragLab', ogDescription: 'Preguntas frecuentes sobre equipos de laboratorio DragLab.' },
-      DE: { pageTitle: 'Wissensdatenbank & FAQ – DragLab', metaDescription: 'Finden Sie Antworten auf häufig gestellte Fragen zu DragLab Laborgeräten.', heroTitle: 'Wissensdatenbank', heroSub: 'Antworten auf Ihre häufigsten Fragen', searchPlaceholder: 'Fragen suchen...', noResults: 'Noch keine FAQs für diese Kategorie.', ogTitle: 'Wissensdatenbank | DragLab', ogDescription: 'FAQ und Support-Artikel für DragLab Laborgeräte.' },
-      TR: { pageTitle: 'Bilgi Bankası & SSS – DragLab', metaDescription: 'DragLab laboratuvar ekipmanları hakkında sık sorulan sorulara cevaplar bulun.', heroTitle: 'Bilgi Bankası', heroSub: 'En sık sorulan sorularınızın yanıtları', searchPlaceholder: 'Soru ara...', noResults: 'Bu kategori için henüz SSS bulunmamaktadır.', ogTitle: 'Bilgi Bankası | DragLab', ogDescription: 'DragLab laboratuvar ekipmanları için SSS.' },
-      FR: { pageTitle: 'Base de Connaissances & FAQ – DragLab', metaDescription: 'Trouvez des réponses aux questions fréquentes sur les équipements DragLab.', heroTitle: 'Base de Connaissances', heroSub: 'Réponses à vos questions les plus courantes', searchPlaceholder: 'Rechercher des questions...', noResults: 'Aucune FAQ pour cette catégorie pour l\'instant.', ogTitle: 'Base de Connaissances | DragLab', ogDescription: 'FAQ et articles de support pour les équipements DragLab.' }
+      EN: { pageTitle: 'Knowledge Base & FAQ – DragLab', metaDescription: 'Find answers to frequently asked questions about DragLab laboratory equipment installation, maintenance, and troubleshooting.', heroTitle: 'Knowledge Base', heroSub: 'Answers to your most common questions', searchPlaceholder: 'Search questions...', noResults: 'No FAQs found for this category yet.', filterByProduct: 'All Products', ogTitle: 'Knowledge Base | DragLab', ogDescription: 'FAQ and support articles for DragLab laboratory equipment.' },
+      ES: { pageTitle: 'Base de Conocimiento – DragLab', metaDescription: 'Encuentre respuestas a preguntas frecuentes sobre equipos DragLab.', heroTitle: 'Base de Conocimiento', heroSub: 'Respuestas a sus preguntas más frecuentes', searchPlaceholder: 'Buscar preguntas...', noResults: 'No hay preguntas frecuentes para esta categoría todavía.', filterByProduct: 'Todos los productos', ogTitle: 'Base de Conocimiento | DragLab', ogDescription: 'Preguntas frecuentes sobre equipos de laboratorio DragLab.' },
+      DE: { pageTitle: 'Wissensdatenbank & FAQ – DragLab', metaDescription: 'Finden Sie Antworten auf häufig gestellte Fragen zu DragLab Laborgeräten.', heroTitle: 'Wissensdatenbank', heroSub: 'Antworten auf Ihre häufigsten Fragen', searchPlaceholder: 'Fragen suchen...', noResults: 'Noch keine FAQs für diese Kategorie.', filterByProduct: 'Alle Produkte', ogTitle: 'Wissensdatenbank | DragLab', ogDescription: 'FAQ und Support-Artikel für DragLab Laborgeräte.' },
+      TR: { pageTitle: 'Bilgi Bankası & SSS – DragLab', metaDescription: 'DragLab laboratuvar ekipmanları hakkında sık sorulan sorulara cevaplar bulun.', heroTitle: 'Bilgi Bankası', heroSub: 'En sık sorulan sorularınızın yanıtları', searchPlaceholder: 'Soru ara...', noResults: 'Bu kategori için henüz SSS bulunmamaktadır.', filterByProduct: 'Tüm ürünler', ogTitle: 'Bilgi Bankası | DragLab', ogDescription: 'DragLab laboratuvar ekipmanları için SSS.' },
+      FR: { pageTitle: 'Base de Connaissances & FAQ – DragLab', metaDescription: 'Trouvez des réponses aux questions fréquentes sur les équipements DragLab.', heroTitle: 'Base de Connaissances', heroSub: 'Réponses à vos questions les plus courantes', searchPlaceholder: 'Rechercher des questions...', noResults: 'Aucune FAQ pour cette catégorie pour l\'instant.', filterByProduct: 'Tous les produits', ogTitle: 'Base de Connaissances | DragLab', ogDescription: 'FAQ et articles de support pour les équipements DragLab.' }
     };
 
     const tr = t[lang] || t.EN;
     res.render('customer/knowledge-base', {
-      lang, ...tr, faqs, grouped, categories, activeCategory,
+      lang, ...tr, faqs, grouped, categories, activeCategory, activeProduct, filterProducts,
       path: `/${lang}/knowledge-base`
     });
   } catch (err) {
@@ -3198,7 +3460,10 @@ exports.getLaboratoryGlossary = async (req, res) => {
     const lang = (req.params.lang || 'EN').toUpperCase();
     const langKey = lang.toLowerCase();
 
-    const terms = await Glossary.find({ status: 'published' }).sort({ letter: 1, term: 1 }).lean();
+    const [terms, categories] = await Promise.all([
+      Glossary.find({ status: 'published' }).sort({ letter: 1, term: 1 }).lean(),
+      GlossaryCategory.find().sort({ name: 1 }).lean()
+    ]);
 
     // Attach localized display data & group by letter
     const grouped = {};
@@ -3225,7 +3490,7 @@ exports.getLaboratoryGlossary = async (req, res) => {
 
     const tr = t[lang] || t.EN;
     res.render('customer/laboratory-glossary', {
-      lang, ...tr, grouped, alphabet, availableLetters,
+      lang, ...tr, grouped, alphabet, availableLetters, categories,
       path: `/${lang}/laboratory-glossary`
     });
   } catch (err) {
@@ -3269,3 +3534,38 @@ exports.getGlossaryTerm = async (req, res) => {
   }
 };
 
+
+exports.getTestimonials = async (req, res) => {
+  const lang = (req.params.lang || 'EN').toUpperCase();
+  const t = {
+    EN: { pageTitle: 'Customer Testimonials – DragLab', metaDescription: 'See what laboratory professionals from 70+ countries say about DragLab equipment and service.', heroTitle: 'What Our Customers Say', heroSub: 'Trusted by 500+ laboratories in 70+ countries worldwide.', ogTitle: 'Customer Testimonials | DragLab', ogDescription: 'Read testimonials from laboratory professionals worldwide about DragLab.', filterLabel: 'Filter by:', allIndustries: 'All Industries', allProducts: 'All Products', allCountries: 'All Countries', resetLabel: 'Reset', sectionTitle: 'All Testimonials', ctaTitle: 'Ready to Join Them?', ctaDesc: 'Partner with DragLab and experience world-class laboratory equipment.', btnQuote: 'Request Quote', btnContact: 'Contact Us', btnDistributor: 'Become a Distributor' },
+    DE: { pageTitle: 'Kundenbewertungen – DragLab', metaDescription: 'Lesen Sie, was Laborfachleute aus 70+ Ländern über DragLab sagen.', heroTitle: 'Was unsere Kunden sagen', heroSub: 'Vertrauen von über 500 Laboren in mehr als 70 Ländern.', ogTitle: 'Kundenbewertungen | DragLab', ogDescription: 'Bewertungen von Laborfachleuten weltweit über DragLab.', filterLabel: 'Filtern nach:', allIndustries: 'Alle Branchen', allProducts: 'Alle Produkte', allCountries: 'Alle Länder', resetLabel: 'Zurücksetzen', sectionTitle: 'Alle Bewertungen', ctaTitle: 'Bereit mitzumachen?', ctaDesc: 'Werden Sie Partner von DragLab und erleben Sie erstklassige Laborgeräte.', btnQuote: 'Angebot anfragen', btnContact: 'Kontakt', btnDistributor: 'Distributor werden' },
+    ES: { pageTitle: 'Testimonios de Clientes – DragLab', metaDescription: 'Vea lo que dicen los profesionales de laboratorio de más de 70 países sobre DragLab.', heroTitle: 'Lo que dicen nuestros clientes', heroSub: 'Confiado por más de 500 laboratorios en más de 70 países.', ogTitle: 'Testimonios | DragLab', ogDescription: 'Testimonios de profesionales de laboratorio sobre DragLab.', filterLabel: 'Filtrar por:', allIndustries: 'Todas las industrias', allProducts: 'Todos los productos', allCountries: 'Todos los países', resetLabel: 'Restablecer', sectionTitle: 'Todos los testimonios', ctaTitle: '¿Listo para unirse?', ctaDesc: 'Asóciese con DragLab y experimente equipos de laboratorio de clase mundial.', btnQuote: 'Solicitar cotización', btnContact: 'Contacto', btnDistributor: 'Convertirse en distribuidor' },
+    TR: { pageTitle: "Müşteri Görüşleri – DragLab", metaDescription: "DragLab hakkında 70'ten fazla ülkeden laboratuvar profesyonellerinin görüşlerini okuyun.", heroTitle: "Müşterilerimiz Ne Diyor", heroSub: "70'ten fazla ülkede 500'den fazla laboratuvarın güveni.", ogTitle: "Müşteri Görüşleri | DragLab", ogDescription: "DragLab hakkında dünya genelindeki laboratuvar profesyonellerinin görüşleri.", filterLabel: "Filtrele:", allIndustries: "Tüm Sektörler", allProducts: "Tüm Ürünler", allCountries: "Tüm Ülkeler", resetLabel: "Sıfırla", sectionTitle: "Tüm Görüşler", ctaTitle: "Katılmaya Hazır Mısınız?", ctaDesc: "DragLab ile ortak olun ve dünya standartlarında laboratuvar ekipmanı deneyimleyin.", btnQuote: "Teklif İste", btnContact: "İletişim", btnDistributor: "Distribütör Ol" },
+    FR: { pageTitle: 'Témoignages Clients – DragLab', metaDescription: 'Découvrez ce que disent les professionnels de laboratoire de plus de 70 pays sur DragLab.', heroTitle: 'Ce que disent nos clients', heroSub: 'Approuvé par plus de 500 laboratoires dans plus de 70 pays.', ogTitle: 'Témoignages | DragLab', ogDescription: 'Témoignages de professionnels de laboratoire du monde entier sur DragLab.', filterLabel: 'Filtrer par :', allIndustries: 'Tous les secteurs', allProducts: 'Tous les produits', allCountries: 'Tous les pays', resetLabel: 'Réinitialiser', sectionTitle: 'Tous les témoignages', ctaTitle: 'Prêt à les rejoindre ?', ctaDesc: 'Associez-vous à DragLab et découvrez des équipements de laboratoire de classe mondiale.', btnQuote: 'Demander un devis', btnContact: 'Contact', btnDistributor: 'Devenir distributeur' }
+  };
+  const tr = t[lang] || t.EN;
+  const langKey = lang.toLowerCase();
+  try {
+    const raw = await Testimonial.find().sort({ featured: -1, createdAt: -1 }).lean();
+
+    // Only show testimonials that are explicitly published in the current language
+    const testimonials = raw.map(function(doc) {
+      const tr = (doc.translations || {})[langKey];
+      if (!tr || tr.status !== 'published' || !tr.quote) return null;
+      return Object.assign({}, doc, { quote: tr.quote });
+    }).filter(Boolean);
+
+    const industries = [...new Set(testimonials.map(t2 => t2.industry).filter(Boolean))].sort();
+    const products   = [...new Set(testimonials.map(t2 => t2.productName).filter(Boolean))].sort();
+    const countries  = [...new Set(testimonials.map(t2 => t2.country).filter(Boolean))].sort();
+    const featured   = testimonials.filter(t2 => t2.featured);
+    res.render('customer/testimonials', {
+      lang, ...tr, testimonials, featured, industries, products, countries,
+      path: '/' + lang + '/testimonials'
+    });
+  } catch (err) {
+    console.error('getTestimonials error:', err);
+    res.status(500).render('500', { pageTitle: 'Error', path: '/', isAuthenticated: false });
+  }
+};

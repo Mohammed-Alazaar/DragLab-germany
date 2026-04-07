@@ -1,4 +1,5 @@
-.features-grid .feature-card:nth-of-type(3) .feature-img {
+/* All feature images fill their card, preserving aspect ratio without layout shift */
+.features-grid .feature-card .feature-img {
     object-fit: cover;
     width: 100%;
     height: 100%;
@@ -11,7 +12,9 @@
     overflow: hidden;
     display: flex;
     justify-content: center;
-
+    /* CLS: reserve vertical space so content below doesn't shift when image loads */
+    min-height: 400px;
+    aspect-ratio: 16 / 7;
 }
 
 .slide::before {
@@ -53,6 +56,7 @@
     width: 85%;
 }
 
+.slide-text h2,
 .slide-text h3,
 .slide-text h1 {
     font-weight: 600;

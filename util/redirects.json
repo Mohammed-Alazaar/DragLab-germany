@@ -40,6 +40,14 @@
     "/news.php": "/EN/Articles",
     "/contact.php": "/EN/Contactus",
     "/impressum.php": "/EN/imprint",
-    "/CATGORYPRODUCT.PHP": "/EN"
+    "/CATGORYPRODUCT.PHP": "/EN",
+    "/catgoryproduct.php": "/EN",
+    "/company.php": "/EN/aboutus",
 
+    "/TermCondition/EN":    "/EN/TermCondition",
+    "/technical-service/EN": "/EN/technical-service",
+    "/support/EN":         "/EN/support",
+    "/aboutus/EN":         "/EN/aboutus",
+    "/Articles/EN":        "/EN/Articles",
+    "/Qualitypolicy/EN":   "/EN/QualityPolicy"
 }

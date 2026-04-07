@@ -1,0 +1,237 @@
+<%- include('../../includes/customer/head.ejs') %>
+<link rel="stylesheet" href="/css/customer/testimonials.css">
+<%
+  const BASE    = 'https://www.drag-lab.de';
+  const pageUrl = BASE + '/' + lang + '/testimonials';
+
+  /* Helper: render star HTML */
+  function renderStars(rating) {
+    let s = '';
+    for (let i = 1; i <= 5; i++) {
+      s += i <= rating
+        ? '<span class="star-filled">&#9733;</span>'
+        : '<span class="star-empty">&#9733;</span>';
+    }
+    return s;
+  }
+
+  /* Helper: render a card */
+  function renderCard(t, inGrid) {
+    const initials = t.name ? t.name.charAt(0).toUpperCase() : '?';
+    const avatar = t.image
+      ? `<img src="${t.image}" class="card-avatar" alt="${t.name}" loading="lazy">`
+      : `<div class="card-avatar-placeholder">${initials}</div>`;
+    const meta = [t.company ? `<strong>${t.company}</strong>` : '', t.country || ''].filter(Boolean).join(' &middot; ');
+    const productLine = t.productName
+      ? `<span class="card-tag tag-product">${t.productName}${t.modelNames && t.modelNames.length ? ' › ' + t.modelNames.join(', ') : ''}</span>`
+      : '';
+    const industryTag  = t.industry  ? `<span class="card-tag">${t.industry}</span>`         : '';
+    const caseStudyTag = t.caseStudy ? `<span class="card-tag tag-casestudy">Case Study</span>` : '';
+    const featuredBadge = t.featured ? `<span class="card-badge-featured">&#9733; Featured</span>` : '';
+    const dataAttrs = inGrid
+      ? `data-industry="${t.industry||''}" data-product="${t.productName||''}" data-country="${t.country||''}"`
+      : '';
+    return `
+    <div class="testimonial-card ${t.featured ? 'is-featured' : ''}" ${dataAttrs}>
+      ${featuredBadge}
+      <div class="card-body">
+        <span class="card-deco-quote" aria-hidden="true">&ldquo;</span>
+        <div class="card-stars">${renderStars(t.rating)}</div>
+        <p class="card-quote">${t.quote}</p>
+      </div>
+      <div class="card-author">
+        <div class="card-avatar-wrap">${avatar}</div>
+        <div class="card-info">
+          <p class="card-name">${t.name}</p>
+          <p class="card-meta">${meta}</p>
+        </div>
+        ${t.logo ? `<img src="${t.logo}" class="card-logo" alt="${t.company||''}" loading="lazy">` : ''}
+      </div>
+      ${productLine || industryTag || caseStudyTag ? `
+      <div class="card-footer-tags">
+        ${productLine}${industryTag}${caseStudyTag}
+      </div>` : ''}
+    </div>`;
+  }
+%>
+
+<title><%= pageTitle %></title>
+<meta name="description" content="<%= metaDescription %>">
+
+<link rel="canonical" href="<%= pageUrl %>">
+<link rel="alternate" hreflang="x-default" href="<%= BASE %>/EN/testimonials">
+<link rel="alternate" hreflang="en"         href="<%= BASE %>/EN/testimonials">
+<link rel="alternate" hreflang="de"         href="<%= BASE %>/DE/testimonials">
+<link rel="alternate" hreflang="es"         href="<%= BASE %>/ES/testimonials">
+<link rel="alternate" hreflang="fr"         href="<%= BASE %>/FR/testimonials">
+<link rel="alternate" hreflang="tr"         href="<%= BASE %>/TR/testimonials">
+
+<meta property="og:title"       content="<%= ogTitle %>">
+<meta property="og:description" content="<%= ogDescription %>">
+<meta property="og:url"         content="<%= pageUrl %>">
+<meta property="og:type"        content="website">
+
+<script type="application/ld+json" nonce="<%= nonce %>"><%- JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1,
+      "name": lang==='DE'?'Startseite':lang==='ES'?'Inicio':lang==='TR'?'Ana Sayfa':lang==='FR'?'Accueil':'Home',
+      "item": BASE + '/' + lang + '/' },
+    { "@type": "ListItem", "position": 2,
+      "name": lang==='DE'?'Kundenbewertungen':lang==='ES'?'Testimonios':lang==='TR'?'Müşteri Görüşleri':lang==='FR'?'Témoignages':'Testimonials',
+      "item": pageUrl }
+  ]
+}) %></script>
+</head>
+
+<body>
+<%- include('../../includes/customer/navbar.ejs') %>
+
+<!-- ── Hero (matches site-wide .slide / .kb-hero pattern) ───────── -->
+<div class="t-hero">
+  <div class="t-hero-text">
+    <h1><%= heroTitle %></h1>
+    <p><%= heroSub %></p>
+  </div>
+  <img src="/assets/Imgs/Icons/products/contactus-BC.png"
+       alt="<%= heroTitle %>"
+       class="t-hero-bg"
+       loading="eager">
+</div>
+
+<!-- ── Stats bar ────────────────────────────────────────────────── -->
+<div class="stats-bar">
+  <div class="stat-item">
+    <span class="stat-number">500+</span>
+    <span class="stat-label"><%= lang==='DE'?'Laboratorien':lang==='ES'?'Laboratorios':lang==='TR'?'Laboratuvar':lang==='FR'?'Laboratoires':'Laboratories' %></span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-number">70+</span>
+    <span class="stat-label"><%= lang==='DE'?'Länder':lang==='ES'?'Países':lang==='TR'?'Ülke':lang==='FR'?'Pays':'Countries' %></span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-number">98%</span>
+    <span class="stat-label"><%= lang==='DE'?'Zufriedenheit':lang==='ES'?'Satisfacción':lang==='TR'?'Memnuniyet':'Satisfaction' %></span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-number">2<%= lang==='DE'?'-J.':lang==='ES'?' Años':lang==='TR'?' Yıl':lang==='FR'?' Ans':'-Yr' %></span>
+    <span class="stat-label"><%= lang==='DE'?'Garantie':lang==='ES'?'Garantía':lang==='TR'?'Garanti':lang==='FR'?'Garantie':'Warranty' %></span>
+  </div>
+</div>
+
+<% if (testimonials.length === 0) { %>
+<div class="empty-state">
+  <h3><%= lang==='DE'?'Noch keine Bewertungen':lang==='ES'?'Aún no hay testimonios':lang==='TR'?'Henüz görüş yok':lang==='FR'?'Pas encore de témoignages':'No testimonials yet' %></h3>
+  <p><%= lang==='DE'?'Kommen Sie bald wieder.':lang==='ES'?'Vuelva pronto.':lang==='TR'?'Yakında tekrar gelin.':lang==='FR'?'Revenez bientôt.':'Check back soon.' %></p>
+</div>
+<% } else { %>
+
+<!-- ── Filter ────────────────────────────────────────────────────── -->
+<div class="filter-section">
+  <div class="filter-inner">
+    <span class="filter-label"><%= filterLabel %></span>
+    <select class="filter-select" id="filterIndustry">
+      <option value=""><%= allIndustries %></option>
+      <% industries.forEach(function(ind) { %><option value="<%= ind %>"><%= ind %></option><% }) %>
+    </select>
+    <select class="filter-select" id="filterProduct">
+      <option value=""><%= allProducts %></option>
+      <% products.forEach(function(p) { %><option value="<%= p %>"><%= p %></option><% }) %>
+    </select>
+    <% if (countries.length > 1) { %>
+    <select class="filter-select" id="filterCountry">
+      <option value=""><%= allCountries %></option>
+      <% countries.forEach(function(c) { %><option value="<%= c %>"><%= c %></option><% }) %>
+    </select>
+    <% } %>
+    <button class="filter-reset" id="filterReset"><%= resetLabel %></button>
+  </div>
+</div>
+
+<!-- ── Featured strip ─────────────────────────────────────────────── -->
+<% if (featured && featured.length > 0) { %>
+<section class="featured-section">
+  <p class="section-heading">
+    <span>&#9733;</span>
+    <%= lang==='DE'?'Ausgewählte Bewertungen':lang==='ES'?'Testimonios destacados':lang==='TR'?'Öne çıkan görüşler':lang==='FR'?'Témoignages à la une':'Featured Testimonials' %>
+  </p>
+  <div class="featured-grid">
+    <% featured.forEach(function(t) { %>
+    <%- renderCard(t, false) %>
+    <% }) %>
+  </div>
+</section>
+<% } %>
+
+<!-- ── All testimonials ────────────────────────────────────────────── -->
+<section class="testimonials-section">
+  <h2><%= sectionTitle %> (<span id="visibleCount"><%= testimonials.length %></span>)</h2>
+  <div class="testimonials-grid" id="testimonialsGrid">
+    <% testimonials.forEach(function(t) { %>
+    <%- renderCard(t, true) %>
+    <% }) %>
+    <div class="no-results" id="noResults">
+      <%= lang==='DE'?'Keine Bewertungen für diese Auswahl.':lang==='ES'?'No hay testimonios para esta selección.':lang==='TR'?'Bu seçim için görüş bulunamadı.':lang==='FR'?'Aucun témoignage pour cette sélection.':'No testimonials match your filters.' %>
+    </div>
+  </div>
+</section>
+
+<% } %>
+
+<!-- ── CTA ────────────────────────────────────────────────────────── -->
+<section class="testimonials-cta">
+  <h2><%= ctaTitle %></h2>
+  <p><%= ctaDesc %></p>
+  <div class="cta-buttons">
+    <a href="/<%= lang %>/request-a-quote"       class="cta-btn-primary"><%= btnQuote %></a>
+    <a href="/<%= lang %>/Contactus"             class="cta-btn-outline"><%= btnContact %></a>
+    <a href="/<%= lang %>/become-a-distributor"  class="cta-btn-outline"><%= btnDistributor %></a>
+  </div>
+</section>
+
+<script nonce="<%= nonce %>">
+(function () {
+  var grid     = document.getElementById('testimonialsGrid');
+  var noRes    = document.getElementById('noResults');
+  var countEl  = document.getElementById('visibleCount');
+  if (!grid) return;
+
+  var cards       = Array.from(grid.querySelectorAll('.testimonial-card'));
+  var selIndustry = document.getElementById('filterIndustry');
+  var selProduct  = document.getElementById('filterProduct');
+  var selCountry  = document.getElementById('filterCountry');
+  var btnReset    = document.getElementById('filterReset');
+
+  function applyFilters() {
+    var ind   = selIndustry ? selIndustry.value : '';
+    var prod  = selProduct  ? selProduct.value  : '';
+    var cntry = selCountry  ? selCountry.value  : '';
+    var vis   = 0;
+    cards.forEach(function (card) {
+      var show = true;
+      if (ind   && card.dataset.industry !== ind)   show = false;
+      if (prod  && card.dataset.product  !== prod)  show = false;
+      if (cntry && card.dataset.country  !== cntry) show = false;
+      card.style.display = show ? '' : 'none';
+      if (show) vis++;
+    });
+    if (noRes)   noRes.style.display   = vis === 0 ? 'block' : 'none';
+    if (countEl) countEl.textContent   = vis;
+  }
+
+  if (selIndustry) selIndustry.addEventListener('change', applyFilters);
+  if (selProduct)  selProduct.addEventListener('change',  applyFilters);
+  if (selCountry)  selCountry.addEventListener('change',  applyFilters);
+  if (btnReset)    btnReset.addEventListener('click', function () {
+    if (selIndustry) selIndustry.value = '';
+    if (selProduct)  selProduct.value  = '';
+    if (selCountry)  selCountry.value  = '';
+    applyFilters();
+  });
+})();
+</script>
+
+</body>
+<%- include('../../includes/customer/script.ejs') %>
+</html>

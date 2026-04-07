@@ -9,7 +9,9 @@ const Quote = require('../models/quote');
 const DistributorApplication = require('../models/distributorApplication');
 const FAQ = require('../models/faq');
 const CaseStudy = require('../models/caseStudy');
+const Testimonial = require('../models/testimonial');
 const Glossary = require('../models/glossary');
+const GlossaryCategory = require('../models/GlossaryCategory');
 const TechnicalService = require('../models/technicalService');
 const WarrantyRegistration = require('../models/warrantyRegistration');
 const ContactUs = require('../models/contactUs');
@@ -2525,57 +2527,155 @@ exports.postMarkContactUsDone = (req, res, next) => {
 exports.exportContactUsToPDF = async (req, res) => {
   try {
     const contact = await ContactUs.findById(req.params.id);
+    if (!contact) return res.redirect('/admin/contact-messages');
 
-    if (!contact) {
-      return res.redirect('/admin/contact-messages');
-    }
+    const PRIMARY  = '#293C95';
+    const GREY     = '#6b7280';
+    const LIGHT_BG = '#EEF1FB';
+    const OR       = (v) => v || '—';
+    const FOOTER_H = 28;
 
-    const doc = new PDFDocument({ margin: 50 });
+    const fontDir = require('path').resolve(__dirname, '../Front-end/assets/fonts');
 
-    res.setHeader('Content-disposition', `attachment; filename=contact-${contact._id}.pdf`);
-    res.setHeader('Content-type', 'application/pdf');
+    const doc = new PDFDocument({ size: 'A4', margin: 50, bufferPages: true });
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="contact-message-${contact._id}.pdf"`);
     doc.pipe(res);
 
-    const getOrNone = (val) => val || 'None';
+    doc.registerFont('Regular', `${fontDir}/Aptos.ttf`);
+    doc.registerFont('Bold',    `${fontDir}/Aptos-Bold.ttf`);
 
-    // Header
-    doc
-      .fontSize(20)
-      .fillColor('#1f4e78')
-      .text('Contact Message', { align: 'center', underline: true })
-      .moveDown(1.5);
+    const pageW = doc.page.width - 100;  // 495pt
+    const colW  = (pageW - 16) / 2;
+    const leftX = 50;
+    const rightX = leftX + colW + 16;
 
-    // Contact Info
-    doc
-      .fontSize(14)
-      .fillColor('black')
-      .text('Customer Info', { underline: true })
-      .moveDown(0.5)
-      .fontSize(12)
-      .font('Helvetica')
-      .text(`First Name: ${getOrNone(contact.firstName)}`)
-      .text(`Last Name: ${getOrNone(contact.lastName)}`)
-      .text(`Email: ${getOrNone(contact.email)}`)
-      .text(`Subject: ${getOrNone(contact.subject)}`)
-      .moveDown();
+    const submitted = new Date(contact.dateSubmitted).toLocaleDateString('en-GB',
+      { day: '2-digit', month: 'long', year: 'numeric' });
 
-    // Message
-    doc
-      .fontSize(14)
-      .text('Message', { underline: true })
-      .moveDown(0.5)
-      .fontSize(12)
-      .text(`${getOrNone(contact.message)}`)
-      .moveDown();
+    /* ── Helpers ── */
+    function sectionTitle(label) {
+      const sy = doc.y;
+      doc.rect(50, sy, pageW, 18).fill(LIGHT_BG);
+      doc.fillColor(PRIMARY).font('Bold').fontSize(9)
+         .text(label.toUpperCase(), 58, sy + 4, { width: pageW - 16 });
+      doc.y = sy + 18 + 8;
+    }
 
-    // Status and Date
-    doc
-      .fontSize(14)
-      .text('Submission Info', { underline: true })
-      .moveDown(0.5)
-      .fontSize(12)
-      .text(`Status: ${contact.isDone ? 'Done' : 'Pending'}`)
-      .text(`Date Submitted: ${contact.dateSubmitted.toLocaleDateString()}`);
+    function field(label, value, x, w) {
+      const fx = x !== undefined ? x : 50;
+      const fw = w !== undefined ? w : pageW;
+      // truncate very long single-line values (e.g. user-agent) so they never overflow onto a new page alone
+      const displayVal = String(value).length > 120 ? String(value).slice(0, 117) + '…' : String(value);
+      doc.fillColor(GREY).font('Bold').fontSize(7.5).text(label, fx, doc.y, { width: fw, lineBreak: false });
+      doc.y += 10;
+      doc.fillColor('#1a1a2e').font('Regular').fontSize(9.5).text(displayVal, fx, doc.y, { width: fw });
+      doc.y += 5;
+    }
+
+    function statusBadge(isDone, x) {
+      const color = isDone ? '#15803d' : '#b45309';
+      const bg    = isDone ? '#dcfce7' : '#fef3c7';
+      const lbl   = isDone ? 'DONE'    : 'PENDING';
+      const bx = x !== undefined ? x : 50;
+      const by = doc.y, bw = 62, bh = 16;
+      doc.roundedRect(bx, by, bw, bh, 3).fill(bg);
+      doc.fillColor(color).font('Bold').fontSize(8)
+         .text(lbl, bx, by + 3, { width: bw, align: 'center' });
+      doc.y = by + bh + 7;
+    }
+
+    /* ── Header ── */
+    doc.rect(0, 0, doc.page.width, 55).fill(PRIMARY);
+    doc.fillColor('#ffffff').font('Bold').fontSize(18).text('DragLab GmbH', 50, 16);
+    doc.fillColor('rgba(255,255,255,0.6)').font('Regular').fontSize(9).text('www.drag-lab.de', 50, 38);
+    doc.fillColor('#ffffff').font('Bold').fontSize(12).text('CONTACT MESSAGE', 50, 20, { align: 'right' });
+    doc.fillColor('rgba(255,255,255,0.6)').font('Regular').fontSize(8)
+       .text(`ID: ${contact._id}`, 50, 38, { align: 'right' });
+
+    /* ── Meta bar ── */
+    doc.y = 65;
+    doc.fillColor(GREY).font('Regular').fontSize(8.5)
+       .text(`Submitted: ${submitted}   |   Status: ${contact.isDone ? 'DONE' : 'PENDING'}`,
+             50, doc.y, { width: pageW, align: 'right' });
+    doc.y += 13;
+    doc.moveTo(50, doc.y).lineTo(50 + pageW, doc.y).strokeColor('#dee2e6').lineWidth(0.8).stroke();
+    doc.y += 10;
+
+    /* ── Section 1: Sender Info (2-col) ── */
+    sectionTitle('Sender Information');
+    const s1Y = doc.y;
+
+    doc.y = s1Y;
+    field('FULL NAME', `${OR(contact.firstName)} ${OR(contact.lastName)}`, leftX, colW);
+    field('EMAIL',     OR(contact.email),   leftX, colW);
+    field('SUBJECT',   OR(contact.subject), leftX, colW);
+    const leftS1End = doc.y;
+
+    doc.y = s1Y;
+    doc.fillColor(GREY).font('Bold').fontSize(7.5).text('STATUS', rightX, doc.y, { width: colW, lineBreak: false });
+    doc.y += 10;
+    statusBadge(contact.isDone, rightX);
+    field('DATE SUBMITTED', submitted, rightX, colW);
+    const rightS1End = doc.y;
+
+    doc.y = Math.max(leftS1End, rightS1End) + 8;
+
+    /* ── Section 2: Message ── */
+    sectionTitle('Message');
+    doc.fillColor('#1a1a2e').font('Regular').fontSize(9.5)
+       .text(OR(contact.message), 50, doc.y, { width: pageW });
+    doc.y += 10;
+
+    /* ── Section 3: Submission Metadata (2-col) ── */
+    sectionTitle('Submission Metadata');
+    const s3Y = doc.y;
+
+    doc.y = s3Y;
+    field('LANGUAGE',       OR(contact.lang),                    leftX, colW);
+    field('COUNTRY',        OR(contact.geoLocation?.country),    leftX, colW);
+    field('REGION / STATE', OR(contact.geoLocation?.region),     leftX, colW);
+    field('CITY',           OR(contact.geoLocation?.city),       leftX, colW);
+    const leftS3End = doc.y;
+
+    doc.y = s3Y;
+    field('ISP / ORG',    OR(contact.geoLocation?.isp), rightX, colW);
+    field('IP ADDRESS',   OR(contact.ipAddress),         rightX, colW);
+    field('REFERRER',     OR(contact.referrer),          rightX, colW);
+    field('BROWSER / OS', OR(contact.userAgent),         rightX, colW);
+    const rightS3End = doc.y;
+
+    doc.y = Math.max(leftS3End, rightS3End) + 4;
+
+    /* ── Stamp header + footer on every buffered page ── */
+    const totalPages = doc.bufferedPageRange().count;
+    for (let i = 0; i < totalPages; i++) {
+      doc.switchToPage(i);
+
+      // Repeat header on page 2+
+      if (i > 0) {
+        doc.rect(0, 0, doc.page.width, 40).fill(PRIMARY);
+        doc.page.margins.top = 0;
+        doc.fillColor('#ffffff').font('Bold').fontSize(12).text('DragLab GmbH', 50, 14);
+        doc.fillColor('rgba(255,255,255,0.6)').font('Regular').fontSize(8)
+           .text('CONTACT MESSAGE — continued', 50, 14, { align: 'right' });
+        doc.page.margins.top = 50;
+      }
+
+      // Disable bottom margin so text at page bottom doesn't trigger a new page
+      doc.page.margins.bottom = 0;
+
+      const fy = doc.page.height - FOOTER_H;
+      doc.moveTo(50, fy).lineTo(50 + pageW, fy).strokeColor('#dee2e6').lineWidth(0.5).stroke();
+      doc.fillColor(GREY).font('Regular').fontSize(7.5)
+         .text('DragLab GmbH  ·  www.drag-lab.de  ·  Generated by DragLab Admin',
+               50, fy + 7, { width: pageW / 2, lineBreak: false });
+      doc.fillColor(GREY).font('Regular').fontSize(7.5)
+         .text(`Page ${i + 1} of ${totalPages}`, 50, fy + 7,
+               { width: pageW, align: 'right', lineBreak: false });
+
+      doc.page.margins.bottom = 50;
+    }
 
     doc.end();
   } catch (err) {
@@ -3634,14 +3734,39 @@ exports.postUpdateDistributorStatus = async (req, res) => {
   }
 };
 
+exports.postMarkDistributorSpam = async (req, res) => {
+  try {
+    const app = await DistributorApplication.findById(req.params.id);
+    if (!app) return res.redirect('/admin/distributor-applications');
+    app.isSpam = !app.isSpam;
+    await app.save();
+    res.redirect('/admin/distributor-applications');
+  } catch (err) {
+    console.error('postMarkDistributorSpam error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+exports.deleteDistributorApplication = async (req, res) => {
+  try {
+    await DistributorApplication.findByIdAndDelete(req.params.id);
+    res.redirect('/admin/distributor-applications');
+  } catch (err) {
+    console.error('deleteDistributorApplication error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // ADMIN: FAQs
 // ═══════════════════════════════════════════════════════════════════════════════
 
+const FAQ_LANGS = ['en', 'es', 'de', 'tr', 'fr'];
+
 exports.getAllFaqs = async (req, res) => {
   try {
-    const faqs = await FAQ.find().sort({ lang: 1, category: 1, order: 1 }).lean();
+    const faqs = await FAQ.find().sort({ category: 1, order: 1 }).lean();
     res.render('sellercompany/all-faqs', {
       pageTitle: 'Manage FAQs',
       path: '/admin/faqs',
@@ -3654,25 +3779,51 @@ exports.getAllFaqs = async (req, res) => {
   }
 };
 
-exports.getAddFaq = (req, res) => {
-  res.render('sellercompany/add-faq', {
-    pageTitle: 'Add FAQ',
-    path: '/admin/faqs',
-    editing: false,
-    faq: null,
-    nonce: res.locals.nonce
-  });
+exports.getAddFaq = async (req, res) => {
+  try {
+    const products = await Product.find().lean();
+    res.render('sellercompany/add-faq', {
+      pageTitle: 'Add FAQ',
+      path: '/admin/faqs',
+      editing: false,
+      faq: null,
+      products,
+      nonce: res.locals.nonce
+    });
+  } catch (err) {
+    console.error('getAddFaq error:', err);
+    res.status(500).send('Server error');
+  }
 };
 
 exports.postAddFaq = async (req, res) => {
   try {
-    const { question, answer, category, lang, status, relatedProducts, order, slug } = req.body;
+    const { category, order, slug } = req.body;
+    const translations = {};
+    for (const l of FAQ_LANGS) {
+      const question = (req.body[l + '_question'] || '').trim();
+      const answer   = (req.body[l + '_answer']   || '').trim();
+      const status   = req.body[l + '_status'] || 'none';
+      translations[l] = {
+        question,
+        answer,
+        status: status === 'published' && (!question || !answer) ? 'none' : status
+      };
+    }
+    let relatedProducts = req.body.relatedProducts || [];
+    if (!Array.isArray(relatedProducts)) relatedProducts = [relatedProducts];
+    const relatedProductNamesRaw = req.body.relatedProductNames || '';
+    const relatedProductNames = typeof relatedProductNamesRaw === 'string'
+      ? relatedProductNamesRaw.split(',').map(s => s.trim()).filter(Boolean)
+      : [];
+    const baseQuestion = translations.en.question || translations.de.question || '';
     const faq = new FAQ({
-      question, answer, category, lang: (lang || 'EN').toUpperCase(),
-      status: status || 'draft',
-      relatedProducts: relatedProducts ? relatedProducts.split(',').map(s => s.trim()).filter(Boolean) : [],
+      translations,
+      category: category || 'General',
+      relatedProducts,
+      relatedProductNames,
       order: order ? parseInt(order) : 0,
-      slug: slug || question.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+      slug: slug || baseQuestion.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
     });
     await faq.save();
     res.redirect('/admin/faqs');
@@ -3684,13 +3835,17 @@ exports.postAddFaq = async (req, res) => {
 
 exports.getEditFaq = async (req, res) => {
   try {
-    const faq = await FAQ.findById(req.params.id).lean();
+    const [faq, products] = await Promise.all([
+      FAQ.findById(req.params.id).lean(),
+      Product.find().lean()
+    ]);
     if (!faq) return res.status(404).send('FAQ not found');
     res.render('sellercompany/add-faq', {
       pageTitle: 'Edit FAQ',
       path: '/admin/faqs',
       editing: true,
       faq,
+      products,
       nonce: res.locals.nonce
     });
   } catch (err) {
@@ -3701,13 +3856,32 @@ exports.getEditFaq = async (req, res) => {
 
 exports.postEditFaq = async (req, res) => {
   try {
-    const { question, answer, category, lang, status, relatedProducts, order, slug } = req.body;
+    const { category, order, slug } = req.body;
+    const translations = {};
+    for (const l of FAQ_LANGS) {
+      const question = (req.body[l + '_question'] || '').trim();
+      const answer   = (req.body[l + '_answer']   || '').trim();
+      const status   = req.body[l + '_status'] || 'none';
+      translations[l] = {
+        question,
+        answer,
+        status: status === 'published' && (!question || !answer) ? 'none' : status
+      };
+    }
+    let relatedProducts = req.body.relatedProducts || [];
+    if (!Array.isArray(relatedProducts)) relatedProducts = [relatedProducts];
+    const relatedProductNamesRaw = req.body.relatedProductNames || '';
+    const relatedProductNames = typeof relatedProductNamesRaw === 'string'
+      ? relatedProductNamesRaw.split(',').map(s => s.trim()).filter(Boolean)
+      : [];
+    const baseQuestion = translations.en.question || translations.de.question || '';
     await FAQ.findByIdAndUpdate(req.params.id, {
-      question, answer, category, lang: (lang || 'EN').toUpperCase(),
-      status: status || 'draft',
-      relatedProducts: relatedProducts ? relatedProducts.split(',').map(s => s.trim()).filter(Boolean) : [],
+      translations,
+      category: category || 'General',
+      relatedProducts,
+      relatedProductNames,
       order: order ? parseInt(order) : 0,
-      slug: slug || question.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+      slug: slug || baseQuestion.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
     });
     res.redirect('/admin/faqs');
   } catch (err) {
@@ -3722,6 +3896,181 @@ exports.postDeleteFaq = async (req, res) => {
     res.redirect('/admin/faqs');
   } catch (err) {
     console.error('postDeleteFaq error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+exports.getDistributorApplicationPdf = async (req, res) => {
+  try {
+    const application = await DistributorApplication.findById(req.params.id).lean();
+    if (!application) return res.status(404).send('Application not found');
+
+    const PAGE_H  = 841.89;
+    const FOOTER_H = 30;           // reserved at bottom of every page for footer
+    const USABLE   = PAGE_H - FOOTER_H - 50; // ~762
+
+    const doc = new PDFDocument({ size: 'A4', margin: 0, autoFirstPage: true });
+    const filename = `distributor-${application.companyName.replace(/[^a-z0-9]/gi, '-').toLowerCase()}.pdf`;
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    doc.pipe(res);
+
+    const logoPath = path.join(__dirname, '..', 'Front-end', 'assets', 'Imgs', 'logo', 'DragLab-Logo.png');
+    const PRIMARY = '#293C95';
+    const DARK    = '#1a2e4a';
+    const GRAY    = '#7f8c8d';
+    const LIGHT   = '#f0f2f8';
+
+    // ── Draw footer on the current page ──────────────────────────────────────
+    const drawFooter = () => {
+      const fy = PAGE_H - FOOTER_H;
+      doc.moveTo(50, fy).lineTo(545, fy).strokeColor('#d1d8e0').lineWidth(0.5).stroke();
+      doc.fontSize(7.5).font('Helvetica').fillColor(GRAY)
+         .text('DragLab GmbH · www.drag-lab.de · info@drag-lab.de', 50, fy + 6, { align: 'center', width: 495 });
+      doc.y = 50; // reset cursor to top so PDFKit stays calm
+    };
+
+    // ── Header (first page only) ──────────────────────────────────────────────
+    try { doc.image(logoPath, 50, 40, { height: 38 }); } catch (_) {}
+    doc.fontSize(18).font('Helvetica-Bold').fillColor(PRIMARY).text('Distributor Application', 50, 92);
+    doc.fontSize(8.5).font('Helvetica').fillColor(GRAY).text(`Generated: ${new Date().toLocaleString()}`, 50, 115);
+    doc.moveTo(50, 128).lineTo(545, 128).strokeColor('#d1d8e0').lineWidth(1).stroke();
+
+    // ── Status badge ──────────────────────────────────────────────────────────
+    const statusMap = {
+      new:          { bg: '#cfe2ff', fg: '#084298' },
+      under_review: { bg: '#fff3cd', fg: '#664d03' },
+      accepted:     { bg: '#d1e7dd', fg: '#0f5132' },
+      rejected:     { bg: '#f8d7da', fg: '#842029' }
+    };
+    const badge = statusMap[application.status] || statusMap.new;
+    doc.roundedRect(50, 138, 130, 20, 4).fill(badge.bg);
+    doc.fontSize(8.5).font('Helvetica-Bold').fillColor(badge.fg)
+       .text(application.status.replace('_', ' ').toUpperCase(), 50, 144, { width: 130, align: 'center' });
+
+    let y = 172;
+
+    // ── Page break guard ──────────────────────────────────────────────────────
+    const checkY = (needed) => {
+      if (y + needed > USABLE) {
+        drawFooter();
+        doc.addPage();
+        y = 50;
+      }
+    };
+
+    // ── Section helper ────────────────────────────────────────────────────────
+    const drawSection = (title, rows) => {
+      const totalH = 22 + rows.length * 38 + 14;
+      checkY(totalH);
+      doc.rect(50, y, 495, 22).fill(PRIMARY);
+      doc.fontSize(9.5).font('Helvetica-Bold').fillColor('#fff').text(title, 60, y + 6);
+      y += 28;
+      rows.forEach((cols, ri) => {
+        const rowH = 38;
+        checkY(rowH);
+        if (ri % 2 === 0) doc.rect(50, y, 495, rowH).fill(LIGHT);
+        const colW = Math.floor(495 / cols.length);
+        cols.forEach((field, ci) => {
+          const x = 50 + ci * colW;
+          doc.fontSize(7).font('Helvetica-Bold').fillColor(GRAY)
+             .text((field.label || '').toUpperCase(), x + 8, y + 6, { width: colW - 16 });
+          doc.fontSize(9).font('Helvetica').fillColor(DARK)
+             .text(field.value || '—', x + 8, y + 17, { width: colW - 16, ellipsis: true });
+        });
+        y += rowH;
+      });
+      y += 14;
+    };
+
+    // ── Text block helper ─────────────────────────────────────────────────────
+    const drawTextBlock = (title, text) => {
+      const blockH = Math.max(44, doc.heightOfString(text, { width: 479 }) + 20);
+      checkY(22 + blockH + 14);
+      doc.rect(50, y, 495, 22).fill(PRIMARY);
+      doc.fontSize(9.5).font('Helvetica-Bold').fillColor('#fff').text(title, 60, y + 6);
+      y += 28;
+      doc.rect(50, y, 495, blockH).fill(LIGHT);
+      doc.fontSize(9).font('Helvetica').fillColor(DARK).text(text, 58, y + 10, { width: 479 });
+      y += blockH + 14;
+    };
+
+    // ── Company Information ───────────────────────────────────────────────────
+    drawSection('Company Information', [
+      [
+        { label: 'Company Name', value: application.companyName },
+        { label: 'Country',      value: application.country },
+        { label: 'Website',      value: application.website || '—' }
+      ]
+    ]);
+
+    if (application.companyOverview) drawTextBlock('Company Overview', application.companyOverview);
+
+    // ── Business & Distribution Capability ───────────────────────────────────
+    drawSection('Business & Distribution Capability', [
+      [
+        { label: 'Company Established', value: application.companyEstablished || '—' },
+        { label: 'Annual Sales Volume', value: application.annualSalesVolume || '—' },
+        { label: 'Current Brands',      value: application.currentBrands || '—' }
+      ]
+    ]);
+
+    if (application.industryFocus && application.industryFocus.length) {
+      drawTextBlock('Industry Focus', [].concat(application.industryFocus).join(', '));
+    }
+
+    if (application.salesChannels && application.salesChannels.length) {
+      const scText = [].concat(application.salesChannels).join(', ') +
+        (application.salesChannelsOther ? ` — Other: ${application.salesChannelsOther}` : '');
+      drawTextBlock('Sales Channels', scText);
+    }
+
+    // ── Market & Territory ────────────────────────────────────────────────────
+    drawSection('Market & Territory', [
+      [
+        { label: 'Distribution Territory', value: application.distributionTerritory || '—' },
+        { label: 'Target Market',          value: application.targetMarket || '—' },
+        { label: '',                       value: '' }
+      ]
+    ]);
+
+    // ── Contact Information ───────────────────────────────────────────────────
+    drawSection('Contact Information', [
+      [
+        { label: 'Contact Name', value: application.contactName },
+        { label: 'Email',        value: application.email },
+        { label: 'Phone',        value: application.phone || '—' }
+      ],
+      [
+        { label: 'Language',  value: application.lang },
+        { label: 'Submitted', value: new Date(application.createdAt).toLocaleString() },
+        { label: '',          value: '' }
+      ]
+    ]);
+
+    // ── Supporting Documents ──────────────────────────────────────────────────
+    if (application.companyProfileUrl) {
+      checkY(22 + 44 + 14);
+      doc.rect(50, y, 495, 22).fill(PRIMARY);
+      doc.fontSize(9.5).font('Helvetica-Bold').fillColor('#fff').text('Supporting Documents', 60, y + 6);
+      y += 28;
+      doc.rect(50, y, 495, 44).fill(LIGHT);
+      doc.fontSize(7).font('Helvetica-Bold').fillColor(GRAY).text('COMPANY PROFILE / BROCHURE', 58, y + 7);
+      doc.fontSize(9).font('Helvetica').fillColor(PRIMARY)
+         .text(application.companyProfileUrl, 58, y + 20, {
+           width: 479,
+           link: application.companyProfileUrl,
+           underline: true,
+           ellipsis: true
+         });
+      y += 58;
+    }
+
+    // Draw footer on the last page then end
+    drawFooter();
+    doc.end();
+  } catch (err) {
+    console.error('getDistributorApplicationPdf error:', err);
     res.status(500).send('Server error');
   }
 };
@@ -3853,11 +4202,14 @@ exports.postDeleteCaseStudy = async (req, res) => {
 
 exports.getAllGlossary = async (req, res) => {
   try {
-    const terms = await Glossary.find().sort({ letter: 1, term: 1 }).lean();
+    const [terms, categories] = await Promise.all([
+      Glossary.find().sort({ letter: 1, term: 1 }).lean(),
+      GlossaryCategory.find().sort({ name: 1 }).lean()
+    ]);
     res.render('sellercompany/all-glossary', {
       pageTitle: 'Manage Glossary',
       path: '/admin/glossary',
-      terms,
+      terms, categories,
       nonce: res.locals.nonce
     });
   } catch (err) {
@@ -3866,33 +4218,40 @@ exports.getAllGlossary = async (req, res) => {
   }
 };
 
-exports.getAddGlossary = (req, res) => {
-  res.render('sellercompany/add-glossary', {
-    pageTitle: 'Add Glossary Term',
-    path: '/admin/glossary',
-    editing: false,
-    term: null,
-    nonce: res.locals.nonce
-  });
+exports.getAddGlossary = async (req, res) => {
+  try {
+    const categories = await GlossaryCategory.find().sort({ name: 1 }).lean();
+    res.render('sellercompany/add-glossary', {
+      pageTitle: 'Add Glossary Term',
+      path: '/admin/glossary',
+      editing: false,
+      term: null,
+      categories,
+      nonce: res.locals.nonce
+    });
+  } catch (err) {
+    console.error('getAddGlossary error:', err);
+    res.status(500).send('Server error');
+  }
 };
 
 exports.postAddGlossary = async (req, res) => {
   try {
-    const { term, definition, description, status, relatedProducts } = req.body;
+    const { term, definition, description, status, relatedProducts, category } = req.body;
     const slug = req.body.slug || term.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
     const letter = term.charAt(0).toUpperCase();
-    const langs = ['en', 'es', 'de', 'tr', 'fr'];
-    const translations = {};
-    langs.forEach(l => {
+    const translations = { en: { term, definition, description: description || '', status: status || 'draft' } };
+    ['es', 'de', 'tr', 'fr'].forEach(l => {
       translations[l] = {
-        term: req.body[`term_${l}`] || '',
-        definition: req.body[`definition_${l}`] || '',
+        term:        req.body[`term_${l}`]        || '',
+        definition:  req.body[`definition_${l}`]  || '',
         description: req.body[`description_${l}`] || '',
-        status: req.body[`status_${l}`] || 'draft'
+        status:      req.body[`status_${l}`]      || 'draft'
       };
     });
     const entry = new Glossary({
       term, slug, definition, description, letter,
+      category: category || '',
       status: status || 'draft',
       relatedProducts: relatedProducts ? relatedProducts.split(',').map(s => s.trim()).filter(Boolean) : [],
       translations
@@ -3907,13 +4266,16 @@ exports.postAddGlossary = async (req, res) => {
 
 exports.getEditGlossary = async (req, res) => {
   try {
-    const term = await Glossary.findById(req.params.id).lean();
+    const [term, categories] = await Promise.all([
+      Glossary.findById(req.params.id).lean(),
+      GlossaryCategory.find().sort({ name: 1 }).lean()
+    ]);
     if (!term) return res.status(404).send('Term not found');
     res.render('sellercompany/add-glossary', {
       pageTitle: 'Edit Glossary Term',
       path: '/admin/glossary',
       editing: true,
-      term,
+      term, categories,
       nonce: res.locals.nonce
     });
   } catch (err) {
@@ -3924,21 +4286,21 @@ exports.getEditGlossary = async (req, res) => {
 
 exports.postEditGlossary = async (req, res) => {
   try {
-    const { term, definition, description, status, relatedProducts } = req.body;
+    const { term, definition, description, status, relatedProducts, category } = req.body;
     const slug = req.body.slug || term.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
     const letter = term.charAt(0).toUpperCase();
-    const langs = ['en', 'es', 'de', 'tr', 'fr'];
-    const translations = {};
-    langs.forEach(l => {
+    const translations = { en: { term, definition, description: description || '', status: status || 'draft' } };
+    ['es', 'de', 'tr', 'fr'].forEach(l => {
       translations[l] = {
-        term: req.body[`term_${l}`] || '',
-        definition: req.body[`definition_${l}`] || '',
+        term:        req.body[`term_${l}`]        || '',
+        definition:  req.body[`definition_${l}`]  || '',
         description: req.body[`description_${l}`] || '',
-        status: req.body[`status_${l}`] || 'draft'
+        status:      req.body[`status_${l}`]      || 'draft'
       };
     });
     await Glossary.findByIdAndUpdate(req.params.id, {
       term, slug, definition, description, letter,
+      category: category || '',
       status: status || 'draft',
       relatedProducts: relatedProducts ? relatedProducts.split(',').map(s => s.trim()).filter(Boolean) : [],
       translations
@@ -3956,6 +4318,248 @@ exports.postDeleteGlossary = async (req, res) => {
     res.redirect('/admin/glossary');
   } catch (err) {
     console.error('postDeleteGlossary error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+// ── Glossary Categories ───────────────────────────────────────────────────────
+
+exports.getGlossaryCategories = async (req, res) => {
+  try {
+    const categories = await GlossaryCategory.find().sort({ name: 1 }).lean();
+    res.render('sellercompany/glossary-categories', {
+      pageTitle: 'Manage Glossary Categories',
+      path: '/admin/glossary',
+      categories,
+      nonce: res.locals.nonce
+    });
+  } catch (err) {
+    console.error('getGlossaryCategories error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+exports.postAddGlossaryCategory = async (req, res) => {
+  try {
+    const name = (req.body.name || '').trim();
+    if (!name) return res.redirect('/admin/glossary/categories');
+    const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    const exists = await GlossaryCategory.findOne({ slug });
+    if (!exists) {
+      await new GlossaryCategory({ name, slug }).save();
+    }
+    res.redirect('/admin/glossary/categories');
+  } catch (err) {
+    console.error('postAddGlossaryCategory error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+exports.postDeleteGlossaryCategory = async (req, res) => {
+  try {
+    await GlossaryCategory.findByIdAndDelete(req.params.id);
+    res.redirect('/admin/glossary/categories');
+  } catch (err) {
+    console.error('postDeleteGlossaryCategory error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ADMIN: TESTIMONIALS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+exports.getAllTestimonials = async (req, res) => {
+  try {
+    const testimonials = await Testimonial.find().sort({ createdAt: -1 }).lean();
+    res.render('sellercompany/all-testimonials', {
+      pageTitle: 'Manage Testimonials',
+      path: '/admin/testimonials',
+      testimonials,
+      nonce: res.locals.nonce
+    });
+  } catch (err) {
+    console.error('getAllTestimonials error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+exports.getAddTestimonial = async (req, res) => {
+  try {
+    const products = await Product.find({ isDraft: false })
+      .select('Language.EN Language.DE Models._id Models.Language.EN Models.Language.DE slug')
+      .lean();
+    res.render('sellercompany/add-testimonial', {
+      pageTitle: 'Add Testimonial',
+      path: '/admin/testimonials',
+      editing: false,
+      testimonial: null,
+      products,
+      nonce: res.locals.nonce
+    });
+  } catch (err) {
+    console.error('getAddTestimonial error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+const TESTIMONIAL_LANGS = ['en', 'es', 'de', 'tr', 'fr'];
+
+exports.postAddTestimonial = async (req, res) => {
+  try {
+    const { name, company, country, industry, productId, productName, rating, featured, caseStudy } = req.body;
+
+    let modelIds = req.body.modelIds || [];
+    if (!Array.isArray(modelIds)) modelIds = modelIds ? [modelIds] : [];
+    const modelNamesRaw = req.body.modelNames || '';
+    const modelNames = typeof modelNamesRaw === 'string'
+      ? modelNamesRaw.split(',').map(s => s.trim()).filter(Boolean)
+      : [];
+
+    // Build multilingual translations
+    const translations = {};
+    for (const l of TESTIMONIAL_LANGS) {
+      const quote  = (req.body[`${l}_quote`]  || '').trim();
+      const status = req.body[`${l}_status`] || 'none';
+      translations[l] = { quote, status: status === 'published' && !quote ? 'none' : status };
+    }
+
+    let image = '';
+    let logo  = '';
+
+    const imageFile = req.files?.testimonialImage?.[0];
+    if (imageFile) {
+      image = await new Promise((resolve, reject) => {
+        cloudinary.uploader.upload_stream(
+          { resource_type: 'image', folder: 'draglab/testimonials', format: 'webp' },
+          (err, r) => err ? reject(err) : resolve(r.secure_url)
+        ).end(imageFile.buffer);
+      }).catch(err => { console.error('Testimonial image upload error:', err.message); return ''; });
+    }
+
+    const logoFile = req.files?.testimonialLogo?.[0];
+    if (logoFile) {
+      logo = await new Promise((resolve, reject) => {
+        cloudinary.uploader.upload_stream(
+          { resource_type: 'image', folder: 'draglab/testimonials', format: 'webp' },
+          (err, r) => err ? reject(err) : resolve(r.secure_url)
+        ).end(logoFile.buffer);
+      }).catch(err => { console.error('Testimonial logo upload error:', err.message); return ''; });
+    }
+
+    await new Testimonial({
+      name:        (name        || '').trim(),
+      company:     (company     || '').trim(),
+      country:     (country     || '').trim(),
+      industry:    (industry    || '').trim(),
+      productId:   productId    || null,
+      productName: (productName || '').trim(),
+      modelIds,
+      modelNames,
+      rating:       parseInt(rating) || 5,
+      translations,
+      image,
+      logo,
+      featured:  featured  === 'on',
+      caseStudy: caseStudy === 'on'
+    }).save();
+
+    res.redirect('/admin/testimonials');
+  } catch (err) {
+    console.error('postAddTestimonial error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+exports.getEditTestimonial = async (req, res) => {
+  try {
+    const testimonial = await Testimonial.findById(req.params.id).lean();
+    if (!testimonial) return res.status(404).send('Testimonial not found');
+    const products = await Product.find({ isDraft: false })
+      .select('Language.EN Language.DE Models._id Models.Language.EN Models.Language.DE slug')
+      .lean();
+    res.render('sellercompany/add-testimonial', {
+      pageTitle: 'Edit Testimonial',
+      path: '/admin/testimonials',
+      editing: true,
+      testimonial,
+      products,
+      nonce: res.locals.nonce
+    });
+  } catch (err) {
+    console.error('getEditTestimonial error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+exports.postEditTestimonial = async (req, res) => {
+  try {
+    const { name, company, country, industry, productId, productName, rating, featured, caseStudy } = req.body;
+
+    let modelIds = req.body.modelIds || [];
+    if (!Array.isArray(modelIds)) modelIds = modelIds ? [modelIds] : [];
+    const modelNamesRaw = req.body.modelNames || '';
+    const modelNames = typeof modelNamesRaw === 'string'
+      ? modelNamesRaw.split(',').map(s => s.trim()).filter(Boolean)
+      : [];
+
+    const translations = {};
+    for (const l of TESTIMONIAL_LANGS) {
+      const quote  = (req.body[`${l}_quote`]  || '').trim();
+      const status = req.body[`${l}_status`] || 'none';
+      translations[l] = { quote, status: status === 'published' && !quote ? 'none' : status };
+    }
+
+    const testimonial = await Testimonial.findById(req.params.id);
+    if (!testimonial) return res.status(404).send('Not found');
+
+    const imageFile = req.files?.testimonialImage?.[0];
+    if (imageFile) {
+      testimonial.image = await new Promise((resolve, reject) => {
+        cloudinary.uploader.upload_stream(
+          { resource_type: 'image', folder: 'draglab/testimonials', format: 'webp' },
+          (err, r) => err ? reject(err) : resolve(r.secure_url)
+        ).end(imageFile.buffer);
+      }).catch(err => { console.error('Image upload error:', err.message); return testimonial.image; });
+    }
+
+    const logoFile = req.files?.testimonialLogo?.[0];
+    if (logoFile) {
+      testimonial.logo = await new Promise((resolve, reject) => {
+        cloudinary.uploader.upload_stream(
+          { resource_type: 'image', folder: 'draglab/testimonials', format: 'webp' },
+          (err, r) => err ? reject(err) : resolve(r.secure_url)
+        ).end(logoFile.buffer);
+      }).catch(err => { console.error('Logo upload error:', err.message); return testimonial.logo; });
+    }
+
+    testimonial.name        = (name        || '').trim();
+    testimonial.company     = (company     || '').trim();
+    testimonial.country     = (country     || '').trim();
+    testimonial.industry    = (industry    || '').trim();
+    testimonial.productId   = productId    || null;
+    testimonial.productName = (productName || '').trim();
+    testimonial.modelIds    = modelIds;
+    testimonial.modelNames  = modelNames;
+    testimonial.rating      = parseInt(rating) || 5;
+    testimonial.translations = translations;
+    testimonial.featured    = featured  === 'on';
+    testimonial.caseStudy   = caseStudy === 'on';
+
+    await testimonial.save();
+    res.redirect('/admin/testimonials');
+  } catch (err) {
+    console.error('postEditTestimonial error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+exports.postDeleteTestimonial = async (req, res) => {
+  try {
+    await Testimonial.findByIdAndDelete(req.params.id);
+    res.redirect('/admin/testimonials');
+  } catch (err) {
+    console.error('postDeleteTestimonial error:', err);
     res.status(500).send('Server error');
   }
 };

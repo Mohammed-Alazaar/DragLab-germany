@@ -1,0 +1,106 @@
+<%- include('../../includes/sellercompany/head.ejs') %>
+<link rel="stylesheet" href="/css/sellercompany/all-technical-service.css">
+
+<style nonce="<%= nonce %>">
+  .stars { color: #c9a227; letter-spacing: 1px; }
+  .badge-featured  { background: #d1e7dd; color: #0f5132; }
+  .badge-casestudy { background: #cfe2ff; color: #084298; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; margin: 1px; }
+  .badge-pub   { background: #d1e7dd; color: #0f5132; }
+  .badge-unpub { background: #f8d7da; color: #842029; }
+  .thumb { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 1px solid #dee2e6; }
+  .quote-cell { max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #555; font-style: italic; }
+  .lang-statuses { display: flex; flex-wrap: wrap; gap: 3px; }
+  .status-badge { display: inline-block; padding: 2px 7px; border-radius: 10px; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; margin: 1px; }
+  .status-pub  { background: #d1e7dd; color: #0f5132; }
+  .status-dft  { background: #fff3cd; color: #664d03; }
+  .status-none { background: #e9ecef; color: #6c757d; }
+</style>
+
+<body>
+  <%- include('../../includes/sellercompany/navbar-dash.ejs') %>
+
+  <section class="sidebar-content-container">
+    <section class="sidebar-container">
+      <%- include('../../includes/sellercompany/sidebar.ejs') %>
+    </section>
+
+    <div class="article-dashboard-container">
+      <h1>Manage Testimonials</h1>
+      <a href="/admin/testimonials/add" class="add-button">+ Add Testimonial</a>
+
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Photo</th>
+            <th>Name / Company</th>
+            <th>Country</th>
+            <th>Industry</th>
+            <th>Product</th>
+            <th>Rating</th>
+            <th>Quote</th>
+            <th>Languages</th>
+            <th>Flags</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% testimonials.forEach((t, i) => { %>
+          <tr>
+            <td><%= i + 1 %></td>
+            <td>
+              <% if (t.image) { %>
+                <img src="<%= t.image %>" class="thumb" alt="<%= t.name %>">
+              <% } else { %>
+                <div style="width:40px;height:40px;border-radius:50%;background:#e9ecef;display:flex;align-items:center;justify-content:center;font-size:1.1rem;color:#aaa;">👤</div>
+              <% } %>
+            </td>
+            <td>
+              <strong><%= t.name %></strong>
+              <% if (t.company) { %><br><span style="font-size:0.8rem;color:#6c757d;"><%= t.company %></span><% } %>
+            </td>
+            <td><%= t.country || '—' %></td>
+            <td><%= t.industry || '—' %></td>
+            <td>
+              <%= t.productName || '—' %>
+              <% if (t.modelNames && t.modelNames.length) { %>
+                <br><span style="font-size:0.75rem;color:#6c757d;"><%= t.modelNames.join(', ') %></span>
+              <% } %>
+            </td>
+            <td class="stars">
+              <% for (let s = 1; s <= 5; s++) { %><%= s <= t.rating ? '★' : '☆' %><% } %>
+            </td>
+            <td class="quote-cell">"<%= t.quote %>"</td>
+            <td>
+              <div class="lang-statuses">
+                <% ['en','es','de','tr','fr'].forEach(function(l) {
+                     const st = t.translations?.[l]?.status || 'none';
+                %>
+                <span class="status-badge <%= st === 'published' ? 'status-pub' : st === 'draft' ? 'status-dft' : 'status-none' %>">
+                  <%= l.toUpperCase() %>
+                </span>
+                <% }) %>
+              </div>
+            </td>
+            <td>
+              <% if (t.featured)  { %><span class="badge badge-featured">Featured</span><% } %>
+              <% if (t.caseStudy) { %><span class="badge badge-casestudy">Case Study</span><% } %>
+            </td>
+            <td>
+              <a href="/admin/testimonials/edit/<%= t._id %>">Edit</a> |
+              <form action="/admin/testimonials/delete/<%= t._id %>" method="POST" style="display:inline"
+                    onsubmit="return confirm('Delete this testimonial?')">
+                <button type="submit" style="background:none;border:none;color:#dc3545;cursor:pointer;font-weight:600;font-size:0.9rem;">Delete</button>
+              </form>
+            </td>
+          </tr>
+          <% }) %>
+          <% if (testimonials.length === 0) { %>
+          <tr><td colspan="12" style="text-align:center;color:#aaa;padding:2rem;">No testimonials yet. <a href="/admin/testimonials/add">Add one</a>.</td></tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</body>

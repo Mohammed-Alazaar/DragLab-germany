@@ -29,11 +29,86 @@ Object.keys(redirects).forEach(oldPath => {
     });
 });
 
+// ── Dynamic 301 redirects for old URL formats ─────────────────────────────
+
+// Group A: old sitemap used /:lang/product/:slug/model/:modelSlug
+//          current routes use /:lang/products/:slug/:modelSlug
+app.get('/:lang/product/:productSlug/model/:modelSlug', (req, res) => {
+    const { lang, productSlug, modelSlug } = req.params;
+    res.redirect(301, `/${lang}/products/${productSlug}/${modelSlug}`);
+});
+
+// Group B: /:lang/products with no slug → home (no product-listing page exists)
+app.get('/:lang/products', (req, res) => {
+    res.redirect(301, `/${req.params.lang}`);
+});
+
+// Group C: /:lang/industry/industry → /:lang/Industry
+app.get('/:lang/industry/industry', (req, res) => {
+    res.redirect(301, `/${req.params.lang}/Industry`);
+});
+
+// Group D: /:lang/quality-policy (hyphenated) → /:lang/QualityPolicy
+app.get('/:lang/quality-policy', (req, res) => {
+    res.redirect(301, `/${req.params.lang}/QualityPolicy`);
+});
+
+// Group E: /:lang/license (singular) → /:lang/licenses
+app.get('/:lang/license', (req, res) => {
+    res.redirect(301, `/${req.params.lang}/licenses`);
+});
+
+// Lowercase route aliases (Express is case-insensitive for letters but hyphens are different)
+app.get('/:lang/qualifications', (req, res) => {
+    res.redirect(301, `/${req.params.lang}/Qualifications`);
+});
+
+// Group F: old short model slugs that were missing the series prefix
+const OLD_MODEL_SLUG_MAP = {
+    'do-30-digital-display':       'drying-oven-do-30-digital-display',
+    'do-55-digital-display':       'drying-oven-do-55-digital-display',
+    'do-80-digital-display':       'drying-oven-do-80-digital-display',
+    'do-120-digital-display':      'drying-oven-do-120-digital-display',
+    'do-30-touch-screen-display':  'drying-oven-to-30-touch-screen-display',
+    'do-55-touch-screen-display':  'drying-oven-to-55-touch-screen-display',
+    'do-80-touch-screen-display':  'drying-oven-to-80-touch-screen-display',
+    'do-120-touch-screen-display': 'drying-oven-to-120-touch-screen-display',
+    'di-30-digital-display':       'incubator-di-30-digital-display',
+    'di-55-digital-display':       'incubator-di-55-digital-display',
+    'di-80-digital-display':       'incubator-di-80-digital-display',
+    'di-120-digital-display':      'incubator-di-120-digital-display',
+    'ti-30-touch-screen':          'incubator-ti-30-touch-screen',
+    'ti-55-touch-screen':          'incubator-ti-55-touch-screen',
+    'ti-80-touch-screen':          'incubator-ti-80-touch-screen',
+    'ti-120-touch-screen':         'incubator-ti-120-touch-screen',
+    'ds-2000':  'water-still-ds-2000',
+    'ds-4000':  'water-still-ds-4000',
+    'ds-8000':  'water-still-ds-8000',
+    'ds-8008':  'water-still-ds-8008',
+    'ds-8012':  'water-still-ds-8012',
+    'ds-8025':  'water-still-ds-8025',
+    'dw-06':    'water-bath-dw-06',
+    'dw-10':    'water-bath-dw-10',
+    'dw-15':    'water-bath-dw-15',
+    'dw-25':    'water-bath-dw-25',
+    'dw-35':    'water-bath-dw-35',
+    'dw-50':    'water-bath-dw-50',
+};
+
+app.get('/:lang/products/:productSlug/:modelSlug', (req, res, next) => {
+    const { lang, productSlug, modelSlug } = req.params;
+    const newSlug = OLD_MODEL_SLUG_MAP[modelSlug];
+    if (newSlug) return res.redirect(301, `/${lang}/products/${productSlug}/${newSlug}`);
+    next();
+});
+
 const helmet = require('helmet');
 
 
 // General helmet middleware (adds common security headers)
-app.use(helmet());
+// dnsPrefetchControl: allow — Helmet sets X-DNS-Prefetch-Control:off by default which
+// blocks the browser from pre-resolving hostnames found in links, hurting page load.
+app.use(helmet({ dnsPrefetchControl: { allow: true } }));
 
 // Content Security Policy (CSP)
 
@@ -130,6 +205,8 @@ app.use(flash());
 app.use((req, res, next) => {
     res.locals.isAuthenticated = req.session.isLoggedIn;
     res.locals.user = req.session.user;
+    // Expose current path so EJS views can build canonical / hreflang URLs
+    res.locals.currentPath = req.path;
     next();
 });
 

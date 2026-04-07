@@ -1,17 +1,11 @@
 <div class="sidebar-side">
-        <a class="<%= path === '/admin/Dashboard' ? 'selected' : '' %>" href="/admin/dashboard"><img src="/assets/Imgs/Icons/Dashboard-icon.png" width="35px"
-                        alt="">Dashboard</a>
+        <a class="<%= path === '/admin/Dashboard' ? 'selected' : '' %>" href="/admin/dashboard"><img src="/assets/Imgs/Icons/Dashboard-icon.png" width="35px" alt="">Dashboard</a>
         <a class="<%= path === '/admin/Myproduct' || path === '/admin/add-product' || path === '/admin/edit-product' ? 'selected' : '' %>" href="/admin/Myproduct"><img src="/assets/Imgs/Icons/basket.png" width="35px" alt="">Products</a>
-        <a class="<%= path === '/admin/slideshow' ? 'selected' : '' %>" href="/admin/slideshow"><img src="/assets/Imgs/Icons/Slideshows-icon.png" width="35px" alt="">Slideshows</a>
-        <a class="<%= path === '/admin/articles' ? 'selected' : '' %>" href="/admin/articles"><img src="/assets/Imgs/Icons/articles.png" width="35px" alt="">Articles</a>
-        <a class="<%= path === '/admin/catalogs' ? 'selected' : '' %>" href="/admin/catalogs"><img src="/assets/Imgs/Icons/articles.png" width="35px" alt="">catalogs categories</a>
-        <a class="<%= path === '/admin/TechnicalRequests' || path === '/admin/technical-requests' ? 'selected' : '' %>" href="/admin/TechnicalRequests"><img src="/assets/Imgs/Icons/articles.png" width="35px" alt="">Technical Requests</a>
-
-        <a class="<%= path === '/admin/quotes' ? 'selected' : '' %>" href="/admin/quotes"><img src="/assets/Imgs/Icons/articles.png" width="35px" alt="">Quotes</a>
-        <a class="<%= path === '/admin/distributor-applications' ? 'selected' : '' %>" href="/admin/distributor-applications"><img src="/assets/Imgs/Icons/articles.png" width="35px" alt="">Distributors</a>
-        <a class="<%= path === '/admin/faqs' ? 'selected' : '' %>" href="/admin/faqs"><img src="/assets/Imgs/Icons/articles.png" width="35px" alt="">FAQ</a>
-        <a class="<%= path === '/admin/case-studies' ? 'selected' : '' %>" href="/admin/case-studies"><img src="/assets/Imgs/Icons/articles.png" width="35px" alt="">Case Studies</a>
-        <a class="<%= path === '/admin/glossary' ? 'selected' : '' %>" href="/admin/glossary"><img src="/assets/Imgs/Icons/articles.png" width="35px" alt="">Glossary</a>
-
-        <a href="/admin/account"><img src="/assets/Imgs/Icons/settings-icon.png" width="35px" alt="">Settings</a>
+        <a class="<%= path === '/admin/contact-messages' || path.startsWith('/admin/contact-message') ? 'selected' : '' %>" href="/admin/contact-messages"><img src="/assets/Imgs/Icons/contactUs-Messages.png" width="35px" alt="">Contact Messages</a>
+        <a class="<%= path === '/admin/quotes' || path.startsWith('/admin/quotes/') ? 'selected' : '' %>" href="/admin/quotes"><img src="/assets/Imgs/Icons/contactUs-Messages.png" width="35px" alt="">Quote Requests</a>
+        <a class="<%= path === '/admin/distributor-applications' || path === '/admin/distributor-application-details' ? 'selected' : '' %>" href="/admin/distributor-applications"><img src="/assets/Imgs/Icons/articles.png" width="35px" alt="">Distributor Applications</a>
+        <% if (typeof isAdmin !== 'undefined' && isAdmin) { %>
+        <a class="<%= path === '/admin/users' || path === '/admin/users/add' ? 'selected' : '' %>" href="/admin/users"><img src="/assets/Imgs/Icons/addUser.png" width="35px" alt="">User Management</a>
+        <% } %>
+        <a class="<%= path === '/admin/account' ? 'selected' : '' %>" href="/admin/account"><img src="/assets/Imgs/Icons/settings-icon.png" width="35px" alt="">Settings</a>
 </div>

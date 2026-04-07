@@ -1,5 +1,9 @@
 <%- include('../../includes/customer/head.ejs') %>
+<link rel="stylesheet" href="/css/customer/request-a-quote.css">
 <link rel="stylesheet" href="/css/customer/become-a-distributor.css">
+<% if (recaptchaEnabled) { %>
+<script src="https://www.google.com/recaptcha/enterprise.js?render=6LemaIMrAAAAABkGmvhvmbRSO5BbXQq7AsLB7NGU" async defer></script>
+<% } %>
 <%
   const BASE = 'https://www.drag-lab.de';
   const pageUrl = BASE + '/' + lang + '/become-a-distributor';
@@ -11,31 +15,28 @@
 
 <title><%= pageTitle %></title>
 <meta name="description" content="<%= metaDescription %>">
-
 <link rel="canonical" href="<%= pageUrl %>">
 <link rel="alternate" hreflang="x-default" href="<%= BASE %>/EN/become-a-distributor">
-<link rel="alternate" hreflang="en" href="<%= BASE %>/EN/become-a-distributor">
-<link rel="alternate" hreflang="de" href="<%= BASE %>/DE/become-a-distributor">
-<link rel="alternate" hreflang="es" href="<%= BASE %>/ES/become-a-distributor">
-<link rel="alternate" hreflang="fr" href="<%= BASE %>/FR/become-a-distributor">
-<link rel="alternate" hreflang="tr" href="<%= BASE %>/TR/become-a-distributor">
-
-<meta property="og:title" content="<%= ogTitle %>">
+<link rel="alternate" hreflang="en"         href="<%= BASE %>/EN/become-a-distributor">
+<link rel="alternate" hreflang="de"         href="<%= BASE %>/DE/become-a-distributor">
+<link rel="alternate" hreflang="es"         href="<%= BASE %>/ES/become-a-distributor">
+<link rel="alternate" hreflang="fr"         href="<%= BASE %>/FR/become-a-distributor">
+<link rel="alternate" hreflang="tr"         href="<%= BASE %>/TR/become-a-distributor">
+<meta property="og:title"       content="<%= ogTitle %>">
 <meta property="og:description" content="<%= ogDescription %>">
-<meta property="og:image" content="<%= ogImage %>">
-<meta property="og:url" content="<%= pageUrl %>">
-<meta property="og:type" content="website">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="<%= ogTitle %>">
+<meta property="og:image"       content="<%= ogImage %>">
+<meta property="og:url"         content="<%= pageUrl %>">
+<meta property="og:type"        content="website">
+<meta name="twitter:card"        content="summary_large_image">
+<meta name="twitter:title"       content="<%= ogTitle %>">
 <meta name="twitter:description" content="<%= ogDescription %>">
-<meta name="twitter:image" content="<%= ogImage %>">
-
+<meta name="twitter:image"       content="<%= ogImage %>">
 <script type="application/ld+json" nonce="<%= nonce %>"><%- JSON.stringify({
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  "itemListElement": [
-    {"@type":"ListItem","position":1,"name":(lang==='DE'?'Startseite':lang==='ES'?'Inicio':lang==='TR'?'Ana Sayfa':lang==='FR'?'Accueil':'Home'),"item": BASE + "/" + lang + "/"},
-    {"@type":"ListItem","position":2,"name":(lang==='DE'?'Distributor Werden':lang==='ES'?'Conviértase en Distribuidor':lang==='TR'?'Distribütör Olun':lang==='FR'?'Devenir Distributeur':'Become a Distributor'),"item": pageUrl}
+  "@context":"https://schema.org",
+  "@type":"BreadcrumbList",
+  "itemListElement":[
+    {"@type":"ListItem","position":1,"name":(lang==='DE'?'Startseite':lang==='ES'?'Inicio':lang==='TR'?'Ana Sayfa':lang==='FR'?'Accueil':'Home'),"item":BASE+"/"+lang},
+    {"@type":"ListItem","position":2,"name":(lang==='DE'?'Distributor Werden':lang==='ES'?'Conviértase en Distribuidor':lang==='TR'?'Distribütör Olun':lang==='FR'?'Devenir Distributeur':'Become a Distributor'),"item":pageUrl}
   ]
 }) %></script>
 </head>
@@ -43,111 +44,427 @@
 <body>
 <%- include('../../includes/customer/navbar.ejs') %>
 
-<!-- Hero -->
-<div class="dist-hero">
-  <div class="dist-hero-text">
+<!-- ── Hero ── -->
+<div class="slide">
+  <div class="slide-text">
     <h1><%= heroTitle %></h1>
     <p><%= heroSub %></p>
+ 
   </div>
+  <img src="/assets/Imgs/Icons/products/contactus-BC.png" alt="<%= heroTitle %>" loading="eager">
 </div>
 
-<!-- Success / Error -->
+<!-- ── Trust Bar ── -->
+
+
+<!-- ── Alerts ── -->
 <% if (success) { %>
-<div class="dist-success" style="max-width:900px;margin:2rem auto;padding:1.2rem 2rem;border-radius:8px;background:#e6f7ee;border:1px solid #27ae60;color:#1d7a42;font-weight:500;">
-  <p><%= successMsg %></p>
+<div class="rq-alert rq-alert--ok">
+  <strong>✓</strong>
+  <span><%= successMsg %></span>
 </div>
+<script nonce="<%= nonce %>">
+  // Google Ads conversion — Become a Distributor
+  // Replace REPLACE_WITH_DISTRIBUTOR_LABEL with your actual label from Google Ads
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('event', 'conversion', {
+    send_to: 'AW-754782155/YajVCNXF95YcEMuf9OcC',
+    value: 1.0,
+    currency: 'EUR'
+  });
+</script>
 <% } else if (error) { %>
-<div class="dist-error" style="max-width:900px;margin:2rem auto;padding:1.2rem 2rem;border-radius:8px;background:#fdecea;border:1px solid #e74c3c;color:#c0392b;font-weight:500;">
-  <p><%= lang==='DE'?'Bitte füllen Sie alle Pflichtfelder aus.':lang==='ES'?'Por favor complete todos los campos requeridos.':lang==='TR'?'Lütfen tüm zorunlu alanları doldurun.':lang==='FR'?'Veuillez remplir tous les champs obligatoires.':'Please fill in all required fields.' %></p>
+<div class="rq-alert rq-alert--err">
+  <strong>!</strong>
+  <span><%= lang==='DE'?'Bitte füllen Sie alle Pflichtfelder aus.':lang==='ES'?'Por favor complete todos los campos requeridos.':lang==='TR'?'Lütfen tüm zorunlu alanları doldurun.':lang==='FR'?'Veuillez remplir tous les champs obligatoires.':'Please fill in all required fields.' %></span>
 </div>
 <% } %>
 
-<!-- Why Partner -->
+<!-- ── Stats Strip ── -->
+<div class="dist-stats">
+  <div class="dist-stats-inner">
+    <div class="dist-stat">
+      <span class="dist-stat-num">70+</span>
+      <span class="dist-stat-label"><%= lang==='DE'?'Länder weltweit':lang==='ES'?'Países en todo el mundo':lang==='TR'?'Ülke dünya genelinde':lang==='FR'?'Pays dans le monde':'Countries Worldwide' %></span>
+    </div>
+    <div class="dist-stat-divider"></div>
+    <div class="dist-stat">
+      <span class="dist-stat-num">ISO</span>
+      <span class="dist-stat-label"><%= lang==='DE'?'9001 Zertifiziert':lang==='ES'?'9001 Certificado':lang==='TR'?'9001 Sertifikalı':lang==='FR'?'9001 Certifié':'9001 Certified' %></span>
+    </div>
+    <div class="dist-stat-divider"></div>
+    <div class="dist-stat">
+      <span class="dist-stat-num">2yr</span>
+      <span class="dist-stat-label"><%= lang==='DE'?'Produktgarantie':lang==='ES'?'Garantía del producto':lang==='TR'?'Ürün garantisi':lang==='FR'?'Garantie produit':'Product Warranty' %></span>
+    </div>
+    <div class="dist-stat-divider"></div>
+    <div class="dist-stat">
+      <span class="dist-stat-num">10yr</span>
+      <span class="dist-stat-label"><%= lang==='DE'?'Verfügbarkeit von Ersatzteilen':lang==='ES'?'Disponibilidad de Piezas de Repuesto':lang==='TR'?'Yedek Parça Uygunluğu':lang==='FR'?'Disponibilité des Pièces de Rechange':'Spare Parts Availability' %></span>
+    </div>
+  </div>
+</div>
+
+<!-- ── Why Partner ── -->
 <section class="dist-why">
   <div class="dist-why-inner">
-    <h2><%= whyTitle %></h2>
-    <ul class="dist-why-list">
-      <% whyPoints.forEach(point => { %>
-      <li><%= point %></li>
-      <% }) %>
-    </ul>
+    <div class="dist-why-left">
+      <h2><%= whyTitle %></h2>
+      <ul class="dist-why-list">
+        <% whyPoints.forEach(function(point) { %>
+        <li><%= point %></li>
+        <% }) %>
+      </ul>
+    </div>
+    <div class="dist-why-right">
+      <div class="dist-why-card">
+        <div class="dist-why-card-icon">🤝</div>
+        <blockquote>
+          <%= lang==='DE'?'Werden Sie Teil unseres weltweiten Netzwerks und vertreiben Sie erstklassige Laborgeräte mit exklusiven Gebietsrechten und vollständiger Unterstützung.':
+              lang==='ES'?'Únase a nuestra red global y distribuya equipos de laboratorio de primera clase con derechos territoriales exclusivos y soporte completo.':
+              lang==='TR'?'Küresel ağımıza katılın ve özel bölge hakları ve tam destekle birinci sınıf laboratuvar ekipmanları dağıtın.':
+              lang==='FR'?'Rejoignez notre réseau mondial et distribuez des équipements de laboratoire de premier plan avec des droits territoriaux exclusifs et un soutien complet.':
+              'Join our global network and distribute world-class laboratory equipment with exclusive territory rights and full support.' %>
+        </blockquote>
+        <a href="#dist-form" class="dist-why-card-btn">
+          <%= lang==='DE'?'Jetzt Bewerben':lang==='ES'?'Aplicar Ahora':lang==='TR'?'Hemen Başvur':lang==='FR'?'Postuler':'Apply Now' %>
+        </a>
+      </div>
+    </div>
   </div>
 </section>
 
-<!-- Benefits -->
+<!-- ── Benefits ── -->
 <section class="dist-benefits">
   <div class="dist-benefits-inner">
-    <h2><%= benefitsTitle %></h2>
+    <h2 class="section-title"><%= benefitsTitle %></h2>
     <div class="dist-benefits-grid">
-      <% benefits.forEach(b => { %>
-      <div class="dist-benefit-card">
+      <% benefits.forEach(function(b) { %>
+      <div class="feature-box">
         <div class="dist-benefit-icon"><%= b.icon %></div>
-        <h3><%= b.title %></h3>
-        <p><%= b.desc %></p>
+        <h3 class="feature-title"><%= b.title %></h3>
+        <p class="feature-text"><%= b.desc %></p>
       </div>
       <% }) %>
     </div>
   </div>
 </section>
 
-<!-- Who We're Looking For -->
+<!-- ── Who We're Looking For ── -->
 <section class="dist-who">
   <div class="dist-who-inner">
     <h2><%= whoTitle %></h2>
     <p><%= whoDesc %></p>
+    <a href="#dist-form" class="dist-who-btn">
+      <%= lang==='DE'?'Jetzt Bewerben':lang==='ES'?'Aplicar Ahora':lang==='TR'?'Hemen Başvur':lang==='FR'?'Postuler':'Apply Now' %>
+    </a>
   </div>
 </section>
 
-<!-- Application Form -->
-<div class="dist-form-section">
-  <h2><%= formTitle %></h2>
-  <form action="/submit-distributor-application" method="POST">
+<!-- ── How It Works ── -->
+<section class="dist-steps">
+  <div class="dist-steps-inner">
+    <h2><%= lang==='DE'?'So Werden Sie Partner':lang==='ES'?'Cómo Convertirse en Socio':lang==='TR'?'Nasıl Ortak Olunur':lang==='FR'?'Comment Devenir Partenaire':'How to Become a Partner' %></h2>
+    <div class="dist-steps-grid">
+      <div class="dist-step">
+        <div class="dist-step-num">1</div>
+        <h3><%= lang==='DE'?'Bewerbung Einreichen':lang==='ES'?'Enviar Solicitud':lang==='TR'?'Başvuru Gönderin':lang==='FR'?'Soumettre la Candidature':'Submit Application' %></h3>
+        <p><%= lang==='DE'?'Füllen Sie das Bewerbungsformular unten aus und senden Sie uns Ihre Unternehmensdetails.':lang==='ES'?'Complete el formulario de solicitud a continuación con los detalles de su empresa.':lang==='TR'?'Aşağıdaki başvuru formunu doldurun ve şirket bilgilerinizi bize gönderin.':lang==='FR'?'Remplissez le formulaire de candidature ci-dessous avec les détails de votre entreprise.':'Fill in the application form below with your company details and send it to us.' %></p>
+      </div>
+      <div class="dist-step-arrow">→</div>
+      <div class="dist-step">
+        <div class="dist-step-num">2</div>
+        <h3><%= lang==='DE'?'Prüfung & Kontaktaufnahme':lang==='ES'?'Revisión y Contacto':lang==='TR'?'İnceleme ve İletişim':lang==='FR'?'Examen et Contact':'Review & Contact' %></h3>
+        <p><%= lang==='DE'?'Unser Partnerteam prüft Ihre Bewerbung und meldet sich innerhalb von 3 Werktagen.':lang==='ES'?'Nuestro equipo de socios revisará su solicitud y se comunicará con usted en 3 días hábiles.':lang==='TR'?'Ortaklık ekibimiz başvurunuzu inceleyecek ve 3 iş günü içinde sizinle iletişime geçecektir.':lang==='FR'?'Notre équipe partenariat examinera votre candidature et vous contactera dans 3 jours ouvrés.':'Our partnership team reviews your application and gets in touch within 3 business days.' %></p>
+      </div>
+      <div class="dist-step-arrow">→</div>
+      <div class="dist-step">
+        <div class="dist-step-num">3</div>
+        <h3><%= lang==='DE'?'Partnerschaft Starten':lang==='ES'?'Iniciar la Asociación':lang==='TR'?'Ortaklığa Başlayın':lang==='FR'?'Démarrer le Partenariat':'Start Partnership' %></h3>
+        <p><%= lang==='DE'?'Erhalten Sie Ihr exklusives Gebietsrecht, Schulungsmaterialien und vollständige Unterstützung.':lang==='ES'?'Reciba sus derechos territoriales exclusivos, materiales de capacitación y soporte completo.':lang==='TR'?'Özel bölge haklarınızı, eğitim materyallerinizi ve tam desteği alın.':lang==='FR'?'Recevez vos droits territoriaux exclusifs, vos documents de formation et un soutien complet.':'Receive your exclusive territory rights, training materials, and full ongoing support.' %></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Application Form ── -->
+<div class="rq-page" id="dist-form">
+  <form action="/submit-distributor-application" method="POST" enctype="multipart/form-data">
     <input type="hidden" name="lang" value="<%= lang %>">
-    <div class="dist-form-grid">
-      <div class="form-field">
-        <label for="companyName"><%= labelCompany %> *</label>
-        <input type="text" id="companyName" name="companyName" required autocomplete="organization">
+
+    <!-- ① Company Information -->
+    <section class="rq-section">
+      <div class="rq-section-header">
+        <h2><%= formTitle %></h2>
       </div>
-      <div class="form-field">
-        <label for="country"><%= labelCountry %> *</label>
-        <input type="text" id="country" name="country" required autocomplete="country-name">
+      <div class="rq-grid">
+        <div class="rq-field">
+          <label for="companyName"><%= labelCompany %> <span class="rq-req">*</span></label>
+          <input type="text" id="companyName" name="companyName" required autocomplete="organization">
+        </div>
+        <div class="rq-field">
+          <label for="country"><%= labelCountry %> <span class="rq-req">*</span></label>
+          <input type="text" id="country" name="country" required autocomplete="country-name">
+        </div>
+        <div class="rq-field">
+          <label for="website"><%= labelWebsite %></label>
+          <input type="url" id="website" name="website" placeholder="https://" autocomplete="url">
+        </div>
+        <div class="rq-field">
+          <label for="companyEstablished"><%= labelEstablished %> <span class="rq-req">*</span></label>
+          <input type="number" id="companyEstablished" name="companyEstablished"
+            min="1900" max="<%= new Date().getFullYear() %>" placeholder="e.g. 2005" required>
+        </div>
+        <div class="rq-field rq-field--full">
+          <label for="companyOverview"><%= labelOverview %> <span class="rq-req">*</span></label>
+          <textarea id="companyOverview" name="companyOverview" required rows="4"
+            placeholder="<%= overviewHint %>"></textarea>
+        </div>
       </div>
-      <div class="form-field">
-        <label for="website"><%= labelWebsite %></label>
-        <input type="url" id="website" name="website" placeholder="https://" autocomplete="url">
+    </section>
+
+    <!-- ② Business & Distribution Capability -->
+    <section class="rq-section">
+      <div class="rq-section-header">
+        <h2>📊 <%= lang==='DE'?'Geschäfts- & Vertriebsfähigkeit':lang==='ES'?'Capacidad de Negocio y Distribución':lang==='TR'?'İş ve Dağıtım Kapasitesi':lang==='FR'?'Capacité Commerciale et de Distribution':'Business & Distribution Capability' %></h2>
       </div>
-      <div class="form-field">
-        <label for="yearsExperience"><%= labelYears %></label>
-        <input type="number" id="yearsExperience" name="yearsExperience" min="0" max="100">
+      <div class="rq-grid">
+
+        <!-- Current Brands -->
+        <div class="rq-field">
+          <label for="currentBrands"><%= labelBrands %></label>
+          <input type="text" id="currentBrands" name="currentBrands">
+        </div>
+
+        <!-- Industry Focus (multi-select dropdown) -->
+        <div class="rq-field">
+          <label><%= labelIndustry %> <span class="rq-req">*</span></label>
+          <div class="rq-multiselect" id="industryFocusDropdown">
+            <button type="button" class="rq-multiselect__toggle" aria-haspopup="listbox" aria-expanded="false">
+              <span class="rq-multiselect__label">—</span>
+              <svg class="rq-multiselect__chevron" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+            </button>
+            <div class="rq-multiselect__panel" hidden role="listbox" aria-multiselectable="true">
+              <% industryOptions.forEach(function(opt) { %>
+              <label class="rq-multiselect__option">
+                <input type="checkbox" name="industryFocus" value="<%= opt %>">
+                <span><%= opt %></span>
+              </label>
+              <% }) %>
+            </div>
+            <input class="rq-multiselect__validator" tabindex="-1" aria-hidden="true" required>
+          </div>
+        </div>
+
+        <!-- Sales Channels (multi-select dropdown) -->
+        <div class="rq-field rq-field--full">
+          <label><%= labelSalesChannels %> <small class="rq-field-hint">(<%= lang==='DE'?'Mehrfachauswahl möglich':lang==='ES'?'Seleccione todos los que apliquen':lang==='TR'?'Geçerli olanları seçin':lang==='FR'?'Sélectionnez tout ce qui s\'applique':'Select all that apply' %>)</small></label>
+          <div class="rq-multiselect" id="salesChannelsDropdown">
+            <button type="button" class="rq-multiselect__toggle" aria-haspopup="listbox" aria-expanded="false">
+              <span class="rq-multiselect__label">—</span>
+              <svg class="rq-multiselect__chevron" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+            </button>
+            <div class="rq-multiselect__panel" hidden role="listbox" aria-multiselectable="true">
+              <% salesChannelOptions.forEach(function(opt) { %>
+              <label class="rq-multiselect__option">
+                <input type="checkbox" name="salesChannels" value="<%= opt %>">
+                <span><%= opt %></span>
+              </label>
+              <% }) %>
+            </div>
+          </div>
+          <input type="text" id="salesChannelsOther" name="salesChannelsOther"
+            placeholder="<%= lang==='DE'?'Bitte angeben…':lang==='ES'?'Por favor especifique…':lang==='TR'?'Lütfen belirtin…':lang==='FR'?'Veuillez préciser…':'Please specify…' %>"
+            style="display:none; margin-top:0.5rem;">
+        </div>
+
+        <!-- Annual Sales Volume -->
+        <div class="rq-field">
+          <label for="annualSalesVolume"><%= labelSalesVolume %></label>
+          <input type="text" id="annualSalesVolume" name="annualSalesVolume" placeholder="e.g. €50,000 – €100,000">
+        </div>
+
       </div>
-      <div class="form-field full-width">
-        <label for="currentBrands"><%= labelBrands %></label>
-        <input type="text" id="currentBrands" name="currentBrands">
+    </section>
+
+    <!-- ③ Market & Territory -->
+    <section class="rq-section">
+      <div class="rq-section-header">
+        <h2>🌍 <%= lang==='DE'?'Markt & Gebiet':lang==='ES'?'Mercado y Territorio':lang==='TR'?'Pazar ve Bölge':lang==='FR'?'Marché et Territoire':'Market & Territory' %></h2>
       </div>
-      <div class="form-field full-width">
-        <label for="targetMarket"><%= labelMarket %></label>
-        <input type="text" id="targetMarket" name="targetMarket">
+      <div class="rq-grid">
+        <div class="rq-field">
+          <label for="distributionTerritory"><%= labelTerritory %> <span class="rq-req">*</span></label>
+          <input type="text" id="distributionTerritory" name="distributionTerritory" required
+            placeholder="<%= territoryHint %>">
+        </div>
+        <div class="rq-field">
+          <label for="targetMarket"><%= labelMarket %></label>
+          <input type="text" id="targetMarket" name="targetMarket" placeholder="<%= marketHint %>">
+        </div>
       </div>
-      <div class="form-field">
-        <label for="contactName"><%= labelContact %> *</label>
-        <input type="text" id="contactName" name="contactName" required autocomplete="name">
+    </section>
+
+    <!-- ④ Supporting Documents -->
+    <section class="rq-section">
+      <div class="rq-section-header">
+        <h2>📎 <%= lang==='DE'?'Unterstützende Dokumente':lang==='ES'?'Documentos de Apoyo':lang==='TR'?'Destekleyici Belgeler':lang==='FR'?'Documents Justificatifs':'Supporting Documents' %></h2>
       </div>
-      <div class="form-field">
-        <label for="email"><%= labelEmail %> *</label>
-        <input type="email" id="email" name="email" required autocomplete="email">
+      <div class="rq-grid">
+        <div class="rq-field rq-field--full">
+          <label for="companyBrochure"><%= labelBrochure %></label>
+          <input type="file" id="companyBrochure" name="companyBrochure" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.webp">
+          <span class="rq-file-hint">PDF, Word or image · max 10 MB</span>
+        </div>
       </div>
-      <div class="form-field">
-        <label for="phone"><%= labelPhone %></label>
-        <input type="tel" id="phone" name="phone" autocomplete="tel">
+    </section>
+
+    <!-- ⑤ Contact Information -->
+    <section class="rq-section">
+      <div class="rq-section-header">
+        <h2>📞 <%= lang==='DE'?'Kontaktdaten':lang==='ES'?'Información de Contacto':lang==='TR'?'İletişim Bilgileri':lang==='FR'?'Coordonnées':'Contact Information' %></h2>
       </div>
-    </div>
-    <div class="dist-submit-wrap">
-      <button type="submit" class="dist-submit-btn"><%= btnSubmit %></button>
-    </div>
+      <div class="rq-grid">
+        <div class="rq-field">
+          <label for="contactName"><%= labelContact %> <span class="rq-req">*</span></label>
+          <input type="text" id="contactName" name="contactName" required autocomplete="name">
+        </div>
+        <div class="rq-field">
+          <label for="email"><%= labelEmail %> <span class="rq-req">*</span></label>
+          <input type="email" id="email" name="email" required autocomplete="email">
+        </div>
+        <div class="rq-field">
+          <label for="phone"><%= labelPhone %></label>
+          <input type="tel" id="phone" name="phone" autocomplete="tel">
+        </div>
+      </div>
+
+      <p class="rq-required-note"><span class="rq-req">*</span> <%= lang==='DE'?'Pflichtfeld':lang==='ES'?'Campo obligatorio':lang==='TR'?'Zorunlu alan':lang==='FR'?'Champ obligatoire':'Required field' %></p>
+
+      <div class="rq-submit-row">
+        <button type="submit" class="rq-submit-btn"><%= btnSubmit %></button>
+        <p class="rq-response-note">
+          <%= lang==='DE'?'Unser Team antwortet innerhalb von 3 Werktagen.':lang==='ES'?'Nuestro equipo responderá en 3 días hábiles.':lang==='TR'?'Ekibimiz 3 iş günü içinde yanıt verecektir.':lang==='FR'?'Notre équipe vous répondra sous 3 jours ouvrés.':'Our team will respond within 3 business days.' %>
+        </p>
+      </div>
+    </section>
+
   </form>
 </div>
 
 <%- include('../../includes/customer/footer.ejs') %>
 </body>
 <%- include('../../includes/customer/script.ejs') %>
+<% if (recaptchaEnabled) { %>
+<script nonce="<%= nonce %>">
+(function () {
+  var form = document.querySelector('form[action="/submit-distributor-application"]');
+  if (!form) return;
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    if (!form.checkValidity()) { form.reportValidity(); return; }
+
+    if (!window.grecaptcha || !grecaptcha.enterprise) {
+      alert('reCAPTCHA failed to load. Please refresh the page and try again.');
+      return;
+    }
+
+    var btn = form.querySelector('button[type="submit"]');
+    if (btn) btn.disabled = true;
+    var fallback = setTimeout(function () { if (btn) btn.disabled = false; }, 10000);
+
+    grecaptcha.enterprise.ready(function () {
+      grecaptcha.enterprise.execute('6LemaIMrAAAAABkGmvhvmbRSO5BbXQq7AsLB7NGU', { action: 'submit' })
+        .then(function (token) {
+          clearTimeout(fallback);
+          var input = document.createElement('input');
+          input.type = 'hidden';
+          input.name = 'g-recaptcha-response';
+          input.value = token;
+          form.appendChild(input);
+          form.submit();
+        })
+        .catch(function () {
+          clearTimeout(fallback);
+          if (btn) btn.disabled = false;
+          alert('reCAPTCHA failed. Please try again.');
+        });
+    });
+  });
+})();
+</script>
+<% } %>
+<script nonce="<%= nonce %>">
+(function () {
+  var placeholder = '<%= lang==="DE"?"— Auswählen —":lang==="ES"?"— Seleccionar —":lang==="TR"?"— Seçin —":lang==="FR"?"— Sélectionner —":"— Select —" %>';
+
+  function initWidget(widget) {
+    var toggle    = widget.querySelector('.rq-multiselect__toggle');
+    var panel     = widget.querySelector('.rq-multiselect__panel');
+    var labelEl   = widget.querySelector('.rq-multiselect__label');
+    var validator = widget.querySelector('.rq-multiselect__validator');
+    var boxes     = widget.querySelectorAll('input[type="checkbox"]');
+    var otherInput = widget.parentElement.querySelector('input[name="salesChannelsOther"]');
+
+    // Init: hide via display, remove hidden attr so we control it ourselves
+    panel.removeAttribute('hidden');
+    panel.style.display = 'none';
+
+    function isOpen() { return panel.style.display === 'block'; }
+
+    function openPanel() {
+      var rect = toggle.getBoundingClientRect();
+      panel.style.top    = (rect.bottom + 4) + 'px';
+      panel.style.left   = rect.left + 'px';
+      panel.style.width  = rect.width + 'px';
+      panel.style.display = 'block';
+      toggle.setAttribute('aria-expanded', 'true');
+    }
+
+    function closePanel() {
+      panel.style.display = 'none';
+      toggle.setAttribute('aria-expanded', 'false');
+    }
+
+    function updateLabel() {
+      var checked = Array.from(boxes).filter(function(b) { return b.checked; }).map(function(b) { return b.value; });
+      labelEl.textContent = checked.length ? checked.join(', ') : placeholder;
+      if (validator) validator.value = checked.length ? 'ok' : '';
+    }
+
+    toggle.addEventListener('click', function (e) {
+      e.stopPropagation();
+      if (isOpen()) { closePanel(); } else { openPanel(); }
+    });
+
+    panel.addEventListener('click', function (e) {
+      e.stopPropagation();
+    });
+
+    boxes.forEach(function (box) {
+      box.addEventListener('change', function () {
+        updateLabel();
+        if (otherInput) {
+          var hasOther = Array.from(boxes).some(function(b) {
+            return b.checked && /other|sonstiges|otro|diğer|autre/i.test(b.value);
+          });
+          otherInput.style.display = hasOther ? 'block' : 'none';
+          otherInput.required = hasOther;
+        }
+      });
+    });
+
+    document.addEventListener('click', function () { closePanel(); });
+    window.addEventListener('scroll', function () { if (isOpen()) openPanel(); }, true);
+    window.addEventListener('resize', function () { if (isOpen()) closePanel(); });
+
+    updateLabel();
+  }
+
+  document.querySelectorAll('.rq-multiselect').forEach(function(w) { initWidget(w); });
+})();
+</script>
 </html>

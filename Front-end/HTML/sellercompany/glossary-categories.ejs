@@ -1,0 +1,80 @@
+<%- include('../../includes/sellercompany/head.ejs') %>
+<link rel="stylesheet" href="/css/sellercompany/all-technical-service.css">
+
+<style nonce="<%= nonce %>">
+  .cat-card {
+    display: flex; align-items: center; justify-content: space-between;
+    background: #fff; border: 1px solid #dee2e6; border-radius: 8px;
+    padding: 0.85rem 1.2rem; margin-bottom: 0.6rem;
+  }
+  .cat-name { font-weight: 700; color: #2c3e50; font-size: 0.95rem; }
+  .cat-slug { font-size: 0.78rem; color: #7f8c8d; margin-left: 0.5rem; }
+  .cat-delete-btn {
+    background: none; border: none; color: #dc3545; cursor: pointer;
+    font-weight: 600; font-size: 0.88rem; padding: 0.3rem 0.7rem;
+    border: 1.5px solid #dc3545; border-radius: 5px;
+    transition: background 0.2s, color 0.2s;
+  }
+  .cat-delete-btn:hover { background: #dc3545; color: #fff; }
+  .add-cat-form {
+    display: flex; gap: 0.7rem; align-items: center;
+    margin-bottom: 2rem; max-width: 500px;
+  }
+  .add-cat-form input {
+    flex: 1; padding: 0.65rem 1rem; border: 1.5px solid #dee2e6;
+    border-radius: 6px; font-size: 0.95rem; font-family: inherit;
+    color: #2c3e50;
+  }
+  .add-cat-form input:focus {
+    outline: none; border-color: var(--primary-Color);
+    box-shadow: 0 0 0 3px rgba(41,60,149,0.08);
+  }
+  .add-cat-btn {
+    padding: 0.65rem 1.5rem; background: var(--primary-Color); color: #fff;
+    border: none; border-radius: 6px; font-weight: 700; font-size: 0.95rem;
+    cursor: pointer; transition: background 0.2s;
+  }
+  .add-cat-btn:hover { background: #1e2e7a; }
+  .back-link { display: inline-block; margin-bottom: 1.5rem; color: var(--primary-Color); font-weight: 600; text-decoration: none; }
+  .back-link:hover { text-decoration: underline; }
+  .empty-note { color: #aaa; text-align: center; padding: 2rem; font-size: 0.95rem; }
+</style>
+
+<body>
+  <%- include('../../includes/sellercompany/navbar-dash.ejs') %>
+
+  <section class="sidebar-content-container">
+    <section class="sidebar-container">
+      <%- include('../../includes/sellercompany/sidebar.ejs') %>
+    </section>
+
+    <div class="article-dashboard-container">
+      <a href="/admin/glossary" class="back-link">← Back to Manage Glossary</a>
+      <h1>Glossary Categories</h1>
+
+      <!-- Add Category Form -->
+      <form action="/admin/glossary/categories/add" method="POST" class="add-cat-form">
+        <input type="text" name="name" placeholder="New category name..." required maxlength="100">
+        <button type="submit" class="add-cat-btn">+ Add Category</button>
+      </form>
+
+      <!-- Categories List -->
+      <% if (categories.length === 0) { %>
+      <div class="empty-note">No categories yet. Add your first one above.</div>
+      <% } else { %>
+        <% categories.forEach(cat => { %>
+        <div class="cat-card">
+          <div>
+            <span class="cat-name"><%= cat.name %></span>
+            <span class="cat-slug">/<%= cat.slug %></span>
+          </div>
+          <form action="/admin/glossary/categories/delete/<%= cat._id %>" method="POST"
+                onsubmit="return confirm('Delete category \'<%= cat.name %>\'?')">
+            <button type="submit" class="cat-delete-btn">Delete</button>
+          </form>
+        </div>
+        <% }) %>
+      <% } %>
+    </div>
+  </section>
+</body>

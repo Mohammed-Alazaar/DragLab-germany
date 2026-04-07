@@ -4,8 +4,10 @@
 <style nonce="<%= nonce %>">
   .status-pub { background: #d1e7dd; color: #0f5132; }
   .status-dft { background: #f8d7da; color: #842029; }
-  .status-badge { display: inline-block; padding: 2px 9px; border-radius: 10px; font-size: 0.76rem; font-weight: 700; text-transform: uppercase; }
-  .lang-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.76rem; font-weight: 700; background: #e8f0fa; color: #0d3b6e; }
+  .status-none { background: #e9ecef; color: #6c757d; }
+  .status-badge { display: inline-block; padding: 2px 7px; border-radius: 10px; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; margin: 1px; }
+  .lang-label { font-size: 0.72rem; font-weight: 700; color: #0d3b6e; margin-right: 1px; }
+  .lang-statuses { display: flex; flex-wrap: wrap; gap: 3px; }
 </style>
 
 <body>
@@ -24,22 +26,33 @@
         <thead>
           <tr>
             <th>#</th>
-            <th>Question</th>
+            <th>Question (EN)</th>
             <th>Category</th>
-            <th>Lang</th>
-            <th>Status</th>
+            <th>Languages</th>
             <th>Order</th>
             <th>Actions</th>
           </tr>
         </thead>
         <tbody>
-          <% faqs.forEach((faq, i) => { %>
+          <% faqs.forEach((faq, i) => {
+               const enQ = faq.translations?.en?.question || faq.translations?.de?.question || '(no question)';
+               const langs = ['en','es','de','tr','fr'];
+          %>
           <tr>
             <td><%= i + 1 %></td>
-            <td><%= faq.question.length > 80 ? faq.question.substring(0, 80) + '…' : faq.question %></td>
+            <td><%= enQ.length > 70 ? enQ.substring(0, 70) + '…' : enQ %></td>
             <td><%= faq.category %></td>
-            <td><span class="lang-badge"><%= faq.lang %></span></td>
-            <td><span class="status-badge <%= faq.status === 'published' ? 'status-pub' : 'status-dft' %>"><%= faq.status %></span></td>
+            <td>
+              <div class="lang-statuses">
+                <% langs.forEach(function(l) {
+                     const st = faq.translations?.[l]?.status || 'none';
+                %>
+                <span class="status-badge <%= st === 'published' ? 'status-pub' : st === 'draft' ? 'status-dft' : 'status-none' %>">
+                  <%= l.toUpperCase() %>
+                </span>
+                <% }) %>
+              </div>
+            </td>
             <td><%= faq.order %></td>
             <td>
               <a href="/admin/faqs/edit/<%= faq._id %>">Edit</a> |
@@ -51,7 +64,7 @@
           </tr>
           <% }) %>
           <% if (faqs.length === 0) { %>
-          <tr><td colspan="7" style="text-align:center;color:#aaa;padding:2rem;">No FAQs yet. <a href="/admin/faqs/add">Add one</a>.</td></tr>
+          <tr><td colspan="6" style="text-align:center;color:#aaa;padding:2rem;">No FAQs yet. <a href="/admin/faqs/add">Add one</a>.</td></tr>
           <% } %>
         </tbody>
       </table>

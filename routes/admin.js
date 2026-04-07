@@ -196,8 +196,11 @@ router.post('/quotes/:id/delete', isAuth, isAdmin, adminController.deleteQuote);
 
 // ── PAGE 2: Distributor Applications ─────────────────────────────────────────
 router.get('/distributor-applications', isAuth, isAdminOrSeller, adminController.getAllDistributorApplications);
+router.get('/distributor-applications/:id/pdf', isAuth, isAdminOrSeller, adminController.getDistributorApplicationPdf);
 router.get('/distributor-applications/:id', isAuth, isAdminOrSeller, adminController.getDistributorApplicationDetail);
 router.post('/distributor-applications/:id/status', isAuth, isAdminOrSeller, adminController.postUpdateDistributorStatus);
+router.post('/distributor-applications/:id/spam', isAuth, isAdmin, adminController.postMarkDistributorSpam);
+router.post('/distributor-applications/:id/delete', isAuth, isAdmin, adminController.deleteDistributorApplication);
 
 // ── PAGE 3: FAQs ──────────────────────────────────────────────────────────────
 router.get('/faqs', isAuth, isAdminOrSeller, adminController.getAllFaqs);
@@ -223,5 +226,19 @@ router.get('/glossary/edit/:id', isAuth, isAdminOrSeller, adminController.getEdi
 router.post('/glossary/edit/:id', isAuth, isAdminOrSeller, adminController.postEditGlossary);
 router.post('/glossary/delete/:id', isAuth, isAdminOrSeller, adminController.postDeleteGlossary);
 
+// ── Glossary Categories ───────────────────────────────────────────────────────
+router.get('/glossary/categories', isAuth, isAdminOrSeller, adminController.getGlossaryCategories);
+router.post('/glossary/categories/add', isAuth, isAdminOrSeller, adminController.postAddGlossaryCategory);
+router.post('/glossary/categories/delete/:id', isAuth, isAdminOrSeller, adminController.postDeleteGlossaryCategory);
+
+
+
+// ── Testimonials ──────────────────────────────────────────────────────────────
+router.get("/testimonials", isAuth, isAdminOrSeller, adminController.getAllTestimonials);
+router.get("/testimonials/add", isAuth, isAdminOrSeller, adminController.getAddTestimonial);
+router.post("/testimonials/add", isAuth, isAdminOrSeller, uploadProductImages, adminController.postAddTestimonial);
+router.get("/testimonials/edit/:id", isAuth, isAdminOrSeller, adminController.getEditTestimonial);
+router.post("/testimonials/edit/:id", isAuth, isAdminOrSeller, uploadProductImages, adminController.postEditTestimonial);
+router.post("/testimonials/delete/:id", isAuth, isAdminOrSeller, adminController.postDeleteTestimonial);
 
 module.exports = router;

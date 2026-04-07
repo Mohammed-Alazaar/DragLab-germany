@@ -2,21 +2,27 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
+const translationSchema = new Schema({
+  question: { type: String, default: '' },
+  answer:   { type: String, default: '' },
+  status:   { type: String, enum: ['none', 'draft', 'published'], default: 'none' }
+}, { _id: false });
+
 const faqSchema = new Schema({
-  question: { type: String, required: true },
-  answer:   { type: String, required: true },
+  translations: {
+    en: { type: translationSchema, default: () => ({}) },
+    es: { type: translationSchema, default: () => ({}) },
+    de: { type: translationSchema, default: () => ({}) },
+    tr: { type: translationSchema, default: () => ({}) },
+    fr: { type: translationSchema, default: () => ({}) }
+  },
   category: {
     type: String,
     enum: ['Installation', 'Maintenance', 'Troubleshooting', 'Warranty', 'Product Usage', 'General'],
     default: 'General'
   },
-  relatedProducts: [{ type: String }],
-  status: {
-    type: String,
-    enum: ['draft', 'published'],
-    default: 'draft'
-  },
-  lang:  { type: String, default: 'EN' },
+  relatedProducts:     [{ type: String }],
+  relatedProductNames: [{ type: String }],
   slug:  { type: String },
   order: { type: Number, default: 0 },
   createdAt: { type: Date, default: Date.now }

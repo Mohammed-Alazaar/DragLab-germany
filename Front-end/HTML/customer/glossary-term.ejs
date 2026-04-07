@@ -1,4 +1,5 @@
 <%- include('../../includes/customer/head.ejs') %>
+<link rel="stylesheet" href="/css/customer/about-us.css">
 <link rel="stylesheet" href="/css/customer/laboratory-glossary.css">
 <%
   const BASE = 'https://www.drag-lab.de';
@@ -37,13 +38,14 @@
 <%- include('../../includes/customer/navbar.ejs') %>
 
 <!-- Hero -->
-<div class="gloss-detail-hero">
-  <div>
+<div class="slide">
+  <div class="slide-text">
     <% if (term.letter) { %>
-    <div class="gloss-letter-badge"><%= term.letter %></div><br>
+    <div class="gloss-letter-badge"><%= term.letter %></div>
     <% } %>
     <h1><%= display.term %></h1>
   </div>
+  <img src="/assets/Imgs/Icons/products/ArticlesBg.webp" alt="">
 </div>
 
 <!-- Content -->

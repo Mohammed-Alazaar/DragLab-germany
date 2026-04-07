@@ -157,8 +157,7 @@ a {
 
 * {
     box-sizing: border-box;
-    font-family: 'Abtos', sans-serif;
-
+    font-family: 'Aptos', sans-serif;
 }
 
 
@@ -195,8 +194,8 @@ select:focus {
     font-family: 'Aptos';
     src: url('/assets/fonts/Aptos-Light.ttf') format('truetype');
     font-weight: 300;
-    /* Light */
     font-style: normal;
+    font-display: swap;
 }
 
 @font-face {
@@ -204,14 +203,15 @@ select:focus {
     src: url('/assets/fonts/Aptos-Light-Italic.ttf') format('truetype');
     font-weight: 300;
     font-style: italic;
+    font-display: swap;
 }
 
 @font-face {
     font-family: 'Aptos';
-    src: url('/assets/fonts/Aptos-Regular.ttf') format('truetype');
+    src: url('/assets/fonts/Aptos.ttf') format('truetype');
     font-weight: 400;
-    /* Regular */
     font-style: normal;
+    font-display: swap;
 }
 
 @font-face {
@@ -219,22 +219,17 @@ select:focus {
     src: url('/assets/fonts/Aptos-Italic.ttf') format('truetype');
     font-weight: 400;
     font-style: italic;
+    font-display: swap;
 }
 
-@font-face {
-    font-family: 'Aptos';
-    src: url('/assets/fonts/Aptos-Medium.ttf') format('truetype');
-    font-weight: 500;
-    /* Medium */
-    font-style: normal;
-}
+/* No Aptos-Medium.ttf exists — browser interpolates between 400 and 600 automatically */
 
 @font-face {
     font-family: 'Aptos';
     src: url('/assets/fonts/Aptos-SemiBold.ttf') format('truetype');
     font-weight: 600;
-    /* SemiBold */
     font-style: normal;
+    font-display: swap;
 }
 
 @font-face {
@@ -242,14 +237,15 @@ select:focus {
     src: url('/assets/fonts/Aptos-SemiBold-Italic.ttf') format('truetype');
     font-weight: 600;
     font-style: italic;
+    font-display: swap;
 }
 
 @font-face {
     font-family: 'Aptos';
     src: url('/assets/fonts/Aptos-Bold.ttf') format('truetype');
     font-weight: 700;
-    /* Bold */
     font-style: normal;
+    font-display: swap;
 }
 
 @font-face {
@@ -257,14 +253,15 @@ select:focus {
     src: url('/assets/fonts/Aptos-Bold-Italic.ttf') format('truetype');
     font-weight: 700;
     font-style: italic;
+    font-display: swap;
 }
 
 @font-face {
     font-family: 'Aptos';
     src: url('/assets/fonts/Aptos-ExtraBold.ttf') format('truetype');
     font-weight: 800;
-    /* ExtraBold */
     font-style: normal;
+    font-display: swap;
 }
 
 @font-face {
@@ -272,14 +269,15 @@ select:focus {
     src: url('/assets/fonts/Aptos-ExtraBold-Italic.ttf') format('truetype');
     font-weight: 800;
     font-style: italic;
+    font-display: swap;
 }
 
 @font-face {
     font-family: 'Aptos';
     src: url('/assets/fonts/Aptos-Black.ttf') format('truetype');
     font-weight: 900;
-    /* Black */
     font-style: normal;
+    font-display: swap;
 }
 
 @font-face {
@@ -287,6 +285,7 @@ select:focus {
     src: url('/assets/fonts/Aptos-Black-Italic.ttf') format('truetype');
     font-weight: 900;
     font-style: italic;
+    font-display: swap;
 }
 
 

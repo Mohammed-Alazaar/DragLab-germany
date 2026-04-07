@@ -1,41 +1,6 @@
 /* ── laboratory-glossary.css ── */
 
-/* Hero */
-.gloss-hero {
-    display: flex;
-    height: 55vh;
-    justify-content: center;
-    align-items: center;
-    background: linear-gradient(135deg, #0a1628 0%, #1a2e4a 60%, #0d3b6e 100%);
-}
-
-.gloss-hero-text {
-    text-align: center;
-    padding: 0 15%;
-}
-
-.gloss-hero-text h1 {
-    font-size: 2.8rem;
-    font-weight: 700;
-    color: #fff;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 0.8rem;
-}
-
-.gloss-hero-text p {
-    font-size: 1.2rem;
-    color: rgba(255,255,255,0.85);
-}
-
-@media (max-width: 768px) {
-    .gloss-hero { height: 35vh; }
-    .gloss-hero-text h1 { font-size: 1.6rem; }
-    .gloss-hero-text p { font-size: 1rem; }
-    .gloss-hero-text { padding: 0 5%; }
-}
-
-/* Search */
+/* ── Search ──────────────────────────────────────────── */
 .gloss-search-wrap {
     max-width: 700px;
     margin: 2.5rem auto 0;
@@ -55,11 +20,50 @@
 }
 
 .gloss-search-input:focus {
-    border-color: #0d3b6e;
-    box-shadow: 0 0 0 3px rgba(13,59,110,0.1);
+    border-color: var(--primary-Color);
+    box-shadow: 0 0 0 3px rgba(41,60,149,0.1);
 }
 
-/* Alphabet Nav */
+/* ── Category Filter ─────────────────────────────────── */
+.gloss-category-nav {
+    max-width: 1100px;
+    margin: 2rem auto 0;
+    padding: 0 2rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: center;
+}
+
+.gloss-cat-btn {
+    padding: 0.45rem 1.1rem;
+    border: 2px solid #d1d8e0;
+    border-radius: 50px;
+    background: #fff;
+    color: #2c3e50;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+
+.gloss-cat-btn:hover {
+    border-color: var(--primary-Color);
+    color: var(--primary-Color);
+}
+
+.gloss-cat-btn.active {
+    background: var(--primary-Color);
+    border-color: var(--primary-Color);
+    color: #fff;
+}
+
+@media (max-width: 768px) {
+    .gloss-category-nav { padding: 0 1rem; }
+}
+
+/* ── Alphabet Nav ────────────────────────────────────── */
 .gloss-alphabet-nav {
     max-width: 1100px;
     margin: 2rem auto 0;
@@ -89,8 +93,8 @@
 
 .gloss-alpha-btn:hover,
 .gloss-alpha-btn.has-terms {
-    border-color: #0d3b6e;
-    color: #0d3b6e;
+    border-color: var(--primary-Color);
+    color: var(--primary-Color);
 }
 
 .gloss-alpha-btn.disabled {
@@ -100,26 +104,24 @@
 }
 
 .gloss-alpha-btn.active {
-    background: #0d3b6e;
-    border-color: #0d3b6e;
+    background: var(--primary-Color);
+    border-color: var(--primary-Color);
     color: #fff;
 }
 
-/* Content */
+/* ── Content ─────────────────────────────────────────── */
 .gloss-content {
     max-width: 1100px;
     margin: 2.5rem auto 5rem;
     padding: 0 2rem;
 }
 
-.gloss-letter-group {
-    margin-bottom: 2.5rem;
-}
+.gloss-letter-group { margin-bottom: 2.5rem; }
 
 .gloss-letter-heading {
     font-size: 2rem;
     font-weight: 800;
-    color: #0d3b6e;
+    color: var(--primary-Color);
     margin-bottom: 1rem;
     padding-bottom: 0.5rem;
     border-bottom: 3px solid #c9a227;
@@ -148,22 +150,18 @@
 }
 
 .gloss-term-card:hover {
-    box-shadow: 0 6px 20px rgba(13,59,110,0.1);
+    box-shadow: 0 6px 20px rgba(41,60,149,0.1);
     transform: translateY(-2px);
 }
 
 .gloss-term-name {
     font-size: 1.05rem;
     font-weight: 700;
-    color: #0d3b6e;
+    color: var(--primary-Color);
     margin-bottom: 0.4rem;
 }
 
-.gloss-term-name a {
-    color: inherit;
-    text-decoration: none;
-}
-
+.gloss-term-name a { color: inherit; text-decoration: none; }
 .gloss-term-name a:hover { color: #c9a227; }
 
 .gloss-term-def {
@@ -172,7 +170,6 @@
     line-height: 1.6;
 }
 
-/* Empty */
 .gloss-empty {
     text-align: center;
     padding: 5rem 2rem;
@@ -182,25 +179,8 @@
 
 .gloss-term-card.hidden-by-search { display: none; }
 
-/* ── Glossary Term Detail ── */
-
-.gloss-detail-hero {
-    display: flex;
-    height: 45vh;
-    justify-content: center;
-    align-items: center;
-    background: linear-gradient(135deg, #0a1628 0%, #0d3b6e 100%);
-    text-align: center;
-    padding: 0 5%;
-}
-
-.gloss-detail-hero h1 {
-    font-size: 2.8rem;
-    font-weight: 700;
-    color: #fff;
-}
-
-.gloss-detail-hero .gloss-letter-badge {
+/* ── Glossary Term Detail ────────────────────────────── */
+.gloss-letter-badge {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -211,12 +191,7 @@
     font-size: 1.8rem;
     font-weight: 800;
     color: #fff;
-    margin-bottom: 1rem;
-}
-
-@media (max-width: 768px) {
-    .gloss-detail-hero { height: auto; padding: 3rem 1.5rem; }
-    .gloss-detail-hero h1 { font-size: 1.8rem; }
+    margin-bottom: 0.5rem;
 }
 
 .gloss-detail-wrapper {
@@ -229,7 +204,7 @@
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
-    color: #0d3b6e;
+    color: var(--primary-Color);
     font-weight: 600;
     text-decoration: none;
     margin-bottom: 2rem;
@@ -241,7 +216,7 @@
 
 .gloss-definition-box {
     background: #f0f4fa;
-    border-left: 4px solid #0d3b6e;
+    border-left: 4px solid var(--primary-Color);
     border-radius: 0 8px 8px 0;
     padding: 1.5rem 2rem;
     margin-bottom: 2rem;
@@ -250,14 +225,12 @@
     line-height: 1.7;
 }
 
-.gloss-detail-section {
-    margin-bottom: 2rem;
-}
+.gloss-detail-section { margin-bottom: 2rem; }
 
 .gloss-detail-section h2 {
     font-size: 1.2rem;
     font-weight: 700;
-    color: #0d3b6e;
+    color: var(--primary-Color);
     margin-bottom: 0.8rem;
     padding-bottom: 0.4rem;
     border-bottom: 2px solid #e4e8ef;
@@ -290,7 +263,7 @@
 .gloss-product-tag {
     padding: 0.4rem 1rem;
     background: #e8f0fa;
-    color: #0d3b6e;
+    color: var(--primary-Color);
     border-radius: 50px;
     font-size: 0.88rem;
     font-weight: 600;
@@ -299,7 +272,7 @@
 }
 
 .gloss-product-tag:hover {
-    background: #0d3b6e;
+    background: var(--primary-Color);
     color: #fff;
 }
 

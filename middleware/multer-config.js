@@ -35,9 +35,9 @@ const uploadFields = [
   { name: 'thumbnail', maxCount: 1 },
   { name: 'catalogFile', maxCount: 1 },
   { name: 'slideImage', maxCount: 1 },    // ✅ NEW
-  { name: 'introImage', maxCount: 1 }
-
-
+  { name: 'introImage', maxCount: 1 },
+  { name: 'testimonialImage', maxCount: 1 },
+  { name: 'testimonialLogo', maxCount: 1 }
 ];
 
 languages.forEach(lang => {

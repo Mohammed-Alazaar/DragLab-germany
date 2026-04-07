@@ -2032,7 +2032,7 @@ exports.getQualifications = (req, res, next) => {
 
     const t0 = Date.now();
 
-    res.render('customer/qualifications', {   // ✅ make sure file is: customer/qualifications.ejs
+    res.render('customer/Qualifications', {
         lang,
         pageTitle: content.pageTitle,
         metaDescription: content.metaDescription,

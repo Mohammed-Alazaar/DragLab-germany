@@ -15,6 +15,7 @@ const glossarySchema = new Schema({
   definition:  { type: String, required: true },
   description: { type: String },
   letter:      { type: String, maxlength: 1 },
+  category: { type: String, default: '' },
   relatedProducts: [{ type: String }],
   status: {
     type: String,

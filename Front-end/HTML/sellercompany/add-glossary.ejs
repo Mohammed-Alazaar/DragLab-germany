@@ -1,30 +1,51 @@
 <%- include('../../includes/sellercompany/head.ejs') %>
 <link rel="stylesheet" href="/css/sellercompany/all-technical-service.css">
+<link rel="stylesheet" href="/css/sellercompany/add-article.css">
 
 <style nonce="<%= nonce %>">
-  .form-card { background: #fff; border: 1px solid #dee2e6; border-radius: 8px; padding: 2rem; }
-  .form-group { margin-bottom: 1.1rem; display: flex; flex-direction: column; gap: 0.35rem; }
-  .form-group label { font-size: 0.87rem; font-weight: 700; color: #2c3e50; }
-  .form-group input, .form-group select, .form-group textarea {
-    padding: 0.6rem 0.9rem; border: 1.5px solid #dee2e6; border-radius: 6px; font-size: 0.93rem;
-    width: 100%; box-sizing: border-box; font-family: inherit; color: #2c3e50;
+  .form-card { background: #fff; border: 1px solid #dee2e6; border-radius: 8px; padding: 2rem; max-width: 860px; }
+  .form-group { margin-bottom: 1.2rem; display: flex; flex-direction: column; gap: 0.4rem; }
+  .form-group label { font-size: 0.88rem; font-weight: 700; color: #2c3e50; }
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    padding: 0.65rem 1rem; border: 1.5px solid #dee2e6; border-radius: 6px;
+    font-size: 0.95rem; width: 100%; box-sizing: border-box; font-family: inherit; color: #2c3e50;
   }
-  .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
-    outline: none; border-color: #0d3b6e;
+  .form-group input:focus,
+  .form-group select:focus,
+  .form-group textarea:focus {
+    outline: none; border-color: var(--primary-Color); box-shadow: 0 0 0 3px rgba(41,60,149,0.08);
   }
-  .form-group textarea { min-height: 100px; resize: vertical; }
+  .form-group textarea { min-height: 120px; resize: vertical; }
+  .form-hint { font-size: 0.78rem; color: #7f8c8d; font-weight: 400; }
   .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-  .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
-  @media (max-width: 700px) { .form-row, .form-row-3 { grid-template-columns: 1fr; } }
-  .lang-tabs { display: flex; gap: 0; margin-bottom: 1.5rem; border-bottom: 2px solid #dee2e6; }
-  .lang-tab { padding: 0.6rem 1.2rem; cursor: pointer; font-weight: 700; font-size: 0.88rem; color: #7f8c8d; border: none; background: none; border-bottom: 3px solid transparent; margin-bottom: -2px; }
-  .lang-tab.active { color: #0d3b6e; border-bottom-color: #0d3b6e; }
-  .lang-panel { display: none; }
-  .lang-panel.active { display: block; }
-  .section-heading { font-size: 1rem; font-weight: 700; color: #0d3b6e; margin: 1.5rem 0 0.8rem; padding-bottom: 0.3rem; border-bottom: 1px solid #e4e8ef; }
-  .submit-btn { padding: 0.75rem 2.5rem; background: #0d3b6e; color: #fff; border: none; border-radius: 6px; font-size: 1rem; font-weight: 700; cursor: pointer; margin-top: 1.5rem; }
-  .submit-btn:hover { background: #c9a227; }
-  .back-link { display: inline-block; margin-bottom: 1.5rem; color: #0d3b6e; font-weight: 600; text-decoration: none; }
+  @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
+
+  .shared-block {
+    background: #f4f6fb; border: 1px solid #dde3f0;
+    border-radius: 8px; padding: 1.2rem 1.4rem; margin-bottom: 1.8rem;
+  }
+  .shared-block-title {
+    font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.06em; color: var(--primary-Color);
+    margin: 0 0 1rem; padding-bottom: 0.45rem;
+    border-bottom: 2px solid var(--primary-Color);
+  }
+
+  .submit-btn {
+    padding: 0.75rem 2.5rem; background: var(--primary-Color); color: #fff;
+    border: none; border-radius: 6px; font-size: 1rem; font-weight: 700;
+    cursor: pointer; transition: background 0.2s;
+  }
+  .submit-btn:hover { background: #1e2e7a; }
+  .back-link { display: inline-block; margin-bottom: 1.5rem; color: var(--primary-Color); font-weight: 600; text-decoration: none; }
+  .back-link:hover { text-decoration: underline; }
+  .cancel-button { margin-left: 1rem; color: #6c757d; font-weight: 600; text-decoration: none; font-size: 0.95rem; }
+  .cancel-button:hover { color: #dc3545; }
+
+  .lang-tab-btn.active { background: var(--primary-Color) !important; color: #fff !important; }
+  .lang-tab-btn.active:hover { background: #1e2e7a !important; }
 </style>
 
 <body>
@@ -42,93 +63,178 @@
       <div class="form-card">
         <form action="<%= editing ? '/admin/glossary/edit/' + term._id : '/admin/glossary/add' %>" method="POST">
 
-          <!-- English / Master Fields -->
-          <div class="section-heading">Master Term (English)</div>
-          <div class="form-row">
-            <div class="form-group">
-              <label for="term">Term (English) <span style="color:#dc3545">*</span></label>
-              <input type="text" id="term" name="term" required
-                     value="<%= editing && term ? term.term : '' %>"
-                     placeholder="e.g. Incubation Temperature">
+          <!-- ── Shared Settings ───────────────────────────────────── -->
+          <div class="shared-block">
+            <p class="shared-block-title">Shared Settings</p>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="slug">Slug <span class="form-hint">(auto-generated from EN term if empty)</span></label>
+                <input type="text" id="slug" name="slug"
+                       value="<%= editing && term ? term.slug : '' %>">
+              </div>
+              <div class="form-group">
+                <label for="relatedProducts">Related Products <span class="form-hint">(comma-separated)</span></label>
+                <input type="text" id="relatedProducts" name="relatedProducts"
+                       value="<%= editing && term && term.relatedProducts ? term.relatedProducts.join(', ') : '' %>"
+                       placeholder="e.g. DI-120, WB-100">
+              </div>
             </div>
-            <div class="form-group">
-              <label for="slug">Slug (auto-generated if empty)</label>
-              <input type="text" id="slug" name="slug"
-                     value="<%= editing && term ? term.slug : '' %>">
-            </div>
-          </div>
-          <div class="form-group">
-            <label for="definition">Definition (English) <span style="color:#dc3545">*</span></label>
-            <textarea id="definition" name="definition" required><%= editing && term ? term.definition : '' %></textarea>
-          </div>
-          <div class="form-group">
-            <label for="description">Extended Description / Why It Matters (English)</label>
-            <textarea id="description" name="description"><%= editing && term ? term.description || '' : '' %></textarea>
-          </div>
-          <div class="form-row-3">
-            <div class="form-group">
-              <label for="status">Status</label>
-              <select id="status" name="status">
-                <option value="draft"     <%= (editing && term && term.status === 'draft')     ? 'selected' : '' %>>Draft</option>
-                <option value="published" <%= (editing && term && term.status === 'published') ? 'selected' : '' %>>Published</option>
+            <div class="form-group" style="margin-top:0.4rem;">
+              <label for="category">Category</label>
+              <select id="category" name="category">
+                <option value="">— No Category —</option>
+                <% categories.forEach(cat => { %>
+                <option value="<%= cat.slug %>"
+                  <%= (editing && term && term.category === cat.slug) ? 'selected' : '' %>>
+                  <%= cat.name %>
+                </option>
+                <% }) %>
               </select>
             </div>
           </div>
-          <div class="form-group">
-            <label for="relatedProducts">Related Products (comma-separated)</label>
-            <input type="text" id="relatedProducts" name="relatedProducts"
-                   value="<%= editing && term && term.relatedProducts ? term.relatedProducts.join(', ') : '' %>"
-                   placeholder="e.g. DI-120, WB-100">
-          </div>
 
-          <!-- Language Tabs for Translations -->
-          <div class="section-heading">Translations</div>
-          <div class="lang-tabs">
-            <% ['en','es','de','tr','fr'].forEach((l, idx) => { %>
-            <button type="button" class="lang-tab <%= idx === 0 ? 'active' : '' %>" data-tab="gloss-tab-<%= l %>"><%= l.toUpperCase() %></button>
-            <% }) %>
-          </div>
-
-          <% ['en','es','de','tr','fr'].forEach((l, idx) => {
-             const tr2 = (editing && term && term.translations && term.translations[l]) ? term.translations[l] : {};
+          <!-- ── Language Tabs ─────────────────────────────────────── -->
+          <%
+            const LANGS = [
+              { key: 'en', label: 'EN', name: 'English', master: true },
+              { key: 'es', label: 'ES', name: 'Spanish' },
+              { key: 'de', label: 'DE', name: 'German' },
+              { key: 'tr', label: 'TR', name: 'Turkish' },
+              { key: 'fr', label: 'FR', name: 'French' }
+            ];
           %>
-          <div class="lang-panel <%= idx === 0 ? 'active' : '' %>" id="gloss-tab-<%= l %>">
-            <div class="form-group">
-              <label>Term (<%= l.toUpperCase() %>)</label>
-              <input type="text" name="term_<%= l %>" value="<%= tr2.term || '' %>" placeholder="Translation of term">
+
+          <div class="lang-tabs-header">
+            <div class="lang-tabs">
+              <% LANGS.forEach((l, idx) => {
+                   let st;
+                   if (l.master) {
+                     st = (editing && term) ? (term.status || 'draft') : 'draft';
+                   } else {
+                     st = (editing && term && term.translations && term.translations[l.key])
+                          ? (term.translations[l.key].status || 'draft') : 'draft';
+                   }
+              %>
+              <button type="button"
+                  class="lang-tab-btn <%= idx === 0 ? 'active' : '' %>"
+                  data-lang="<%= l.key %>">
+                <% if (st === 'published') { %><span class="tab-dot dot-published"></span><% } %>
+                <%= l.label %> <span class="lang-full-name"><%= l.name %></span>
+              </button>
+              <% }) %>
             </div>
+          </div>
+
+          <% LANGS.forEach((l, idx) => {
+               const isMaster = l.master;
+               const t = isMaster
+                 ? { term: (editing && term) ? term.term : '', definition: (editing && term) ? term.definition : '', description: (editing && term) ? term.description || '' : '', status: (editing && term) ? term.status || 'draft' : 'draft' }
+                 : ((editing && term && term.translations) ? (term.translations[l.key] || {}) : {});
+          %>
+          <div id="tab-<%= l.key %>" class="lang-tab-content <%= idx === 0 ? 'active' : '' %>">
+
             <div class="form-group">
-              <label>Definition (<%= l.toUpperCase() %>)</label>
-              <textarea name="definition_<%= l %>"><%= tr2.definition || '' %></textarea>
+              <label>
+                Term (<%= l.name %>)<% if (isMaster) { %> <span style="color:#dc3545">*</span><% } %>
+              </label>
+              <input type="text"
+                     name="<%= isMaster ? 'term' : 'term_' + l.key %>"
+                     value="<%= t.term || '' %>"
+                     placeholder="<%= isMaster ? 'e.g. Incubation Temperature' : 'Translation of term' %>"
+                     <%= isMaster ? 'required' : '' %>>
             </div>
+
             <div class="form-group">
-              <label>Extended Description (<%= l.toUpperCase() %>)</label>
-              <textarea name="description_<%= l %>"><%= tr2.description || '' %></textarea>
+              <label>
+                Definition (<%= l.name %>)<% if (isMaster) { %> <span style="color:#dc3545">*</span><% } %>
+              </label>
+              <textarea name="<%= isMaster ? 'definition' : 'definition_' + l.key %>"
+                        <%= isMaster ? 'required' : '' %>><%= t.definition || '' %></textarea>
             </div>
+
             <div class="form-group">
-              <label>Status (<%= l.toUpperCase() %>)</label>
-              <select name="status_<%= l %>">
-                <option value="draft"     <%= (tr2.status === 'draft' || !tr2.status) ? 'selected' : '' %>>Draft</option>
-                <option value="published" <%= tr2.status === 'published'             ? 'selected' : '' %>>Published</option>
-              </select>
+              <label>Extended Description (<%= l.name %>) <span class="form-hint">(optional)</span></label>
+              <textarea name="<%= isMaster ? 'description' : 'description_' + l.key %>"><%= t.description || '' %></textarea>
             </div>
+
+            <div class="status-section">
+              <label>Publication status for <%= l.name %></label>
+              <input type="hidden" id="status_<%= l.key %>" name="<%= isMaster ? 'status' : 'status_' + l.key %>" value="<%= t.status || 'draft' %>">
+              <div class="status-buttons" id="status-btns-<%= l.key %>">
+                <button type="button" class="status-btn btn-draft <%= (t.status !== 'published') ? 'active' : '' %>"
+                    data-lang="<%= l.key %>" data-val="draft">Save as Draft</button>
+                <button type="button" class="status-btn btn-publish <%= t.status === 'published' ? 'active' : '' %>"
+                    data-lang="<%= l.key %>" data-val="published">Publish</button>
+              </div>
+            </div>
+
           </div>
           <% }) %>
 
-          <button type="submit" class="submit-btn"><%= editing ? 'Save Changes' : 'Add Term' %></button>
+          <div style="margin-top:1.5rem;">
+            <button type="submit" class="submit-btn"><%= editing ? 'Save Changes' : 'Add Term' %></button>
+            <a href="/admin/glossary" class="cancel-button">Cancel</a>
+          </div>
+
         </form>
       </div>
     </div>
   </section>
 
   <script nonce="<%= nonce %>">
-  (function() {
-    document.querySelectorAll('.lang-tab').forEach(function(tab) {
-      tab.addEventListener('click', function() {
-        document.querySelectorAll('.lang-tab').forEach(function(t) { t.classList.remove('active'); });
-        document.querySelectorAll('.lang-panel').forEach(function(p) { p.classList.remove('active'); });
+  (function () {
+    document.querySelectorAll('.lang-tab-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        document.querySelectorAll('.lang-tab-btn').forEach(function (b) { b.classList.remove('active'); });
+        document.querySelectorAll('.lang-tab-content').forEach(function (p) { p.classList.remove('active'); });
         this.classList.add('active');
-        document.getElementById(this.dataset.tab).classList.add('active');
+        var panel = document.getElementById('tab-' + this.dataset.lang);
+        if (panel) panel.classList.add('active');
+      });
+    });
+
+    document.querySelectorAll('.status-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var lang      = this.dataset.lang;
+        var val       = this.dataset.val;
+        var hidden    = document.getElementById('status_' + lang);
+        var container = document.getElementById('status-btns-' + lang);
+
+        if (val === 'published') {
+          var termName = lang === 'en' ? 'term' : 'term_' + lang;
+          var defName  = lang === 'en' ? 'definition' : 'definition_' + lang;
+          var q = (document.querySelector('[name="' + termName + '"]') || {}).value || '';
+          var a = (document.querySelector('[name="' + defName  + '"]') || {}).value || '';
+          var errId = 'pub-err-' + lang;
+          var existing = document.getElementById(errId);
+          if (existing) existing.remove();
+          if (!q.trim() || !a.trim()) {
+            var err = document.createElement('p');
+            err.id = errId;
+            err.style.cssText = 'color:#dc3545;font-size:0.82rem;margin:6px 0 0;font-weight:600;';
+            err.textContent = 'Cannot publish: ' + (!q.trim() && !a.trim() ? 'Term and Definition are' : !q.trim() ? 'Term is' : 'Definition is') + ' empty.';
+            container.after(err);
+            return;
+          }
+        } else {
+          var e = document.getElementById('pub-err-' + lang);
+          if (e) e.remove();
+        }
+
+        hidden.value = val;
+        container.querySelectorAll('.status-btn').forEach(function (b) { b.classList.remove('active'); });
+        this.classList.add('active');
+
+        var tabBtn = document.querySelector('.lang-tab-btn[data-lang="' + lang + '"]');
+        if (tabBtn) {
+          var dot = tabBtn.querySelector('.tab-dot');
+          if (dot) dot.remove();
+          if (val === 'published') {
+            var newDot = document.createElement('span');
+            newDot.className = 'tab-dot dot-published';
+            tabBtn.insertBefore(newDot, tabBtn.firstChild);
+          }
+        }
       });
     });
   })();

@@ -22,6 +22,7 @@
 %>
 
 <meta name="description" content="<%= pageDesc %>">
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
 
 <!-- Canonical & hreflang -->
 <link rel="canonical" href="<%= listUrl %>">
@@ -48,20 +49,58 @@
 <meta name="twitter:image" content="https://www.drag-lab.de/assets/Imgs/Icons/products/ArticlesBg.webp">
 
 <link rel="stylesheet" href="/css/customer/Articles.css">
+
+<!-- CollectionPage schema -->
 <script type="application/ld+json" nonce="<%= nonce %>">
 <%- JSON.stringify({
   "@context": "https://schema.org",
   "@type": "CollectionPage",
+  "@id": listUrl,
   "name": pageTitle,
   "description": pageDesc,
   "url": listUrl,
   "inLanguage": (lang || 'EN').toLowerCase(),
-  "publisher": { "@type": "Organization", "name": "DragLab", "url": "https://www.drag-lab.de/" },
-  "hasPart": (articles || []).slice(0, 10).map(a => ({
-    "@type": "Article",
-    "name": a.title || '',
-    "url": `https://www.drag-lab.de/${lang}/articles/${a.slug || ''}`
-  }))
+  "isPartOf": { "@type": "WebSite", "@id": "https://www.drag-lab.de/#website", "name": "DragLab", "url": "https://www.drag-lab.de/" },
+  "publisher": {
+    "@type": "Organization",
+    "name": "DragLab",
+    "url": "https://www.drag-lab.de/",
+    "logo": { "@type": "ImageObject", "url": "https://www.drag-lab.de/assets/Imgs/logo/logo.png" }
+  },
+  "hasPart": (articles || []).slice(0, 20).map(function(a) {
+    const thumb = (a.thumbnail && a.thumbnail.startsWith('http'))
+      ? a.thumbnail : (a.thumbnail ? 'https://www.drag-lab.de' + a.thumbnail : null);
+    return {
+      "@type": "Article",
+      "name": a.title || '',
+      "url": 'https://www.drag-lab.de/' + lang + '/articles/' + (a.slug || ''),
+      "image": thumb || undefined,
+      "datePublished": a.createdAt ? new Date(a.createdAt).toISOString() : undefined,
+      "description": (a.summary && a.summary.trim()) ? a.summary.trim().slice(0, 160) : toText(a.body).slice(0, 160),
+      "author": a.author ? { "@type": "Person", "name": a.author } : undefined,
+      "articleSection": a.category || undefined,
+      "keywords": (a.tags && a.tags.length) ? a.tags.join(', ') : undefined
+    };
+  })
+}) %>
+</script>
+
+<!-- ItemList for Google Discover & AI -->
+<script type="application/ld+json" nonce="<%= nonce %>">
+<%- JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "name": pageTitle,
+  "url": listUrl,
+  "numberOfItems": (articles || []).length,
+  "itemListElement": (articles || []).map(function(a, idx) {
+    return {
+      "@type": "ListItem",
+      "position": idx + 1,
+      "url": 'https://www.drag-lab.de/' + lang + '/articles/' + (a.slug || ''),
+      "name": a.title || ''
+    };
+  })
 }) %>
 </script>
 </head>
@@ -125,31 +164,15 @@
     <% } %>
   </div>
 
-  <!-- Breadcrumb JSON-LD for the listing page -->
-  <script type="application/ld+json" nonce="<%= nonce %>">
-  <%- JSON.stringify({
-    "@context":"https://schema.org",
-    "@type":"BreadcrumbList",
-    "itemListElement":[
-      {"@type":"ListItem","position":1,"name": (lang==='EN'?'Home':lang==='ES'?'Inicio':'Startseite'), "item":"https://www.drag-lab.de/"+lang+"/"},
-      {"@type":"ListItem","position":2,"name": (lang==='EN'?'Articles':lang==='ES'?'Artículos':'Artikel'), "item": listUrl}
-    ]
-  }) %>
-  </script>
-
-  <!-- Optional: ItemList (helps Google understand this is a list of articles) -->
+  <!-- Breadcrumb JSON-LD -->
   <script type="application/ld+json" nonce="<%= nonce %>">
   <%- JSON.stringify({
     "@context": "https://schema.org",
-    "@type": "ItemList",
-    "itemListElement": (articles || []).map(function(a, idx){
-      return {
-        "@type": "ListItem",
-        "position": idx + 1,
-        "url": "https://www.drag-lab.de/" + lang + "/articles/" + a.slug,
-        "name": a.title
-      };
-    })
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": (lang==='EN'?'Home':lang==='ES'?'Inicio':lang==='TR'?'Ana Sayfa':lang==='FR'?'Accueil':'Startseite'), "item": "https://www.drag-lab.de/" + lang + "/" },
+      { "@type": "ListItem", "position": 2, "name": (lang==='EN'?'Articles':lang==='ES'?'Artículos':lang==='TR'?'Makaleler':lang==='FR'?'Articles':'Artikel'), "item": listUrl }
+    ]
   }) %>
   </script>
 

@@ -50,6 +50,7 @@
     <h1><%= heroTitle %></h1>
     <p><%= heroSub %></p>
   </div>
+  <img src="/assets/Imgs/Icons/products/contactus-BC.png" alt="" class="kb-hero-bg">
 </div>
 
 <!-- Search Bar -->
@@ -59,11 +60,33 @@
 
 <!-- Category Tabs -->
 <nav class="kb-tabs" aria-label="FAQ Categories">
-  <% categories.forEach(cat => { %>
-  <a href="/<%= lang %>/knowledge-base<%= cat !== 'All' ? '?category=' + cat : '' %>"
-     class="kb-tab-btn <%= activeCategory === cat ? 'active' : '' %>"><%= cat %></a>
+  <% categories.forEach(cat => {
+       const catParam = cat !== 'All' ? 'category=' + encodeURIComponent(cat) : '';
+       const prodParam = activeProduct ? 'product=' + encodeURIComponent(activeProduct) : '';
+       const params = [catParam, prodParam].filter(Boolean).join('&');
+       const href = '/' + lang + '/knowledge-base' + (params ? '?' + params : '');
+  %>
+  <a href="<%= href %>" class="kb-tab-btn <%= activeCategory === cat ? 'active' : '' %>"><%= cat %></a>
   <% }) %>
 </nav>
+
+<% if (filterProducts && filterProducts.length > 0) { %>
+<!-- Product Filter -->
+<div class="kb-product-filter-wrap">
+  <span class="kb-filter-label">🔬</span>
+  <nav class="kb-product-tabs" aria-label="Filter by Product">
+    <% const catParam0 = activeCategory !== 'All' ? 'category=' + encodeURIComponent(activeCategory) : ''; %>
+    <a href="/<%= lang %>/knowledge-base<%= catParam0 ? '?' + catParam0 : '' %>"
+       class="kb-product-btn <%= !activeProduct ? 'active' : '' %>"><%= filterByProduct %></a>
+    <% filterProducts.forEach(function(p) {
+         const catPart = activeCategory !== 'All' ? 'category=' + encodeURIComponent(activeCategory) + '&' : '';
+         const pUrl = '/' + lang + '/knowledge-base?' + catPart + 'product=' + encodeURIComponent(p.id);
+    %>
+    <a href="<%= pUrl %>" class="kb-product-btn <%= activeProduct === p.id ? 'active' : '' %>"><%= p.name %></a>
+    <% }) %>
+  </nav>
+</div>
+<% } %>
 
 <!-- FAQ Content -->
 <div class="kb-content">
@@ -79,7 +102,7 @@
       <div class="kb-faq-item" data-question="<%= faq.question.toLowerCase() %>" data-answer="<%= faq.answer.toLowerCase() %>">
         <button class="kb-faq-question" aria-expanded="false" aria-controls="answer-<%= faq._id %>">
           <%= faq.question %>
-          <span class="kb-faq-arrow" aria-hidden="true">&#9660;</span>
+          <img src="/assets/Imgs/Icons/Down-arrow-blue.png" alt="" class="kb-faq-arrow" aria-hidden="true">
         </button>
         <div class="kb-faq-answer" id="answer-<%= faq._id %>" role="region">
           <%- faq.answer %>

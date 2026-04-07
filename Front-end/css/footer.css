@@ -38,7 +38,7 @@
     flex: 1 1 150px;
 }
 
-.footer-column h4 {
+.footer-column h3 {
     font-size: 22px;
     font-weight: bold;
     color: var(--primary-Color);
@@ -100,6 +100,15 @@
     margin: 0 5px;
     font-size: 18px;
     color: #000;
+}
+
+.footer-social a img {
+    object-fit: contain;
+    transition: transform 0.2s ease;
+}
+
+.footer-social a:hover img {
+    transform: scale(1.15);
 }
 
 .footer-social a:hover {

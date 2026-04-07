@@ -7,25 +7,34 @@ const router = express.Router();
 const SITE = 'https://www.drag-lab.de';
 const ALL_LANGS = ['EN', 'ES', 'DE', 'TR', 'FR'];
 
-// Static pages (same for every language)
+// Maps sitemap lang code → translations key
+const LANG_KEY = { EN: 'en', ES: 'es', DE: 'de', TR: 'tr', FR: 'fr' };
+
 const STATIC_PAGES = [
-  { path: '/',                    changefreq: 'weekly',  priority: '1.0' },
-  { path: '/aboutus',             changefreq: 'weekly',  priority: '0.9' },
-  { path: '/technical-service',   changefreq: 'weekly',  priority: '0.9' },
-  { path: '/Articles',            changefreq: 'weekly',  priority: '0.8' },
-  { path: '/support',             changefreq: 'weekly',  priority: '0.9' },
-  { path: '/Downloads',           changefreq: 'weekly',  priority: '0.8' },
-  { path: '/Industry',            changefreq: 'weekly',  priority: '0.8' },
-  { path: '/Qualifications',      changefreq: 'monthly', priority: '0.7' },
-  { path: '/QualityPolicy',       changefreq: 'monthly', priority: '0.6' },
-  { path: '/SustainabilityPolicy',changefreq: 'monthly', priority: '0.6' },
-  { path: '/CodeofEthics',        changefreq: 'monthly', priority: '0.6' },
-  { path: '/WarrantyRegistration',changefreq: 'monthly', priority: '0.6' },
-  { path: '/TermCondition',       changefreq: 'monthly', priority: '0.5' },
-  { path: '/PrivacyPolicy',       changefreq: 'monthly', priority: '0.5' },
-  { path: '/DataProtection',      changefreq: 'monthly', priority: '0.5' },
-  { path: '/imprint',             changefreq: 'monthly', priority: '0.5' },
-  { path: '/licenses',            changefreq: 'monthly', priority: '0.5' },
+  { path: '/',                      changefreq: 'weekly',  priority: '1.0' },
+  { path: '/aboutus',               changefreq: 'weekly',  priority: '0.9' },
+  { path: '/technical-service',     changefreq: 'weekly',  priority: '0.9' },
+  { path: '/Articles',              changefreq: 'weekly',  priority: '0.8' },
+  { path: '/support',               changefreq: 'weekly',  priority: '0.9' },
+  { path: '/Downloads',             changefreq: 'weekly',  priority: '0.8' },
+  { path: '/Industry',              changefreq: 'weekly',  priority: '0.8' },
+  { path: '/Contactus',             changefreq: 'monthly', priority: '0.8' },
+  { path: '/become-a-distributor',  changefreq: 'monthly', priority: '0.8' },
+  { path: '/request-a-quote',       changefreq: 'monthly', priority: '0.8' },
+  { path: '/knowledge-base',        changefreq: 'weekly',  priority: '0.7' },
+  { path: '/case-studies',          changefreq: 'weekly',  priority: '0.7' },
+  { path: '/laboratory-glossary',   changefreq: 'weekly',  priority: '0.7' },
+  { path: '/testimonials',          changefreq: 'monthly', priority: '0.6' },
+  { path: '/Qualifications',        changefreq: 'monthly', priority: '0.7' },
+  { path: '/QualityPolicy',         changefreq: 'monthly', priority: '0.6' },
+  { path: '/SustainabilityPolicy',  changefreq: 'monthly', priority: '0.6' },
+  { path: '/CodeofEthics',          changefreq: 'monthly', priority: '0.6' },
+  { path: '/WarrantyRegistration',  changefreq: 'monthly', priority: '0.6' },
+  { path: '/TermCondition',         changefreq: 'monthly', priority: '0.5' },
+  { path: '/PrivacyPolicy',         changefreq: 'monthly', priority: '0.5' },
+  { path: '/DataProtection',        changefreq: 'monthly', priority: '0.5' },
+  { path: '/imprint',               changefreq: 'monthly', priority: '0.5' },
+  { path: '/licenses',              changefreq: 'monthly', priority: '0.5' },
 ];
 
 function escXml(str) {
@@ -49,7 +58,7 @@ function urlEntry(loc, lastmod, changefreq, priority) {
   return `  <url>\n    <loc>${escXml(loc)}</loc>${lastmodTag}\n    <changefreq>${changefreq}</changefreq>\n    <priority>${priority}</priority>\n  </url>`;
 }
 
-// Sitemap index — references all sub-sitemaps
+// Sitemap index
 router.get('/sitemap.xml', (req, res) => {
   const now = new Date().toISOString().split('T')[0];
   const sitemaps = ['sitemap-pages.xml', 'sitemap-products.xml', 'sitemap-articles.xml', 'sitemap-industry.xml'];
@@ -61,7 +70,7 @@ ${sitemaps.map(s => `  <sitemap>\n    <loc>${SITE}/${s}</loc>\n    <lastmod>${no
   res.send(xml);
 });
 
-// Static pages sitemap — generated dynamically from STATIC_PAGES list
+// Static pages sitemap
 router.get('/sitemap-pages.xml', (req, res) => {
   const entries = [];
   for (const lang of ALL_LANGS) {
@@ -73,7 +82,7 @@ router.get('/sitemap-pages.xml', (req, res) => {
   res.send(buildUrlset(entries));
 });
 
-// Dynamic products + models sitemap
+// Products + models sitemap
 router.get('/sitemap-products.xml', async (req, res) => {
   try {
     const products = await Product.find({})
@@ -84,7 +93,7 @@ router.get('/sitemap-products.xml', async (req, res) => {
 
     for (const p of products) {
       if (!p.slug) continue;
-      const lastmod = p.updatedAt || p.createdAt
+      const lastmod = (p.updatedAt || p.createdAt)
         ? new Date(p.updatedAt || p.createdAt).toISOString().split('T')[0]
         : null;
 
@@ -110,23 +119,28 @@ router.get('/sitemap-products.xml', async (req, res) => {
   }
 });
 
-// Dynamic articles sitemap
+// Articles sitemap — queries translations.{lang}.slug + status per language
 router.get('/sitemap-articles.xml', async (req, res) => {
   try {
-    const articles = await Article.find({})
-      .select('slug language createdAt updatedAt')
-      .sort({ updatedAt: -1 })
+    const articles = await Article.find({
+      $or: ALL_LANGS.map(l => ({
+        [`translations.${LANG_KEY[l]}.status`]: 'published'
+      }))
+    })
+      .select('translations createdAt updatedAt')
       .lean();
 
     const entries = [];
+
     for (const a of articles) {
-      const langs = (a.language === 'ALL') ? ALL_LANGS : [a.language];
       const lastmod = (a.updatedAt || a.createdAt)
         ? new Date(a.updatedAt || a.createdAt).toISOString().split('T')[0]
         : null;
 
-      for (const l of langs) {
-        entries.push(urlEntry(`${SITE}/${l}/articles/${a.slug}`, lastmod, 'monthly', '0.7'));
+      for (const lang of ALL_LANGS) {
+        const t = a.translations?.[LANG_KEY[lang]];
+        if (!t || t.status !== 'published' || !t.slug) continue;
+        entries.push(urlEntry(`${SITE}/${lang}/articles/${t.slug}`, lastmod, 'monthly', '0.7'));
       }
     }
 
@@ -138,7 +152,7 @@ router.get('/sitemap-articles.xml', async (req, res) => {
   }
 });
 
-// Dynamic industry pages sitemap
+// Industry pages sitemap
 router.get('/sitemap-industry.xml', async (req, res) => {
   try {
     const pages = await IndustryPage.find({})
@@ -148,7 +162,7 @@ router.get('/sitemap-industry.xml', async (req, res) => {
     const entries = [];
     for (const page of pages) {
       if (!page.slug) continue;
-      const lastmod = page.updatedAt || page.createdAt
+      const lastmod = (page.updatedAt || page.createdAt)
         ? new Date(page.updatedAt || page.createdAt).toISOString().split('T')[0]
         : null;
 

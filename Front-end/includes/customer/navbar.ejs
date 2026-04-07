@@ -3,12 +3,12 @@
         %>
 
 
-        <div id="cc--main" role="dialog" aria-hidden="true" data-nosnippet></div>
+        <div id="cc--main" role="dialog" aria-label="Cookie preferences" aria-hidden="true" data-nosnippet></div>
 
         <div class="navbarContainer">
             <div class="navright">
                 <a href="/">
-                    <img src="/assets/Imgs/logo/DragLab-Logo.png" alt="DragLab Logo">
+                    <img src="/assets/Imgs/logo/DragLab-Logo.png" alt="DragLab Logo" width="180" height="50">
                 </a>
             </div>
 
@@ -20,10 +20,10 @@
                         <li class="dropdown">
                             <p>
                                 <%= lang==='DE' ? 'Unternehmen' : lang==='ES' ? 'Empresa' : lang==='TR' ? 'Şirket' : lang==='FR' ? 'Société' : 'Company' %>
-                                    <img src="/assets/Imgs/Icons/Down-arrow-blue.png" alt="Down arrow">
+                                    <img src="/assets/Imgs/Icons/Down-arrow-blue.png" alt="" width="12" height="8" aria-hidden="true">
                             </p>
                             <ul class="dropdown-menu">
-                                <li><a href="/aboutus">&#8226; <%= lang==='DE' ? 'Über Uns' : lang==='ES'
+                                <li><a href="/<%= lang %>/aboutus">&#8226; <%= lang==='DE' ? 'Über Uns' : lang==='ES'
                                             ? 'Sobre Nosotros' : lang==='TR' ? 'Hakkımızda' : lang==='FR' ? 'À Propos' : 'About Us' %></a></li>
                                 <li><a href="/<%= lang %>/QualityPolicy">&#8226; <%= lang==='DE' ? 'Qualitätspolitik' :
                                             lang==='ES' ? 'Política de Calidad' : lang==='TR' ? 'Kalite Politikası' : lang==='FR' ? 'Politique de Qualité' : 'Quality Policy' %></a></li>
@@ -35,8 +35,7 @@
                                 <li><a href="/<%= lang %>/PrivacyPolicy">&#8226; <%= lang==='DE'
                                             ? 'Datenschutzerklärung' : lang==='ES' ? 'Política de Privacidad'
                                             : lang==='TR' ? 'Gizlilik Politikası' : lang==='FR' ? 'Politique de Confidentialité' : 'Privacy Policy' %></a></li>
-
-                              
+                                <li><a href="/<%= lang %>/testimonials">&#8226; <%= lang==='DE' ? 'Referenzen' : lang==='ES' ? 'Testimonios' : lang==='TR' ? 'Referanslar' : lang==='FR' ? 'Témoignages' : 'Testimonials' %></a></li>
 
                             </ul>
                         </li>
@@ -44,7 +43,7 @@
                         <li class="dropdown">
                             <p>
                                 <%= lang==='DE' ? 'Produkte' : lang==='ES' ? 'Productos' : lang==='TR' ? 'Ürünler' : lang==='FR' ? 'Produits' : 'Products' %>
-                                    <img src="/assets/Imgs/Icons/Down-arrow-blue.png" alt="Down arrow">
+                                    <img src="/assets/Imgs/Icons/Down-arrow-blue.png" alt="" width="12" height="8" aria-hidden="true">
                             </p>
                             <ul class="dropdown-menu dropdown-menu-products">
                                 <div class="ProductsDivContainer">
@@ -115,7 +114,7 @@
                                     </div>
 
                                     <div class="productImgContainer">
-                                        <img src="" alt="waterBath">
+                                        <img src="" alt="" aria-hidden="true">
                                     </div>
                                 </div>
                             </ul>
@@ -125,14 +124,14 @@
                         <li class="dropdown">
                             <p>
                                 <%= lang==='DE' ? 'Dienstleistungen' : lang==='ES' ? 'Servicios' : lang==='TR' ? 'Hizmetler' : lang==='FR' ? 'Services' : 'Services' %>
-                                    <img src="/assets/Imgs/Icons/Down-arrow-blue.png" alt="Down arrow">
+                                    <img src="/assets/Imgs/Icons/Down-arrow-blue.png" alt="" width="12" height="8" aria-hidden="true">
                             </p>
                             <ul class="dropdown-menu">
                                 <li><a href="/<%= lang %>/support">&#8226; <%= lang==='DE' ? 'Support' : lang==='ES'
                                             ? 'Soporte' : lang==='TR' ? 'Destek' : lang==='FR' ? 'Soutien' : 'Support' %></a></li>
                                 <li><a href="/<%= lang %>/Downloads">&#8226; <%= lang==='DE' ? 'Downloads' : lang==='ES'
                                             ? 'Descargas' : lang==='TR' ? 'İndirmeler' : lang==='FR' ? 'Téléchargements' : 'Downloads' %></a></li>
-                                <li><a href="/industry">&#8226; <%= lang==='DE' ? 'Branche & Anwendungen' : lang==='ES'
+                                <li><a href="/<%= lang %>/Industry">&#8226; <%= lang==='DE' ? 'Branche & Anwendungen' : lang==='ES'
                                             ? 'Industria & Aplicaciones' : lang==='TR' ? 'Sektörler & Uygulamalar' : lang==='FR' ? 'Industries & Applications' : 'Industries & Applications' %></a></li>
                                 <li><a href="/<%= lang %>/technical-service">&#8226; <%= lang==='DE'
                                             ? 'Technischer Service' : lang==='ES' ? 'Servicio Técnico'
@@ -140,9 +139,9 @@
                                 <li><a href="/<%= lang %>/WarrantyRegistration">&#8226; <%= lang==='DE'
                                             ? 'Garantieregistrierung' : lang==='ES' ? 'Registro de Garantía'
                                             : lang==='TR' ? 'Garanti Kaydı' : lang==='FR' ? 'Enregistrement de Garantie' : 'Warranty Registration' %></a></li>
-                                <li><a href="/TermCondition">&#8226; <%= lang==='DE' ? 'AGB' : lang==='ES'
+                                <li><a href="/<%= lang %>/TermCondition">&#8226; <%= lang==='DE' ? 'AGB' : lang==='ES'
                                             ? 'Términos y Condiciones' : lang==='TR' ? 'Şartlar ve Koşullar' : lang==='FR' ? 'Conditions Générales' : 'Terms & Condition' %></a></li>
-
+                                <li><a href="/<%= lang %>/knowledge-base">&#8226; <%= lang==='DE' ? 'Wissensdatenbank' : lang==='ES' ? 'Base de Conocimiento' : lang==='TR' ? 'Bilgi Tabanı' : lang==='FR' ? 'Base de Connaissances' : 'Knowledge Base' %></a></li>
 
                             </ul>
 
@@ -150,16 +149,24 @@
                         <li><a href="/<%= lang %>/Articles">
                                 <%= lang==='DE' ? 'Artikel' : lang==='ES' ? 'Artículos' : lang==='TR' ? 'Makaleler' : lang==='FR' ? 'Articles' : 'Articles' %>
                             </a></li>
-                        <li><a href="/<%= lang %>/Contactus">
-                                <%= lang==='DE' ? 'Kontakt' : lang==='ES' ? 'Contáctanos' : lang==='TR' ? 'İletişim' : lang==='FR' ? 'Contactez-nous' : 'Contact Us' %>
-                            </a></li>
+                        <li class="dropdown">
+                            <p>
+                                <%= lang==='DE' ? 'Kontakt' : lang==='ES' ? 'Contacto' : lang==='TR' ? 'İletişim' : lang==='FR' ? 'Contact' : 'Contact' %>
+                                <img src="/assets/Imgs/Icons/Down-arrow-blue.png" alt="" width="12" height="8" aria-hidden="true">
+                            </p>
+                            <ul class="dropdown-menu">
+                                <li><a href="/<%= lang %>/Contactus">&#8226; <%= lang==='DE' ? 'Kontaktiere uns' : lang==='ES' ? 'Contáctanos' : lang==='TR' ? 'Bize Ulaşın' : lang==='FR' ? 'Nous Contacter' : 'Contact Us' %></a></li>
+                                <li><a href="/<%= lang %>/request-a-quote">&#8226; <%= lang==='DE' ? 'Angebot anfragen' : lang==='ES' ? 'Solicitar Cotización' : lang==='TR' ? 'Teklif Al' : lang==='FR' ? 'Demander un Devis' : 'Request a Quote' %></a></li>
+                                <li><a href="/<%= lang %>/become-a-distributor">&#8226; <%= lang==='DE' ? 'Distributor werden' : lang==='ES' ? 'Ser distribuidor' : lang==='TR' ? 'Distribütör Ol' : lang==='FR' ? 'Devenir distributeur' : 'Become a Distributor' %></a></li>
+                            </ul>
+                        </li>
 
                     </ul>
                 </div>
             </div>
             <div id="languageSwitcher" class="language-switcher">
                 <button type="button" class="lang-toggle" id="currentLangBtn"><span id="currentLangName">Language</span>
-                    <img src="/assets/Imgs/Icons/Down-arrow-blue.png" alt="Down arrow"></button>
+                    <img src="/assets/Imgs/Icons/Down-arrow-blue.png" alt="" width="12" height="8" aria-hidden="true"></button>
                 <ul class="lang-options">
                     <li><button type="button" data-lang="EN">English</button></li>
                     <li><button type="button" data-lang="ES">Español</button></li>
@@ -174,14 +181,14 @@
             <li class="dropdown language-dropdown-mobile">
                 <p>
                     <%= lang==='DE' ? 'Sprache' : lang==='ES' ? 'Idioma' : 'Language' %>
-                        <img src="/assets/Imgs/Icons/Down-arrow-blue.png" alt="Down arrow">
+                        <img src="/assets/Imgs/Icons/Down-arrow-blue.png" alt="" width="12" height="8" aria-hidden="true">
                 </p>
                 <ul class="dropdown-menu">
-                    <li><a href="javascript:void(0)" onclick="changeLanguage('EN')">&#8226; English</a></li>
-                    <li><a href="javascript:void(0)" onclick="changeLanguage('ES')">&#8226; Español</a></li>
-                    <li><a href="javascript:void(0)" onclick="changeLanguage('DE')">&#8226; Deutsch</a></li>
-                    <li><a href="javascript:void(0)" onclick="changeLanguage('TR')">&#8226; Türkçe</a></li>
-                    <li><a href="javascript:void(0)" onclick="changeLanguage('FR')">&#8226; Français</a></li>
+                    <li><a href="/EN" onclick="changeLanguage('EN'); return false;">&#8226; English</a></li>
+                    <li><a href="/ES" onclick="changeLanguage('ES'); return false;">&#8226; Español</a></li>
+                    <li><a href="/DE" onclick="changeLanguage('DE'); return false;">&#8226; Deutsch</a></li>
+                    <li><a href="/TR" onclick="changeLanguage('TR'); return false;">&#8226; Türkçe</a></li>
+                    <li><a href="/FR" onclick="changeLanguage('FR'); return false;">&#8226; Français</a></li>
                 </ul>
             </li>
 
@@ -216,7 +223,7 @@
             <!-- Main Menu -->
             <div class="menu-page active" id="mainMenu">
                 <div class="top-bar">
-                    <img src="/assets/Imgs/logo/DragLab-Logo.png" class="logo" alt="DragLab Logo" />
+                    <img src="/assets/Imgs/logo/DragLab-Logo.png" class="logo" alt="DragLab Logo" width="180" height="50" />
                    
                     <span class="close-menu">&#10005;</span>
                 </div>
@@ -229,7 +236,7 @@
                 <ul class="main-links">
                     <li data-goto-page="companyPage">
                         <%= lang==='DE' ? 'Unternehmen' : lang==='ES' ? 'Empresa' : lang==='TR' ? 'Şirket' : lang==='FR' ? 'Société' : 'Company' %>
-                            <img src="/assets/Imgs/Icons/Down-arrow-blue.png" alt="Down arrow">
+                            <img src="/assets/Imgs/Icons/Down-arrow-blue.png" alt="" width="12" height="8" aria-hidden="true">
                     </li>
                     <li data-goto-page="productPage">
                         <%= lang==='DE' ? 'Produkte' : lang==='ES' ? 'Productos' : lang==='TR' ? 'Ürünler' : lang==='FR' ? 'Produits' : 'Products' %>
@@ -242,9 +249,10 @@
                     <li><a href="/<%= lang %>/Articles">
                             <%= lang==='DE' ? 'Artikel' : lang==='ES' ? 'Artículos' : lang==='TR' ? 'Makaleler' : lang==='FR' ? 'Articles' : 'Articles' %>
                         </a></li>
-                    <li><a href="/<%= lang %>/Contactus">
-                            <%= lang==='DE' ? 'Kontakt' : lang==='ES' ? 'Contáctanos' : lang==='TR' ? 'İletişim' : lang==='FR' ? 'Contactez-nous' : 'Contact Us' %>
-                        </a></li>
+                    <li data-goto-page="contactPage">
+                        <%= lang==='DE' ? 'Kontakt' : lang==='ES' ? 'Contacto' : lang==='TR' ? 'İletişim' : lang==='FR' ? 'Contact' : 'Contact' %>
+                        <img src="/assets/Imgs/Icons/Down-arrow-blue.png" alt="" width="12" height="8" aria-hidden="true">
+                    </li>
                     <li class="mobile-quote-li">
                         <a href="/<%= lang %>/request-a-quote" class="mobile-quote-btn" id="navQuoteBtnMobile">
                             <%= lang==='DE' ? 'Angebot anfragen' : lang==='ES' ? 'Solicitar Cotización' : lang==='TR' ? 'Teklif Al' : lang==='FR' ? 'Demander un Devis' : 'Request a Quote' %>
@@ -290,6 +298,9 @@
                     <li><a href="/<%= lang %>/PrivacyPolicy">
                             <%= lang==='DE' ? 'Datenschutzerklärung' : lang==='ES' ? 'Política de Privacidad'
                                 : lang==='TR' ? 'Gizlilik Politikası' : lang==='FR' ? 'Politique de Confidentialité' : 'Privacy Policy' %>
+                        </a></li>
+                    <li><a href="/<%= lang %>/testimonials">
+                            <%= lang==='DE' ? 'Referenzen' : lang==='ES' ? 'Testimonios' : lang==='TR' ? 'Referanslar' : lang==='FR' ? 'Témoignages' : 'Testimonials' %>
                         </a></li>
                 </ul>
             </div>
@@ -384,7 +395,7 @@
                             <li><a href="/<%= lang %>/Downloads">
                                     <%= lang==='DE' ? 'Downloads' : lang==='ES' ? 'Descargas' : lang==='TR' ? 'İndirmeler' : lang==='FR' ? 'Téléchargements' : 'Downloads' %>
                                 </a></li>
-                            <li><a href="/industry">
+                            <li><a href="/<%= lang %>/Industry">
                                     <%= lang==='DE' ? 'Branche & Anwendungen' : lang==='ES' ? 'Industria & Aplicaciones'
                                         : lang==='TR' ? 'Sektör & Uygulamalar' : lang==='FR' ? 'Industries & Applications' : 'Industries & Applications' %>
                                 </a></li>
@@ -396,15 +407,38 @@
                                     <%= lang==='DE' ? 'Garantieregistrierung' : lang==='ES' ? 'Registro de Garantía'
                                         : lang==='TR' ? 'Garanti Kaydı' : lang==='FR' ? 'Enregistrement de Garantie' : 'Warranty Registration' %>
                                 </a></li>
-                            <li><a href="/TermCondition">
+                            <li><a href="/<%= lang %>/TermCondition">
                                     <%= lang==='DE' ? 'AGB' : lang==='ES' ? 'Términos y Condiciones'
                                         : lang==='TR' ? 'Şartlar ve Koşullar' : lang==='FR' ? 'Conditions Générales' : 'Terms & Condition' %>
                                 </a></li>
-
-
+                            <li><a href="/<%= lang %>/knowledge-base">
+                                    <%= lang==='DE' ? 'Wissensdatenbank' : lang==='ES' ? 'Base de Conocimiento' : lang==='TR' ? 'Bilgi Tabanı' : lang==='FR' ? 'Base de Connaissances' : 'Knowledge Base' %>
+                                </a></li>
 
                         </ul>
                     </div>
+                    <!-- Contact Submenu -->
+                    <div class="menu-page" id="contactPage">
+                        <div class="top-bar">
+                            <span class="back" data-go-back-parent><img src="/assets/Imgs/Icons/backarrow.png" alt=""></span>
+                            <span class="page-title">
+                                <%= lang==='DE' ? 'Kontakt' : lang==='ES' ? 'Contacto' : lang==='TR' ? 'İletişim' : lang==='FR' ? 'Contact' : 'Contact' %>
+                            </span>
+                            <span class="close-menu">&#10005;</span>
+                        </div>
+                        <ul>
+                            <li><a href="/<%= lang %>/Contactus">
+                                <%= lang==='DE' ? 'Kontaktiere uns' : lang==='ES' ? 'Contáctanos' : lang==='TR' ? 'Bize Ulaşın' : lang==='FR' ? 'Nous Contacter' : 'Contact Us' %>
+                            </a></li>
+                            <li><a href="/<%= lang %>/request-a-quote">
+                                <%= lang==='DE' ? 'Angebot anfragen' : lang==='ES' ? 'Solicitar Cotización' : lang==='TR' ? 'Teklif Al' : lang==='FR' ? 'Demander un Devis' : 'Request a Quote' %>
+                            </a></li>
+                            <li><a href="/<%= lang %>/become-a-distributor">
+                                <%= lang==='DE' ? 'Distributor werden' : lang==='ES' ? 'Ser distribuidor' : lang==='TR' ? 'Distribütör Ol' : lang==='FR' ? 'Devenir distributeur' : 'Become a Distributor' %>
+                            </a></li>
+                        </ul>
+                    </div>
+
                     <div class="menu-page" id="languagePage">
                         <div class="top-bar">
                             <span class="back" data-go-back-parent>
@@ -417,11 +451,11 @@
                         </div>
 
                         <ul>
-                            <li><a href="javascript:void(0)" data-lang="EN">English</a></li>
-                            <li><a href="javascript:void(0)" data-lang="ES">Español</a></li>
-                            <li><a href="javascript:void(0)" data-lang="DE">Deutsch</a></li>
-                            <li><a href="javascript:void(0)" data-lang="TR">Türkçe</a></li>
-                            <li><a href="javascript:void(0)" data-lang="FR">Français</a></li>
+                            <li><a href="/EN" data-lang="EN">English</a></li>
+                            <li><a href="/ES" data-lang="ES">Español</a></li>
+                            <li><a href="/DE" data-lang="DE">Deutsch</a></li>
+                            <li><a href="/TR" data-lang="TR">Türkçe</a></li>
+                            <li><a href="/FR" data-lang="FR">Français</a></li>
                         </ul>
                     </div>
 

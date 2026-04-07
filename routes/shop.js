@@ -7,6 +7,11 @@ const uploadQuoteAttachment = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 10 * 1024 * 1024 }
 }).single('quoteAttachment');
+
+const uploadDistributorBrochure = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 }
+}).single('companyBrochure');
 const isAuth = require('../middleware/is-auth');
 const WarrantyRegistration = require('../models/warrantyRegistration'); // Add at the top
 const Product = require('../models/product');
@@ -152,7 +157,7 @@ router.post('/submit-quote', uploadQuoteAttachment, shopController.postRequestQu
 
 // ── PAGE 2: Become a Distributor ─────────────────────────────────────────────
 router.get('/:lang/become-a-distributor', shopController.getBecomDistributor);
-router.post('/submit-distributor-application', shopController.postDistributorApplication);
+router.post('/submit-distributor-application', uploadDistributorBrochure, shopController.postDistributorApplication);
 
 // ── PAGE 3: Knowledge Base / FAQ ─────────────────────────────────────────────
 router.get('/:lang/knowledge-base', shopController.getKnowledgeBase);
@@ -165,5 +170,9 @@ router.get('/:lang/case-studies/:slug', shopController.getCaseStudyDetail);
 // ── PAGE 5: Laboratory Glossary ──────────────────────────────────────────────
 router.get('/:lang/laboratory-glossary', shopController.getLaboratoryGlossary);
 router.get('/:lang/laboratory-glossary/:slug', shopController.getGlossaryTerm);
+
+
+// ── Testimonials ─────────────────────────────────────────────────────────────
+router.get('/:lang/testimonials', shopController.getTestimonials);
 
 module.exports = router;

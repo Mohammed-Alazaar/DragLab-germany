@@ -17,7 +17,12 @@
       "Bash(ls \"C:\\\\draglab marketıng mohammed\\\\GitHub\\\\DragLab-germany\\\\Front-end\\\\HTML\\\\sellercompany\"\" | grep -E \"quote)",
       "Bash(case-stud)",
       "Bash(glossary\" && echo \"=== Customer CSS ===\" && ls \"C:draglab marketıng mohammedGitHubDragLab-germanyFront-endCSScustomer\"\")",
-      "Bash(xargs grep:*)"
+      "Bash(xargs grep:*)",
+      "Bash(grep -E \"\\\\.\\(js|ejs\\)$\")",
+      "Bash(grep:*)",
+      "Bash(wc -l \"/c/draglab marketıng mohammed/GitHub/DragLab-germany/Front-end/JS\"/*.js)",
+      "Bash(find \"/c/draglab marketıng mohammed/GitHub/DragLab-germany/Front-end/css/customer\" -type f -name \"*.css\" -exec wc -l {} +)",
+      "Bash(sed:*)"
     ]
   }
 }

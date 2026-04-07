@@ -1,8 +1,11 @@
 <%- include('../../includes/sellercompany/head.ejs') %>
 <link rel="stylesheet" href="/css/sellercompany/all-technical-service.css">
+<link rel="stylesheet" href="/css/sellercompany/add-article.css">
+<script src="https://cdn.tiny.cloud/1/mtjy6djndp0eitzxztgrpeyb5j51l2d31765itt3gj45jl8c/tinymce/6/tinymce.min.js"
+    referrerpolicy="origin"></script>
 
 <style nonce="<%= nonce %>">
-  .form-card { background: #fff; border: 1px solid #dee2e6; border-radius: 8px; padding: 2rem; max-width: 800px; }
+  .form-card { background: #fff; border: 1px solid #dee2e6; border-radius: 8px; padding: 2rem; max-width: 860px; }
   .form-group { margin-bottom: 1.2rem; display: flex; flex-direction: column; gap: 0.4rem; }
   .form-group label { font-size: 0.88rem; font-weight: 700; color: #2c3e50; }
   .form-group input, .form-group select, .form-group textarea {
@@ -17,8 +20,11 @@
   .submit-btn { padding: 0.75rem 2.5rem; background: #0d3b6e; color: #fff; border: none; border-radius: 6px; font-size: 1rem; font-weight: 700; cursor: pointer; }
   .submit-btn:hover { background: #c9a227; }
   .back-link { display: inline-block; margin-bottom: 1.5rem; color: #0d3b6e; font-weight: 600; text-decoration: none; }
-  .form-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+  .products-select { min-height: 120px; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
   @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
+  .shared-fields { background: #f8fafc; border: 1px solid #dee2e6; border-radius: 6px; padding: 1.2rem 1.4rem; margin-bottom: 1.5rem; }
+  .shared-fields h3 { margin: 0 0 1rem; font-size: 0.9rem; color: #7f8c8d; text-transform: uppercase; letter-spacing: 0.05em; }
 </style>
 
 <body>
@@ -36,65 +42,225 @@
       <div class="form-card">
         <form action="<%= editing ? '/admin/faqs/edit/' + faq._id : '/admin/faqs/add' %>" method="POST">
 
-          <div class="form-group">
-            <label for="question">Question <span style="color:#dc3545">*</span></label>
-            <input type="text" id="question" name="question" required
-                   value="<%= editing && faq ? faq.question : '' %>">
-          </div>
-
-          <div class="form-group">
-            <label for="answer">Answer <span style="color:#dc3545">*</span></label>
-            <textarea id="answer" name="answer" required><%= editing && faq ? faq.answer : '' %></textarea>
-            <span class="form-hint">HTML is supported (e.g. &lt;b&gt;bold&lt;/b&gt;, &lt;ul&gt;, &lt;a&gt;)</span>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label for="category">Category</label>
-              <select id="category" name="category">
-                <% ['Installation','Maintenance','Troubleshooting','Warranty','Product Usage','General'].forEach(cat => { %>
-                <option value="<%= cat %>" <%= (editing && faq && faq.category === cat) ? 'selected' : '' %>><%= cat %></option>
-                <% }) %>
-              </select>
+          <!-- Shared fields -->
+          <div class="shared-fields">
+            <h3>Shared Settings</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="category">Category</label>
+                <select id="category" name="category">
+                  <% ['Installation','Maintenance','Troubleshooting','Warranty','Product Usage','General'].forEach(cat => { %>
+                  <option value="<%= cat %>" <%= (editing && faq && faq.category === cat) ? 'selected' : '' %>><%= cat %></option>
+                  <% }) %>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="order">Sort Order</label>
+                <input type="number" id="order" name="order" min="0" value="<%= editing && faq ? faq.order : 0 %>">
+              </div>
             </div>
-            <div class="form-group">
-              <label for="lang">Language</label>
-              <select id="lang" name="lang">
-                <% ['EN','ES','DE','TR','FR'].forEach(l => { %>
-                <option value="<%= l %>" <%= (editing && faq && faq.lang === l) ? 'selected' : (!editing && l === 'EN') ? 'selected' : '' %>><%= l %></option>
-                <% }) %>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="status">Status</label>
-              <select id="status" name="status">
-                <option value="draft"     <%= (editing && faq && faq.status === 'draft')     ? 'selected' : '' %>>Draft</option>
-                <option value="published" <%= (editing && faq && faq.status === 'published') ? 'selected' : '' %>>Published</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label for="order">Sort Order</label>
-              <input type="number" id="order" name="order" min="0" value="<%= editing && faq ? faq.order : 0 %>">
-            </div>
-            <div class="form-group">
-              <label for="slug">Slug (auto-generated if empty)</label>
-              <input type="text" id="slug" name="slug" value="<%= editing && faq ? faq.slug || '' : '' %>">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="slug">Slug <span class="form-hint">(auto-generated if empty)</span></label>
+                <input type="text" id="slug" name="slug" value="<%= editing && faq ? faq.slug || '' : '' %>">
+              </div>
+              <div class="form-group">
+                <label for="relatedProducts">Related Products <span class="form-hint">(hold Ctrl/Cmd for multiple)</span></label>
+                <select id="relatedProducts" name="relatedProducts" multiple class="products-select">
+                  <% (products || []).forEach(function(p) {
+                       const pName = p.Language && p.Language.EN && p.Language.EN[0]
+                         ? p.Language.EN[0].ProductName
+                         : (p.Language && p.Language.DE && p.Language.DE[0] ? p.Language.DE[0].ProductName : 'Unnamed');
+                       const isSelected = editing && faq && faq.relatedProducts &&
+                         faq.relatedProducts.map(String).indexOf(p._id.toString()) !== -1;
+                  %>
+                  <option value="<%= p._id %>" data-name="<%= pName %>" <%= isSelected ? 'selected' : '' %>><%= pName %></option>
+                  <% }) %>
+                </select>
+                <input type="hidden" id="relatedProductNames" name="relatedProductNames" value="<%= editing && faq && faq.relatedProductNames ? faq.relatedProductNames.join(',') : '' %>">
+              </div>
             </div>
           </div>
 
-          <div class="form-group">
-            <label for="relatedProducts">Related Products (comma-separated)</label>
-            <input type="text" id="relatedProducts" name="relatedProducts"
-                   value="<%= editing && faq && faq.relatedProducts ? faq.relatedProducts.join(', ') : '' %>"
-                   placeholder="e.g. DI-120, WB-100">
+          <!-- Language tabs -->
+          <%
+            const LANGS = [
+              { key: 'en', label: 'EN', name: 'English' },
+              { key: 'es', label: 'ES', name: 'Spanish' },
+              { key: 'de', label: 'DE', name: 'German' },
+              { key: 'tr', label: 'TR', name: 'Turkish' },
+              { key: 'fr', label: 'FR', name: 'French' }
+            ];
+          %>
+          <div class="lang-tabs-header">
+            <div class="lang-tabs">
+              <% LANGS.forEach((l, idx) => {
+                 const t = faq?.translations?.[l.key];
+                 const st = t?.status || 'none';
+              %>
+              <button type="button"
+                  class="lang-tab-btn <%= idx === 0 ? 'active' : '' %>"
+                  data-lang="<%= l.key %>">
+                  <% if (st === 'published') { %><span class="tab-dot dot-published"></span>
+                  <% } else if (st === 'draft') { %><span class="tab-dot dot-draft"></span>
+                  <% } %>
+                  <%= l.label %> <span class="lang-full-name"><%= l.name %></span>
+              </button>
+              <% }) %>
+            </div>
           </div>
 
-          <button type="submit" class="submit-btn"><%= editing ? 'Save Changes' : 'Add FAQ' %></button>
+          <% LANGS.forEach((l, idx) => {
+             const t = faq?.translations?.[l.key] || {};
+             const currentStatus = t.status || 'none';
+          %>
+          <div id="tab-<%= l.key %>" class="lang-tab-content <%= idx === 0 ? 'active' : '' %>">
+            <input type="hidden" id="status_<%= l.key %>" name="<%= l.key %>_status" value="<%= currentStatus %>">
+
+            <div class="form-group">
+              <label>Question (<%= l.name %>)</label>
+              <input type="text" name="<%= l.key %>_question" value="<%= t.question || '' %>">
+            </div>
+
+            <div class="form-group">
+              <label>Answer (<%= l.name %>)</label>
+              <textarea id="answer_<%= l.key %>" name="<%= l.key %>_answer" rows="6"><%= t.answer || '' %></textarea>
+            </div>
+
+            <div class="status-section">
+              <label>Publication status for <%= l.name %></label>
+              <div class="status-buttons" id="status-btns-<%= l.key %>">
+                <button type="button"
+                    class="status-btn btn-draft <%= currentStatus === 'draft' ? 'active' : '' %>"
+                    data-lang="<%= l.key %>" data-val="draft">
+                    Save as Draft
+                </button>
+                <button type="button"
+                    class="status-btn btn-publish <%= currentStatus === 'published' ? 'active' : '' %>"
+                    data-lang="<%= l.key %>" data-val="published">
+                    Publish
+                </button>
+              </div>
+            </div>
+          </div>
+          <% }) %>
+
+          <div class="form-buttons" style="margin-top:1.5rem;">
+            <button type="submit" class="submit-btn"><%= editing ? 'Save Changes' : 'Add FAQ' %></button>
+            <a href="/admin/faqs" class="cancel-button">Cancel</a>
+          </div>
         </form>
       </div>
     </div>
   </section>
+
+  <script nonce="<%= nonce %>">
+  (function () {
+    var initialized = {};
+
+    function initTinyMCE(lang) {
+      if (initialized[lang] || typeof tinymce === 'undefined') return;
+      tinymce.init({
+        selector: '#answer_' + lang,
+        plugins: 'image link media table code lists',
+        toolbar: 'undo redo | bold italic underline | alignleft aligncenter alignright | bullist numlist | image media link | code',
+        height: 400
+      });
+      initialized[lang] = true;
+    }
+
+    function showTab(lang) {
+      document.querySelectorAll('.lang-tab-content').forEach(function (el) { el.classList.remove('active'); });
+      document.querySelectorAll('.lang-tab-btn').forEach(function (el) { el.classList.remove('active'); });
+      var c = document.getElementById('tab-' + lang);
+      if (c) c.classList.add('active');
+      var b = document.querySelector('.lang-tab-btn[data-lang="' + lang + '"]');
+      if (b) b.classList.add('active');
+      initTinyMCE(lang);
+    }
+
+    document.querySelectorAll('.lang-tab-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () { showTab(this.dataset.lang); });
+    });
+
+    document.querySelectorAll('.status-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var lang = this.dataset.lang;
+        var val = this.dataset.val;
+        var hidden = document.getElementById('status_' + lang);
+        var container = document.getElementById('status-btns-' + lang);
+
+        // Validate before allowing publish
+        if (val === 'published') {
+          var questionEl = document.querySelector('[name="' + lang + '_question"]');
+          var question   = questionEl ? questionEl.value.trim() : '';
+          var editor     = typeof tinymce !== 'undefined' ? tinymce.get('answer_' + lang) : null;
+          var answer     = editor ? editor.getContent({ format: 'text' }).trim()
+                                  : (document.getElementById('answer_' + lang) || {}).value || '';
+          answer = answer.trim();
+
+          var errId = 'publish-err-' + lang;
+          var existing = document.getElementById(errId);
+          if (existing) existing.remove();
+
+          if (!question || !answer) {
+            var err = document.createElement('p');
+            err.id = errId;
+            err.style.cssText = 'color:#dc3545;font-size:0.82rem;margin:6px 0 0;font-weight:600;';
+            err.textContent = 'Cannot publish: ' + (!question && !answer ? 'Question and Answer are' : !question ? 'Question is' : 'Answer is') + ' empty.';
+            container.after(err);
+            return;
+          }
+        } else {
+          var errEl = document.getElementById('publish-err-' + lang);
+          if (errEl) errEl.remove();
+        }
+
+        if (hidden.value === val) {
+          hidden.value = 'none';
+          container.querySelectorAll('.status-btn').forEach(function (b) { b.classList.remove('active'); });
+        } else {
+          hidden.value = val;
+          container.querySelectorAll('.status-btn').forEach(function (b) { b.classList.remove('active'); });
+          this.classList.add('active');
+        }
+        var tabBtn = document.querySelector('.lang-tab-btn[data-lang="' + lang + '"]');
+        if (tabBtn) {
+          var dot = tabBtn.querySelector('.tab-dot');
+          if (dot) dot.remove();
+          if (hidden.value === 'published' || hidden.value === 'draft') {
+            var newDot = document.createElement('span');
+            newDot.className = 'tab-dot dot-' + hidden.value;
+            tabBtn.insertBefore(newDot, tabBtn.firstChild);
+          }
+        }
+      });
+    });
+
+    // Save all TinyMCE content into textareas before form submit
+    var form = document.querySelector('form');
+    if (form) {
+      form.addEventListener('submit', function () {
+        if (typeof tinymce !== 'undefined') {
+          tinymce.triggerSave();
+        }
+      });
+    }
+
+    // Initialize EN editor on load
+    initTinyMCE('en');
+
+    // Sync related product names into hidden input
+    var productSelect = document.getElementById('relatedProducts');
+    var productNamesInput = document.getElementById('relatedProductNames');
+    function syncProductNames() {
+      productNamesInput.value = Array.from(productSelect.selectedOptions)
+        .map(function(o) { return o.dataset.name || o.textContent; }).join(',');
+    }
+    if (productSelect) {
+      productSelect.addEventListener('change', syncProductNames);
+      syncProductNames(); // init on load for edit mode
+    }
+  })();
+  </script>
 </body>

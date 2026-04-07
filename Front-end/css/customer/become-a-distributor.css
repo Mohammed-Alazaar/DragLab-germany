@@ -1,300 +1,603 @@
 /* ── become-a-distributor.css ── */
+/* Hero, trust bar, alerts, rq-form classes → from request-a-quote.css */
 
-/* Hero */
-.dist-hero {
-    position: relative;
-    display: flex;
-    height: 60vh;
+/* ─── Stats Strip ─────────────────────────────────── */
+.dist-stats {
+  background: #fff;
+  border-bottom: 1px solid #e4e8ef;
+  padding: 2.2rem 2rem;
+}
+
+.dist-stats-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+.dist-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  text-align: center;
+}
+
+.dist-stat-num {
+  font-size: 2.4rem;
+  font-weight: 800;
+  color: var(--primary-Color);
+  line-height: 1;
+  letter-spacing: -1px;
+}
+
+.dist-stat-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #7f8c8d;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.dist-stat-divider {
+  width: 1px;
+  height: 50px;
+  background: #e4e8ef;
+}
+
+@media (max-width: 600px) {
+  .dist-stat-divider {
+    display: none;
+  }
+
+  .dist-stats-inner {
     justify-content: center;
-    align-items: center;
-    background: linear-gradient(135deg, #0a1628 0%, #1a2e4a 60%, #0d3b6e 100%);
-    overflow: hidden;
+    gap: 2rem;
+  }
+
+  .dist-stat {
+    width: 42%;
+  }
 }
 
-.dist-hero-text {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    z-index: 2;
-    align-items: center;
-    padding: 0 15%;
-    text-align: center;
-}
-
-.dist-hero-text h1 {
-    font-size: 2.8rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    color: #fff;
-    letter-spacing: 1px;
-    line-height: 1.2;
-}
-
-.dist-hero-text p {
-    font-size: 1.2rem;
-    color: rgba(255, 255, 255, 0.85);
-}
-
-@media (max-width: 768px) {
-    .dist-hero { height: 40vh; }
-    .dist-hero-text h1 { font-size: 1.6rem; }
-    .dist-hero-text p { font-size: 1rem; }
-    .dist-hero-text { padding: 0 5%; }
-}
-
-/* Why Partner Section */
+/* ─── Why Partner ─────────────────────────────────── */
 .dist-why {
-    background: #f8f9fb;
-    padding: 4rem 2rem;
+  background: #f8f9fb;
+  padding: 5rem 2rem;
 }
 
 .dist-why-inner {
-    max-width: 1100px;
-    margin: 0 auto;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 3rem;
-    align-items: center;
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 4rem;
+  align-items: center;
 }
 
-.dist-why h2 {
-    grid-column: 1 / -1;
-    font-size: 2rem;
-    font-weight: 700;
-    color: #0d3b6e;
-    text-align: center;
-    margin-bottom: 1rem;
+.dist-why-left h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--primary-Color);
+  margin-bottom: 2rem;
 }
 
 .dist-why-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 0.9rem;
-    grid-column: 1 / -1;
-    max-width: 600px;
-    justify-self: center;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
 }
 
 .dist-why-list li {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.8rem;
-    font-size: 1rem;
-    color: #2c3e50;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.8rem;
+  font-size: 1rem;
+  color: #2c3e50;
+  line-height: 1.5;
+  padding: 0.6rem 0.8rem;
+  background: #fff;
+  border: 1px solid #e4e8ef;
+  border-radius: 0;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.dist-why-list li:hover {
+  border-color: var(--primary-Color);
+  box-shadow: 0 2px 8px rgba(13, 59, 110, 0.08);
 }
 
 .dist-why-list li::before {
-    content: '✓';
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 24px;
-    height: 24px;
-    background: #0d3b6e;
-    color: #fff;
-    border-radius: 50%;
-    font-size: 0.75rem;
-    font-weight: 700;
-    flex-shrink: 0;
-    margin-top: 1px;
+  content: '✓';
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  background: var(--primary-Color);
+  color: #fff;
+  border-radius: 0;
+  font-size: 0.68rem;
+  font-weight: 800;
+  margin-top: 1px;
 }
 
-/* Benefits Section */
+/* Highlight card */
+.dist-why-card {
+  background: var(--primary-Color);
+  border-radius: 0;
+  padding: 2.5rem 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  text-align: center;
+  box-shadow: 0 12px 40px rgba(13, 59, 110, 0.18);
+}
+
+.dist-why-card-icon {
+  font-size: 3rem;
+  line-height: 1;
+}
+
+.dist-why-card blockquote {
+  font-size: 1rem;
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.88);
+  line-height: 1.7;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.dist-why-card-btn {
+  display: inline-block;
+  background: #ffffff;
+  color: #293c95;
+  padding: 0.75rem 2rem;
+  font-weight: 700;
+  font-size: 0.95rem;
+  text-decoration: none;
+  letter-spacing: 0.3px;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.dist-why-card-btn:hover {
+  background: #293c95;
+  color: #ffffff;
+  transform: translateY(-1px);
+  transition: background 0.2s, color 0.2s, transform 0.1s;
+  box-shadow: 0 8px 24px rgb(25 38 99);
+}
+
+
+@media (max-width: 900px) {
+  .dist-why-inner {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
+
+  .dist-why-right {
+    order: -1;
+  }
+
+  .dist-why-card {
+    flex-direction: row;
+    text-align: left;
+    padding: 1.5rem;
+  }
+
+  .dist-why-card-icon {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .dist-why {
+    padding: 3rem 1.2rem;
+  }
+
+  .dist-why-card {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .dist-why-left h2 {
+    font-size: 1.6rem;
+  }
+}
+
+/* ─── Benefits (feature-box pattern from about-us) ── */
 .dist-benefits {
-    padding: 4rem 2rem;
-    background: #fff;
+  padding: 3rem 10px;
+  background: #fff;
+  text-align: center;
 }
 
 .dist-benefits-inner {
-    max-width: 1100px;
-    margin: 0 auto;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
-.dist-benefits h2 {
-    font-size: 2rem;
-    font-weight: 700;
-    color: #0d3b6e;
-    text-align: center;
-    margin-bottom: 2.5rem;
+.dist-benefits .section-title {
+  font-size: 28px;
+  margin: 10px 0 16px;
+  font-weight: 600;
+  color: #222;
 }
 
 .dist-benefits-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 2rem;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  justify-content: center;
+  width: 100%;
+  margin: 10px 0;
 }
 
-.dist-benefit-card {
-    background: #f8f9fb;
-    border: 1px solid #e4e8ef;
-    border-radius: 10px;
-    padding: 2rem 1.5rem;
-    text-align: center;
-    transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.dist-benefit-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgba(13,59,110,0.1);
+/* feature-box is defined in about-us.css — redefine here for this page */
+.dist-benefits .feature-box {
+  background-color: #ECEDF3;
+  padding: 2rem 2rem 4rem 2rem;
+  text-align: center;
 }
 
 .dist-benefit-icon {
-    font-size: 2.5rem;
-    margin-bottom: 1rem;
+  font-size: 3rem;
+  line-height: 1;
+  margin-bottom: 15px;
+  display: block;
 }
 
-.dist-benefit-card h3 {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: #0d3b6e;
-    margin-bottom: 0.6rem;
+.dist-benefits .feature-title {
+  font-size: 26px;
+  color: var(--primary-Color);
+  font-weight: 600;
+  margin-bottom: 15px;
+  line-height: 150%;
 }
 
-.dist-benefit-card p {
-    font-size: 0.95rem;
-    color: #7f8c8d;
-    line-height: 1.6;
+.dist-benefits .feature-text {
+  font-size: 18px;
+  line-height: 131%;
+  color: #1E2026;
+}
+
+@media (max-width: 1200px) {
+  .dist-benefits-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 @media (max-width: 768px) {
-    .dist-benefits-grid { grid-template-columns: 1fr; }
+  .dist-benefits {
+    padding: 2rem 10px;
+  }
+
+  .dist-benefits-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dist-benefits .feature-box {
+    padding: 1rem 1rem 3rem 1rem;
+  }
 }
 
-/* Who We're Looking For */
+/* ─── Who We're Looking For ──────────────────────── */
 .dist-who {
-    background: #0d3b6e;
-    color: #fff;
-    padding: 4rem 2rem;
-    text-align: center;
+  background: var(--primary-Color);
+  color: #fff;
+  padding: 5rem 2rem;
+  text-align: center;
 }
 
 .dist-who-inner {
-    max-width: 800px;
-    margin: 0 auto;
+  max-width: 760px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
 }
 
 .dist-who h2 {
-    font-size: 2rem;
-    font-weight: 700;
-    margin-bottom: 1.2rem;
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0;
 }
 
 .dist-who p {
-    font-size: 1.1rem;
-    line-height: 1.7;
-    color: rgba(255,255,255,0.85);
+  font-size: 1.1rem;
+  line-height: 1.75;
+  color: rgba(255, 255, 255, 0.85);
+  margin: 0;
 }
 
-/* Application Form */
-.dist-form-section {
-    max-width: 900px;
-    margin: 3rem auto;
-    padding: 0 2rem 4rem;
+.dist-who-btn {
+  display: inline-block;
+  background: #ffffff;
+  color: #293c95;
+  padding: 0.75rem 2rem;
+  font-weight: 700;
+  font-size: 0.95rem;
+  text-decoration: none;
+  letter-spacing: 0.3px;
+  transition: background 0.2s, transform 0.1s;
 }
-
-.dist-form-section h2 {
-    font-size: 1.8rem;
-    font-weight: 700;
-    color: #0d3b6e;
-    margin-bottom: 2rem;
-    text-align: center;
-}
-
-.dist-form-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.2rem;
-}
-
-.dist-form-grid .full-width {
-    grid-column: 1 / -1;
-}
-
-.form-field {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-}
-
-.form-field label {
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: #2c3e50;
-}
-
-.form-field input,
-.form-field select,
-.form-field textarea {
-    padding: 0.75rem 1rem;
-    border: 1.5px solid #d1d8e0;
-    border-radius: 6px;
-    font-size: 0.95rem;
-    color: #2c3e50;
-    background: #fff;
-    transition: border-color 0.2s;
-    width: 100%;
-    box-sizing: border-box;
-    font-family: inherit;
-}
-
-.form-field input:focus,
-.form-field select:focus,
-.form-field textarea:focus {
-    outline: none;
-    border-color: #0d3b6e;
-    box-shadow: 0 0 0 3px rgba(13,59,110,0.1);
-}
-
-.dist-submit-wrap {
-    margin-top: 2rem;
-    text-align: center;
-}
-
-.dist-submit-btn {
-    background: #0d3b6e;
+.btn-view {
+    background-color: var(--primary-Color);
     color: #fff;
+    padding: 8px 16px;
     border: none;
-    padding: 1rem 3rem;
-    font-size: 1.05rem;
-    font-weight: 700;
-    border-radius: 6px;
+    border-radius: 0;
     cursor: pointer;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    transition: background 0.2s, transform 0.1s;
+}
+.dist-who-btn:hover {
+    background: #293c95;
+  color: #ffffff;
+  transform: translateY(-1px);
+  transition: background 0.2s, color 0.2s, transform 0.1s;
+  box-shadow: 0 8px 24px rgb(25 38 99);
 }
 
-.dist-submit-btn:hover {
-    background: #c9a227;
-    transform: translateY(-1px);
+@media (max-width: 600px) {
+  .dist-who {
+    padding: 3.5rem 1.2rem;
+  }
+
+  .dist-who h2 {
+    font-size: 1.6rem;
+  }
+
+  .dist-who p {
+    font-size: 1rem;
+  }
 }
 
-.dist-success, .dist-error {
-    max-width: 900px;
-    margin: 2rem auto;
-    padding: 1.2rem 2rem;
-    border-radius: 8px;
-    font-weight: 500;
+/* ─── How It Works (Steps) ────────────────────────── */
+.dist-steps {
+  background: #f8f9fb;
+  padding: 5rem 2rem;
 }
 
-.dist-success {
-    background: #e6f7ee;
-    border: 1px solid #27ae60;
-    color: #1d7a42;
+.dist-steps-inner {
+  max-width: 1100px;
+  margin: 0 auto;
 }
 
-.dist-error {
-    background: #fdecea;
-    border: 1px solid #e74c3c;
-    color: #c0392b;
+.dist-steps h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--primary-Color);
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.dist-steps-grid {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+}
+
+.dist-step {
+  flex: 1;
+  background: #fff;
+  border: 1px solid #e4e8ef;
+  border-radius: 0;
+  padding: 2.2rem 1.8rem;
+  text-align: center;
+  position: relative;
+  transition: box-shadow 0.2s;
+}
+
+.dist-step:hover {
+  box-shadow: 0 8px 24px rgba(13, 59, 110, 0.1);
+}
+
+.dist-step-num {
+  width: 52px;
+  height: 52px;
+  background: var(--primary-Color);
+  color: #fff;
+  border-radius: 0;
+  font-size: 1.4rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.2rem;
+  box-shadow: 0 4px 12px rgba(13, 59, 110, 0.25);
+}
+
+.dist-step h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--primary-Color);
+  margin-bottom: 0.7rem;
+}
+
+.dist-step p {
+  font-size: 0.9rem;
+  color: #7f8c8d;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.dist-step-arrow {
+  font-size: 1.8rem;
+  color: #c9a227;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  padding: 0 0.8rem;
+  margin-top: -1rem;
+  flex-shrink: 0;
+  align-self: center;
 }
 
 @media (max-width: 768px) {
-    .dist-form-grid { grid-template-columns: 1fr; }
-    .dist-form-grid .full-width { grid-column: 1; }
-    .dist-form-section { padding: 0 1rem 3rem; }
-    .dist-submit-btn { width: 100%; }
+  .dist-steps {
+    padding: 3.5rem 1.2rem;
+  }
+
+  .dist-steps h2 {
+    font-size: 1.6rem;
+    margin-bottom: 2rem;
+  }
+
+  .dist-steps-grid {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .dist-step-arrow {
+    transform: rotate(90deg);
+    align-self: center;
+    padding: 0;
+    margin: 0;
+  }
+}
+
+/* ─── Inline field hint (e.g. "Select all that apply") ── */
+.rq-field-hint {
+  font-size: 0.78rem;
+  font-weight: 400;
+  color: #7f8c8d;
+  margin-left: 0.4rem;
+}
+
+/* ─── Industry Focus / Sales Channel checkboxes ──── */
+.rq-checkbox-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem 1.2rem;
+  margin-top: 0.4rem;
+}
+
+.rq-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.95rem;
+  color: #2c3e50;
+  cursor: pointer;
+  user-select: none;
+}
+
+.rq-checkbox-label input[type="checkbox"] {
+  width: 17px;
+  height: 17px;
+  accent-color: var(--primary-Color);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+/* ─── Multi-select dropdown widget ──────────────── */
+.rq-multiselect {
+  position: relative;
+}
+
+.rq-multiselect__toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1.5px solid #d1d8e0;
+  border-radius: 0;
+  background: #fff;
+  font-size: 0.95rem;
+  color: #2c3e50;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+  box-sizing: border-box;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.rq-multiselect__toggle:focus {
+  outline: none;
+  border-color: var(--primary-Color);
+  box-shadow: 0 0 0 3px rgba(41,60,149,0.08);
+}
+
+.rq-multiselect__label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rq-multiselect__chevron {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  color: #7f8c8d;
+  margin-left: 0.5rem;
+  transition: transform 0.2s;
+}
+
+.rq-multiselect__toggle[aria-expanded="true"] .rq-multiselect__chevron {
+  transform: rotate(180deg);
+}
+
+.rq-multiselect__panel {
+  position: fixed;
+  background: #fff;
+  border: 1.5px solid #d1d8e0;
+  border-radius: 0;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+  z-index: 9999;
+  max-height: 220px;
+  overflow-y: auto;
+  padding: 0.4rem 0;
+}
+
+.rq-multiselect__option {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 1rem;
+  cursor: pointer;
+  font-size: 0.93rem;
+  color: #2c3e50;
+  transition: background 0.15s;
+}
+
+.rq-multiselect__option:hover {
+  background: #f0f3ff;
+}
+
+.rq-multiselect__option input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--primary-Color);
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+/* Hidden validator input — keeps 0 size so it doesn't show but browser validation works */
+.rq-multiselect__validator {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ─── File upload hint ───────────────────────────── */
+.rq-file-hint {
+  font-size: 0.78rem;
+  color: #7f8c8d;
+  margin-top: 0.3rem;
+  display: block;
 }
