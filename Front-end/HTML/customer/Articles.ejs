@@ -148,7 +148,7 @@
         <div class="article-slide">
           <a href="<%= cardUrl %>">
             <div class="article-card">
-              <img src="<%= thumb %>" alt="<%= a.title %>" loading="lazy" decoding="async">
+              <img class="img-lazy" data-src="<%= thumb %>" alt="<%= a.title %>" decoding="async">
               <div class="article-card-information">
                 <% if (dateStr) { %><time class="article-card-date" datetime="<%= a.createdAt ? new Date(a.createdAt).toISOString().split('T')[0] : '' %>"><%= dateStr %></time><% } %>
                 <h4><%= a.title %></h4>
@@ -187,5 +187,6 @@
 
   <%- include('../../includes/customer/footer.ejs') %>
   <%- include('../../includes/customer/script.ejs') %>
+  <script src="/js/index.js" defer></script>
 </body>
 </html>

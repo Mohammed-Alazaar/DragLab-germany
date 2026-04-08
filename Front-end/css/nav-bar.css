@@ -336,6 +336,11 @@ select#languageSwitcher {
 }
 
 /* ── Floating "Get a Quote" button (mid-right) ── */
+@keyframes fq-pulse {
+    0%, 100% { box-shadow: -3px 3px 18px rgba(201, 162, 39, 0.45); }
+    50%       { box-shadow: -3px 3px 28px rgba(201, 162, 39, 0.80); }
+}
+
 .floating-quote-btn {
     position: fixed;
     top: 50%;
@@ -348,18 +353,20 @@ select#languageSwitcher {
     gap: 8px;
 
     padding: 13px 18px 13px 16px;
-    background: #0d3b6e;
-    color: #fff !important;
+    background: linear-gradient(135deg, #c9a227, #e2b92e);
+    color: #1a1a2e !important;
     text-decoration: none !important;
     font-weight: 700;
     font-size: 14px;
     border-radius: 8px 0 0 8px;   /* flat on the right, rounded on the left */
     white-space: nowrap;
+    letter-spacing: 0.2px;
 
-    box-shadow: -3px 3px 16px rgba(13, 59, 110, 0.40);
+    box-shadow: -3px 3px 18px rgba(201, 162, 39, 0.45);
     transition:
-        background  0.22s ease,
-        box-shadow  0.22s ease,
+        background  0.25s ease,
+        color       0.25s ease,
+        box-shadow  0.25s ease,
         transform   0.35s ease,
         opacity     0.35s ease,
         visibility  0.35s ease;
@@ -372,12 +379,15 @@ select#languageSwitcher {
     opacity: 1;
     visibility: visible;
     transform: translateY(-50%) translateX(0);   /* slides in from the right */
+    animation: fq-pulse 2.4s ease-in-out infinite;
 }
 
 .floating-quote-btn:hover {
-    background: #c9a227;
-    box-shadow: -4px 4px 20px rgba(201, 162, 39, 0.45);
-    padding-right: 22px;   /* nudges slightly left on hover */
+    background: linear-gradient(135deg, #293C95, #3d55c4);
+    color: #fff !important;
+    box-shadow: -4px 4px 22px rgba(41, 60, 149, 0.55);
+    padding-right: 22px;
+    animation: none;
 }
 
 .floating-quote-btn .fq-icon {
