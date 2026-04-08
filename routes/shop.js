@@ -1,8 +1,12 @@
 const path = require('path');
 const express = require('express');
 const shopController = require('../controllers/shop');
+const validateLang = require('../middleware/validate-lang');
 const router = express.Router();
 const multer = require('multer');
+
+// Validate :lang param on every route in this router
+router.param('lang', validateLang);
 const uploadQuoteAttachment = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 10 * 1024 * 1024 }
@@ -137,10 +141,10 @@ router.get('/', (req, res) => {
   const acceptLang = req.headers['accept-language'] || '';
   const browserLang = acceptLang.slice(0, 2).toLowerCase();
 
-  let redirectLang = 'EN'; // default
+  let redirectLang = 'en'; // default (lowercase canonical)
 
-  if (browserLang === 'es') redirectLang = 'ES';
-  else if (browserLang === 'de') redirectLang = 'DE';
+  if (browserLang === 'es') redirectLang = 'es';
+  else if (browserLang === 'de') redirectLang = 'de';
 
   res.redirect(`/${redirectLang}`);
 });

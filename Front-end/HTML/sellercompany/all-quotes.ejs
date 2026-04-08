@@ -105,7 +105,7 @@
       <table>
         <thead>
           <tr>
-            <th>#</th>
+            <th>Reference</th>
             <th>Company</th>
             <th>Country</th>
             <th>Email</th>
@@ -118,7 +118,7 @@
         <tbody>
           <% quotes.forEach((q, i) => { %>
           <tr class="<%= q.isSpam ? 'spam-row' : '' %>">
-            <td><%= i + 1 %></td>
+            <td style="font-family:monospace;font-size:0.82rem;font-weight:700;color:#293C95;white-space:nowrap">QR-<%= q._id.toString().slice(-6).toUpperCase() %></td>
             <td>
               <strong><%= q.companyName %></strong>
               <% if (q.isSpam) { %><span class="badge-spam">SPAM</span><% } %>

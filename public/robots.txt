@@ -1,5 +1,13 @@
 User-agent: *
 Disallow: /admin/
-Disallow: /admin/
 Disallow: /account/
+
+# Block garbage/legacy URL patterns that should never be crawled
+Disallow: /*==/
+Disallow: /*==$
+Disallow: /*.php$
+Disallow: /*.PHP$
+Disallow: /*.shtml$
+Disallow: /*.SHTML$
+
 Sitemap: https://www.drag-lab.de/sitemap.xml

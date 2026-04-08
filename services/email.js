@@ -67,46 +67,85 @@ async function sendCustomerEmail({ to, form, data }) {
   }
 }
 
-// ---------- Send internal notification: SMTP for @drag-lab.de; SG for others ----------
+// ---------- Send internal notification ----------
+// Strategy: try SMTP first (if configured), fall back to SendGrid.
+// This means it works on localhost (SMTP configured) AND in production
+// (SMTP not configured → SendGrid takes over automatically).
 async function notifyInternal({ to, subject, html, text }) {
   if (!EMAIL_DELIVERY_ENABLED) {
     logDryRun({ type: 'internal', to, subject, html, text });
     return { ok: true, dryRun: true };
   }
 
-  const isInternal = /@drag-lab\.de$/i.test(to);
-
-  if (isInternal) {
-    if (!internalTx) {
-      const err = new Error('SMTP transport not configured for internal mail');
-      console.error(err.message);
-      return { ok: false, error: err };
-    }
+  // ── Attempt SMTP first (works when SMTP_HOST is configured) ──
+  if (internalTx) {
     try {
       await internalTx.sendMail({
         from: process.env.SMTP_FROM || process.env.SENDGRID_FROM,
         to, subject, html, text,
       });
       return { ok: true };
-    } catch (err) {
-      console.error('Local SMTP notifyInternal error:', err?.message || err);
-      return { ok: false, error: err };
+    } catch (smtpErr) {
+      console.error('SMTP notifyInternal failed, falling back to SendGrid:', smtpErr?.message || smtpErr);
+      // fall through to SendGrid below
     }
   }
 
-  // External recipients → SendGrid
+  // ── SendGrid fallback (always available in production) ──
+  if (!process.env.SENDGRID_API_KEY || !process.env.SENDGRID_FROM) {
+    const err = new Error('Neither SMTP nor SendGrid is configured — cannot send internal notification');
+    console.error(err.message);
+    return { ok: false, error: err };
+  }
+
   const msg = {
     to,
     from: process.env.SENDGRID_FROM,
     replyTo: process.env.SENDGRID_REPLYTO || process.env.SENDGRID_FROM,
     subject,
-    ...(html ? { html } : { text }),
+    ...(html ? { html, ...(text ? { text } : {}) } : { text }),
     mailSettings: { sandboxMode: { enable: SENDGRID_SANDBOX } },
   };
 
-  try { await sg.send(msg); return { ok: true }; }
-  catch (err) {
+  try {
+    await sg.send(msg);
+    console.log(`✅ SendGrid notifyInternal sent → ${to}`);
+    return { ok: true };
+  } catch (err) {
     console.error('SendGrid notifyInternal error:', err?.response?.body || err?.message || err);
+    return { ok: false, error: err };
+  }
+}
+
+// ---------- Send transactional email directly via SendGrid (bypasses SMTP) ----------
+// Use this for customer-facing emails so they always show up in SendGrid activity logs.
+async function sendViaSendGrid({ to, subject, html, text }) {
+  if (!EMAIL_DELIVERY_ENABLED) {
+    logDryRun({ type: 'sendgrid-direct', to, subject });
+    return { ok: true, dryRun: true };
+  }
+
+  if (!process.env.SENDGRID_API_KEY || !process.env.SENDGRID_FROM) {
+    const err = new Error('SENDGRID_API_KEY or SENDGRID_FROM not configured');
+    console.error('sendViaSendGrid:', err.message);
+    return { ok: false, error: err };
+  }
+
+  const msg = {
+    to,
+    from: process.env.SENDGRID_FROM,
+    replyTo: process.env.SENDGRID_REPLYTO || process.env.SENDGRID_FROM,
+    subject,
+    ...(html ? { html, ...(text ? { text } : {}) } : { text }),
+    mailSettings: { sandboxMode: { enable: SENDGRID_SANDBOX } },
+  };
+
+  try {
+    await sg.send(msg);
+    console.log(`✅ SendGrid direct sent → ${to}`);
+    return { ok: true };
+  } catch (err) {
+    console.error('sendViaSendGrid error:', err?.response?.body || err?.message || err);
     return { ok: false, error: err };
   }
 }
@@ -135,4 +174,4 @@ async function verifyMailTransports() {
   }
 }
 
-module.exports = { sendCustomerEmail, notifyInternal, verifyMailTransports };
+module.exports = { sendCustomerEmail, notifyInternal, sendViaSendGrid, verifyMailTransports };

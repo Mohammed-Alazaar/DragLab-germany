@@ -29,40 +29,75 @@ Object.keys(redirects).forEach(oldPath => {
     });
 });
 
+// ── 410 Gone: legacy PHP/SHTML pages and base64-garbage prefixes ──────────
+// Must come AFTER redirects.json (so known .php → product redirects still fire)
+// and BEFORE main route registration.
+const GONE_PATTERNS = [
+    /^\/[^/]*\.php(\/|$)/i,           // /*.php  or  /*.php/...
+    /^\/[^/]*\.shtml(\/|$)/i,         // /*.shtml
+    /^\/[A-Za-z0-9+/]+=+(\/|$)/,      // base64-encoded garbage  e.g. /XYZ==/
+];
+app.use((req, res, next) => {
+    for (const pattern of GONE_PATTERNS) {
+        if (pattern.test(req.path)) {
+            return res.status(410).send(
+                '<!DOCTYPE html><html><head><title>410 Gone</title></head>' +
+                '<body><h1>410 Gone</h1><p>This page no longer exists.</p>' +
+                '<p><a href="/">Return to homepage</a></p></body></html>'
+            );
+        }
+    }
+    next();
+});
+
 // ── Dynamic 301 redirects for old URL formats ─────────────────────────────
+const VALID_REDIRECT_LANGS = new Set(['en', 'de', 'tr', 'fr', 'es']);
+function validRedirectLang(lang) {
+    return VALID_REDIRECT_LANGS.has(lang?.toLowerCase());
+}
 
 // Group A: old sitemap used /:lang/product/:slug/model/:modelSlug
 //          current routes use /:lang/products/:slug/:modelSlug
-app.get('/:lang/product/:productSlug/model/:modelSlug', (req, res) => {
+app.get('/:lang/product/:productSlug/model/:modelSlug', (req, res, next) => {
     const { lang, productSlug, modelSlug } = req.params;
-    res.redirect(301, `/${lang}/products/${productSlug}/${modelSlug}`);
+    if (!validRedirectLang(lang)) return next();
+    res.redirect(301, `/${lang.toLowerCase()}/products/${productSlug}/${modelSlug}`);
 });
 
 // Group B: /:lang/products with no slug → home (no product-listing page exists)
-app.get('/:lang/products', (req, res) => {
-    res.redirect(301, `/${req.params.lang}`);
+app.get('/:lang/products', (req, res, next) => {
+    const { lang } = req.params;
+    if (!validRedirectLang(lang)) return next();
+    res.redirect(301, `/${lang.toLowerCase()}`);
 });
 
 // Group C: /:lang/industry/industry → /:lang/Industry
-app.get('/:lang/industry/industry', (req, res) => {
-    res.redirect(301, `/${req.params.lang}/Industry`);
+app.get('/:lang/industry/industry', (req, res, next) => {
+    const { lang } = req.params;
+    if (!validRedirectLang(lang)) return next();
+    res.redirect(301, `/${lang.toLowerCase()}/Industry`);
 });
 
 // Group D: /:lang/quality-policy (hyphenated) → /:lang/QualityPolicy
-app.get('/:lang/quality-policy', (req, res) => {
-    res.redirect(301, `/${req.params.lang}/QualityPolicy`);
+app.get('/:lang/quality-policy', (req, res, next) => {
+    const { lang } = req.params;
+    if (!validRedirectLang(lang)) return next();
+    res.redirect(301, `/${lang.toLowerCase()}/QualityPolicy`);
 });
 
 // Group E: /:lang/license (singular) → /:lang/licenses
-app.get('/:lang/license', (req, res) => {
-    res.redirect(301, `/${req.params.lang}/licenses`);
+app.get('/:lang/license', (req, res, next) => {
+    const { lang } = req.params;
+    if (!validRedirectLang(lang)) return next();
+    res.redirect(301, `/${lang.toLowerCase()}/licenses`);
 });
 
-// Lowercase route aliases (Express is case-insensitive for letters but hyphens are different)
+// Group F: /qualifications (lowercase) → /Qualifications
 app.get('/:lang/qualifications', (req, res, next) => {
-    // Only redirect if the path is actually lowercase (not already /Qualifications)
+    const { lang } = req.params;
+    if (!validRedirectLang(lang)) return next();
     if (req.path.includes('/qualifications') && !req.path.includes('/Qualifications')) {
-        return res.redirect(301, `/${req.params.lang}/Qualifications`);
+        return res.redirect(301, `/${lang.toLowerCase()}/Qualifications`);
     }
     next();
 });
@@ -101,8 +136,9 @@ const OLD_MODEL_SLUG_MAP = {
 
 app.get('/:lang/products/:productSlug/:modelSlug', (req, res, next) => {
     const { lang, productSlug, modelSlug } = req.params;
+    if (!validRedirectLang(lang)) return next();
     const newSlug = OLD_MODEL_SLUG_MAP[modelSlug];
-    if (newSlug) return res.redirect(301, `/${lang}/products/${productSlug}/${newSlug}`);
+    if (newSlug) return res.redirect(301, `/${lang.toLowerCase()}/products/${productSlug}/${newSlug}`);
     next();
 });
 

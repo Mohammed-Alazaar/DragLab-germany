@@ -2,9 +2,11 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const slideTranslationSchema = new Schema({
-  title:  { type: String, trim: true, default: '' },
-  desc:   { type: String, trim: true, default: '' },
-  status: { type: String, enum: ['none', 'draft', 'published'], default: 'none' }
+  title:       { type: String, trim: true, default: '' },
+  desc:        { type: String, trim: true, default: '' },
+  buttonLabel: { type: String, trim: true, default: '' },  // e.g. "View Products"
+  buttonLink:  { type: String, trim: true, default: '' },  // e.g. /en/products/water-bath-series
+  status:      { type: String, enum: ['none', 'draft', 'published'], default: 'none' }
 }, { _id: false });
 
 const slideSchema = new Schema({

@@ -1,9 +1,13 @@
 const path = require('path');
 const express = require('express');
 const staticpagesController = require('../controllers/staticpages');
+const validateLang = require('../middleware/validate-lang');
 const router = express.Router();
 const Product = require('../models/product');
 const NewsletterSubscriber = require('../models/newsletter');
+
+// Validate :lang param on every route in this router
+router.param('lang', validateLang);
 
 const geoip = require('geoip-lite');
 

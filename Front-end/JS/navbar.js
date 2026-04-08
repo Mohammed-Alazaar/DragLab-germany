@@ -6,11 +6,19 @@ document.addEventListener('DOMContentLoaded', () => {
     // ────────────────────────────
     //  📦 Utility Functions
     // ────────────────────────────
+    // Returns the current language as UPPERCASE (EN/DE/…) for internal lookups.
+    // Works with both old uppercase URLs (/EN/) and new lowercase URLs (/en/).
     function getCurrentLang() {
         const path = window.location.pathname;
-        const langMatch = path.match(/\/(EN|ES|DE|TR|FR)/);
-        return langMatch ? langMatch[1] : 'EN';
+        const langMatch = path.match(/\/(en|es|de|tr|fr)/i);
+        return langMatch ? langMatch[1].toUpperCase() : 'EN';
     }
+
+    // Returns the canonical lowercase lang code used in URLs (/en/, /de/, …)
+    function getCurrentLangLower() {
+        return getCurrentLang().toLowerCase();
+    }
+
     const langNames = {
         EN: 'English',
         ES: 'Español',
@@ -43,29 +51,29 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function changeLanguage(lang) {
+        const lower = lang.toLowerCase();
         // If we're on an article detail page and have per-language slugs, use them
         if (window.__articleLangSlugs) {
-            const slug = window.__articleLangSlugs[lang];
+            const slug = window.__articleLangSlugs[lang] || window.__articleLangSlugs[lower];
             if (slug) {
-                window.location.href = '/' + lang + '/articles/' + slug;
+                window.location.href = '/' + lower + '/articles/' + slug;
             } else {
-                // That language version isn't published — go to the articles list
-                window.location.href = '/' + lang + '/Articles';
+                window.location.href = '/' + lower + '/Articles';
             }
             return;
         }
         const currentPath = window.location.pathname;
-        const updatedPath = currentPath.replace(/\/(EN|ES|DE|TR|FR)/, '/' + lang);
-        window.location.href = updatedPath === currentPath ? `/${lang}` : updatedPath;
+        const updatedPath = currentPath.replace(/\/(en|es|de|tr|fr)/i, '/' + lower);
+        window.location.href = updatedPath === currentPath ? '/' + lower : updatedPath;
     }
 
     function goToProduct(productSlug) {
-        const lang = getCurrentLang();
+        const lang = getCurrentLangLower();
         window.location.href = `/${lang}/products/${productSlug}`;
     }
 
     function goToModel(productSlug, modelSlug) {
-        const lang = getCurrentLang();
+        const lang = getCurrentLangLower();
         setTimeout(() => {
             window.location.href = `/${lang}/products/${productSlug}/${modelSlug}`;
         }, 100);
@@ -96,7 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateAllLinksForLang() {
-        const lang = getCurrentLang();
+        const lang = getCurrentLangLower();
         const langLinks = {
             '/support': `/${lang}/support`,
             '/technical-service': `/${lang}/technical-service`,
@@ -305,14 +313,14 @@ updateCurrentLangDisplay();
 
 /* ── Quote button: build context-aware URL ── */
 function buildQuoteUrl() {
-    var lang = getCurrentLang();
+    var lang = getCurrentLangLower();
     var base = '/' + lang + '/request-a-quote';
     var path = window.location.pathname;
     // Model page: /{lang}/products/{productSlug}/{modelSlug}
-    var modelMatch = path.match(/\/(?:EN|ES|DE|TR|FR)\/products\/([^/]+)\/([^/]+?)\/?$/i);
+    var modelMatch = path.match(/\/(?:en|es|de|tr|fr)\/products\/([^/]+)\/([^/]+?)\/?$/i);
     if (modelMatch) return base + '?product=' + modelMatch[1] + '&model=' + modelMatch[2];
     // Product page: /{lang}/products/{productSlug}
-    var productMatch = path.match(/\/(?:EN|ES|DE|TR|FR)\/products\/([^/]+?)\/?$/i);
+    var productMatch = path.match(/\/(?:en|es|de|tr|fr)\/products\/([^/]+?)\/?$/i);
     if (productMatch) return base + '?product=' + productMatch[1];
     return base;
 }
@@ -322,6 +330,26 @@ if (navQuoteBtn) navQuoteBtn.href = buildQuoteUrl();
 
 var navQuoteBtnMobile = document.getElementById('navQuoteBtnMobile');
 if (navQuoteBtnMobile) navQuoteBtnMobile.href = buildQuoteUrl();
+
+/* ── Floating quote button ── */
+var floatingQuoteBtn = document.getElementById('floatingQuoteBtn');
+if (floatingQuoteBtn) {
+    // Keep the href context-aware (same as navbar button)
+    floatingQuoteBtn.href = buildQuoteUrl();
+
+    // Show after scrolling 300 px down
+    var _fqTicking = false;
+    function _onFqScroll() {
+        if (!_fqTicking) {
+            requestAnimationFrame(function () {
+                floatingQuoteBtn.classList.toggle('fq-visible', window.scrollY > 300);
+                _fqTicking = false;
+            });
+            _fqTicking = true;
+        }
+    }
+    window.addEventListener('scroll', _onFqScroll, { passive: true });
+}
 
 });
 

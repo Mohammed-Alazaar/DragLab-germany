@@ -65,6 +65,12 @@
                         <label>Description (<%= l.name %>)</label>
                         <textarea name="<%= l.key %>_desc" rows="4"><%= t.desc || '' %></textarea>
 
+                        <label>Button Label (<%= l.name %>) <span style="font-weight:400;font-size:13px;color:#888;">— optional, e.g. "View Products"</span></label>
+                        <input type="text" name="<%= l.key %>_buttonLabel" value="<%= t.buttonLabel || '' %>" placeholder="Leave empty to hide the button">
+
+                        <label>Button Link (<%= l.name %>) <span style="font-weight:400;font-size:13px;color:#888;">— optional, e.g. /en/products/water-bath-series</span></label>
+                        <input type="text" name="<%= l.key %>_buttonLink" value="<%= t.buttonLink || '' %>" placeholder="Leave empty to hide the button">
+
                         <div class="status-section">
                             <label>Publication status for <%= l.name %></label>
                             <div class="status-buttons" id="status-btns-<%= l.key %>">

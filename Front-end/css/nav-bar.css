@@ -335,6 +335,71 @@ select#languageSwitcher {
     color: #fff !important;
 }
 
+/* ── Floating "Get a Quote" button (mid-right) ── */
+.floating-quote-btn {
+    position: fixed;
+    top: 50%;
+    right: 0;
+    transform: translateY(-50%) translateX(100%); /* hidden off-screen right */
+    z-index: 999;
+
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+
+    padding: 13px 18px 13px 16px;
+    background: #0d3b6e;
+    color: #fff !important;
+    text-decoration: none !important;
+    font-weight: 700;
+    font-size: 14px;
+    border-radius: 8px 0 0 8px;   /* flat on the right, rounded on the left */
+    white-space: nowrap;
+
+    box-shadow: -3px 3px 16px rgba(13, 59, 110, 0.40);
+    transition:
+        background  0.22s ease,
+        box-shadow  0.22s ease,
+        transform   0.35s ease,
+        opacity     0.35s ease,
+        visibility  0.35s ease;
+
+    opacity: 0;
+    visibility: hidden;
+}
+
+.floating-quote-btn.fq-visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(-50%) translateX(0);   /* slides in from the right */
+}
+
+.floating-quote-btn:hover {
+    background: #c9a227;
+    box-shadow: -4px 4px 20px rgba(201, 162, 39, 0.45);
+    padding-right: 22px;   /* nudges slightly left on hover */
+}
+
+.floating-quote-btn .fq-icon {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+    .floating-quote-btn {
+        padding: 11px 13px 11px 12px;
+        font-size: 13px;
+    }
+    .floating-quote-btn .fq-label {
+        display: none;
+    }
+    .floating-quote-btn .fq-icon {
+        width: 22px;
+        height: 22px;
+    }
+}
+
 /* ── Mobile quote button ── */
 .mobile-quote-li {
     padding: 8px 0 !important;

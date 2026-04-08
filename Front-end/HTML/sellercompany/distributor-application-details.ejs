@@ -43,7 +43,7 @@
           Export as PDF
         </a>
       </div>
-      <h1>Distributor Application Detail</h1>
+      <h1>Distributor Application Detail <span style="font-family:monospace;font-size:1rem;font-weight:700;color:#293C95;background:#EEF1FB;padding:3px 10px;border-radius:6px;vertical-align:middle">DA-<%= application._id.toString().slice(-6).toUpperCase() %></span></h1>
 
       <div class="detail-card">
         <h2>Status <span class="status-badge status-<%= application.status %>"><%= application.status.replace('_', ' ') %></span></h2>

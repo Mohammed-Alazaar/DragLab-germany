@@ -1,7 +1,11 @@
 // routes/feed.js
 const express = require('express');
 const Article = require('../models/articles');
+const validateLang = require('../middleware/validate-lang');
 const router = express.Router();
+
+// Validate :lang param on every route in this router
+router.param('lang', validateLang);
 
 router.get('/:lang/feed.xml', async (req, res, next) => {
   try {

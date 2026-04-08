@@ -219,10 +219,12 @@ const [products, rawSlides, rawArticles] = await Promise.all([
 
         // Map slides to flat structure for the template
         const slides = rawSlides.map(s => ({
-            _id:   s._id,
-            image: s.image,
-            title: s.translations?.[langKey]?.title || '',
-            desc:  s.translations?.[langKey]?.desc  || ''
+            _id:         s._id,
+            image:       s.image,
+            title:       s.translations?.[langKey]?.title       || '',
+            desc:        s.translations?.[langKey]?.desc        || '',
+            buttonLabel: s.translations?.[langKey]?.buttonLabel || '',
+            buttonLink:  s.translations?.[langKey]?.buttonLink  || ''
         }));
 
         // Map articles to flat structure for the template
@@ -1550,7 +1552,7 @@ exports.geTechnicalservice = async (req, res, next) => {
 
 
 // controllers/technicalService.js
-const { sendCustomerEmail, notifyInternal } = require('../services/email');
+const { sendCustomerEmail, notifyInternal, sendViaSendGrid } = require('../services/email');
 
 // controllers/technicalService.js
 
@@ -2878,14 +2880,33 @@ exports.postRequestQuote = async (req, res) => {
 
     // Send emails async after redirect
     const quoteTicketId = `QR-${quote._id.toString().slice(-6).toUpperCase()}`;
+    const customerText = [
+      `Quote Request Received — ${quoteTicketId}`,
+      ``,
+      `Dear ${contactName || companyName},`,
+      `Thank you for your quote request. We have received your submission and our sales team will get back to you as soon as possible.`,
+      ``,
+      `Reference: ${quoteTicketId}`,
+      `Company:   ${companyName}`,
+      `Country:   ${country}`,
+      industry ? `Industry:  ${industry}` : null,
+      modelQtyLines.length ? `Products & Quantities:\n  ${modelQtyLines.join('\n  ')}` : null,
+      deliveryDeadline ? `Deadline:  ${deliveryDeadline}` : null,
+      ``,
+      `If you have any questions, contact us at info@drag-lab.de`,
+      ``,
+      `DragLab Technologies · www.drag-lab.de`
+    ].filter(l => l !== null).join('\n');
+
     Promise.all([
-      // Confirmation to customer
-      notifyInternal({
+      // Confirmation to customer — use sendViaSendGrid so it always goes via SendGrid (bypasses SMTP)
+      sendViaSendGrid({
         to: email,
         subject: `Your Quote Request Has Been Received – DragLab (${quoteTicketId})`,
+        text: customerText,
         html: `<!DOCTYPE html><html><body style="font-family:Arial,sans-serif;color:#1a1a2e;max-width:600px;margin:0 auto;padding:20px">
           <div style="background:#293C95;padding:24px 28px;border-radius:8px 8px 0 0">
-            <h1 style="color:#fff;margin:0;font-size:22px">DragLab GmbH</h1>
+            <h1 style="color:#fff;margin:0;font-size:22px">DragLab Technologies</h1>
             <p style="color:rgba(255,255,255,0.75);margin:4px 0 0;font-size:13px">www.drag-lab.de</p>
           </div>
           <div style="border:1px solid #e2e8f0;border-top:none;border-radius:0 0 8px 8px;padding:28px">
@@ -2897,16 +2918,15 @@ exports.postRequestQuote = async (req, res) => {
               <tr><td style="padding:8px 12px;font-weight:bold;color:#293C95">Company</td><td style="padding:8px 12px">${companyName}</td></tr>
               <tr style="background:#EEF1FB"><td style="padding:8px 12px;font-weight:bold;color:#293C95">Country</td><td style="padding:8px 12px">${country}</td></tr>
               ${industry ? `<tr><td style="padding:8px 12px;font-weight:bold;color:#293C95">Industry</td><td style="padding:8px 12px">${industry}</td></tr>` : ''}
-              ${selectedProducts.length ? `<tr style="background:#EEF1FB"><td style="padding:8px 12px;font-weight:bold;color:#293C95">Products</td><td style="padding:8px 12px">${selectedProducts.join(', ')}</td></tr>` : ''}
-              ${modelQtyLines.length ? `<tr><td style="padding:8px 12px;font-weight:bold;color:#293C95;vertical-align:top">Models &amp; Quantities</td><td style="padding:8px 12px">${modelQtyLines.map(l => `<div>${l}</div>`).join('')}</td></tr>` : ''}
+              ${modelQtyLines.length ? `<tr style="background:#EEF1FB"><td style="padding:8px 12px;font-weight:bold;color:#293C95;vertical-align:top">Products &amp; Quantities</td><td style="padding:8px 12px">${modelQtyLines.map(l => `<div>${l}</div>`).join('')}</td></tr>` : ''}
               ${deliveryDeadline ? `<tr style="background:#EEF1FB"><td style="padding:8px 12px;font-weight:bold;color:#293C95">Deadline</td><td style="padding:8px 12px">${deliveryDeadline}</td></tr>` : ''}
             </table>
             <p style="font-size:13px;color:#6b7280">If you have any questions, please contact us at <a href="mailto:info@drag-lab.de" style="color:#293C95">info@drag-lab.de</a>.</p>
             <hr style="border:none;border-top:1px solid #e2e8f0;margin:24px 0">
-            <p style="font-size:12px;color:#9ca3af;margin:0">DragLab GmbH · www.drag-lab.de</p>
+            <p style="font-size:12px;color:#9ca3af;margin:0">DragLab Technologies · www.drag-lab.de</p>
           </div>
         </body></html>`
-      }),
+      }).then(r => { if (!r.ok) console.error('❌ Customer quote confirmation email failed:', r.error?.response?.body || r.error?.message || r.error); }),
       // Internal notification
       notifyInternal({
         to: 'info@drag-lab.de',
@@ -2918,15 +2938,14 @@ exports.postRequestQuote = async (req, res) => {
                <p><strong>Email:</strong> ${email}</p>
                <p><strong>Phone:</strong> ${phone || '—'}</p>
                <p><strong>Industry:</strong> ${industry || '—'}</p>
-               <p><strong>Products:</strong> ${selectedProducts.join(', ') || '—'}</p>
-               <p><strong>Models &amp; Quantities:</strong><ul>${modelsHtml}</ul></p>
+               <p><strong>Products &amp; Quantities:</strong><ul>${modelsHtml}</ul></p>
                <p><strong>Deadline:</strong> ${deliveryDeadline || '—'}</p>
                <p><strong>Message:</strong> ${message || '—'}</p>
                ${attachHtml}
                <p><strong>Admin Link:</strong> <a href="https://www.drag-lab.de/admin/quotes/${quote._id}">View in Admin</a></p>`,
         text: `New Quote Request from ${companyName} – ${email} — ${quoteTicketId}`
-      })
-    ]).catch(e => console.error('❌ Quote email error:', e));
+      }).then(r => { if (!r.ok) console.error('❌ Admin quote notification email failed:', r.error?.response?.body || r.error?.message || r.error); })
+    ]).catch(e => console.error('❌ Quote email Promise error:', e));
   } catch (err) {
     console.error('postRequestQuote error:', err);
     return res.redirect('/EN/request-a-quote?error=1');
@@ -3234,13 +3253,13 @@ exports.postDistributorApplication = async (req, res) => {
     // Send emails async after redirect
     const distTicketId = `DA-${app._id.toString().slice(-6).toUpperCase()}`;
     Promise.all([
-      // Confirmation to applicant
-      notifyInternal({
+      // Confirmation to applicant — use sendViaSendGrid to bypass SMTP
+      sendViaSendGrid({
         to: email,
         subject: `Your Distributor Application Has Been Received – DragLab (${distTicketId})`,
         html: `<!DOCTYPE html><html><body style="font-family:Arial,sans-serif;color:#1a1a2e;max-width:600px;margin:0 auto;padding:20px">
           <div style="background:#293C95;padding:24px 28px;border-radius:8px 8px 0 0">
-            <h1 style="color:#fff;margin:0;font-size:22px">DragLab GmbH</h1>
+            <h1 style="color:#fff;margin:0;font-size:22px">DragLab Technologies</h1>
             <p style="color:rgba(255,255,255,0.75);margin:4px 0 0;font-size:13px">www.drag-lab.de</p>
           </div>
           <div style="border:1px solid #e2e8f0;border-top:none;border-radius:0 0 8px 8px;padding:28px">
@@ -3257,7 +3276,7 @@ exports.postDistributorApplication = async (req, res) => {
             </table>
             <p style="font-size:13px;color:#6b7280">If you have any questions, please contact us at <a href="mailto:info@drag-lab.de" style="color:#293C95">info@drag-lab.de</a>.</p>
             <hr style="border:none;border-top:1px solid #e2e8f0;margin:24px 0">
-            <p style="font-size:12px;color:#9ca3af;margin:0">DragLab GmbH · www.drag-lab.de</p>
+            <p style="font-size:12px;color:#9ca3af;margin:0">DragLab Technologies · www.drag-lab.de</p>
           </div>
         </body></html>`
       }),

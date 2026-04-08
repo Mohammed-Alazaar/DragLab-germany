@@ -49,7 +49,7 @@
       <a href="/admin/quotes" class="back-link">← Back to Quotes</a>
 
       <div class="page-actions">
-        <h1>Quote Request Detail</h1>
+        <h1>Quote Request Detail <span style="font-family:monospace;font-size:1rem;font-weight:700;color:#293C95;background:#EEF1FB;padding:3px 10px;border-radius:6px;vertical-align:middle">QR-<%= quote._id.toString().slice(-6).toUpperCase() %></span></h1>
         <a href="/admin/quotes/<%= quote._id %>/pdf" class="pdf-btn">⬇ Export PDF</a>
       </div>
 

@@ -78,35 +78,45 @@ const homeDesc = lang === 'ES' ? 'DragLab fabrica incubadoras, hornos de secado,
     <div class="slide <%= index === 0 ? 'show' : '' %>">
       <% if (slide.image) { %>
         <% if (index === 0) { %>
-          <!-- Hero (LCP) -->
           <img
             src="<%= slide.image %>"
             alt="<%= slide.title %>"
             loading="eager"
             decoding="async"
             fetchpriority="high"
-            width="1600" height="900"><!-- set your real dimensions if you know them -->
+            width="1600" height="900">
         <% } else { %>
-          <!-- Non-hero -->
           <img
             src="<%= slide.image %>"
             alt="<%= slide.title %>"
             decoding="async"
             fetchpriority="low"
-            width="1600" height="900"><!-- keep same aspect for CLS -->
+            width="1600" height="900">
         <% } %>
       <% } %>
 
       <div class="slide-text">
         <h3><%= slide.title %></h3>
-        <p><%= slide.desc %></p>
+        <% if (slide.desc) { %><p><%= slide.desc %></p><% } %>
+        <% if (slide.buttonLink && slide.buttonLabel) { %>
+          <a href="<%= slide.buttonLink %>" class="slide-cta-btn"><%= slide.buttonLabel %></a>
+        <% } %>
       </div>
     </div>
   <% }) %>
 
+  <% if (slides.length > 1) { %>
+  <button class="hero-arrow hero-prev" aria-label="Previous slide">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+  </button>
+  <button class="hero-arrow hero-next" aria-label="Next slide">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+  </button>
+  <% } %>
+
   <div class="slideshow-dots">
     <% slides.forEach((_, index) => { %>
-      <span class="dot <%= index === 0 ? 'activedot' : '' %>"></span>
+      <button class="dot <%= index === 0 ? 'activedot' : '' %>" data-idx="<%= index %>" aria-label="Go to slide <%= index + 1 %>"></button>
     <% }) %>
   </div>
 </section>
@@ -132,7 +142,7 @@ const homeDesc = lang === 'ES' ? 'DragLab fabrica incubadoras, hornos de secado,
         <a href="/<%= lang %>/products/<%= product.slug %>" class="product-card-link">
           <div class="product-card">
             <div class="product-image-wrapper">
-              <img src="<%= product.ProductThumbnail %>" alt="<%= translation.ProductName %>" loading="lazy" decoding="async">
+              <img data-src="<%= product.ProductThumbnail %>" src="" alt="<%= translation.ProductName %>" decoding="async" class="img-lazy">
               <div class="product-bg-overlay"></div>
             </div>
             <div class="product-card-information">
@@ -181,7 +191,7 @@ const homeDesc = lang === 'ES' ? 'DragLab fabrica incubadoras, hornos de secado,
                     <% industryCards.forEach(industry=> { %>
                         <div class="industry-card">
                             <a href="/<%= lang %>/industry/<%= industry.slug %>">
-                                <img src="<%= industry.image %>" alt="<%= industry.title %>" loading="lazy" decoding="async">
+                                <img data-src="<%= industry.image %>" src="" alt="<%= industry.title %>" decoding="async" class="img-lazy">
                                 <div class="overlay">
                                     <h3>
                                         <%= industry.title %>
@@ -211,7 +221,7 @@ const homeDesc = lang === 'ES' ? 'DragLab fabrica incubadoras, hornos de secado,
                     <% articles.forEach(article=> { %>
                         <div class="article-slide">
                             <a href="/<%= lang %>/articles/<%= article.slug %>" class="article-card">
-                                <img src="<%= article.thumbnail %>" alt="<%= article.title %>" loading="lazy" decoding="async">
+                                <img data-src="<%= article.thumbnail %>" src="" alt="<%= article.title %>" decoding="async" class="img-lazy">
                                 <div class="article-card-information">
                                     <h4>
                                         <%= article.title %>

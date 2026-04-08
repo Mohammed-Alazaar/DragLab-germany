@@ -5,10 +5,12 @@ const IndustryPage = require('../models/IndustryPage');
 
 const router = express.Router();
 const SITE = 'https://www.drag-lab.de';
-const ALL_LANGS = ['EN', 'ES', 'DE', 'TR', 'FR'];
+const ALL_LANGS = ['en', 'es', 'de', 'tr', 'fr'];
 
-// Maps sitemap lang code → translations key
-const LANG_KEY = { EN: 'en', ES: 'es', DE: 'de', TR: 'tr', FR: 'fr' };
+// Maps sitemap lang code → DB/translations key (uppercase)
+const LANG_KEY = { en: 'en', es: 'es', de: 'de', tr: 'tr', fr: 'fr' };
+// Maps lowercase URL lang → uppercase DB lang for Product/Model publish checks
+const LANG_UPPER = { en: 'EN', es: 'ES', de: 'DE', tr: 'TR', fr: 'FR' };
 
 const STATIC_PAGES = [
   { path: '/',                      changefreq: 'weekly',  priority: '1.0' },
@@ -98,13 +100,14 @@ router.get('/sitemap-products.xml', async (req, res) => {
         : null;
 
       for (const lang of ALL_LANGS) {
-        const published = p.Language?.[lang]?.[0]?.publish === true;
+        const dbLang = LANG_UPPER[lang]; // DB stores uppercase keys (EN, DE, …)
+        const published = p.Language?.[dbLang]?.[0]?.publish === true;
         if (!published) continue;
         entries.push(urlEntry(`${SITE}/${lang}/products/${p.slug}`, lastmod, 'weekly', '0.9'));
 
         for (const model of (p.Models || [])) {
           if (!model.slug) continue;
-          const modelPublished = model.Language?.[lang]?.[0]?.publish === true;
+          const modelPublished = model.Language?.[dbLang]?.[0]?.publish === true;
           if (!modelPublished) continue;
           entries.push(urlEntry(`${SITE}/${lang}/products/${p.slug}/${model.slug}`, lastmod, 'weekly', '0.8'));
         }

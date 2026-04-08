@@ -26,12 +26,12 @@
 
 <!-- Canonical & hreflang -->
 <link rel="canonical" href="<%= listUrl %>">
-<link rel="alternate" hreflang="en" href="https://www.drag-lab.de/EN/Articles">
-<link rel="alternate" hreflang="es" href="https://www.drag-lab.de/ES/Articles">
-<link rel="alternate" hreflang="de" href="https://www.drag-lab.de/DE/Articles">
-<link rel="alternate" hreflang="tr" href="https://www.drag-lab.de/TR/Articles">
-<link rel="alternate" hreflang="fr" href="https://www.drag-lab.de/FR/Articles">
-<link rel="alternate" hreflang="x-default" href="https://www.drag-lab.de/EN/Articles">
+<link rel="alternate" hreflang="en" href="https://www.drag-lab.de/en/Articles">
+<link rel="alternate" hreflang="es" href="https://www.drag-lab.de/es/Articles">
+<link rel="alternate" hreflang="de" href="https://www.drag-lab.de/de/Articles">
+<link rel="alternate" hreflang="tr" href="https://www.drag-lab.de/tr/Articles">
+<link rel="alternate" hreflang="fr" href="https://www.drag-lab.de/fr/Articles">
+<link rel="alternate" hreflang="x-default" href="https://www.drag-lab.de/en/Articles">
 
 <!-- Open Graph -->
 <meta property="og:type" content="website">
@@ -118,6 +118,10 @@
           Explore conocimientos, innovaciones y experiencia en tecnología de laboratorio.
         <% } else if (lang === 'DE') { %>
           Entdecken Sie Einblicke, Innovationen und Fachwissen in der Labortechnologie.
+        <% } else if (lang === 'TR') { %>
+          Laboratuvar ekipmanları ve teknolojisindeki içgörüleri, yenilikleri ve uzmanlığı keşfedin.
+        <% } else if (lang === 'FR') { %>
+          Explorez les analyses, innovations et expertises en équipements et technologie de laboratoire.
         <% } else { %>
           Explore insights, innovations, and expertise in laboratory equipment and technology.
         <% } %>
@@ -130,20 +134,25 @@
 
   <div class="article-slides-wrapper">
     <% if (articles && articles.length) { %>
-      <% articles.forEach(function(a){ 
+      <% articles.forEach(function(a){
            const cardUrl = '/' + lang + '/articles/' + a.slug;
            const thumb = (a.thumbnail && a.thumbnail.startsWith('http'))
              ? a.thumbnail
              : (a.thumbnail ? ('https://www.drag-lab.de' + a.thumbnail) : 'https://www.drag-lab.de/assets/Imgs/logo/logo.png');
            const excerpt = (a.summary && a.summary.trim()) || toText(a.body).slice(0, 140);
+           const dateStr = a.createdAt ? new Date(a.createdAt).toLocaleDateString(
+             lang === 'DE' ? 'de-DE' : lang === 'ES' ? 'es-ES' : lang === 'TR' ? 'tr-TR' : lang === 'FR' ? 'fr-FR' : 'en-GB',
+             { year: 'numeric', month: 'short', day: 'numeric' }
+           ) : '';
       %>
         <div class="article-slide">
           <a href="<%= cardUrl %>">
             <div class="article-card">
               <img src="<%= thumb %>" alt="<%= a.title %>" loading="lazy" decoding="async">
               <div class="article-card-information">
+                <% if (dateStr) { %><time class="article-card-date" datetime="<%= a.createdAt ? new Date(a.createdAt).toISOString().split('T')[0] : '' %>"><%= dateStr %></time><% } %>
                 <h4><%= a.title %></h4>
-                <p><%= excerpt %>…</p>
+                <% if (excerpt) { %><p><%= excerpt %>…</p><% } %>
               </div>
             </div>
           </a>
