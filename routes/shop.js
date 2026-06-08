@@ -176,6 +176,10 @@ router.get('/:lang/laboratory-glossary', shopController.getLaboratoryGlossary);
 router.get('/:lang/laboratory-glossary/:slug', shopController.getGlossaryTerm);
 
 
+// ── Accessories ──────────────────────────────────────────────────────────────
+router.get('/:lang/accessories', shopController.getAccessories);
+router.get('/:lang/accessories/:slug', shopController.getAccessoryDetails);
+
 // ── Testimonials ─────────────────────────────────────────────────────────────
 router.get('/:lang/testimonials', shopController.getTestimonials);
 

@@ -37,7 +37,8 @@ const uploadFields = [
   { name: 'slideImage', maxCount: 1 },    // ✅ NEW
   { name: 'introImage', maxCount: 1 },
   { name: 'testimonialImage', maxCount: 1 },
-  { name: 'testimonialLogo', maxCount: 1 }
+  { name: 'testimonialLogo', maxCount: 1 },
+  { name: 'accessoryImage', maxCount: 1 }
 ];
 
 languages.forEach(lang => {
@@ -175,7 +176,7 @@ async function uploadToCloudinaryDirectly(req, res, next) {
 
 
   // ✅ Upload common fields like productSketch and productThumbnail
-  const fieldsToUpload = ['productThumbnail', 'productSketch', 'slideImage', 'introImage'];
+  const fieldsToUpload = ['productThumbnail', 'productSketch', 'slideImage', 'introImage', 'accessoryImage'];
   for (const field of fieldsToUpload) {
     const files = req.files[field];
     if (files && files.length > 0) {

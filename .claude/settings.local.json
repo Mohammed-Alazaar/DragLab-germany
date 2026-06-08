@@ -22,7 +22,10 @@
       "Bash(grep:*)",
       "Bash(wc -l \"/c/draglab marketıng mohammed/GitHub/DragLab-germany/Front-end/JS\"/*.js)",
       "Bash(find \"/c/draglab marketıng mohammed/GitHub/DragLab-germany/Front-end/css/customer\" -type f -name \"*.css\" -exec wc -l {} +)",
-      "Bash(sed:*)"
+      "Bash(sed:*)",
+      "Bash(git restore *)",
+      "Bash(Get-ChildItem -Path \"c:\\\\draglab marketıng mohammed\\\\GitHub\\\\DragLab-germany\" -Force)",
+      "Bash(Select-Object Name, PSIsContainer)"
     ]
   }
 }

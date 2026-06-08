@@ -4575,3 +4575,242 @@ exports.postDeleteTestimonial = async (req, res) => {
     res.status(500).send('Server error');
   }
 };
+
+// ── Accessories ───────────────────────────────────────────────────────────────
+
+const Accessory = require('../models/accessory');
+const mongoose  = require('mongoose');
+
+exports.getAllAccessories = async (req, res, next) => {
+  try {
+    const PAGE_SIZE  = 20;
+    const page       = Math.max(1, parseInt(req.query.page) || 1);
+    const totalItems = await Accessory.countDocuments();
+    const totalPages = Math.ceil(totalItems / PAGE_SIZE);
+    const accessories = await Accessory.find()
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * PAGE_SIZE)
+      .limit(PAGE_SIZE)
+      .lean();
+
+    res.render('sellercompany/all-accessories', {
+      path: '/admin/accessories',
+      pageTitle: 'Accessories',
+      accessories,
+      isAuthenticated: req.session.isLoggedIn,
+      currentPage: page,
+      totalPages,
+      totalItems,
+      baseUrl: '/admin/accessories'
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.getAddAccessory = async (req, res, next) => {
+  try {
+    const rawProducts = await Product.find({ isDraft: false })
+      .select('_id slug Language.EN')
+      .lean();
+
+    const productList = rawProducts.map(p => ({
+      _id:  p._id,
+      slug: p.slug || '',
+      name: p.Language?.EN?.[0]?.ProductName || p.slug || 'Unnamed Product'
+    }));
+
+    res.render('sellercompany/add-accessory', {
+      path:            '/admin/accessories',
+      pageTitle:       'Add Accessory',
+      editing:         false,
+      accessory:       null,
+      productList,
+      isAuthenticated: req.session.isLoggedIn
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.postAddAccessory = async (req, res) => {
+  try {
+    const { name, articleNumber, applicableProductsJson } = req.body;
+
+    // Upload image to Cloudinary
+    const file = req.files?.accessoryImage?.[0];
+    let image  = '';
+    if (file) {
+      image = await new Promise((resolve, reject) => {
+        cloudinary.uploader.upload_stream(
+          { resource_type: 'image', folder: 'draglab/accessories', format: 'webp', quality: 'auto' },
+          (error, r) => error ? reject(error) : resolve(r.secure_url)
+        ).end(file.buffer);
+      });
+    }
+
+    const LANGS = ['en', 'es', 'de', 'tr', 'fr'];
+    const validStatuses = ['none', 'draft', 'published'];
+
+    const description = {};
+    const langStatus  = {};
+    LANGS.forEach(l => {
+      description[l] = req.body[`description_${l}`] || '';
+      const st = req.body[`${l}_status`];
+      langStatus[l] = validStatuses.includes(st) ? st : 'none';
+    });
+
+    // Derive global status: published if any language is published
+    const status = LANGS.some(l => langStatus[l] === 'published') ? 'published' : 'draft';
+
+    let applicableProducts = [];
+    try { applicableProducts = JSON.parse(applicableProductsJson || '[]'); } catch (e) {}
+
+    const baseSlug = slugify(name || 'accessory', { lower: true, strict: true });
+    let slug = baseSlug;
+    let counter = 1;
+    while (await Accessory.findOne({ slug }).lean()) {
+      slug = baseSlug + '-' + counter++;
+    }
+
+    await new Accessory({
+      name:               (name || '').trim(),
+      slug,
+      articleNumber:      (articleNumber || '').trim(),
+      image,
+      description,
+      langStatus,
+      applicableProducts,
+      status
+    }).save();
+
+    res.redirect('/admin/accessories');
+  } catch (err) {
+    console.error('postAddAccessory error:', err);
+    res.status(500).send('Error adding accessory');
+  }
+};
+
+exports.getEditAccessory = async (req, res, next) => {
+  try {
+    const accessory = await Accessory.findById(req.params.id).lean();
+    if (!accessory) return res.redirect('/admin/accessories');
+
+    const rawProducts = await Product.find({ isDraft: false })
+      .select('_id slug Language.EN')
+      .lean();
+
+    const productList = rawProducts.map(p => ({
+      _id:  p._id,
+      slug: p.slug || '',
+      name: p.Language?.EN?.[0]?.ProductName || p.slug || 'Unnamed Product'
+    }));
+
+    res.render('sellercompany/add-accessory', {
+      path:            '/admin/accessories',
+      pageTitle:       'Edit Accessory',
+      editing:         true,
+      accessory,
+      productList,
+      isAuthenticated: req.session.isLoggedIn
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.postEditAccessory = async (req, res) => {
+  try {
+    const accessory = await Accessory.findById(req.params.id);
+    if (!accessory) return res.redirect('/admin/accessories');
+
+    const { name, articleNumber, applicableProductsJson } = req.body;
+
+    // Replace image if new file uploaded
+    const file = req.files?.accessoryImage?.[0];
+    if (file) {
+      if (accessory.image) {
+        const match = accessory.image.match(/draglab\/accessories\/(.+?)(?:\.\w+)?$/);
+        if (match) {
+          try { await cloudinary.uploader.destroy('draglab/accessories/' + match[1]); } catch (e) {}
+        }
+      }
+      accessory.image = await new Promise((resolve, reject) => {
+        cloudinary.uploader.upload_stream(
+          { resource_type: 'image', folder: 'draglab/accessories', format: 'webp', quality: 'auto' },
+          (error, r) => error ? reject(error) : resolve(r.secure_url)
+        ).end(file.buffer);
+      });
+    }
+
+    const LANGS = ['en', 'es', 'de', 'tr', 'fr'];
+    const validStatuses = ['none', 'draft', 'published'];
+
+    const description = {};
+    const langStatus  = {};
+    LANGS.forEach(l => {
+      description[l] = req.body[`description_${l}`] || '';
+      const st = req.body[`${l}_status`];
+      langStatus[l] = validStatuses.includes(st) ? st : 'none';
+    });
+
+    accessory.name          = (name || '').trim();
+    accessory.articleNumber = (articleNumber || '').trim();
+    accessory.description   = description;
+    accessory.langStatus    = langStatus;
+    accessory.status        = LANGS.some(l => langStatus[l] === 'published') ? 'published' : 'draft';
+
+    try { accessory.applicableProducts = JSON.parse(applicableProductsJson || '[]'); } catch (e) {}
+
+    await accessory.save();
+    res.redirect('/admin/accessories');
+  } catch (err) {
+    console.error('postEditAccessory error:', err);
+    res.status(500).send('Error updating accessory');
+  }
+};
+
+exports.postDeleteAccessory = async (req, res) => {
+  try {
+    const accessory = await Accessory.findById(req.params.id);
+    if (!accessory) return res.redirect('/admin/accessories');
+
+    if (accessory.image) {
+      const match = accessory.image.match(/draglab\/accessories\/(.+?)(?:\.\w+)?$/);
+      if (match) {
+        try { await cloudinary.uploader.destroy('draglab/accessories/' + match[1]); } catch (e) {}
+      }
+    }
+
+    await Accessory.findByIdAndDelete(req.params.id);
+    res.redirect('/admin/accessories');
+  } catch (err) {
+    console.error('postDeleteAccessory error:', err);
+    res.redirect('/admin/accessories');
+  }
+};
+
+// API: return all models for a product (used by add-accessory form via AJAX)
+exports.getAccessoryModels = async (req, res) => {
+  const { productId } = req.params;
+  if (!mongoose.isValidObjectId(productId)) {
+    return res.status(400).json({ models: [] });
+  }
+  try {
+    const product = await Product.findById(productId)
+      .select('Models._id Models.slug Models.Language.EN')
+      .lean();
+    if (!product) return res.status(404).json({ models: [] });
+
+    const models = (product.Models || []).map(m => ({
+      _id:       m._id,
+      slug:      m.slug || '',
+      modelName: m.Language?.EN?.[0]?.ModelName || 'Unnamed Model'
+    }));
+
+    res.json({ models });
+  } catch (err) {
+    console.error('getAccessoryModels error:', err);
+    res.status(500).json({ models: [] });
+  }
+};

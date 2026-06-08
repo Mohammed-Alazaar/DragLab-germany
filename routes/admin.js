@@ -233,6 +233,15 @@ router.post('/glossary/categories/delete/:id', isAuth, isAdminOrSeller, adminCon
 
 
 
+// ── Accessories ───────────────────────────────────────────────────────────────
+router.get('/accessories', isAuth, isAdminOrSeller, adminController.getAllAccessories);
+router.get('/accessories/add', isAuth, isAdminOrSeller, adminController.getAddAccessory);
+router.post('/accessories/add', isAuth, isAdminOrSeller, uploadProductImages, adminController.postAddAccessory);
+router.get('/accessories/get-models/:productId', isAuth, isAdminOrSeller, adminController.getAccessoryModels);
+router.get('/accessories/edit/:id', isAuth, isAdminOrSeller, adminController.getEditAccessory);
+router.post('/accessories/edit/:id', isAuth, isAdminOrSeller, uploadProductImages, adminController.postEditAccessory);
+router.post('/accessories/delete/:id', isAuth, isAdminOrSeller, adminController.postDeleteAccessory);
+
 // ── Testimonials ──────────────────────────────────────────────────────────────
 router.get("/testimonials", isAuth, isAdminOrSeller, adminController.getAllTestimonials);
 router.get("/testimonials/add", isAuth, isAdminOrSeller, adminController.getAddTestimonial);

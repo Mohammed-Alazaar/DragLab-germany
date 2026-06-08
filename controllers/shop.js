@@ -28,6 +28,7 @@ const GlossaryCategory = require('../models/GlossaryCategory');
 // notifyInternal is available from the existing require at line ~1544 in this file
 
 const allanguages = ['EN', 'ES', 'DE', 'TR', 'FR'];
+const Accessory   = require('../models/accessory');
 
 
 
@@ -843,6 +844,8 @@ exports.getProductDetails = async (req, res, next) => {
                 overviewTitle: 'Overview',
                 industriesTitle: 'Industries',
                 specsTitle: 'Technical Specifications',
+                accessoriesTitle: 'Accessories',
+                accessoriesViewBtn: 'View',
                 downloadsTitle: 'Downloads',
                 noDownloads: 'No downloads available in this language.',
             },
@@ -850,6 +853,8 @@ exports.getProductDetails = async (req, res, next) => {
                 overviewTitle: 'Descripción general',
                 industriesTitle: 'Industrias',
                 specsTitle: 'Especificaciones técnicas',
+                accessoriesTitle: 'Accesorios',
+                accessoriesViewBtn: 'Ver',
                 downloadsTitle: 'Descargas',
                 noDownloads: 'No hay descargas disponibles en este idioma.',
             },
@@ -857,6 +862,8 @@ exports.getProductDetails = async (req, res, next) => {
                 overviewTitle: 'Überblick',
                 industriesTitle: 'Branchen',
                 specsTitle: 'Technische Daten',
+                accessoriesTitle: 'Zubehör',
+                accessoriesViewBtn: 'Ansehen',
                 downloadsTitle: 'Downloads',
                 noDownloads: 'Keine Downloads in dieser Sprache verfügbar.',
             },
@@ -864,6 +871,8 @@ exports.getProductDetails = async (req, res, next) => {
                 overviewTitle: 'Genel Bakış',
                 industriesTitle: 'Sektörler',
                 specsTitle: 'Teknik Özellikler',
+                accessoriesTitle: 'Aksesuarlar',
+                accessoriesViewBtn: 'İncele',
                 downloadsTitle: 'İndirmeler',
                 noDownloads: 'Bu dilde mevcut indirme yok.',
             },
@@ -871,6 +880,8 @@ exports.getProductDetails = async (req, res, next) => {
                 overviewTitle: 'Aperçu',
                 industriesTitle: 'Industries',
                 specsTitle: 'Spécifications techniques',
+                accessoriesTitle: 'Accessoires',
+                accessoriesViewBtn: 'Voir',
                 downloadsTitle: 'Téléchargements',
                 noDownloads: 'Aucun téléchargement disponible dans cette langue.',
             },
@@ -1042,7 +1053,17 @@ exports.getModelDetailsPage = async (req, res, next) => {
 
     const navProducts = res.locals.navProducts || [];
 
-    // 8) Render page
+    // 8) Fetch accessories for this model
+    const modelLangKey = selectedLang.toLowerCase();
+    const modelAccessories = await Accessory.find({
+      [`langStatus.${modelLangKey}`]: 'published',
+      'applicableProducts.models.modelId': model._id
+    })
+      .select('name slug articleNumber image')
+      .sort({ createdAt: -1 })
+      .lean();
+
+    // 9) Render page
     return res.render('customer/Model-details', {
       pageTitle: metaTitle,
       metaTitle,
@@ -1065,6 +1086,7 @@ exports.getModelDetailsPage = async (req, res, next) => {
       industry,
       specs: currentLangData.technicalSpecifications || [],
       downloads: currentLangData.downloads || [],
+      modelAccessories,
 
       modelThumbnail: model.ModelThumbnail,
       overviewThumbnail: model.overviewThumbnail,
@@ -3586,5 +3608,161 @@ exports.getTestimonials = async (req, res) => {
   } catch (err) {
     console.error('getTestimonials error:', err);
     res.status(500).render('500', { pageTitle: 'Error', path: '/', isAuthenticated: false });
+  }
+};
+
+// ── Accessories ───────────────────────────────────────────────────────────────
+
+// applicableProducts[].productName / models[].modelName are captured once (in
+// English) when the accessory is saved in admin. Re-resolve them against the
+// live Product/Model documents so the displayed names follow the page language.
+async function localizeApplicableProducts(accessoryDocs, lang) {
+  const productIds = [...new Set(
+    accessoryDocs
+      .flatMap(acc => acc.applicableProducts || [])
+      .map(ap => ap.productId)
+      .filter(Boolean)
+      .map(id => String(id))
+  )];
+  if (!productIds.length) return;
+
+  const products = await Product.find({ _id: { $in: productIds } })
+    .select(`_id Language.${lang} Language.EN Models._id Models.Language.${lang} Models.Language.EN`)
+    .lean();
+  const productsById = new Map(products.map(p => [String(p._id), p]));
+
+  accessoryDocs.forEach(acc => {
+    acc.applicableProducts = (acc.applicableProducts || []).map(ap => {
+      const prod = ap.productId ? productsById.get(String(ap.productId)) : null;
+      const productName = prod
+        ? (prod.Language?.[lang]?.[0]?.ProductName || prod.Language?.EN?.[0]?.ProductName || ap.productName)
+        : ap.productName;
+
+      const models = (ap.models || []).map(m => {
+        const modelDoc = prod ? (prod.Models || []).find(pm => String(pm._id) === String(m.modelId)) : null;
+        const modelName = modelDoc
+          ? (modelDoc.Language?.[lang]?.[0]?.ModelName || modelDoc.Language?.EN?.[0]?.ModelName || m.modelName)
+          : m.modelName;
+        return { ...m, modelName };
+      });
+
+      return { ...ap, productName, models };
+    });
+  });
+}
+
+exports.getAccessories = async (req, res) => {
+  const lang    = (req.params.lang || 'EN').toUpperCase();
+  const langKey = lang.toLowerCase();
+  const series  = req.query.series || '';
+  const model   = req.query.model  || '';
+
+  const seoMap = {
+    EN: { pageTitle: 'Accessories - DragLab', metaDescription: 'Browse DragLab laboratory equipment accessories. Filter by product series and model.' },
+    ES: { pageTitle: 'Accesorios - DragLab',  metaDescription: 'Explore los accesorios de equipos de laboratorio DragLab. Filtre por serie y modelo.' },
+    DE: { pageTitle: 'Zubehör - DragLab',     metaDescription: 'DragLab Laborzubehör nach Produktserie und Modell filtern.' },
+    TR: { pageTitle: 'Aksesuarlar - DragLab', metaDescription: 'DragLab laboratuvar ekipmanı aksesuarlarına göz atın.' },
+    FR: { pageTitle: 'Accessoires - DragLab', metaDescription: 'Parcourez les accessoires d\'équipements de laboratoire DragLab.' }
+  };
+  const seo = seoMap[lang] || seoMap.EN;
+
+  try {
+    // Build filter — show only accessories published in the requested language
+    const filter = { [`langStatus.${langKey}`]: 'published' };
+    if (series) filter['applicableProducts.productSlug'] = series;
+    if (model && mongoose.isValidObjectId(model)) {
+      filter['applicableProducts.models.modelId'] = new mongoose.Types.ObjectId(model);
+    }
+
+    const accessories = await Accessory.find(filter).sort({ createdAt: -1 }).lean();
+    await localizeApplicableProducts(accessories, lang);
+
+    // Build series list from ALL products regardless of whether any accessory is linked
+    // Sorted oldest → newest (by creation date) so the dropdown follows product history
+    const allProducts = await Product.find({ isDraft: false, [`Language.${lang}.0.publish`]: true })
+      .select(`_id slug createdAt Language.${lang} Language.EN Models._id Models.slug Models.Language.${lang} Models.Language.EN`)
+      .sort({ createdAt: 1 })
+      .lean();
+
+    const allSeries = allProducts
+      .map(p => {
+        const name = p.Language?.[lang]?.[0]?.ProductName
+                  || p.Language?.EN?.[0]?.ProductName
+                  || p.slug
+                  || '';
+        const models = (p.Models || []).map(m => ({
+          _id:       String(m._id),
+          modelName: m.Language?.[lang]?.[0]?.ModelName || m.Language?.EN?.[0]?.ModelName || 'Model',
+          slug:      m.slug || ''
+        }));
+        return { productId: p._id, productSlug: p.slug || '', productName: name, models };
+      })
+      .filter(s => s.productSlug);
+
+    // Build model list for the selected series (for model filter dropdown — initial render)
+    let seriesModels = [];
+    if (series) {
+      const selectedSeriesEntry = allSeries.find(s => s.productSlug === series);
+      if (selectedSeriesEntry) seriesModels = selectedSeriesEntry.models;
+    }
+
+    const uiText = {
+      EN: { hero: 'Accessories', heroCta: 'Find the right accessory for your equipment', filterSeries: 'Filter by Series', filterModel: 'Filter by Model', allSeries: 'All Series', allModels: 'All Models', apply: 'Apply', reset: 'Reset', viewBtn: 'View', noResults: 'No accessories found.' },
+      ES: { hero: 'Accesorios', heroCta: 'Encuentre el accesorio adecuado para su equipo', filterSeries: 'Filtrar por Serie', filterModel: 'Filtrar por Modelo', allSeries: 'Todas las Series', allModels: 'Todos los Modelos', apply: 'Aplicar', reset: 'Restablecer', viewBtn: 'Ver', noResults: 'No se encontraron accesorios.' },
+      DE: { hero: 'Zubehör', heroCta: 'Finden Sie das passende Zubehör für Ihre Geräte', filterSeries: 'Nach Serie filtern', filterModel: 'Nach Modell filtern', allSeries: 'Alle Serien', allModels: 'Alle Modelle', apply: 'Anwenden', reset: 'Zurücksetzen', viewBtn: 'Ansehen', noResults: 'Kein Zubehör gefunden.' },
+      TR: { hero: 'Aksesuarlar', heroCta: 'Ekipmanınız için doğru aksesuarı bulun', filterSeries: 'Seriye Göre Filtrele', filterModel: 'Modele Göre Filtrele', allSeries: 'Tüm Seriler', allModels: 'Tüm Modeller', apply: 'Uygula', reset: 'Sıfırla', viewBtn: 'İncele', noResults: 'Aksesuar bulunamadı.' },
+      FR: { hero: 'Accessoires', heroCta: 'Trouvez le bon accessoire pour votre équipement', filterSeries: 'Filtrer par Série', filterModel: 'Filtrer par Modèle', allSeries: 'Toutes les Séries', allModels: 'Tous les Modèles', apply: 'Appliquer', reset: 'Réinitialiser', viewBtn: 'Voir', noResults: 'Aucun accessoire trouvé.' }
+    };
+    const ui = uiText[lang] || uiText.EN;
+
+    res.render('customer/accessories', {
+      lang,
+      accessories,
+      allSeries,
+      seriesModels,
+      selectedSeries: series,
+      selectedModel:  model,
+      ui,
+      pageTitle:       seo.pageTitle,
+      metaDescription: seo.metaDescription
+    });
+  } catch (err) {
+    console.error('getAccessories error:', err);
+    res.redirect('/');
+  }
+};
+
+exports.getAccessoryDetails = async (req, res) => {
+  const lang    = (req.params.lang || 'EN').toUpperCase();
+  const langKey = lang.toLowerCase();
+  const { slug } = req.params;
+
+  try {
+    const accessory = await Accessory.findOne({ slug, status: 'published' }).lean();
+    if (!accessory) return res.redirect('/' + langKey + '/accessories');
+    await localizeApplicableProducts([accessory], lang);
+
+    const description = accessory.description?.[langKey] || accessory.description?.en || '';
+
+    const uiText = {
+      EN: { back: '← Back to Accessories', articleNum: 'Article No.', applicableFor: 'Applicable For', descTitle: 'Description' },
+      ES: { back: '← Volver a Accesorios', articleNum: 'N.º de Artículo', applicableFor: 'Aplicable Para', descTitle: 'Descripción' },
+      DE: { back: '← Zurück zu Zubehör',  articleNum: 'Artikelnummer',   applicableFor: 'Geeignet für',   descTitle: 'Beschreibung' },
+      TR: { back: '← Aksesuarlara Dön',   articleNum: 'Makale No.',       applicableFor: 'Uygulanabilir',  descTitle: 'Açıklama' },
+      FR: { back: '← Retour aux Accessoires', articleNum: 'Référence',    applicableFor: 'Applicable Pour', descTitle: 'Description' }
+    };
+    const ui = uiText[lang] || uiText.EN;
+
+    res.render('customer/accessory-details', {
+      lang,
+      accessory,
+      description,
+      ui,
+      pageTitle:       accessory.name + ' - DragLab',
+      metaDescription: ''
+    });
+  } catch (err) {
+    console.error('getAccessoryDetails error:', err);
+    res.redirect('/');
   }
 };

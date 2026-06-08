@@ -266,6 +266,38 @@
             <!-- model table section  -->
 
 
+            <!-- accessories section -->
+            <% if (modelAccessories && modelAccessories.length > 0) { %>
+            <section class="model-acc-section">
+                <h2><%= t.accessoriesTitle %></h2>
+                <div class="model-acc-list">
+                    <!-- Header row -->
+                    <div class="model-acc-header">
+                        <div class="model-acc-hdr-img"></div>
+                        <div class="model-acc-hdr-name"><%= lang==='DE'?'Name':lang==='ES'?'Nombre':lang==='TR'?'İsim':lang==='FR'?'Nom':'Name' %></div>
+                        <div class="model-acc-hdr-artnr"><%= lang==='DE'?'Artikelnummer':lang==='ES'?'N.º Artículo':lang==='TR'?'Makale No.':lang==='FR'?'Référence':'Article No.' %></div>
+                        <div class="model-acc-hdr-action"></div>
+                    </div>
+
+                    <% modelAccessories.forEach(function(acc) { %>
+                    <article class="model-acc-item">
+                        <div class="model-acc-img">
+                            <% if (acc.image) { %>
+                            <img src="<%= acc.image %>" alt="<%= acc.name %>" loading="lazy">
+                            <% } %>
+                        </div>
+                        <p class="model-acc-name"><%= acc.name %></p>
+                        <p class="model-acc-artnr"><% if (acc.articleNumber) { %><%= acc.articleNumber %><% } else { %>—<% } %></p>
+                        <div class="model-acc-action">
+                            <a href="/<%= lang %>/accessories/<%= acc.slug %>" class="model-acc-btn"><%= t.accessoriesViewBtn || 'View' %></a>
+                        </div>
+                    </article>
+                    <% }); %>
+                </div>
+            </section>
+            <% } %>
+            <!-- accessories section -->
+
             <!-- model download center section  -->
 
             <section class="download-centercontainer">
@@ -306,6 +338,7 @@
 
 
             <!-- model download center section  -->
+
 
 
         </main>

@@ -7,5 +7,6 @@
         <% if (typeof isAdmin !== 'undefined' && isAdmin) { %>
         <a class="<%= path === '/admin/users' || path === '/admin/users/add' ? 'selected' : '' %>" href="/admin/users"><img src="/assets/Imgs/Icons/addUser.png" width="35px" alt="">User Management</a>
         <% } %>
+        <a class="<%= path === '/admin/accessories' ? 'selected' : '' %>" href="/admin/accessories"><img src="/assets/Imgs/Icons/basket.png" width="35px" alt="">Accessories</a>
         <a class="<%= path === '/admin/account' ? 'selected' : '' %>" href="/admin/account"><img src="/assets/Imgs/Icons/settings-icon.png" width="35px" alt="">Settings</a>
 </div>
