@@ -1,56 +1,199 @@
 <%- include('../../includes/customer/head.ejs') %>
 
+<%
+  // --------- Canonical & meta text ----------
+  const langLc = String(lang || 'EN').toLowerCase(); // 'en' | 'es' | 'de'
 
-    <link rel="stylesheet" href="/front-end/Css/customer/model-details.css">
+  // Always prefer slugs for canonical/hreflang
+  const canonicalUrl = `https://www.drag-lab.de/${lang}/products/${productSlug}/${modelSlug}`;
+
+  // Clean description: strip HTML, collapse spaces, trim, then slice
+  const rawDesc = String(ModelDesc || '')
+    .replace(/<\/?[^>]+(>|$)/g, ' ')  // strip HTML
+    .replace(/\s+/g, ' ')             // collapse whitespace
+    .trim();
+  const cleanDesc = rawDesc.slice(0, 160);
+
+  // Title: Model – Product | Brand
+  const pageTitle = `${ModelName}${productName ? ' – ' + productName : ''} | DragLab`;
+
+  // Full image URL (absolute)
+  const fullImageUrl = (modelThumbnail && modelThumbnail.startsWith('http'))
+    ? modelThumbnail
+    : (modelThumbnail
+        ? `https://www.drag-lab.de${modelThumbnail}`
+        : 'https://www.drag-lab.de/assets/Imgs/logo/logo.png');
+
+  // Localized Home label for breadcrumbs
+  const homeLabel = (lang === 'ES') ? 'Inicio' : (lang === 'DE' ? 'Startseite' : 'Home');
+
+  // OG image dimensions (set real values if you know them)
+  const ogImageWidth = 1200;
+  const ogImageHeight = 630;
+
+  // Build additionalProperty from specs
+  const additionalProperty = [];
+  if (Array.isArray(specs)) {
+    specs.forEach(section => {
+      if (!section || !Array.isArray(section.rows)) return;
+      section.rows.forEach(row => {
+        const k = String(row?.title || '').trim();
+        const v = String(row?.value || '').trim();
+        if (k && v) {
+          additionalProperty.push({
+            "@type": "PropertyValue",
+            "name": k,
+            "value": v
+          });
+        }
+      });
+    });
+  }
+%>
 
 
+        <link rel="stylesheet" href="/css/customer/Model-details.css">
+
+        <title><%= (typeof metaTitle !== 'undefined' && metaTitle) ? metaTitle : pageTitle %></title>
+
+        <meta name="description" content="<%= metaDescription %>">
+        <meta name="robots" content="index, follow">
+        <link rel="canonical" href="<%= canonicalUrl %>">
+
+        
+<!-- ✅ Keywords from model.tags -->
+<% if (keywordsCsv && keywordsCsv.length) { %>
+  <meta name="keywords" content="<%= keywordsCsv %>">
+<% } %>
+
+        <!-- Hreflang (self + alternates) -->
+        <link rel="alternate" hreflang="x-default" href="https://www.drag-lab.de/EN/products/<%= productSlug %>/<%= modelSlug %>">
+        <link rel="alternate" hreflang="en" href="https://www.drag-lab.de/EN/products/<%= productSlug %>/<%= modelSlug %>">
+        <link rel="alternate" hreflang="es" href="https://www.drag-lab.de/ES/products/<%= productSlug %>/<%= modelSlug %>">
+        <link rel="alternate" hreflang="de" href="https://www.drag-lab.de/DE/products/<%= productSlug %>/<%= modelSlug %>">
+        <link rel="alternate" hreflang="tr" href="https://www.drag-lab.de/TR/products/<%= productSlug %>/<%= modelSlug %>">
+        <link rel="alternate" hreflang="fr" href="https://www.drag-lab.de/FR/products/<%= productSlug %>/<%= modelSlug %>">
+
+        <!-- Open Graph -->
+        <meta property="og:type" content="product">
+        <meta property="og:site_name" content="DragLab">
+        <meta property="og:title" content="<%= metaTitle  %>">
+        <meta property="og:description" content="<%= metaDescription  %>">
+        <meta property="og:url" content="<%= canonicalUrl %>">
+        <meta property="og:locale" content="<%= 
+        lang === 'EN' ? 'en_US' :
+        lang === 'ES' ? 'es_ES' :
+        lang === 'DE' ? 'de_DE' :
+        lang === 'TR' ? 'tr_TR' : 'fr_FR' %>">
+        <meta property="og:image" content="<%= fullImageUrl %>">
+        <meta property="og:image:alt" content="<%= ModelName %>">
+        <meta property="og:image:width" content="<%= ogImageWidth %>">
+        <meta property="og:image:height" content="<%= ogImageHeight %>">
+
+        <!-- Twitter -->
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:title" content="<%= metaTitle  %>">
+        <meta name="twitter:description" content="<%= metaDescription  %>">
+        <meta name="twitter:image" content="<%= fullImageUrl %>">
+        <!-- Optional if you have it: <meta name="twitter:site" content="@your_handle"> -->
+
+        <!-- JSON-LD: Product -->
+        <script type="application/ld+json" nonce="<%= nonce %>">
+<%= JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Product",
+  "name": ModelName,
+  "description": metaDescription,
+  "image": [fullImageUrl],
+  "brand": { "@type": "Organization", "name": "DragLab" },
+  "category": "Laboratory Equipment",
+  "url": canonicalUrl,
+  "inLanguage": langLc,
+  ...(additionalProperty.length ? { "additionalProperty": additionalProperty } : {})
+}, null, 2) %>
+</script>
+
+        <!-- JSON-LD: ProductModel (variant of Product) -->
+        <script type="application/ld+json" nonce="<%= nonce %>">
+<%= JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "ProductModel",
+  "name": ModelName,
+  "description": metaDescription,
+  "url": canonicalUrl,
+  "inLanguage": langLc,
+  "isVariantOf": {
+    "@type": "Product",
+    "name": productName || "DragLab Product",
+    "url": `https://www.drag-lab.de/${lang}/products/${productSlug}`
+  }
+}, null, 2) %>
+</script>
+
+        <!-- JSON-LD: Breadcrumb -->
+        <script type="application/ld+json" nonce="<%= nonce %>">
+<%= JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": homeLabel, "item": `https://www.drag-lab.de/${lang}` },
+    { "@type": "ListItem", "position": 2, "name": (productName || "Products"), "item": `https://www.drag-lab.de/${lang}/products/${productSlug}` },
+    { "@type": "ListItem", "position": 3, "name": ModelName, "item": canonicalUrl }
+  ]
+}, null, 2) %>
+</script>
+        </head>
+
+<body>
+    <!-- nav-bar -->
+
+    <%- include('../../includes/customer/navbar.ejs') %>
 
 
-
-    <body>
         <!-- nav-bar -->
-
-        <%- include('../../includes/customer/navbar.ejs') %>
-
-
-            <!-- nav-bar -->
-
+        <main>
             <!-- Product Details -->
             <div class="slide">
                 <div class="slide-text">
                     <!-- <h1>Water Still Series</h1> -->
                     <div class="slide-text-content">
                         <h1>
-                            <%= pageTitle %> – &nbsp;
+                            <%= ModelName %> – &nbsp;
                         </h1>
-                        <h3>
-                            <%= overview?.[0]?.overviewDesc || '' %>
-                        </h3>
+                        <h2>
+                            <%= ModelNameDesc %>
+                        </h2>
                     </div>
 
-                    <p>High-purity water distillation for small labs. </p>
+                    <p>
+                        <%= ModelDesc %>
+                    </p>
                 </div>
-                <img src="/<%= modelThumbnail %>" alt="<%= pageTitle %>">
+                <img loading="eager" decoding="async" 
+                fetchpriority="high" width="1200" max-height="1500" src="<%=modelThumbnail %>" alt="<%= pageTitle %>">
             </div>
 
 
 
 
             <section class="model-overview section">
-                <h2 class="section-title">Overview </h2>
+                <h2 class="section-title">
+                    <%= t.overviewTitle %>
+                </h2>
                 <div class="model-overview-container">
 
                     <% if (overview && overview.length) { %>
 
                         <div class="model-overview-img">
-                            <img src="/<%= overviewThumbnail%>" alt="<%= pageTitle %>">
+                            <img loading="eager" decoding="async" src="<%=overviewThumbnail%>" alt="<%= pageTitle %>">
                         </div>
                         <div class="features-wrapper">
 
                             <div class="features-grid">
                                 <% overview.forEach(o=> { %>
                                     <div class="feature-card">
-                                        <img class="feature-img" src="/<%= o.overviewImage %>" alt="">
+                                        <img loading="eager" decoding="async" class="feature-img" src="<%= o.overviewImage %>"
+                                            alt="<%= o.overviewName %>">
                                         <div class="feature-content">
                                             <h3>
                                                 <%= o.overviewName %>
@@ -69,31 +212,32 @@
             </section>
 
             <section class="industries-section">
-                <h2>Industries</h2>
+                <h2>
+                    <%= t.industriesTitle %>
+                </h2>
                 <% if (industry && industry.length) { %>
                     <div class="industries-container">
                         <% industry.forEach(i=> { %>
                             <div class="industry-card">
-                                <img class="industry-img" src="/<%= i.industryImage %>" />
-                                <div class="overlay">
-                                    <div class="icon-wrapper">
-                                        <img src="/<%= i.industryLogo %>" class="icon" />
+                                <a href="/<%= lang %>/industry/<%= i.slug %>">
+                                    <img loading="eager" decoding="async" src="<%= i.industryImage %>" alt="<%= i.industryName %>" />
+                                    <div class="overlay">
+                                        <h3><%= i.industryName %></h3>
                                     </div>
-                                    <h3>
-                                        <%= i.industryName %>
-                                    </h3>
-                                </div>
+                                </a>
                             </div>
-                            <% }) %>
+                        <% }) %>
                     </div>
-                    <% } %>
+                <% } %>
 
             </section>
 
             <!-- model table section  -->
 
             <section class="model-table-section">
-                <h2>Technical Specifications</h2>
+                <h2>
+                    <%= t.specsTitle %>
+                </h2>
 
                 <% if (specs && specs.length) { %>
                     <% specs.forEach(section=> { %>
@@ -122,54 +266,90 @@
             <!-- model table section  -->
 
 
+            <!-- accessories section -->
+            <% if (modelAccessories && modelAccessories.length > 0) { %>
+            <section class="model-acc-section">
+                <h2><%= t.accessoriesTitle %></h2>
+                <div class="model-acc-list">
+                    <!-- Header row -->
+                    <div class="model-acc-header">
+                        <div class="model-acc-hdr-img"></div>
+                        <div class="model-acc-hdr-name"><%= lang==='DE'?'Name':lang==='ES'?'Nombre':lang==='TR'?'İsim':lang==='FR'?'Nom':'Name' %></div>
+                        <div class="model-acc-hdr-artnr"><%= lang==='DE'?'Artikelnummer':lang==='ES'?'N.º Artículo':lang==='TR'?'Makale No.':lang==='FR'?'Référence':'Article No.' %></div>
+                        <div class="model-acc-hdr-action"></div>
+                    </div>
+
+                    <% modelAccessories.forEach(function(acc) { %>
+                    <article class="model-acc-item">
+                        <div class="model-acc-img">
+                            <% if (acc.image) { %>
+                            <img src="<%= acc.image %>" alt="<%= acc.name %>" loading="lazy">
+                            <% } %>
+                        </div>
+                        <p class="model-acc-name"><%= acc.name %></p>
+                        <p class="model-acc-artnr"><% if (acc.articleNumber) { %><%= acc.articleNumber %><% } else { %>—<% } %></p>
+                        <div class="model-acc-action">
+                            <a href="/<%= lang %>/accessories/<%= acc.slug %>" class="model-acc-btn"><%= t.accessoriesViewBtn || 'View' %></a>
+                        </div>
+                    </article>
+                    <% }); %>
+                </div>
+            </section>
+            <% } %>
+            <!-- accessories section -->
+
             <!-- model download center section  -->
 
             <section class="download-centercontainer">
-                <h2>Downloads</h2>
+                <h2>
+                    <%= t.downloadsTitle %>
+                </h2>
                 <div class="download-cards-container">
                     <% if (downloads && downloads.length) { %>
-                        <% downloads.forEach(download=> { %>
-                            <div class="download-card">
+                        <% downloads.forEach(download=> { %> <div class="download-card">
                                 <div class="download-info">
                                     <div class="download-title">
                                         <%= download.fileName %>
                                     </div>
                                     <div class="download-meta">
                                         <div>
-                                            <%= lang %>
+                                            <%= download.fileCategory || 'General' %>
                                         </div>
-
                                         <div>
                                             <%= download.fileSize %>
                                         </div>
                                     </div>
-                                </div>
-                                <a href="/<%= download.filePath %>" class="download-link" download title="Download">
-                                    <p>Download</p>
-                                    <svg class="download-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                                </div> <a href="<%= download.filePath %>" target="_blank" class="download-link"
+                                    download="true" title="Download">
+                                    <p>Download</p> <svg class="download-icon" xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 24 24">
                                         <path d="M5 20h14v-2H5v2zm7-18l-5 5h3v6h4v-6h3l-5-5z" />
                                     </svg>
                                 </a>
                             </div>
                             <% }) %>
                                 <% } else { %>
-                                    <p style="padding: 1rem;">No downloads available in this language.</p>
+                                    <p style="padding: 1rem;">
+                                        <%= t.noDownloads %>
+                                    </p>
                                     <% } %>
                 </div>
             </section>
+
 
             <!-- model download center section  -->
 
 
 
+        </main>
 
-            <!-- Footer -->
+        <!-- Footer -->
 
-            <%- include('../../includes/customer/footer.ejs') %>
-
-
-    </body>
-    <%- include('../../includes/customer/script.ejs') %>
+        <%- include('../../includes/customer/footer.ejs') %>
 
 
-        </html>
+</body>
+<%- include('../../includes/customer/script.ejs') %>
+
+
+    </html>

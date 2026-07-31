@@ -1,0 +1,377 @@
+html,
+body,
+div,
+span,
+applet,
+object,
+iframe,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+blockquote,
+pre,
+a,
+abbr,
+acronym,
+address,
+big,
+cite,
+code,
+del,
+dfn,
+em,
+img,
+ins,
+kbd,
+q,
+s,
+samp,
+small,
+strike,
+strong,
+sub,
+sup,
+tt,
+var,
+b,
+u,
+i,
+center,
+dl,
+dt,
+dd,
+ol,
+ul,
+li,
+fieldset,
+form,
+label,
+legend,
+table,
+caption,
+tbody,
+tfoot,
+thead,
+tr,
+th,
+td,
+article,
+aside,
+canvas,
+details,
+embed,
+figure,
+figcaption,
+footer,
+header,
+hgroup,
+menu,
+nav,
+output,
+ruby,
+section,
+summary,
+time,
+mark,
+audio,
+video,
+button {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-size: 100%;
+    vertical-align: baseline;
+}
+
+/* HTML5 display-role reset for older browsers */
+article,
+aside,
+details,
+figcaption,
+figure,
+footer,
+header,
+hgroup,
+menu,
+nav,
+section {
+    display: block;
+}
+
+button:focus {
+    outline: none;
+    /* Remove the outline style */
+
+}
+
+
+button {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+}
+
+body {
+    line-height: 1;
+}
+
+* {
+    font-family: Inter;
+    -webkit-tap-highlight-color: transparent;
+    /* For iOS and some Android devices */
+    tap-highlight-color: transparent;
+}
+
+ol,
+ul {
+    list-style: none;
+}
+
+blockquote,
+q {
+    quotes: none;
+}
+
+blockquote:before,
+blockquote:after,
+q:before,
+q:after {
+    content: '';
+    content: none;
+}
+
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+
+}
+
+a {
+    text-decoration: none;
+    color: var(--black-color);
+}
+
+* {
+    box-sizing: border-box;
+    font-family: 'Aptos', sans-serif;
+}
+
+
+li {
+    list-style: none;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+    outline-color: #000000;
+    outline-style: solid;
+    outline-width: 2px;
+}
+
+/*----------------------reset code-----------------*/
+
+
+:root {
+    --shadow: 0px 4px 16px 0px #00000040;
+    --primary-Color: #293C95;
+    --white-text-Color: #FFFFFF;
+}
+
+
+
+
+
+@font-face {
+    font-family: 'Aptos';
+    src: url('/assets/fonts/Aptos-Light.ttf') format('truetype');
+    font-weight: 300;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Aptos';
+    src: url('/assets/fonts/Aptos-Light-Italic.ttf') format('truetype');
+    font-weight: 300;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Aptos';
+    src: url('/assets/fonts/Aptos.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Aptos';
+    src: url('/assets/fonts/Aptos-Italic.ttf') format('truetype');
+    font-weight: 400;
+    font-style: italic;
+    font-display: swap;
+}
+
+/* No Aptos-Medium.ttf exists — browser interpolates between 400 and 600 automatically */
+
+@font-face {
+    font-family: 'Aptos';
+    src: url('/assets/fonts/Aptos-SemiBold.ttf') format('truetype');
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Aptos';
+    src: url('/assets/fonts/Aptos-SemiBold-Italic.ttf') format('truetype');
+    font-weight: 600;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Aptos';
+    src: url('/assets/fonts/Aptos-Bold.ttf') format('truetype');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Aptos';
+    src: url('/assets/fonts/Aptos-Bold-Italic.ttf') format('truetype');
+    font-weight: 700;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Aptos';
+    src: url('/assets/fonts/Aptos-ExtraBold.ttf') format('truetype');
+    font-weight: 800;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Aptos';
+    src: url('/assets/fonts/Aptos-ExtraBold-Italic.ttf') format('truetype');
+    font-weight: 800;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Aptos';
+    src: url('/assets/fonts/Aptos-Black.ttf') format('truetype');
+    font-weight: 900;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Aptos';
+    src: url('/assets/fonts/Aptos-Black-Italic.ttf') format('truetype');
+    font-weight: 900;
+    font-style: italic;
+    font-display: swap;
+}
+
+
+
+input:invalid,
+select:invalid,
+textarea:invalid {
+    border: 2px solid red;
+    background-color: #ffe6e6;
+}
+
+
+.termsfeed-com---nb-interstitial {
+    right: 3vw;
+    bottom: 3vh !important;
+    top: auto !important;
+    left: 3vw;
+    max-width: 100%;
+    position: fixed;
+}
+
+
+.popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.popup-content {
+    background: #fff;
+    padding: 30px;
+    width: 90%;
+    max-width: 400px;
+    border-radius: 10px;
+    text-align: center;
+    position: relative;
+}
+
+.popup-content h2 {
+    margin-top: 0;
+}
+
+.popup-content form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.popup-content input {
+    padding: 10px;
+    font-size: 16px;
+    width: 100%;
+}
+
+.popup-content button {
+    padding: 10px;
+    font-size: 16px;
+    background-color: #0072c6;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.close-popup {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+input[type="radio"] {
+    accent-color: var(--primary-Color);
+}
+
+#highlighted-word-primary-color {
+    color: var(--primary-Color);
+    font-weight: 600;
+    text-decoration: underline !important;
+}

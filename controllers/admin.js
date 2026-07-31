@@ -1,12 +1,29 @@
 const path = require('path'); // Add this line to import the path module
 const Product = require('../models/product'); // Add this line to import the Product model
 const Slideshow = require('../models/slideshow');
+const user = require('../models/user');
 const CatalogCategory = require('../models/CatalogCategory');
+
+// New page models
+const Quote = require('../models/quote');
+const DistributorApplication = require('../models/distributorApplication');
+const FAQ = require('../models/faq');
+const CaseStudy = require('../models/caseStudy');
+const Testimonial = require('../models/testimonial');
+const Glossary = require('../models/glossary');
+const GlossaryCategory = require('../models/GlossaryCategory');
 const TechnicalService = require('../models/technicalService');
 const WarrantyRegistration = require('../models/warrantyRegistration');
 const ContactUs = require('../models/contactUs');
 const Article = require('../models/articles');
+const IndustryPage = require('../models/IndustryPage');
+const NewsletterSubscriber = require('../models/newsletter.js');
 const PDFDocument = require('pdfkit');
+const cloudinary = require('../util/cloudinaryConfig'); // ✅ Import Cloudinary
+const sanitize = require('sanitize-filename');
+const slugify = require('slugify');
+const { v4: uuidv4 } = require('uuid');
+const crypto = require('crypto'); // ✅ Node built-in module
 
 const exp = require('constants');
 const express = require('express');
@@ -14,409 +31,553 @@ const bodyParser = require('body-parser');
 const { validationResult } = require('express-validator');
 const fs = require('fs');
 
+const languages = ['EN', 'ES', 'DE', 'TR', 'FR'];
+
+const allanguages = ['EN', 'ES', 'DE', 'TR', 'FR'];
+
+
+
 
 
 
 exports.getAddProduct = (req, res, next) => {
-  Category.find()
-    .then(categories => {
-      res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'sellercompany', 'edit-product'), {
+  res.render('sellercompany/edit-product', {
+
+    pageTitle: 'Add Product',
+    path: '/admin/add-product',
+    editing: false,
+    hasError: false,
+    product: {
+      Language: {
+        EN: [{
+          ProductName: '',
+          ProductNameDesc: '',
+          ProductDesc: '',
+          WhyProductDesc: '',
+          features: [
+            { FeatureImage: '', FeatureName: '', FeatureDesc: '' },
+            { FeatureImage: '', FeatureName: '', FeatureDesc: '' },
+            { FeatureImage: '', FeatureName: '', FeatureDesc: '' },
+            { FeatureImage: '', FeatureName: '', FeatureDesc: '' }
+          ]
+        }],
+        ES: [{
+          ProductName: '',
+          ProductNameDesc: '',
+          ProductDesc: '',
+          WhyProductDesc: '',
+          features: [
+            { FeatureName: '', FeatureDesc: '' },
+            { FeatureName: '', FeatureDesc: '' },
+            { FeatureName: '', FeatureDesc: '' },
+            { FeatureName: '', FeatureDesc: '' }
+          ]
+        }],
+        DE: [{
+          ProductName: '',
+          ProductNameDesc: '',
+          ProductDesc: '',
+          WhyProductDesc: '',
+          features: [
+            { FeatureName: '', FeatureDesc: '' },
+            { FeatureName: '', FeatureDesc: '' },
+            { FeatureName: '', FeatureDesc: '' },
+            { FeatureName: '', FeatureDesc: '' }
+          ]
+        }],
+        TR: [{
+          ProductName: '',
+          ProductNameDesc: '',
+          ProductDesc: '',
+          WhyProductDesc: '',
+          features: [
+            { FeatureName: '', FeatureDesc: '' },
+            { FeatureName: '', FeatureDesc: '' },
+            { FeatureName: '', FeatureDesc: '' },
+            { FeatureName: '', FeatureDesc: '' }
+          ]
+        }],
+        FR: [{
+          ProductName: '',
+          ProductNameDesc: '',
+          ProductDesc: '',
+          WhyProductDesc: '',
+          features: [
+            { FeatureName: '', FeatureDesc: '' },
+            { FeatureName: '', FeatureDesc: '' },
+            { FeatureName: '', FeatureDesc: '' },
+            { FeatureName: '', FeatureDesc: '' }
+          ]
+        }],
+      }
+    },
+    validationErrors: [],
+    errorMessage: null,
+    isAuthenticated: req.session.isLoggedIn,
+    user: req.session.user,
+    role: req.session.role,
+    languages: allanguages,
+    isDraft: false // because it's new
+  });
+};
+
+exports.postAddProduct = async (req, res, next) => {
+  try {
+    // who is editing?
+    const isAdmin = !!(req.user && (req.user.role === 'admin' || req.user.isAdmin === true));
+
+    // Files from multer (cloudinaryUrl injected by your middleware)
+    const productThumbnail = req.files['productThumbnail']?.[0]?.cloudinaryUrl || req.body.oldProductThumbnail || '';
+    const productSketch = req.files['productSketch']?.[0]?.cloudinaryUrl || req.body.oldProductSketch || '';
+
+    const languages = allanguages;
+    const languageData = {};
+      const metaData = {};
+    const tagsData = {};
+    const validationErrors = [];
+
+
+    
+const normalizeTags = (raw) => {
+  if (!raw) return [];
+  return String(raw)
+    .split(',')
+    .map(s => s.trim())
+    .filter(Boolean)
+    .map(s => s.toLowerCase())   // normalize case
+    .map(s => s.replace(/\s+/g, ' ')) // collapse inner spaces
+    .filter((v, i, arr) => arr.indexOf(v) === i) // dedupe
+    .slice(0, 12);
+};
+
+
+    // Requested publish flags (UI should be hidden for non-admin, but enforce server-side too)
+    const requestedPublish = Object.fromEntries(
+      languages.map(l => [l, req.body[`publish_${l}`] === 'on'])
+    );
+    const anyLangPublishedRequested = Object.values(requestedPublish).some(Boolean);
+
+    // Save as draft when:
+    // - user explicitly chooses draft (if you use saveType), OR
+    // - user is NOT admin, OR
+    // - no language publish was requested
+    const isDraft = (req.body.saveType === 'draft') || !isAdmin || !anyLangPublishedRequested;
+
+    // Global images required ONLY when not draft
+    if (!isDraft) {
+      if (!productThumbnail) {
+        validationErrors.push({ path: 'ProductThumbnail', msg: 'Product Thumbnail is required.' });
+      }
+      if (!productSketch) {
+        validationErrors.push({ path: 'ProductSketch', msg: 'Product Sketch is required.' });
+      }
+    }
+
+    // Per-language data + validation
+    for (const lang of languages) {
+      // Effective publish (non-admins cannot publish)
+      const publishLang = isAdmin ? requestedPublish[lang] : false;
+
+      // Validate EN always; other languages only if effectively published
+      const validateThisLanguage = (lang === 'EN') || publishLang;
+
+      const productName = (req.body[`ProductName_${lang}`] || '').trim();
+      const productNameDesc = (req.body[`ProductNameDesc_${lang}`] || '').trim();
+      const productDesc = (req.body[`ProductDesc_${lang}`] || '').trim();
+      const whyProductDesc = (req.body[`WhyProductDesc_${lang}`] || '').trim();
+    // meta parsing stays, but keep alongside tags
+      const metaTitle = (req.body[`MetaTitle_${lang}`] || '').trim();
+      const metaDesc  = (req.body[`MetaDesc_${lang}`]  || '').trim();
+      metaData[lang] = {
+        title: metaTitle || undefined,
+        description: metaDesc || undefined
+      };
+      // Make sure your EJS input name is name="Tags_<%= lang %>"
+      tagsData[lang] = normalizeTags(req.body[`Tags_${lang}`]);
+
+
+      if (!isDraft && validateThisLanguage) {
+        if (!productName) validationErrors.push({ path: `ProductName_${lang}`, msg: `Product Name (${lang}) is required.` });
+        if (!productNameDesc) validationErrors.push({ path: `ProductNameDesc_${lang}`, msg: `Short Description (${lang}) is required.` });
+        if (!productDesc) validationErrors.push({ path: `ProductDesc_${lang}`, msg: `Product Description (${lang}) is required.` });
+        if (!whyProductDesc) validationErrors.push({ path: `WhyProductDesc_${lang}`, msg: `Why Product Description (${lang}) is required.` });
+      }
+
+      // Features (4 slots)
+      const names = req.body[`FeatureName_${lang}`] || [];
+      const descs = req.body[`FeatureDesc_${lang}`] || [];
+      const oldImages = req.body[`OldFeatureImage_${lang}`] || [];
+      const features = [];
+
+      const requireFeatureImage = (lang === 'EN') && !isDraft; // images required only for EN when publishing
+
+      for (let i = 0; i < 4; i++) {
+        const featureName = names[i]?.trim() || '';
+        const featureDesc = descs[i]?.trim() || '';
+
+        // pick image
+        let imagePath = '';
+        const file = req.files?.[`FeatureImage_${lang}[${i}]`]?.[0];
+
+        if (file) {
+          imagePath = file.cloudinaryUrl;
+        } else if (lang !== 'EN') {
+          // Non-EN: never required, but we can inherit EN or prior image if present
+          const enFile = req.files?.[`FeatureImage_EN[${i}]`]?.[0];
+          if (enFile) imagePath = enFile.cloudinaryUrl;
+          else if (Array.isArray(oldImages)) imagePath = oldImages[i] || '';
+          else imagePath = oldImages || '';
+        } else {
+          // EN: keep prior if any (usually empty for add)
+          imagePath = Array.isArray(oldImages) ? (oldImages[i] || '') : (oldImages || '');
+        }
+
+        if (!isDraft && validateThisLanguage) {
+          if (!featureName) {
+            validationErrors.push({
+              path: `FeatureName_${lang}_${i}`,
+              msg: `Feature Name ${i + 1} (${lang}) is required.`
+            });
+          }
+          if (requireFeatureImage && !imagePath) {
+            validationErrors.push({
+              path: `FeatureImage_${lang}_${i}`,
+              msg: `Feature Image ${i + 1} (${lang}) is required.`
+            });
+          }
+        }
+
+        features.push({
+          FeatureName: featureName,
+          FeatureDesc: featureDesc,
+          FeatureImage: imagePath
+        });
+      }
+
+      languageData[lang] = [{
+        ProductName: productName,
+        ProductNameDesc: productNameDesc,
+        ProductDesc: productDesc,
+        WhyProductDesc: whyProductDesc,
+        features,
+        publish: publishLang
+      }];
+    }
+
+    // If validation fails, re-render
+    if (validationErrors.length > 0) {
+      return res.status(422).render('sellercompany/edit-product', {
         pageTitle: 'Add Product',
         path: '/admin/add-product',
         editing: false,
         hasError: true,
-        categories: categories,
-        product: {}, // Empty product object for the form
-        validationErrors: [],
-        errorMessage: null,
+        errorMessage: 'Please fix the highlighted errors.',
+        validationErrors,
         isAuthenticated: req.session.isLoggedIn,
-        languages: ['EN', 'ES', 'GR'] // Add supported languages
+        product: {
+          ProductThumbnail: productThumbnail,
+          ProductSketch: productSketch,
+          Language: languageData,
+          tags: tagsData,
+          meta: metaData
+        }
       });
-    })
-    .catch(err => {
-      console.error(err);
-      res.redirect('/admin/add-product');
-    });
-};
-exports.postAddProduct = (req, res, next) => {
-  const productThumbnail = req.files['productThumbnail']?.[0]?.path.replace(/\\/g, '/') || req.body.oldProductThumbnail || '';
-  const productSketch = req.files['productSketch']?.[0]?.path.replace(/\\/g, '/') || req.body.oldProductSketch || '';
+    }
 
-  const languages = ['EN', 'ES', 'GR'];
-  const languageData = {};
-  const validationErrors = [];
-  const isDraft = req.body.saveType === 'draft';
-  if (!isDraft) {
-    if (!productThumbnail) {
-      validationErrors.push({
-        path: `ProductThumbnail`,
-        msg: `Product Thumbnail is required.`
-      });
-    }
-    if (!productSketch) {
-      validationErrors.push({
-        path: `ProductSketch`,
-        msg: `Product Sketch is required.`
-      });
-    }
+    // Build slug from EN name
+    const productNameEN = req.body['ProductName_EN'];
+    const productSlug = slugify(productNameEN || 'unnamed-product', { lower: true, strict: true });
+
+    // Save
+    const Product = require('../models/product');
+    const product = new Product({
+      slug: productSlug,
+      ProductThumbnail: productThumbnail,
+      ProductSketch: productSketch,
+      Language: languageData,
+         tags: tagsData,
+      meta: metaData,
+      isDraft // final draft flag based on admin + publish selections
+    });
+
+    await product.save();
+    console.log('✅ Product successfully added!');
+    res.redirect('/admin/Myproduct');
+  } catch (err) {
+    console.error('🔥 Internal Server Error:', err);
+    if (!res.headersSent) res.status(500).send(`🔥 Internal Server Error: ${err.message}`);
   }
-
-  languages.forEach(lang => {
-    const validateThisLanguage = (lang === 'EN'); // ✅ Only validate EN
-
-    const productName = req.body[`ProductName_${lang}`];
-    const productNameDesc = req.body[`ProductNameDesc_${lang}`];
-    const productDesc = req.body[`ProductDesc_${lang}`];
-    const whyProductDesc = req.body[`WhyProductDesc_${lang}`];
-
-    const names = req.body[`FeatureName_${lang}`] || [];
-    const descs = req.body[`FeatureDesc_${lang}`] || [];
-    const oldImages = req.body[`OldFeatureImage_${lang}`] || [];
-
-    const features = [];
-
-    for (let i = 0; i < 4; i++) {
-      const featureName = names[i]?.trim() || '';
-      const featureDesc = descs[i]?.trim() || '';
-
-      let imagePath = '';
-      const file = req.files?.[`FeatureImage_${lang}[${i}]`]?.[0];
-
-      if (file) {
-        imagePath = file.path.replace(/\\/g, '/');
-      } else if (lang !== 'EN') {
-        const enImage = req.files?.[`FeatureImage_EN[${i}]`]?.[0];
-        if (enImage) {
-          imagePath = enImage.path.replace(/\\/g, '/');
-        }
-      }
-
-      if (!imagePath && oldImages[i]) {
-        imagePath = oldImages[i];
-      }
-
-      if (!isDraft && validateThisLanguage) {
-        if (!featureName) {
-          validationErrors.push({
-            path: `FeatureName_${lang}_${i}`,
-            msg: `Feature Name ${i + 1} (${lang}) is required.`
-          });
-        }
-        if (!imagePath) {
-          validationErrors.push({
-            path: `FeatureImage_${lang}_${i}`,
-            msg: `Feature Image ${i + 1} (${lang}) is required.`
-          });
-        }
-      }
-
-      features.push({
-        FeatureName: featureName,
-        FeatureDesc: featureDesc,
-        FeatureImage: imagePath
-      });
-    }
-
-    if (!isDraft && validateThisLanguage) {
-      if (!productName) {
-        validationErrors.push({ path: `ProductName_${lang}`, msg: `Product Name (${lang}) is required.` });
-      }
-      if (!productNameDesc) {
-        validationErrors.push({ path: `ProductNameDesc_${lang}`, msg: `Short Description (${lang}) is required.` });
-      }
-      if (!productDesc) {
-        validationErrors.push({ path: `ProductDesc_${lang}`, msg: `Product Description (${lang}) is required.` });
-      }
-      if (!whyProductDesc) {
-        validationErrors.push({ path: `WhyProductDesc_${lang}`, msg: `Why Product Description (${lang}) is required.` });
-      }
-    }
-
-    languageData[lang] = [{
-      ProductName: productName,
-      ProductNameDesc: productNameDesc,
-      ProductDesc: productDesc,
-      WhyProductDesc: whyProductDesc,
-      features: features
-    }];
-  });
+};
 
 
 
 
-  if (validationErrors.length > 0) {
-    // Ensure feature images are preserved when there's an error
-    languages.forEach(lang => {
-      const oldImages = req.body[`OldFeatureImage_${lang}`];
 
-      if (oldImages) {
-        const arr = Array.isArray(oldImages) ? oldImages : [oldImages];
-        arr.forEach((imgPath, i) => {
-          if (!languageData[lang][0].features[i].FeatureImage) {
-            languageData[lang][0].features[i].FeatureImage = imgPath;
-          }
-        });
-      }
-    });
-
-    return res.status(422).render(path.join(__dirname, '..', 'front-end', 'HTML', 'sellercompany', 'edit-product'), {
-      pageTitle: 'Add Product',
-      path: '/admin/add-product',
-      editing: false,
-      hasError: true,
-      errorMessage: 'Please fix the highlighted errors.',
-      validationErrors,
+exports.getMyproduct = async (req, res, next) => {
+  try {
+    const PAGE_SIZE = 10;
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const totalItems = await Product.countDocuments();
+    const totalPages = Math.ceil(totalItems / PAGE_SIZE);
+    const products = await Product.find()
+      .skip((page - 1) * PAGE_SIZE)
+      .limit(PAGE_SIZE);
+    res.render('sellercompany/my-products', {
+      pageTitle: 'My Product',
+      path: '/admin/Myproduct',
+      prods: products,
       isAuthenticated: req.session.isLoggedIn,
-      product: {
-        ProductThumbnail: productThumbnail,
-        ProductSketch: productSketch,
-        Language: languageData
-      }
+      currentPage: page,
+      totalPages,
+      totalItems,
+      baseUrl: '/admin/Myproduct'
     });
+  } catch (err) {
+    next(err);
   }
-
-
-
-  const Product = require('../models/product');
-  const product = new Product({
-    ProductThumbnail: productThumbnail,
-    ProductSketch: productSketch,
-    Language: languageData,
-    isDraft: isDraft // ✅ save it to DB
-
-  });
-
-  if (isDraft) {
-    product.validate().then(() => {
-      return product.save({ validateBeforeSave: false }); // ⛳️ bypass required fields for draft
-    }).then(() => {
-      console.log('Draft saved without validation');
-      res.redirect('/admin/Myproduct');
-    }).catch(err => {
-      console.error('Draft save error:', err);
-      next(err);
-    });
-  } else {
-    product.save()
-      .then(() => {
-        console.log('Product Added');
-        res.redirect('/admin/Myproduct');
-      })
-      .catch(err => {
-        console.error('Error saving product:', err);
-        next(err);
-      });
-  }
-
 };
 
 
-exports.getMyproduct = (req, res, next) => {
-  Product.find()
-    // .select('ProductName Productprice productThumbnail description warranty quantity InternalMemory Company deliveryTimeFrom deliveryTimeTo category feature1 featureDetail1 feature2 featureDetail2 userId')
-    // .populate('userId', 'name')
+exports.getEditProduct = async (req, res, next) => {
+  try {
+    const editMode = req.query.edit;
+    if (!editMode) return res.redirect('/');
 
-    .then(products => {
-      res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'sellercompany', 'my-products'), {
-        pageTitle: 'My Product',
-        path: '/admin/Myproduct',
-        prods: products,
-        isAuthenticated: req.session.isLoggedIn
-      });
-    })
-    .catch(err => {
-      console.log(err);
-    });
+    const prodId = req.params.productId;
 
-};
+    // 🔁 CHANGED: also pull tags + meta for the form
+    const product = await Product.findById(prodId)
+      .select('Language ProductThumbnail ProductSketch isDraft tags meta slug createdAt')
+      .lean();
 
+    if (!product) return res.redirect('/');
 
-exports.getEditProduct = (req, res, next) => {
-  const editMode = req.query.edit;
-  if (!editMode) {
-    return res.redirect('/');
-  }
-  const prodId = req.params.productId;
+    // ✅ NEW: ensure tags/meta objects exist so EJS value bindings don't crash
+    const ensureLangObj = (obj) => obj || { EN: [], ES: [], DE: [], TR: [], FR: [] };
+    const ensureMetaObj = (obj) => obj || { EN: {}, ES: {}, DE: {}, TR: {}, FR: {} };
 
-  Product.findById(prodId)
-    .then(product => {
-      if (!product) {
-        return res.redirect('/');
-      }
-      // Fetch categories before rendering the template
-      Category.find()
-        .then(categories => {
-          res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'sellercompany', 'edit-product.ejs'), {
-            pageTitle: 'Edit Product',
-            path: '/admin/edit-product',
-            editing: editMode,
-            product: product,
-            categories: categories, // Pass categories to the template
-            hasError: false,
-            validationErrors: [],
-            errorMessage: null,
-            isAuthenticated: req.session.isLoggedIn,
-            isDraft: product.isDraft,
-          });
-        })
-        .catch(err => {
-          console.log(err);
-          res.redirect('/');
-        });
-    })
-    .catch(err => {
-      console.log(err);
-      res.redirect('/');
-    });
-};
+    product.tags = ensureLangObj(product.tags);
+    product.meta = ensureMetaObj(product.meta);
 
-exports.postEditProduct = (req, res, next) => {
-  const productId = req.body.productId;
-  const languages = ['EN', 'ES', 'GR'];
-  const languageData = {};
-  const validationErrors = [];
-
-  // ✅ Assign only once at the top
-  const updatedProductThumbnail = req.files['productThumbnail']
-    ? req.files['productThumbnail'][0].path.replace(/\\/g, '/')
-    : req.body.oldProductThumbnail;
-
-  const updatedProductSketch = req.files['productSketch']
-    ? req.files['productSketch'][0].path.replace(/\\/g, '/')
-    : req.body.oldProductSketch;
-
-  // 🔸 Global thumbnail/sketch validation
-  if (!updatedProductThumbnail) {
-    validationErrors.push({
-      path: `ProductThumbnail`,
-      msg: `Product Thumbnail is required.`
-    });
-  }
-  if (!updatedProductSketch) {
-    validationErrors.push({
-      path: `ProductSketch`,
-      msg: `Product Sketch is required.`
-    });
-  }
-
-  languages.forEach(lang => {
-    const validateThisLanguage = (lang === 'EN'); // ✅ Only validate EN
-
-    const productName = req.body[`ProductName_${lang}`];
-    const productNameDesc = req.body[`ProductNameDesc_${lang}`];
-    const productDesc = req.body[`ProductDesc_${lang}`];
-    const whyProductDesc = req.body[`WhyProductDesc_${lang}`];
-
-    if (validateThisLanguage) {
-      if (!productName) {
-        validationErrors.push({ path: `ProductName_${lang}`, msg: `Product Name (${lang}) is required.` });
-      }
-      if (!productNameDesc) {
-        validationErrors.push({ path: `ProductNameDesc_${lang}`, msg: `Short Description (${lang}) is required.` });
-      }
-      if (!productDesc) {
-        validationErrors.push({ path: `ProductDesc_${lang}`, msg: `Product Description (${lang}) is required.` });
-      }
-      if (!whyProductDesc) {
-        validationErrors.push({ path: `WhyProductDesc_${lang}`, msg: `Why Product Description (${lang}) is required.` });
-      }
-    }
-
-    const names = req.body[`FeatureName_${lang}`] || [];
-    const descs = req.body[`FeatureDesc_${lang}`] || [];
-    const oldImages = req.body[`OldFeatureImage_${lang}`] || [];
-    const features = [];
-
-    for (let i = 0; i < 4; i++) {
-      const featureName = names[i]?.trim() || '';
-      const featureDesc = descs[i]?.trim() || '';
-
-      let imagePath = '';
-      const file = req.files?.[`FeatureImage_${lang}[${i}]`]?.[0];
-
-      if (file) {
-        imagePath = file.path.replace(/\\/g, '/');
-      } else if (lang !== 'EN') {
-        const enFile = req.files?.[`FeatureImage_EN[${i}]`]?.[0];
-        if (enFile) {
-          imagePath = enFile.path.replace(/\\/g, '/');
-        } else if (Array.isArray(oldImages)) {
-          imagePath = oldImages[i] || '';
-        } else {
-          imagePath = oldImages || '';
-        }
-      } else {
-        imagePath = Array.isArray(oldImages) ? oldImages[i] || '' : oldImages || '';
-      }
-
-      if (validateThisLanguage) {
-        if (!featureName) {
-          validationErrors.push({
-            path: `FeatureName_${lang}_${i}`,
-            msg: `Feature Name ${i + 1} (${lang}) is required.`
-          });
-        }
-        if (!imagePath) {
-          validationErrors.push({
-            path: `FeatureImage_${lang}_${i}`,
-            msg: `Feature Image ${i + 1} (${lang}) is required.`
-          });
-        }
-      }
-
-      features.push({
-        FeatureName: featureName,
-        FeatureDesc: featureDesc,
-        FeatureImage: imagePath
-      });
-    }
-
-    languageData[lang] = [{
-      ProductName: productName,
-      ProductNameDesc: productNameDesc,
-      ProductDesc: productDesc,
-      WhyProductDesc: whyProductDesc,
-      features: features
-    }];
-  });
-
-  if (validationErrors.length > 0) {
-    return res.status(422).render(path.join(__dirname, '..', 'front-end', 'HTML', 'sellercompany', 'edit-product.ejs'), {
+    return res.render('sellercompany/edit-product', {
       pageTitle: 'Edit Product',
       path: '/admin/edit-product',
-      editing: true,
-      hasError: true,
-      errorMessage: 'Please fix the highlighted errors.',
-      validationErrors,
+      editing: editMode,
+      product,
+      hasError: false,
+      validationErrors: [],
+      errorMessage: null,
       isAuthenticated: req.session.isLoggedIn,
-      isDraft: req.body.isDraft,
-      product: {
-        _id: productId,
-        Language: languageData,
-        ProductThumbnail: updatedProductThumbnail,
-        ProductSketch: updatedProductSketch
-      }
+      isDraft: product.isDraft,
+      languages: allanguages
     });
+  } catch (err) {
+    console.log(err);
+    return res.redirect('/');
   }
+};
 
-  // ✅ Update database
-  Product.findById(productId)
-    .then(product => {
-      if (!product) return res.redirect('/admin/Myproduct');
-      product.Language = languageData;
-      product.ProductThumbnail = updatedProductThumbnail;
-      product.ProductSketch = updatedProductSketch;
-      product.isDraft = false;
-      return product.save();
-    })
-    .then(() => {
-      console.log('Product Updated');
-      res.redirect('/admin/Myproduct');
-    })
-    .catch(err => {
-      console.error('Error updating product:', err);
-      if (!res.headersSent) next(err);
-    });
+exports.postEditProduct = async (req, res, next) => {
+  try {
+    const productId = req.body.productId;
+    const languages = allanguages;
+    const languageData = {};
+    const validationErrors = [];
+   // ✅ NEW: meta/tags holders
+    const metaData = {};   // per-language meta overrides
+    const tagsData = {};   // per-language tags/keywords
+
+
+        // ✅ NEW: normalize tags helper (same as add-product)
+    const normalizeTags = (raw) => {
+      if (!raw) return [];
+      return String(raw)
+        .split(',')
+        .map(s => s.trim().toLowerCase())
+        .map(s => s.replace(/\s+/g, ' '))
+        .filter(Boolean)
+        .filter((v, i, a) => a.indexOf(v) === i)
+        .slice(0, 12);
+    };
+    // who is editing?
+    const isAdmin = !!(req.user && (req.user.role === 'admin' || req.user.isAdmin === true));
+
+    // Pull existing for publish fallback (non-admin) and old values
+    const existing = await Product.findById(productId)
+      .select('Language ProductThumbnail ProductSketch isDraft tags meta slug')
+      .lean();
+    if (!existing) return res.redirect('/admin/Myproduct');
+
+    // Requested publish per language (from form)
+    const requestedPublish = Object.fromEntries(
+      languages.map(l => [l, req.body[`publish_${l}`] === 'on'])
+    );
+
+    // Effective publish = admin can set, non-admin keeps previous publish
+    const effectivePublishMap = Object.fromEntries(
+      languages.map(l => {
+        const prev = existing?.Language?.[l]?.[0]?.publish === true;
+        const incoming = requestedPublish[l];
+        return [l, isAdmin ? incoming : prev];
+      })
+    );
+
+    const anyLangPublished = Object.values(effectivePublishMap).some(Boolean);
+
+    // ONE-TIME files (keep old if no new)
+    const updatedProductThumbnail =
+      req.files['productThumbnail']?.[0]?.cloudinaryUrl || req.body.oldProductThumbnail || '';
+    const updatedProductSketch =
+      req.files['productSketch']?.[0]?.cloudinaryUrl || req.body.oldProductSketch || '';
+
+    // ✅ IMPORTANT: If nothing is published, DO NOT validate anything at all.
+    // Only validate when at least one language is effectively published.
+    if (anyLangPublished) {
+      // Global images required only when publishing
+      if (!updatedProductThumbnail) {
+        validationErrors.push({ path: 'ProductThumbnail', msg: 'Product Thumbnail is required.' });
+      }
+      if (!updatedProductSketch) {
+        validationErrors.push({ path: 'ProductSketch', msg: 'Product Sketch is required.' });
+      }
+    }
+
+    // Build per-language data (+ conditional validation)
+    for (const lang of languages) {
+      const effectivePublish = !!effectivePublishMap[lang];
+
+      // Validate this language only when something is being published:
+      // - EN always when publishing (even if EN isn't toggled)
+      // - Any other lang only if its publish is toggled
+      const validateThisLanguage = anyLangPublished && (lang === 'EN' || effectivePublish);
+
+      const productName = (req.body[`ProductName_${lang}`] || '').trim();
+      const productNameDesc = (req.body[`ProductNameDesc_${lang}`] || '').trim();
+      const productDesc = (req.body[`ProductDesc_${lang}`] || '').trim();
+      const whyProductDesc = (req.body[`WhyProductDesc_${lang}`] || '').trim();
+
+
+       // ✅ NEW: read meta fields per language
+      const metaTitle = (req.body[`MetaTitle_${lang}`] || '').trim();
+      const metaDesc  = (req.body[`MetaDesc_${lang}`]  || '').trim();
+      metaData[lang] = {
+        title: metaTitle || undefined,
+        description: metaDesc || undefined
+      };
+
+      // ✅ NEW: read + normalize tags per language
+      tagsData[lang] = normalizeTags(req.body[`Tags_${lang}`]);
+
+
+      
+      if (validateThisLanguage) {
+        if (!productName) validationErrors.push({ path: `ProductName_${lang}`, msg: `Product Name (${lang}) is required.` });
+        if (!productNameDesc) validationErrors.push({ path: `ProductNameDesc_${lang}`, msg: `Short Description (${lang}) is required.` });
+        if (!productDesc) validationErrors.push({ path: `ProductDesc_${lang}`, msg: `Product Description (${lang}) is required.` });
+        if (!whyProductDesc) validationErrors.push({ path: `WhyProductDesc_${lang}`, msg: `Why Product Description (${lang}) is required.` });
+      }
+
+      // Features (4)
+      const names = req.body[`FeatureName_${lang}`] || [];
+      const descs = req.body[`FeatureDesc_${lang}`] || [];
+      const oldImages = req.body[`OldFeatureImage_${lang}`] || [];
+      const features = [];
+
+      // Only EN feature images are required, and only when publishing
+      const requireFeatureImage = anyLangPublished && (lang === 'EN');
+
+      for (let i = 0; i < 4; i++) {
+        const featureName = names[i]?.trim() || '';
+        const featureDesc = descs[i]?.trim() || '';
+
+        let imagePath = '';
+        const file = req.files?.[`FeatureImage_${lang}[${i}]`]?.[0];
+
+        if (file) {
+          imagePath = file.cloudinaryUrl;
+        } else if (lang !== 'EN') {
+          // Non-EN: never required; try to inherit EN or keep previous if present
+          const enFile = req.files?.[`FeatureImage_EN[${i}]`]?.[0];
+          if (enFile) imagePath = enFile.cloudinaryUrl;
+          else if (Array.isArray(oldImages)) imagePath = oldImages[i] || '';
+          else imagePath = oldImages || '';
+        } else {
+          // EN: keep old if exists
+          imagePath = Array.isArray(oldImages) ? (oldImages[i] || '') : (oldImages || '');
+        }
+
+        if (validateThisLanguage) {
+          if (!featureName) {
+            validationErrors.push({
+              path: `FeatureName_${lang}_${i}`,
+              msg: `Feature Name ${i + 1} (${lang}) is required.`
+            });
+          }
+          if (requireFeatureImage && !imagePath) {
+            validationErrors.push({
+              path: `FeatureImage_${lang}_${i}`,
+              msg: `Feature Image ${i + 1} (${lang}) is required.`
+            });
+          }
+        }
+
+        features.push({ FeatureName: featureName, FeatureDesc: featureDesc, FeatureImage: imagePath });
+      }
+
+      languageData[lang] = [{
+        ProductName: productName,
+        ProductNameDesc: productNameDesc,
+        ProductDesc: productDesc,
+        WhyProductDesc: whyProductDesc,
+        features,
+        publish: effectivePublish  // enforce server-side
+      }];
+    }
+
+    // If there are validation errors (only possible when anyLangPublished === true), re-render
+    if (validationErrors.length > 0) {
+      return res.status(422).render('sellercompany/edit-product', {
+        pageTitle: 'Edit Product',
+        path: '/admin/edit-product',
+        editing: true,
+        hasError: true,
+        errorMessage: 'Please fix the highlighted errors.',
+        validationErrors,
+        isAuthenticated: req.session.isLoggedIn,
+        isDraft: !anyLangPublished, // reflect current intent
+        product: {
+          _id: productId,
+          Language: languageData,
+          ProductThumbnail: updatedProductThumbnail,
+          ProductSketch: updatedProductSketch,
+          tags: tagsData,     // ✅ NEW: preserve entered tags on error
+          meta: metaData      // ✅ NEW: preserve meta on error
+        }
+      });
+    }
+
+    // ✅ Update DB
+    const product = await Product.findById(productId);
+    if (!product) return res.redirect('/admin/Myproduct');
+
+    product.Language = languageData;
+    product.ProductThumbnail = updatedProductThumbnail;
+    product.ProductSketch = updatedProductSketch;
+
+    // CRUCIAL: If nothing is published, mark draft so Mongoose "required" won't fire later.
+    product.isDraft = !anyLangPublished;
+
+       // ✅ NEW: persist meta/tags
+    product.meta = metaData;
+    product.tags = tagsData;
+
+    await product.save();
+    console.log('✅ Product Updated');
+    res.redirect('/admin/Myproduct');
+  } catch (err) {
+    console.error('🔥 Error updating product:', err);
+    if (!res.headersSent) return next(err);
+  }
 };
 
 
@@ -426,6 +587,16 @@ exports.postEditProduct = (req, res, next) => {
 
 
 
+
+
+// 🔒 Safe file deletion helper
+function safeUnlink(relativePath) {
+  if (!relativePath) return;
+  const fullPath = path.join('public', relativePath);
+  if (fs.existsSync(fullPath) && fs.lstatSync(fullPath).isFile()) {
+    fs.unlinkSync(fullPath);
+  }
+}
 
 exports.postDeleteModel = async (req, res, next) => {
   const { productId, modelId } = req.body;
@@ -439,18 +610,12 @@ exports.postDeleteModel = async (req, res, next) => {
 
     // 🧹 1. Delete static fields
     ['ModelThumbnail', 'overviewThumbnail'].forEach(field => {
-      if (model[field]) {
-        const fullPath = path.join('public', model[field]);
-        if (fs.existsSync(fullPath)) fs.unlinkSync(fullPath);
-      }
+      safeUnlink(model[field]);
     });
 
     // 🧹 2. Delete ModelPhotos
     if (Array.isArray(model.ModelPhotos)) {
-      model.ModelPhotos.forEach(photo => {
-        const fullPath = path.join('public', photo);
-        if (fs.existsSync(fullPath)) fs.unlinkSync(fullPath);
-      });
+      model.ModelPhotos.forEach(photo => safeUnlink(photo));
     }
 
     // 🧹 3. Delete multilingual files
@@ -460,23 +625,15 @@ exports.postDeleteModel = async (req, res, next) => {
       if (!langData) return;
 
       // Delete downloads
-      langData.downloads?.forEach(file => {
-        const filePath = path.join('public', file.filePath);
-        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-      });
+      langData.downloads?.forEach(file => safeUnlink(file.filePath));
 
       // Delete overview images
-      langData.overview?.forEach(o => {
-        const filePath = path.join('public', o.overviewImage || '');
-        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-      });
+      langData.overview?.forEach(o => safeUnlink(o.overviewImage));
 
       // Delete industry images and logos
       langData.industry?.forEach(i => {
-        [i.industryImage, i.industryLogo].forEach(img => {
-          const filePath = path.join('public', img || '');
-          if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-        });
+        safeUnlink(i.industryImage);
+        safeUnlink(i.industryLogo);
       });
     });
 
@@ -492,14 +649,35 @@ exports.postDeleteModel = async (req, res, next) => {
   }
 };
 
+// ✅ ADD: sanitize + ensure extension
+function buildDesiredName(inputName, extFallback, originalExt) {
+  const ext = (originalExt || '').toLowerCase();
+  const fallback = (extFallback || '.pdf').toLowerCase();
+
+  const baseRaw = (inputName || '').trim() || 'draglab-file';
+  const base = sanitize(baseRaw)
+    .replace(/\s+/g, '-')          // spaces -> dashes
+    .replace(/[^\w.-]+/g, '')      // keep only word, dot, dash
+    .replace(/-+/g, '-')           // collapse multiple dashes
+    .replace(/^[-.]+|[-.]+$/g, '') // trim leading/trailing dots/dashes
+    .slice(0, 80);                 // keep short and tidy
+
+  // Use provided extension if it looks valid, otherwise fallback
+  const finalExt = ext && ext !== '.webp' ? ext : fallback;
+  return base.toLowerCase().endsWith(finalExt) ? base : `${base}${finalExt}`;
+}
+
 
 
 
 exports.getAddModel = (req, res, next) => {
   const productId = req.params.productId;
-  Product.findById(productId).then(product => {
+  Promise.all([
+    Product.findById(productId),
+    IndustryPage.find({ isDraft: false }).lean()
+  ]).then(([product, allIndustries]) => {
     if (!product) return res.redirect('/admin/Myproduct');
-    res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'sellercompany', 'add-model'), {
+    res.render('sellercompany/add-model', {
       pageTitle: 'Add Model',
       path: '/admin/add-model',
       product,
@@ -509,18 +687,22 @@ exports.getAddModel = (req, res, next) => {
       validationErrors: [],
       hasError: false,
       isAuthenticated: req.session.isLoggedIn,
-      errorMessage: null
+      errorMessage: null,
+      allIndustries
     });
   }).catch(err => next(err));
 };
 
 exports.getEditModel = (req, res, next) => {
   const { productId, modelId } = req.params;
-  Product.findById(productId).then(product => {
+  Promise.all([
+    Product.findById(productId),
+    IndustryPage.find({ isDraft: false }).lean()
+  ]).then(([product, allIndustries]) => {
     if (!product) return res.redirect('/admin/Myproduct');
     const model = product.Models.id(modelId);
     if (!model) return res.redirect('/admin/Myproduct');
-    res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'sellercompany', 'add-model'), {
+    res.render('sellercompany/add-model', {
       pageTitle: 'Edit Model',
       path: '/admin/edit-model',
       product,
@@ -531,627 +713,1069 @@ exports.getEditModel = (req, res, next) => {
       validationErrors: [],
       hasError: false,
       isAuthenticated: req.session.isLoggedIn,
-      errorMessage: null
+      errorMessage: null,
+      allIndustries
     });
   }).catch(err => next(err));
 };
 
-exports.postAddModel = (req, res, next) => {
-  const productId = req.params.productId;
-  const languages = ['EN', 'ES', 'GR'];
-  const languageData = {};
-  const isDraft = req.body.action === 'draft';
-  const validationErrors = [];
 
-  Product.findById(productId)
-    .then(product => {
-      if (!product) return res.redirect('/admin/Myproduct');
+const streamifier = require('streamifier');
+const sharp = require('sharp');
 
-      if (!isDraft) {
-        if (!req.body.modelcapacity) {
-          validationErrors.push({ path: 'modelcapacity', msg: 'Model Capacity is required.' });
-        }
+// 🧠 Compress PDF using pdf-lib
+const compressPdfBuffer = async (buffer) => {
+  const pdfDoc = await PDFDocument.load(buffer);
+  return await pdfDoc.save({ useObjectStreams: true }); // basic compression
+};
+// Controller for adding a model
 
-        if (!req.files?.ModelThumbnail?.[0] && !req.body.oldModelThumbnail) {
-          validationErrors.push({ path: 'ModelThumbnail', msg: 'Model Thumbnail is required.' });
-        }
 
-        if (!req.files?.overviewThumbnail?.[0] && !req.body.oldOverviewThumbnail) {
-          validationErrors.push({ path: 'overviewThumbnail', msg: 'Overview Thumbnail is required.' });
-        }
+const uploadToCloudinary = async (file, {
+  folder = 'draglab',
+  desiredFileName = '',
+  treatAsDownload = false
+} = {}) => {
+  try {
+    // Check if it's an image and not a raw doc
+    const isImage = file.mimetype.startsWith('image/');
+
+    let finalBuffer = file.buffer;
+    let uploadFolder = folder;
+
+    // If it's an image and NOT a raw file, convert to WebP
+    if (isImage && !treatAsDownload) {
+      finalBuffer = await sharp(file.buffer)
+        .webp({ quality: 85 })
+        .toBuffer();
+
+      // Set file extension
+      if (desiredFileName && !desiredFileName.endsWith('.webp')) {
+        desiredFileName = desiredFileName.replace(/\.[^/.]+$/, '') + '.webp';
       }
+    }
 
-      languages.forEach(lang => {
-        const modelName = req.body[`ModelName_${lang}`];
-        const shortDesc = req.body[`ModelNameDesc_${lang}`];
-        const desc = req.body[`ModelDesc_${lang}`];
+    // If raw (PDF, DOC), keep original buffer and name
+    if (treatAsDownload) {
+      cloudinary.config({ resource_type: 'raw' });
+    } else {
+      cloudinary.config({ resource_type: 'image' });
+    }
 
-        const validateThisLanguage = (lang === 'EN'); // ✅ only validate English
-
-        if (!isDraft && validateThisLanguage && !modelName) {
-          validationErrors.push({ path: `ModelName_${lang}`, msg: `${lang} Model Name is required.` });
+    // Create a promise that uploads via stream
+    const uploadStream = (resolve, reject) => {
+      const cloudinaryStream = cloudinary.uploader.upload_stream({
+        folder: uploadFolder,
+        public_id: desiredFileName ? desiredFileName : undefined,
+        format: treatAsDownload ? path.extname(desiredFileName).slice(1) : 'webp',
+        resource_type: treatAsDownload ? 'raw' : 'image',
+        format: treatAsDownload ? undefined : 'webp',
+        use_filename: false,
+        unique_filename: true,
+        overwrite: true
+      }, (error, result) => {
+        if (error) {
+          console.error('❌ Cloudinary Upload Failed:', error);
+          return reject(error);
         }
-        if (!isDraft && validateThisLanguage && !shortDesc) {
-          validationErrors.push({ path: `ModelNameDesc_${lang}`, msg: `${lang} Short Description is required.` });
-        }
-        if (!isDraft && validateThisLanguage && !desc) {
-          validationErrors.push({ path: `ModelDesc_${lang}`, msg: `${lang} Description is required.` });
-        }
-
-        const overviewData = [];
-        const industryData = [];
-
-        for (let i = 0; i < 4; i++) {
-          const name = req.body.overview?.[lang]?.[i]?.overviewName;
-          const description = req.body.overview?.[lang]?.[i]?.overviewDesc;
-
-          if (!isDraft && validateThisLanguage && (!name || !description)) {
-            validationErrors.push({ path: `overview_${lang}_${i}`, msg: `${lang} Overview ${i + 1} is incomplete.` });
-          }
-
-          overviewData.push({
-            overviewName: name || '',
-            overviewDesc: description || '',
-            overviewImage: lang === 'EN'
-              ? (req.files?.[`overviewImages_${lang}[${i}]`]?.[0]?.path?.replace(/\\/g, '/') || req.body[`oldOverviewImages_${i}`])
-              : undefined
-          });
-        }
-
-        for (let i = 0; i < 3; i++) {
-          const industryName = req.body.industry?.[lang]?.[i]?.industryName;
-
-          if (!isDraft && validateThisLanguage && !industryName) {
-            validationErrors.push({ path: `industry_${lang}_${i}`, msg: `${lang} Industry ${i + 1} name is required.` });
-          }
-
-          industryData.push({
-            industryName: industryName || '',
-            industryImage: lang === 'EN'
-              ? (req.files?.[`industryImages_${lang}[${i}]`]?.[0]?.path?.replace(/\\/g, '/') || req.body[`oldIndustryImage_${i}`])
-              : undefined,
-            industryLogo: lang === 'EN'
-              ? (req.files?.[`industryLogos_${lang}[${i}]`]?.[0]?.path?.replace(/\\/g, '/') || req.body[`oldIndustryLogo_${i}`])
-              : undefined
-          });
-        }
-
-        const specRaw = req.body.technicalSpecifications?.[lang] || {};
-        const specSections = Object.keys(specRaw).map(sectionKey => {
-          const section = specRaw[sectionKey];
-          const rows = section.rows ? Object.keys(section.rows).map(rowKey => section.rows[rowKey]) : [];
-
-          if (!isDraft && validateThisLanguage && !section.sectionTitle) {
-            validationErrors.push({ path: `techspec_section_${lang}_${sectionKey}`, msg: `${lang} Tech section title is required.` });
-          }
-          if (!isDraft && validateThisLanguage && !rows.length) {
-            validationErrors.push({ path: `techspec_rows_${lang}_${sectionKey}`, msg: `${lang} Tech section must have at least one row.` });
-          }
-
-          return {
-            sectionTitle: section.sectionTitle,
-            rows: rows
-          };
+        console.log('✅ Uploaded to Cloudinary:', result.secure_url);
+        resolve({
+          url: result.secure_url,
+          public_id: result.public_id,
+          format: result.format,
+          savedName: result.original_filename
         });
-
-        const downloads = [];
-        const uploadedFiles = req.files[`downloadFiles_${lang}`];
-        const fileNames = req.body[`downloadFileNames_${lang}`] || [];
-        const categories = req.body[`downloadCategories_${lang}`] || [];
-
-        if (uploadedFiles) {
-          const fileArray = Array.isArray(uploadedFiles) ? uploadedFiles : [uploadedFiles];
-          const namesArray = Array.isArray(fileNames) ? fileNames : [fileNames];
-          const categoriesArray = Array.isArray(categories) ? categories : [categories];
-
-          fileArray.forEach((file, i) => {
-            const sizeInMB = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
-            downloads.push({
-              fileName: namesArray[i],
-              filePath: file.path.replace(/\\/g, '/'),
-              fileSize: sizeInMB,
-              fileCategory: categoriesArray[i],
-              fileProductCategory: product?.Language?.EN?.[0]?.ProductName || 'Unknown'
-            });
-          });
-        }
-
-        const existingDownloadsRaw = req.body[`existingDownloads_${lang}`];
-        const existingDownloads = [];
-        if (existingDownloadsRaw) {
-          const arr = Array.isArray(existingDownloadsRaw) ? existingDownloadsRaw : [existingDownloadsRaw];
-          arr.forEach(d => {
-            try {
-              existingDownloads.push(JSON.parse(d));
-            } catch (_) { }
-          });
-        }
-
-        if (!isDraft && validateThisLanguage && downloads.length + existingDownloads.length === 0) {
-          validationErrors.push({ path: `downloads_${lang}`, msg: `${lang} Downloads required.` });
-        }
-
-        languageData[lang] = [{
-          ModelName: modelName,
-          ModelNameDesc: shortDesc,
-          ModelDesc: desc,
-          overview: overviewData,
-          industry: industryData,
-          technicalSpecifications: specSections,
-          downloads: [...existingDownloads, ...downloads]
-        }];
       });
 
+      streamifier.createReadStream(finalBuffer).pipe(cloudinaryStream);
+    };
 
-      if (!isDraft && validationErrors.length > 0) {
-        const reshapedModel = {
-          ModelThumbnail: req.files?.ModelThumbnail?.[0]?.path || req.body.oldModelThumbnail,
-          ModelPhotos: req.files?.ModelPhotos?.map(f => f.path) || [],
-          overviewThumbnail: req.files?.overviewThumbnail?.[0]?.path || req.body.oldOverviewThumbnail,
-          modelcapacity: req.body.modelcapacity,
-          Language: languageData
-        };
+    return await new Promise(uploadStream);
+  } catch (err) {
+    console.error('❌ Error in uploadToCloudinary:', err);
+    return null;
+  }
+};
 
-        return res.status(422).render(path.join(__dirname, '..', 'front-end', 'HTML', 'sellercompany', 'add-model'), {
-          pageTitle: 'Add Model',
-          path: '/admin/add-model',
-          product,
-          model: reshapedModel,
-          editing: false,
-          productId,
-          validationErrors,
-          hasError: true,
-          isAuthenticated: req.session.isLoggedIn,
-          errorMessage: 'Please fill in all required fields.'
-        });
+const toIndexedArray = (val) => {
+  if (!val) return [];
+  if (Array.isArray(val)) return val;
+  if (typeof val === 'object') {
+    const keys = Object.keys(val).filter(k => /^\d+$/.test(k)).sort((a, b) => (+a) - (+b));
+    if (keys.length) return keys.map(k => val[k]);
+    return [val];
+  }
+  return [];
+};
+
+const clean = (s) => (typeof s === 'string' ? s.trim() : '');
+
+const canonicalizeLangKey = (k) => {
+  const up = String(k || '').toUpperCase();
+  const m = up.match(/\b[A-Z]{2}\b/);
+  return m ? m[0] : up.replace(/[^A-Z]/g, '');
+};
+
+// Group all variants per canonical lang, preserving each variant separately
+const groupSpecsByLangVariants = (specsRoot) => {
+  const grouped = {};
+  if (!specsRoot || typeof specsRoot !== 'object') return grouped;
+  for (const [k, v] of Object.entries(specsRoot)) {
+    const canon = canonicalizeLangKey(k);
+    if (!grouped[canon]) grouped[canon] = [];
+    grouped[canon].push(v);
+  }
+  return grouped;
+};
+
+// Merge sections *by index* across all variants (e.g., "EN" + "EN ▸")
+const mergeSectionsByIndex = (sectionVariantsList) => {
+  const arrays = sectionVariantsList.map(toIndexedArray);
+  const maxLen = Math.max(0, ...arrays.map(a => a.length));
+  const merged = [];
+
+  const mergeRowsByIndex = (rowsA, rowsB) => {
+    const a = toIndexedArray(rowsA);
+    const b = toIndexedArray(rowsB);
+    const max = Math.max(a.length, b.length);
+    const out = [];
+    for (let j = 0; j < max; j++) {
+      const rA = a[j] || {};
+      const rB = b[j] || {};
+      out.push({
+        title: clean(rA.title) || clean(rB.title) || '',
+        value: clean(rA.value) || clean(rB.value) || ''
+      });
+    }
+    return out;
+  };
+
+  for (let i = 0; i < maxLen; i++) {
+    let acc = { sectionTitle: '', rows: [] };
+    for (const arr of arrays) {
+      const sec = arr[i] || {};
+      const title = clean(sec.sectionTitle);
+      if (title && !acc.sectionTitle) acc.sectionTitle = title;
+      acc.rows = mergeRowsByIndex(acc.rows, sec.rows);
+    }
+    const hasAnyRow = acc.rows.some(r => r.title || r.value);
+    if (acc.sectionTitle || hasAnyRow) merged.push(acc);
+  }
+  return merged;
+};
+
+// Build final normalized specs for a given lang from the grouped variants
+const buildFinalSpecsForLang = (grouped, lang) => {
+  const variants = grouped?.[lang] || [];
+  if (variants.length === 0) return [];
+  return mergeSectionsByIndex(variants);
+};
+// Coerce a single value or an array into an array (keeps strings intact)
+const toList = (v) => (v == null ? [] : (Array.isArray(v) ? v : [v]));
+
+
+
+
+const parseTags = (s) =>
+  (typeof s === 'string' ? s : '')
+    .split(',')
+    .map(t => t.trim())
+    .filter(Boolean)
+    .slice(0, 12); // keep it sane
+
+const collectSeoFromBody = (langs, body) => {
+  const tags = {};
+  const meta = {};
+  langs.forEach(l => {
+    // always present in form => allow clearing
+    const t = parseTags(body[`Tags_${l}`]);
+    tags[l] = t;
+
+    const title = clean(body[`MetaTitle_${l}`]);
+    const description = clean(body[`MetaDesc_${l}`]);
+    meta[l] = { title, description };
+  });
+  return { tags, meta };
+};
+
+
+
+exports.postAddModel = async (req, res) => {
+  const productId = req.params.productId;
+  const languages = allanguages; // ['EN','ES','DE',...]
+  const languageData = {};
+  const validationErrors = [];
+
+  // Read selected industry slugs (max 3)
+  const rawIndustrySlugs = req.body.industrySlugs;
+  const industrySlugs = (Array.isArray(rawIndustrySlugs)
+    ? rawIndustrySlugs
+    : rawIndustrySlugs ? [rawIndustrySlugs] : []
+  ).slice(0, 4);
+
+  const allIndustries = await IndustryPage.find({ isDraft: false }).lean();
+
+  const requestedPublish = Object.fromEntries(
+    languages.map(l => [l, req.body[`publish_${l}`] === 'on'])
+  );
+  const shouldValidate = Object.values(requestedPublish).some(Boolean);
+  const mustValidateLang = (lang) => shouldValidate && (lang === 'EN' || requestedPublish[lang]);
+
+    const { tags: modelTags, meta: modelMeta } = collectSeoFromBody(languages, req.body);
+
+    
+  try {
+    // Slug + top-level uploads
+    // Slug first
+    const modelSlug = slugify(req.body['ModelName_EN'] || 'model', { lower: true, strict: true });
+
+    // Model Thumbnail
+    const ModelThumbnail = req.files?.ModelThumbnail?.[0]
+      ? (await uploadToCloudinary(req.files.ModelThumbnail[0], {
+        folder: 'draglab/models/thumbnails',
+        desiredFileName: `${modelSlug}-thumbnail`,
+        treatAsDownload: false,
+      }))?.url || ''
+      : (req.body.oldModelThumbnail || '');
+
+    // Overview Thumbnail
+    const overviewThumbnail = req.files?.overviewThumbnail?.[0]
+      ? (await uploadToCloudinary(req.files.overviewThumbnail[0], {
+        folder: 'draglab/models/overview',
+        desiredFileName: `${modelSlug}-overview-thumb`,
+        treatAsDownload: false,
+      }))?.url || ''
+      : (req.body.oldOverviewThumbnail || '');
+
+
+    if (shouldValidate) {
+      if (!ModelThumbnail) validationErrors.push({ path: 'ModelThumbnail', msg: 'Model Thumbnail is required when publishing.' });
+      if (!overviewThumbnail) validationErrors.push({ path: 'overviewThumbnail', msg: 'Overview Thumbnail is required when publishing.' });
+    }
+
+    // Normalize TS keys and group by lang variants
+    const groupedTechSpecs = groupSpecsByLangVariants(req.body.technicalSpecifications || {});
+    console.log('TS KEYS RAW:', Object.keys(req.body.technicalSpecifications || {}));
+    console.log('TS KEY GROUPS:', Object.fromEntries(Object.entries(groupedTechSpecs).map(([k, v]) => [k, v.length])));
+
+    for (const lang of languages) {
+      const validateThis = mustValidateLang(lang);
+
+      const ModelName = clean(req.body[`ModelName_${lang}`]);
+      const ModelNameDesc = clean(req.body[`ModelNameDesc_${lang}`]);
+      const ModelDesc = clean(req.body[`ModelDesc_${lang}`]);
+
+      if (validateThis) {
+        if (!ModelName) validationErrors.push({ path: `ModelName_${lang}`, msg: `Model Name (${lang}) is required.` });
+        if (!ModelNameDesc) validationErrors.push({ path: `ModelNameDesc_${lang}`, msg: `Short Description (${lang}) is required.` });
+        if (!ModelDesc) validationErrors.push({ path: `ModelDesc_${lang}`, msg: `Model Description (${lang}) is required.` });
       }
 
-      const model = {
-        ModelThumbnail: req.files?.ModelThumbnail?.[0]?.path || req.body.oldModelThumbnail,
-        ModelPhotos: req.files?.ModelPhotos?.map(f => f.path) || [],
-        overviewThumbnail: req.files?.overviewThumbnail?.[0]?.path || req.body.oldOverviewThumbnail,
-        modelcapacity: req.body.modelcapacity,
-        Language: languageData,
-        isPublished: !isDraft
+      // Overview (4)
+      const overview = [];
+      for (let i = 0; i < 4; i++) {
+        const overviewName = clean(req.body.overview?.[lang]?.[i]?.overviewName);
+        const overviewDesc = clean(req.body.overview?.[lang]?.[i]?.overviewDesc);
+
+        const overviewImageFile = req.files?.[`overviewImages_${lang}[${i}]`] && req.files[`overviewImages_${lang}[${i}]`][0];
+        const oldOverviewImg = req.body[`oldOverviewImages_${i}`] || ''; // EJS emits this for EN only
+
+        const overviewImage = overviewImageFile
+          ? (await uploadToCloudinary(overviewImageFile, {
+            folder: `draglab/models/overview/${lang}`,
+            desiredFileName: `${modelSlug}-overview-${i + 1}`,
+            treatAsDownload: false,
+          }))?.url || ''
+          : (lang === 'EN' ? oldOverviewImg : '');
+
+        // ...validation as you already have for EN...
+        overview.push({ overviewName, overviewDesc, overviewImage });
+      }
+
+
+      // Technical Specifications (merge by index across variants)
+      const technicalSpecifications = buildFinalSpecsForLang(groupedTechSpecs, lang);
+
+      if (validateThis && lang === 'EN') {
+        const hasValidSection = technicalSpecifications.some(
+          sec => sec.sectionTitle && toIndexedArray(sec.rows).some(r => r.title && r.value)
+        );
+        if (!hasValidSection) {
+          validationErrors.push({
+            path: `technicalSpecifications_${lang}`,
+            msg: 'At least one Technical Specifications section with one row is required (EN).'
+          });
+        }
+      }
+
+      // Downloads
+    // ---- Downloads (keep existing from error re-render + add new uploads)
+const downloads = [];
+
+// Keep existing (not deleted) downloads coming back from the form
+// Your frontend sends hidden inputs named existingDownloads_LANG[] with JSON.
+const existingJsons =
+  toList(req.body[`existingDownloads_${lang}[]`])  // most browsers
+  .concat(toList(req.body[`existingDownloads_${lang}`])); // fallback name, just in case
+
+for (const js of existingJsons) {
+  try {
+    const d = JSON.parse(js);
+    // sanitize & keep shape consistent
+    downloads.push({
+      fileName: d.fileName || '',
+      filePath: d.filePath || '',
+      fileSize: d.fileSize || '',
+      fileCategory: d.fileCategory || 'Uncategorized',
+      fileProductCategory: d.fileProductCategory || '',
+    });
+  } catch (_) { /* ignore bad JSON */ }
+}
+
+// Add new uploads (if any)
+if (req.files?.[`downloadFiles_${lang}`]) {
+  const names = toIndexedArray(req.body[`downloadFileNames_${lang}`]);   // from your form
+  const cats  = toIndexedArray(req.body[`downloadCategories_${lang}`]);
+
+  for (let i = 0; i < req.files[`downloadFiles_${lang}`].length; i++) {
+    const file = req.files[`downloadFiles_${lang}`][i];
+    const originalExt = path.extname(file.originalname).toLowerCase() || '.pdf';
+    const adminName = clean(names[i]) || path.basename(file.originalname, originalExt);
+    const desiredNameForSave = buildDesiredName(adminName, '.pdf', originalExt);
+
+    const uploaded = await uploadToCloudinary(file, {
+      folder: `draglab/models/downloads/${lang}`,
+      desiredFileName: desiredNameForSave,
+      treatAsDownload: true,
+    });
+
+    downloads.push({
+      fileName: adminName,
+      filePath: uploaded?.url || '',
+      fileSize: `${(file.size / (1024 * 1024)).toFixed(2)} MB`,
+      fileCategory: clean(cats[i]) || 'Uncategorized',
+      fileProductCategory: '',
+    });
+  }
+}
+
+
+      languageData[lang] = [{
+        ModelName,
+        ModelNameDesc,
+        ModelDesc,
+        overview,
+        technicalSpecifications,
+        downloads,
+        publish: shouldValidate && !!requestedPublish[lang],
+      }];
+    }
+    // Gallery photos: upload if new ones present, else reuse from session draft
+    let ModelPhotos = [];
+    if (req.files?.ModelPhotos) {
+      ModelPhotos = await Promise.all(
+        req.files.ModelPhotos.map(async (f, idx) => {
+          const up = await uploadToCloudinary(f, {
+            folder: 'draglab/models/photos',
+            desiredFileName: `${modelSlug}-photo-${idx + 1}`,
+            treatAsDownload: false,
+          });
+          return up?.url || '';
+        })
+      );
+    } else if (req.session?.addModelDraft?.[productId]?.ModelPhotos) {
+      ModelPhotos = req.session.addModelDraft[productId].ModelPhotos;
+    }
+
+    // Debug (optional)
+    console.log('DEBUG RAW TS EN:', JSON.stringify(req.body.technicalSpecifications?.EN, null, 2));
+    console.log('DEBUG MERGED TS EN:', JSON.stringify(buildFinalSpecsForLang(groupedTechSpecs, 'EN'), null, 2));
+
+    // Validation re-render
+    if (validationErrors.length > 0) {
+      // ✅ Stash gallery so next submit (draft) can reuse it
+      req.session.addModelDraft = req.session.addModelDraft || {};
+      req.session.addModelDraft[productId] = { ModelPhotos };
+      return res.status(422).render('sellercompany/add-model', {
+        pageTitle: 'Add Model',
+        path: '/admin/add-model',
+        editing: false,
+        hasError: true,
+        errorMessage: 'Please fix the highlighted errors.',
+        validationErrors,
+        isAuthenticated: req.session.isLoggedIn,
+        isDraft: !shouldValidate,
+        productId,
+        languages,
+        allIndustries,
+        model: {
+          slug: modelSlug,
+          ModelThumbnail,
+          ModelPhotos,
+          overviewThumbnail,
+          modelcapacity: req.body.modelcapacity || '',
+          Language: languageData,
+          tags: modelTags,
+          meta: modelMeta,
+          industrySlugs
+        }
+      });
+    }
+
+    // Persist
+    const product = await Product.findById(productId);
+    if (!product) return res.redirect('/admin/Myproduct');
+
+    const newModel = product.Models.create({
+      slug: modelSlug,
+      ModelThumbnail,
+      ModelPhotos,
+      overviewThumbnail,
+      modelcapacity: req.body.modelcapacity || '',
+      Language: languageData,
+      isPublished: shouldValidate,
+      tags: modelTags,
+      meta: modelMeta,
+      industrySlugs
+    });
+
+    product.Models.push(newModel);
+    await product.save();
+
+    console.log('✅ Model successfully added!');
+    res.redirect('/admin/Myproduct');
+  } catch (err) {
+    console.error('🔥 Error adding model:', err);
+    if (!res.headersSent) {
+      const productId = req.params.productId;
+      return res.status(500).render('sellercompany/add-model', {
+        pageTitle: 'Add Model',
+        path: '/admin/add-model',
+        editing: false,
+        hasError: true,
+        errorMessage: 'Unexpected error while adding model.',
+        validationErrors: [],
+        isAuthenticated: req.session.isLoggedIn,
+        isDraft: !Object.values(req.body || {}).some((v, k) => String(k || '').startsWith('publish_')),
+        productId,
+        languages,
+        model: {
+          slug: slugify(req.body['ModelName_EN'] || 'model', { lower: true, strict: true }),
+          ModelThumbnail: '',
+          ModelPhotos: [],
+          overviewThumbnail: '',
+          modelcapacity: req.body.modelcapacity || '',
+          Language: languageData,
+          tags: modelTags,
+          meta: modelMeta
+        }
+      });
+    }
+  }
+};
+
+
+
+
+
+// single-or-array -> array
+
+exports.postEditModel = async (req, res) => {
+  const { productId, modelId } = req.params;
+  const languages = allanguages;
+  const validationErrors = [];
+
+  // Read selected industry slugs (max 3)
+  const rawIndustrySlugs = req.body.industrySlugs;
+  const industrySlugs = (Array.isArray(rawIndustrySlugs)
+    ? rawIndustrySlugs
+    : rawIndustrySlugs ? [rawIndustrySlugs] : []
+  ).slice(0, 4);
+
+  const allIndustries = await IndustryPage.find({ isDraft: false }).lean();
+
+  // publish intent: if any lang checked => publishing => validate; else draft
+  const requestedPublish = Object.fromEntries(
+    languages.map(l => [l, req.body[`publish_${l}`] === 'on'])
+  );
+  const shouldValidate = Object.values(requestedPublish).some(Boolean);
+  const mustValidateLang = (lang) => shouldValidate && (lang === 'EN' || requestedPublish[lang]);
+
+  const { tags: modelTags, meta: modelMeta } = collectSeoFromBody(languages, req.body);
+
+  try {
+    const product = await Product.findById(productId);
+    if (!product) return res.redirect('/admin/Myproduct');
+
+    const model = product.Models.id(modelId);
+    if (!model) return res.redirect('/admin/Myproduct');
+
+    // ---------- TOP-LEVEL ----------
+    const modelSlug = model.slug || slugify(req.body['ModelName_EN'] || 'model', { lower: true, strict: true });
+
+    // ModelThumbnail (new -> session -> prev)
+    let ModelThumbnail;
+    if (req.files?.ModelThumbnail?.[0]) {
+      ModelThumbnail = (await uploadToCloudinary(req.files.ModelThumbnail[0], {
+        folder: 'draglab/models/thumbnails',
+        desiredFileName: `${modelSlug}-thumbnail`,
+        treatAsDownload: false,
+      }))?.url || '';
+    } else if (req.session?.editModelDraft?.[modelId]?.ModelThumbnail) {
+      ModelThumbnail = req.session.editModelDraft[modelId].ModelThumbnail;
+    } else {
+      ModelThumbnail = model.ModelThumbnail || '';
+    }
+
+    // Overview Thumbnail (new -> session -> prev)
+    let overviewThumbnail;
+    if (req.files?.overviewThumbnail?.[0]) {
+      overviewThumbnail = (await uploadToCloudinary(req.files.overviewThumbnail[0], {
+        folder: 'draglab/models/overview',
+        desiredFileName: `${modelSlug}-overview-thumb`,
+        treatAsDownload: false,
+      }))?.url || '';
+    } else if (req.session?.editModelDraft?.[modelId]?.overviewThumbnail) {
+      overviewThumbnail = req.session.editModelDraft[modelId].overviewThumbnail;
+    } else {
+      overviewThumbnail = model.overviewThumbnail || '';
+    }
+
+    // Gallery photos (new -> session -> prev)
+    let ModelPhotos = [];
+    if (req.files?.ModelPhotos) {
+      ModelPhotos = await Promise.all(
+        req.files.ModelPhotos.map(async (f, idx) => {
+          const up = await uploadToCloudinary(f, {
+            folder: 'draglab/models/photos',
+            desiredFileName: `${modelSlug}-photo-${idx + 1}`,
+            treatAsDownload: false,
+          });
+          return up?.url || '';
+        })
+      );
+    } else if (req.session?.editModelDraft?.[modelId]?.ModelPhotos) {
+      ModelPhotos = req.session.editModelDraft[modelId].ModelPhotos;
+    } else {
+      ModelPhotos = model.ModelPhotos || [];
+    }
+
+    if (shouldValidate) {
+      if (!ModelThumbnail)    validationErrors.push({ path: 'ModelThumbnail',    msg: 'Model Thumbnail is required when publishing.' });
+      if (!overviewThumbnail) validationErrors.push({ path: 'overviewThumbnail', msg: 'Overview Thumbnail is required when publishing.' });
+    }
+
+    // ---------- TECH SPECS (merge weird lang keys, e.g. "EN ▸") ----------
+    const groupedTechSpecs = groupSpecsByLangVariants(req.body.technicalSpecifications || {});
+    // console.log('TS KEYS RAW:', Object.keys(req.body.technicalSpecifications || {}));
+    // console.log('TS KEY GROUPS:', Object.fromEntries(Object.entries(groupedTechSpecs).map(([k,v]) => [k, v.length])));
+
+    // ---------- PER-LANGUAGE ----------
+    let anyLangPublished = false;
+    const languageData = {};
+
+    for (const lang of languages) {
+      const prev = model.Language?.[lang]?.[0] || {};
+      const validateThis = mustValidateLang(lang);
+
+      const ModelName     = clean(req.body[`ModelName_${lang}`])     || prev.ModelName     || '';
+      const ModelNameDesc = clean(req.body[`ModelNameDesc_${lang}`]) || prev.ModelNameDesc || '';
+      const ModelDesc     = clean(req.body[`ModelDesc_${lang}`])     || prev.ModelDesc     || '';
+
+      if (validateThis) {
+        if (!ModelName)     validationErrors.push({ path: `ModelName_${lang}`,     msg: `Model Name (${lang}) is required.` });
+        if (!ModelNameDesc) validationErrors.push({ path: `ModelNameDesc_${lang}`, msg: `Short Description (${lang}) is required.` });
+        if (!ModelDesc)     validationErrors.push({ path: `ModelDesc_${lang}`,     msg: `Model Description (${lang}) is required.` });
+      }
+
+      // ---- Overview (4)
+      const overview = [];
+      for (let i = 0; i < 4; i++) {
+        const overviewName = clean(req.body.overview?.[lang]?.[i]?.overviewName) || prev.overview?.[i]?.overviewName || '';
+        const overviewDesc = clean(req.body.overview?.[lang]?.[i]?.overviewDesc) || prev.overview?.[i]?.overviewDesc || '';
+
+        const newOverviewFile = req.files?.[`overviewImages_${lang}[${i}]`]?.[0];
+        const overviewImage = newOverviewFile
+          ? (await uploadToCloudinary(newOverviewFile, {
+              folder: `draglab/models/overview/${lang}`,
+              desiredFileName: `${modelSlug}-overview-${i + 1}`,
+              treatAsDownload: false,
+            }))?.url || ''
+          : (prev.overview?.[i]?.overviewImage || '');
+
+        if (validateThis && lang === 'EN') {
+          if (!overviewName) validationErrors.push({ path: `overview_${lang}_${i}_name`, msg: `Overview ${i + 1} name (${lang}) is required.` });
+          if (!overviewDesc) validationErrors.push({ path: `overview_${lang}_${i}_desc`, msg: `Overview ${i + 1} description (${lang}) is required.` });
+          if (!overviewImage) validationErrors.push({ path: `overview_${lang}_${i}_image`, msg: `Overview ${i + 1} image (EN) is required.` });
+        }
+
+        overview.push({ overviewName, overviewDesc, overviewImage });
+      }
+
+      // ---- Technical Specifications (merged by index across variants)
+      let technicalSpecifications = [];
+      const built = buildFinalSpecsForLang(groupedTechSpecs, lang);
+      if (built.length > 0 || Object.keys(req.body.technicalSpecifications || {}).length > 0) {
+        technicalSpecifications = built;
+      } else if (prev.technicalSpecifications) {
+        technicalSpecifications = prev.technicalSpecifications;
+      }
+
+      if (validateThis && lang === 'EN') {
+        const hasValidSection = (technicalSpecifications || []).some(
+          sec => sec.sectionTitle && toIndexedArray(sec.rows).some(r => r.title && r.value)
+        );
+        if (!hasValidSection) {
+          validationErrors.push({
+            path: `technicalSpecifications_${lang}`,
+            msg: 'At least one Technical Specifications section with one row is required (EN).'
+          });
+        }
+      }
+
+      // ---- Downloads (keep existing from hidden JSON + add new uploads)
+      const downloads = [];
+      const existingJsons =
+        toList(req.body[`existingDownloads_${lang}[]`]).concat(toList(req.body[`existingDownloads_${lang}`]));
+      for (const js of existingJsons) {
+        try {
+          const d = JSON.parse(js);
+          downloads.push({
+            fileName: d.fileName || '',
+            filePath: d.filePath || '',
+            fileSize: d.fileSize || '',
+            fileCategory: d.fileCategory || 'Uncategorized',
+            fileProductCategory: d.fileProductCategory || ''
+          });
+        } catch (_) { /* ignore */ }
+      }
+
+      if (req.files?.[`downloadFiles_${lang}`]) {
+        const names = toIndexedArray(req.body[`downloadFileNames_${lang}`]);
+        const cats  = toIndexedArray(req.body[`downloadCategories_${lang}`]);
+        for (let i = 0; i < req.files[`downloadFiles_${lang}`].length; i++) {
+          const file = req.files[`downloadFiles_${lang}`][i];
+          const originalExt = path.extname(file.originalname).toLowerCase() || '.pdf';
+          const adminName = clean(names[i]) || path.basename(file.originalname, originalExt);
+          const desiredNameForSave = buildDesiredName(adminName, '.pdf', originalExt);
+
+          const uploaded = await uploadToCloudinary(file, {
+            folder: `draglab/models/downloads/${lang}`,
+            desiredFileName: desiredNameForSave,
+            treatAsDownload: true,
+          });
+
+          downloads.push({
+            fileName: adminName,
+            filePath: uploaded?.url || '',
+            fileSize: `${(file.size / (1024 * 1024)).toFixed(2)} MB`,
+            fileCategory: clean(cats[i]) || 'Uncategorized',
+            fileProductCategory: prev.fileProductCategory || ''
+          });
+        }
+      }
+
+      // Commit per-language
+      const publish = !!requestedPublish[lang];
+      anyLangPublished = anyLangPublished || publish;
+
+      languageData[lang] = [{
+        ModelName,
+        ModelNameDesc,
+        ModelDesc,
+        overview,
+        technicalSpecifications,
+        downloads,
+        publish
+      }];
+    }
+
+    // ---------- If validation fails, re-render (and stash images/photos in session) ----------
+    if (validationErrors.length > 0) {
+      req.session.editModelDraft = req.session.editModelDraft || {};
+      req.session.editModelDraft[modelId] = {
+        ModelThumbnail,
+        overviewThumbnail,
+        ModelPhotos
       };
 
-      product.Models.push(model);
-      return product.save().then(() => {
-        return res.redirect('/admin/Myproduct'); // ✅ wrapped inside
-      });
-
-    })
-};
-
-
-
-
-
-
-exports.postEditModel = (req, res, next) => {
-  const { productId, modelId } = req.params;
-  const languages = ['EN', 'ES', 'GR'];
-  const languageData = {};
-  const isDraft = req.body.action === 'draft';
-  const validationErrors = [];
-
-  Product.findById(productId)
-    .then(product => {
-      if (!product) return res.redirect('/admin/Myproduct');
-
-      const model = product.Models.id(modelId);
-      if (!model) return res.redirect('/admin/Myproduct');
-
-      // Validate shared fields
-      if (!isDraft) {
-        if (!req.body.modelcapacity) {
-          validationErrors.push({ path: 'modelcapacity', msg: 'Model Capacity is required.' });
-        }
-
-        if (!req.files?.ModelThumbnail?.[0] && !req.body.oldModelThumbnail && !model.ModelThumbnail) {
-          validationErrors.push({ path: 'ModelThumbnail', msg: 'Model Thumbnail is required.' });
-        }
-
-        if (!req.files?.overviewThumbnail?.[0] && !req.body.oldOverviewThumbnail && !model.overviewThumbnail) {
-          validationErrors.push({ path: 'overviewThumbnail', msg: 'Overview Thumbnail is required.' });
-        }
-      }
-
-      languages.forEach(lang => {
-        const existingLangData = model.Language?.[lang]?.[0] || {};
-        const validateThisLanguage = (lang === 'EN'); // ✅ only validate English
-
-        const modelName = req.body[`ModelName_${lang}`];
-        const shortDesc = req.body[`ModelNameDesc_${lang}`];
-        const desc = req.body[`ModelDesc_${lang}`];
-
-        if (!isDraft && validateThisLanguage && !modelName) {
-          validationErrors.push({ path: `ModelName_${lang}`, msg: `${lang} Model Name is required.` });
-        }
-        if (!isDraft && validateThisLanguage && !shortDesc) {
-          validationErrors.push({ path: `ModelNameDesc_${lang}`, msg: `${lang} Short Description is required.` });
-        }
-        if (!isDraft && validateThisLanguage && !desc) {
-          validationErrors.push({ path: `ModelDesc_${lang}`, msg: `${lang} Description is required.` });
-        }
-
-        const overviewData = [];
-        const industryData = [];
-
-        for (let i = 0; i < 4; i++) {
-          const name = req.body.overview?.[lang]?.[i]?.overviewName;
-          const desc = req.body.overview?.[lang]?.[i]?.overviewDesc;
-          let img = existingLangData.overview?.[i]?.overviewImage;
-
-          if (lang === 'EN') {
-            img = req.files?.[`overviewImages_${lang}[${i}]`]?.[0]?.path?.replace(/\\/g, '/') || img;
-            if (!isDraft && validateThisLanguage && !img) {
-              validationErrors.push({ path: `overviewImage_${lang}_${i}`, msg: `Overview image ${i + 1} (${lang}) is required.` });
-            }
-          }
-
-          if (!isDraft && validateThisLanguage && (!name || !desc)) {
-            validationErrors.push({ path: `overview_${lang}_${i}`, msg: `Overview ${i + 1} (${lang}) is incomplete.` });
-          }
-
-          overviewData.push({
-            overviewName: name || '',
-            overviewDesc: desc || '',
-            overviewImage: lang === 'EN' ? img : undefined
-          });
-        }
-
-        for (let i = 0; i < 3; i++) {
-          const name = req.body.industry?.[lang]?.[i]?.industryName;
-          let img = existingLangData.industry?.[i]?.industryImage;
-          let logo = existingLangData.industry?.[i]?.industryLogo;
-
-          if (lang === 'EN') {
-            img = req.files?.[`industryImages_${lang}[${i}]`]?.[0]?.path?.replace(/\\/g, '/') || img;
-            logo = req.files?.[`industryLogos_${lang}[${i}]`]?.[0]?.path?.replace(/\\/g, '/') || logo;
-            if (!isDraft && validateThisLanguage && (!img || !logo)) {
-              validationErrors.push({ path: `industryImage_${lang}_${i}`, msg: `Industry image/logo ${i + 1} (${lang}) is required.` });
-            }
-          }
-
-          if (!isDraft && validateThisLanguage && !name) {
-            validationErrors.push({ path: `industryName_${lang}_${i}`, msg: `Industry name ${i + 1} (${lang}) is required.` });
-          }
-
-          industryData.push({
-            industryName: name || '',
-            industryImage: lang === 'EN' ? img : undefined,
-            industryLogo: lang === 'EN' ? logo : undefined
-          });
-        }
-
-        const specSections = [];
-        const specs = req.body.technicalSpecifications?.[lang];
-
-        if (specs) {
-          for (const [sectionIndex, section] of Object.entries(specs)) {
-            const rows = [];
-
-            if (section.rows) {
-              for (const row of Object.values(section.rows)) {
-                rows.push({
-                  title: row.title,
-                  value: row.value
-                });
-              }
-            }
-
-            if (!isDraft && validateThisLanguage && !section.sectionTitle) {
-              validationErrors.push({ path: `techspec_section_${lang}_${sectionIndex}`, msg: `${lang} Spec section title is required.` });
-            }
-            if (!isDraft && validateThisLanguage && !rows.length) {
-              validationErrors.push({ path: `techspec_rows_${lang}_${sectionIndex}`, msg: `${lang} Spec section must have at least one row.` });
-            }
-
-            specSections.push({
-              sectionTitle: section.sectionTitle,
-              rows
-            });
-          }
-        }
-
-        let downloads = [];
-        let existingDownloads = [];
-        const existingRaw = req.body[`existingDownloads_${lang}`];
-        if (existingRaw) {
-          const rawArr = Array.isArray(existingRaw) ? existingRaw : [existingRaw];
-          existingDownloads = rawArr.map(r => JSON.parse(r));
-        }
-
-        const deleted = req.body[`deletedDownloads_${lang}`] || [];
-        const deletedPaths = Array.isArray(deleted) ? deleted : [deleted];
-        existingDownloads = existingDownloads.filter(d => !deletedPaths.includes(d.filePath));
-
-        deletedPaths.forEach(p => {
-          try {
-            fs.unlinkSync(p);
-          } catch (err) {
-            console.error('Delete failed:', err);
-          }
-        });
-
-        const uploaded = req.files[`downloadFiles_${lang}`] || [];
-        const fileNames = req.body[`downloadFileNames_${lang}`] || [];
-        const categories = req.body[`downloadCategories_${lang}`] || [];
-
-        uploaded.forEach((file, i) => {
-          downloads.push({
-            fileName: fileNames[i],
-            filePath: file.path.replace(/\\/g, '/'),
-            fileSize: (file.size / (1024 * 1024)).toFixed(2) + ' MB',
-            fileCategory: categories[i],
-            fileProductCategory: product?.Language?.EN?.[0]?.ProductName || 'Unknown'
-          });
-        });
-
-        const allDownloads = [...existingDownloads, ...downloads];
-        if (!isDraft && validateThisLanguage && allDownloads.length === 0) {
-          validationErrors.push({ path: `downloads_${lang}`, msg: `${lang} Downloads required.` });
-        }
-
-        languageData[lang] = [{
-          ModelName: modelName,
-          ModelNameDesc: shortDesc,
-          ModelDesc: desc,
-          overview: overviewData,
-          industry: industryData,
-          technicalSpecifications: specSections,
-          downloads: allDownloads
-        }];
-      });
-
-
-      if (!isDraft && validationErrors.length > 0) {
-        res.status(422).render(path.join(__dirname, '..', 'front-end', 'HTML', 'sellercompany', 'add-model'), {
-          pageTitle: 'Edit Model',
-          path: '/admin/edit-model',
-          product,
-          modelId,
-          productId,
-          model: {
-            ...model.toObject(),
-            modelcapacity: req.body.modelcapacity,
-            Language: languageData,
-            overviewThumbnail: req.body.oldOverviewThumbnail,
-            ModelThumbnail: req.body.oldModelThumbnail,
-            ModelPhotos: model.ModelPhotos
-          },
-          validationErrors,
-          hasError: true,
-          editing: true,
-          isAuthenticated: req.session.isLoggedIn,
-          errorMessage: 'Please fix the errors before saving.'
-        });
-
-        return Promise.reject('Validation Failed'); // ✅ stop chain
-      }
-
-
-      // Save
-      model.ModelThumbnail = req.files?.ModelThumbnail?.[0]?.path || req.body.oldModelThumbnail;
-      model.ModelPhotos = req.files?.ModelPhotos?.map(f => f.path) || model.ModelPhotos;
-      model.overviewThumbnail = req.files?.overviewThumbnail?.[0]?.path || model.overviewThumbnail;
-      model.modelcapacity = req.body.modelcapacity;
-      model.Language = languageData;
-      model.isPublished = !isDraft;
-
-      return product.save();
-
-    })
-    .then(() => res.redirect('/admin/Myproduct'))
-    .catch(err => next(err));
-};
-
-
-
-
-
-
-
-exports.getAllSlides = (req, res) => {
-  Slideshow.find()
-    .then(slides => {
-
-      res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'sellercompany', 'indexSlide'), {
-        path: '/admin/slideshow',
-        slides,
-        pageTitle: 'Slideshow',
-        editing: false,
-        validationErrors: [],
-        hasError: false,
+      return res.status(422).render('sellercompany/add-model', {
+        pageTitle: 'Edit Model',
+        path: '/admin/edit-model',
+        editing: true,
+        hasError: true,
+        errorMessage: 'Please fix the highlighted errors.',
+        validationErrors,
         isAuthenticated: req.session.isLoggedIn,
-        errorMessage: null
+        isDraft: !shouldValidate,
+        productId,
+        modelId,
+        languages,
+        allIndustries,
+        model: {
+          _id: modelId,
+          slug: modelSlug,
+          ModelThumbnail,
+          overviewThumbnail,
+          ModelPhotos,
+          modelcapacity: req.body.modelcapacity || model.modelcapacity || '',
+          Language: languageData,
+          tags: modelTags,
+          meta: modelMeta,
+          industrySlugs
+        }
       });
-    })
-    .catch(err => console.log(err));
+    }
+
+    // ---------- Persist ----------
+    model.ModelThumbnail = ModelThumbnail;
+    model.overviewThumbnail = overviewThumbnail;
+    model.ModelPhotos = ModelPhotos;
+    model.modelcapacity = req.body.modelcapacity || model.modelcapacity;
+    model.Language = languageData;
+    model.isPublished = anyLangPublished;
+    model.tags = modelTags;
+    model.meta = modelMeta;
+    model.industrySlugs = industrySlugs.length > 0 ? industrySlugs : (model.industrySlugs || []);
+    await product.save();
+
+    // clear session stash on success
+    if (req.session?.editModelDraft?.[modelId]) {
+      delete req.session.editModelDraft[modelId];
+    }
+
+    console.log('✅ Model successfully updated!');
+    res.redirect('/admin/Myproduct');
+  } catch (err) {
+    console.error('Error updating model:', err);
+    if (!res.headersSent) return res.redirect('/admin/Myproduct');
+  }
+};
+
+
+
+
+
+
+const SLIDE_LANGS = ['en', 'es', 'de', 'tr', 'fr'];
+
+exports.getAllSlides = async (req, res) => {
+  try {
+    const slides = await Slideshow.find().sort({ createdAt: -1 });
+    res.render('sellercompany/indexSlide', {
+      path: '/admin/slideshow',
+      slides,
+      pageTitle: 'Slideshow',
+      isAuthenticated: req.session.isLoggedIn
+    });
+  } catch (err) { console.log(err); }
 };
 
 exports.getAddSlideForm = (req, res) => {
-  res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'sellercompany', 'add-indexSlide'), {
-
+  res.render('sellercompany/add-indexSlide', {
     path: '/admin/addslideshow',
-    pageTitle: 'Slideshow',
+    pageTitle: 'Add Slide',
     editing: false,
-    validationErrors: [],
-    hasError: false,
     isAuthenticated: req.session.isLoggedIn,
-    errorMessage: null,
     slide: null
-
-
-
   });
-
 };
 
-exports.postAddSlide = (req, res) => {
-  const { title, desc, language } = req.body;
-  const image = req.files?.slideshowImage?.[0]?.path;
+exports.postAddSlide = async (req, res) => {
+  const imageFile = req.files?.slideshowImage?.[0];
+  try {
+    if (!imageFile) throw new Error('No image file uploaded.');
+    const uploaded = await uploadToCloudinary(imageFile, { folder: 'slideshow' });
+    if (!uploaded?.url) throw new Error('Upload returned no URL');
 
-  const newSlide = new Slideshow({ title, desc, image, language });
+    const translations = {};
+    for (const l of SLIDE_LANGS) {
+      translations[l] = {
+        title:       (req.body[l + '_title']       || '').trim(),
+        desc:        (req.body[l + '_desc']        || '').trim(),
+        buttonLabel: (req.body[l + '_buttonLabel'] || '').trim(),
+        buttonLink:  (req.body[l + '_buttonLink']  || '').trim(),
+        status:       req.body[l + '_status']      || 'none'
+      };
+    }
 
-  newSlide.save()
-    .then(() => {
-      console.log('Slide added successfully!');
-      res.redirect('/admin/slideshow');
-    })
-    .catch(err => {
-      console.error('Error adding slide:', err);
+    await new Slideshow({ image: uploaded.url, translations }).save();
+    res.redirect('/admin/slideshow');
+  } catch (err) {
+    console.error('Error adding slide:', err);
+    res.status(500).send('Error adding slide.');
+  }
+};
+
+exports.getEditSlideForm = async (req, res) => {
+  try {
+    const slide = await Slideshow.findById(req.params.id);
+    if (!slide) return res.redirect('/admin/slideshow');
+    res.render('sellercompany/add-indexSlide', {
+      slide,
+      pageTitle: 'Edit Slide',
+      path: '/admin/edit-slide',
+      editing: true,
+      isAuthenticated: req.session.isLoggedIn
     });
-
+  } catch (err) { console.log(err); }
 };
 
+exports.postEditSlide = async (req, res) => {
+  try {
+    const slide = await Slideshow.findById(req.params.id);
+    if (!slide) return res.status(404).send('Slide not found');
 
-exports.getEditSlideForm = (req, res) => {
-  Slideshow.findById(req.params.id)
-    .then(slide => {
-      res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'sellercompany', 'add-indexSlide'), {
+    const newFile = req.files?.slideshowImage?.[0];
+    if (newFile) {
+      try {
+        if (slide.image) {
+          const oldPublicId = slide.image.split('/').pop().split('.')[0];
+          await cloudinary.uploader.destroy('slideshow/' + oldPublicId);
+        }
+      } catch (e) { /* ignore */ }
+      const uploaded = await uploadToCloudinary(newFile, { folder: 'slideshow' });
+      if (!uploaded?.url) return res.status(500).send('Failed to upload image');
+      slide.image = uploaded.url;
+    }
 
-        slide,
-        pageTitle: 'Edit slide',
-        path: '/admin/edit-slide',
-        editing: true,
-        validationErrors: [],
-        hasError: false,
-        isAuthenticated: req.session.isLoggedIn,
-        errorMessage: null
-      });
-    })
-    .catch(err => console.log(err));
+    for (const l of SLIDE_LANGS) {
+      slide.translations[l] = {
+        title:       (req.body[l + '_title']       || '').trim(),
+        desc:        (req.body[l + '_desc']        || '').trim(),
+        buttonLabel: (req.body[l + '_buttonLabel'] || '').trim(),
+        buttonLink:  (req.body[l + '_buttonLink']  || '').trim(),
+        status:       req.body[l + '_status']      || 'none'
+      };
+    }
+
+    await slide.save();
+    res.redirect('/admin/slideshow');
+  } catch (err) {
+    console.error('Error updating slide:', err);
+    res.status(500).send('Internal Server Error');
+  }
 };
 
-exports.postEditSlide = (req, res) => {
-  const { title, desc, language } = req.body;
-  const image = req.files?.slideshowImage?.[0]?.path;
-
-
-
-  Slideshow.findById(req.params.id)
-    .then(slide => {
-      slide.title = title;
-      slide.desc = desc;
-      slide.language = language;
-      if (image) slide.image = image;
-      return slide.save();
-    })
-    .then(() => res.redirect('/admin/slideshow'))
-    .catch(err => console.log(err));
+exports.deleteSlide = async (req, res) => {
+  try {
+    const slide = await Slideshow.findById(req.params.id);
+    if (!slide) return res.redirect('/admin/slideshow');
+    if (slide.image) {
+      try {
+        const publicId = slide.image.split('/').pop().split('.')[0];
+        await cloudinary.uploader.destroy('slideshow/' + publicId);
+      } catch (e) { /* ignore */ }
+    }
+    await Slideshow.findByIdAndDelete(req.params.id);
+    res.redirect('/admin/slideshow');
+  } catch (err) {
+    console.error('Error deleting slide:', err);
+    res.status(500).send('Internal Server Error');
+  }
 };
-
-
-exports.deleteSlide = (req, res) => {
-  Slideshow.findByIdAndDelete(req.params.id)
-    .then(() => res.redirect('/admin/slideshow'))
-    .catch(err => console.log(err));
-};
-
-
-
 
 // Articles controllers 
 
 
 // GET: All Articles
-exports.getAllArticles = (req, res) => {
-  Article.find()
-    .then(articles => {
-      res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'sellercompany', 'all-articles'), {
-        path: '/admin/articles',
-        pageTitle: 'Articles',
-        articles,
-        isAuthenticated: req.session.isLoggedIn
-      });
-    })
-    .catch(err => console.log(err));
+// Helper: generate a unique slug for a given language
+async function generateUniqueSlug(title, articleId, lang) {
+  const base = slugify(title || 'article', { lower: true, strict: true }) || 'article';
+  let slug = base;
+  let i = 1;
+  while (true) {
+    const query = { [`translations.${lang}.slug`]: slug };
+    if (articleId) query._id = { $ne: articleId };
+    const existing = await Article.findOne(query);
+    if (!existing) break;
+    i++;
+    slug = `${base}-${i}`;
+  }
+  return slug;
+}
+
+const ARTICLE_LANGS = ['en', 'es', 'de', 'tr', 'fr'];
+
+exports.getAllArticles = async (req, res, next) => {
+  try {
+    const PAGE_SIZE = 20;
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const totalItems = await Article.countDocuments();
+    const totalPages = Math.ceil(totalItems / PAGE_SIZE);
+    const articles = await Article.find()
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * PAGE_SIZE)
+      .limit(PAGE_SIZE);
+    res.render('sellercompany/all-articles', {
+      path: '/admin/articles',
+      pageTitle: 'Articles',
+      articles,
+      isAuthenticated: req.session.isLoggedIn,
+      currentPage: page,
+      totalPages,
+      totalItems,
+      baseUrl: '/admin/articles'
+    });
+  } catch (err) {
+    next(err);
+  }
 };
 
 // GET: Add Article Form
 exports.getAddArticle = (req, res) => {
-  res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'sellercompany', 'add-article'), {
+  res.render('sellercompany/add-article', {
     path: '/admin/add-article',
     pageTitle: 'Add Article',
     editing: false,
-    validationErrors: [],
-    hasError: false,
     isAuthenticated: req.session.isLoggedIn,
-    errorMessage: null,
     article: null
   });
 };
 
 // POST: Add New Article
-exports.postAddArticle = (req, res) => {
-  const { title, author, body, language } = req.body;
-  const thumbnail = req.files?.thumbnail?.[0]?.path;
+exports.postAddArticle = async (req, res) => {
+  const author   = (req.body.author || '').trim();
+  const category = req.body.category || 'News';
 
-  const newArticle = new Article({ title, author, body, language, thumbnail });
+  const file = req.files?.thumbnail?.[0];
+  let thumbnail = '';
+  if (file) {
+    try {
+      thumbnail = await new Promise((resolve, reject) => {
+        cloudinary.uploader.upload_stream(
+          { resource_type: 'image', folder: 'draglab/articles', public_id: file.originalname.split('.')[0], format: 'webp' },
+          (error, r) => error ? reject(error) : resolve(r.secure_url)
+        ).end(file.buffer);
+      });
+    } catch (err) {
+      console.error('Cloudinary upload error:', err.message);
+      return res.status(500).send('Failed to upload thumbnail');
+    }
+  }
 
-  newArticle.save()
-    .then(() => {
-      console.log('Article added successfully!');
-      res.redirect('/admin/articles');
-    })
-    .catch(err => console.error('Error adding article:', err));
+  const translations = {};
+  for (const l of ARTICLE_LANGS) {
+    const title   = (req.body[`${l}_title`]   || '').trim();
+    const summary = (req.body[`${l}_summary`] || '').trim();
+    const body    = req.body[`${l}_body`]    || '';
+    const tags    = (req.body[`${l}_tags`]   || '').split(',').map(t => t.trim()).filter(Boolean);
+    const status  = req.body[`${l}_status`]  || 'none';
+
+    let slug = '';
+    if (title) slug = await generateUniqueSlug(title, null, l);
+
+    const publishedAt = (status === 'published') ? new Date() : undefined;
+    translations[l] = { title, slug, body, summary, tags, status, publishedAt };
+  }
+
+  try {
+    await new Article({ author, category, thumbnail, translations }).save();
+    res.redirect('/admin/articles');
+  } catch (err) {
+    console.error('Error adding article:', err);
+    res.status(500).send('Error adding article');
+  }
 };
 
 // GET: Edit Article Form
-exports.getEditArticle = (req, res) => {
-  Article.findById(req.params.articleId)
-    .then(article => {
-      if (!article) return res.redirect('/admin/articles');
-
-      res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'sellercompany', 'add-article'), {
-        article,
-        pageTitle: 'Edit Article',
-        path: '/admin/edit-article',
-        editing: true,
-        validationErrors: [],
-        hasError: false,
-        isAuthenticated: req.session.isLoggedIn,
-        errorMessage: null
-      });
-    })
-    .catch(err => console.log(err));
+exports.getEditArticle = async (req, res) => {
+  try {
+    const article = await Article.findById(req.params.articleId);
+    if (!article) return res.redirect('/admin/articles');
+    res.render('sellercompany/add-article', {
+      article,
+      pageTitle: 'Edit Article',
+      path: '/admin/edit-article',
+      editing: true,
+      isAuthenticated: req.session.isLoggedIn
+    });
+  } catch (err) {
+    console.error(err);
+    res.redirect('/admin/articles');
+  }
 };
 
 // POST: Edit Article
-exports.postEditArticle = (req, res) => {
-  const { title, author, body, language } = req.body;
-  const thumbnail = req.files?.thumbnail?.[0]?.path;
+exports.postEditArticle = async (req, res) => {
+  const author   = (req.body.author || '').trim();
+  const category = req.body.category || 'News';
+  const file     = req.files?.thumbnail?.[0];
 
-  Article.findById(req.params.articleId)
-    .then(article => {
-      if (!article) return res.redirect('/admin/articles');
+  try {
+    const article = await Article.findById(req.params.articleId);
+    if (!article) return res.redirect('/admin/articles');
 
-      article.title = title;
-      article.author = author;
-      article.body = body;
-      article.language = language;
-      if (thumbnail) article.thumbnail = thumbnail;
+    article.author   = author;
+    article.category = category;
 
-      return article.save();
-    })
-    .then(() => {
-      console.log('Article updated successfully!');
-      res.redirect('/admin/articles');
-    })
-    .catch(err => console.log(err));
+    if (file) {
+      if (article.thumbnail) {
+        const publicId = article.thumbnail.split('/draglab/articles/')[1]?.replace('.webp', '');
+        if (publicId) {
+          try { await cloudinary.uploader.destroy(`draglab/articles/${publicId}`); } catch { }
+        }
+      }
+      article.thumbnail = await new Promise((resolve, reject) => {
+        cloudinary.uploader.upload_stream(
+          { resource_type: 'image', folder: 'draglab/articles', public_id: file.originalname.split('.')[0], format: 'webp' },
+          (error, r) => error ? reject(error) : resolve(r.secure_url)
+        ).end(file.buffer);
+      });
+    }
+
+    for (const l of ARTICLE_LANGS) {
+      const title   = (req.body[`${l}_title`]   || '').trim();
+      const summary = (req.body[`${l}_summary`] || '').trim();
+      const body    = req.body[`${l}_body`]    || '';
+      const tags    = (req.body[`${l}_tags`]   || '').split(',').map(t => t.trim()).filter(Boolean);
+      const status  = req.body[`${l}_status`]  || 'none';
+      const existing = article.translations[l] || {};
+
+      let slug = existing.slug || '';
+      if (title && title !== existing.title) {
+        slug = await generateUniqueSlug(title, article._id, l);
+      } else if (!slug && title) {
+        slug = await generateUniqueSlug(title, article._id, l);
+      }
+
+      let publishedAt = existing.publishedAt;
+      if (status === 'published' && existing.status !== 'published') {
+        publishedAt = new Date();
+      }
+
+      article.translations[l] = { title, slug, body, summary, tags, status, publishedAt };
+    }
+
+    await article.save();
+    res.redirect('/admin/articles');
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error updating article');
+  }
 };
 
 // POST: Delete Article
-exports.postDeleteArticle = (req, res) => {
-  Article.findByIdAndDelete(req.params.articleId)
-    .then(() => {
-      console.log('Article deleted');
-      res.redirect('/admin/articles');
-    })
-    .catch(err => console.log(err));
+exports.postDeleteArticle = async (req, res) => {
+  try {
+    const article = await Article.findById(req.params.articleId);
+    if (!article) return res.redirect('/admin/articles');
+
+    if (article.thumbnail) {
+      const publicId = article.thumbnail.split('/draglab/articles/')[1]?.replace('.webp', '');
+      if (publicId) {
+        try { await cloudinary.uploader.destroy(`draglab/articles/${publicId}`); } catch { }
+      }
+    }
+
+    await Article.findByIdAndDelete(req.params.articleId);
+    res.redirect('/admin/articles');
+  } catch (err) {
+    console.error(err);
+    res.redirect('/admin/articles');
+  }
 };
+
 
 
 
@@ -1231,7 +1855,6 @@ exports.postDeleteProduct = async (req, res, next) => {
 };
 
 
-// Assuming getDashboard and getchart are in the admin controller
 
 exports.getDashboard = async (req, res, next) => {
   try {
@@ -1239,11 +1862,17 @@ exports.getDashboard = async (req, res, next) => {
 
 
 
-    res.render(sellercompany/dashboard, {
+    res.render('sellercompany/dashboard', {
       pageTitle: 'Dashboard',
       products: products,
       path: '/admin/Dashboard',
-      isAuthenticated: req.session.isLoggedIn
+      lang: 'EN',
+      isAuthenticated: req.session.isLoggedIn,
+      faqSchema: {
+        EN: {
+          url: "https://www.drag-lab.de/EN"
+        }
+      }
     });
   } catch (err) {
     next(new Error(err));
@@ -1256,7 +1885,8 @@ exports.getDashboard = async (req, res, next) => {
 
 exports.getAllCategories = async (req, res) => {
   const categories = await CatalogCategory.find();
-  res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'sellercompany', 'Catalog-categories'), {
+  res.render('sellercompany/Catalog-categories', {
+
     pageTitle: 'Catalog Categories',
     categories,
     path: '/admin/catalogs',
@@ -1266,7 +1896,7 @@ exports.getAllCategories = async (req, res) => {
 };
 
 exports.getAddCategoryForm = (req, res) => {
-  res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'sellercompany', 'add-category'), {
+  res.render('sellercompany/add-category', {
     pageTitle: 'Add Catalog Category',
     path: '/admin/catalogs/add',
     isAuthenticated: req.session.isLoggedIn,
@@ -1295,7 +1925,7 @@ exports.postAddCategory = async (req, res) => {
 
 exports.getUploadForm = async (req, res) => {
   const category = await CatalogCategory.findById(req.params.categoryId);
-  res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'sellercompany', 'upload-file'), {
+  res.render('sellercompany/upload-file', {
 
     pageTitle: 'Upload File',
     category,
@@ -1316,15 +1946,42 @@ exports.postUploadFile = async (req, res) => {
 
     const fileSizeMB = `${(file.size / (1024 * 1024)).toFixed(1)} MB`;
 
+    // ✅ Check if Category exists before uploading
     const category = await CatalogCategory.findById(req.params.categoryId);
     if (!category) {
       console.error('⚠️ Category not found.');
-      return res.redirect('/admin/catalogs?error=nocat');
+      return res.status(404).send('Category not found.');
     }
 
+    // ✅ Upload to Cloudinary as a raw file (PDF/DOCX)
+    const sanitizedFilename = sanitize(file.originalname);
+    let fileUrl = '';
+    try {
+      const result = await new Promise((resolve, reject) => {
+        cloudinary.uploader.upload_stream(
+          {
+            resource_type: 'raw',
+            folder: 'draglab/catalogs',
+            public_id: `${Date.now()}-${sanitizedFilename}`
+          },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result.secure_url);
+          }
+        ).end(file.buffer);
+      });
+
+      fileUrl = result;
+      console.log('Uploaded to Cloudinary:', fileUrl);
+    } catch (err) {
+      console.error('Cloudinary upload error:', err.message);
+      return res.redirect('/admin/catalogs?error=upload');
+    }
+
+    // ✅ Save to Category
     category.files.push({
       fileName: req.body.fileName,
-      filePath: file.path.replace('public/', ''),
+      filePath: fileUrl,
       fileSize: fileSizeMB,
       language: req.body.language
     });
@@ -1339,22 +1996,44 @@ exports.postUploadFile = async (req, res) => {
 
 exports.deleteCategory = async (req, res) => {
   const category = await CatalogCategory.findById(req.params.categoryId);
-  // Delete all files physically
+
   for (const file of category.files) {
-    const fullPath = path.join('public', file.filePath);
-    if (fs.existsSync(fullPath)) fs.unlinkSync(fullPath);
+    const publicId = file.filePath.split('/draglab/catalogs/')[1].replace(/\.[^/.]+$/, '');
+
+    try {
+      const result = await cloudinary.uploader.destroy(`draglab/catalogs/${publicId}`, {
+        resource_type: 'raw'
+      });
+      console.log('File deleted from Cloudinary:', result);
+    } catch (err) {
+      console.error(`Failed to delete ${file.fileName} from Cloudinary:`, err.message);
+    }
   }
+
   await CatalogCategory.findByIdAndDelete(req.params.categoryId);
   res.redirect('/admin/catalogs');
 };
+
 
 exports.deleteFile = async (req, res) => {
   const { categoryId, fileId } = req.params;
   const category = await CatalogCategory.findById(categoryId);
 
   const file = category.files.id(fileId);
-  const fullPath = path.join('public', file.filePath);
-  if (fs.existsSync(fullPath)) fs.unlinkSync(fullPath);
+
+  // ✅ Extract the public ID from the Cloudinary URL
+  if (file && file.filePath) {
+    const publicId = file.filePath.split('/draglab/catalogs/')[1].replace(/\.[^/.]+$/, '');
+
+    try {
+      const result = await cloudinary.uploader.destroy(`draglab/catalogs/${publicId}`, {
+        resource_type: 'raw'
+      });
+      console.log('File deleted from Cloudinary:', result);
+    } catch (err) {
+      console.error('Failed to delete file from Cloudinary:', err.message);
+    }
+  }
 
   category.files.id(fileId).deleteOne();
   await category.save();
@@ -1363,32 +2042,51 @@ exports.deleteFile = async (req, res) => {
 };
 
 
+
 exports.getAllTechnicalRequests = async (req, res) => {
   try {
+    const PAGE_SIZE = 20;
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const totalItems = await TechnicalService.countDocuments();
+    const totalPages = Math.ceil(totalItems / PAGE_SIZE);
+
     const requests = await TechnicalService.find()
       .populate('deviceCategory')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * PAGE_SIZE)
+      .limit(PAGE_SIZE);
 
-    // For each request, get the corresponding model name
-    const requestsWithModelNames = await Promise.all(requests.map(async (req) => {
+    // Batch-fetch all products needed for model names (fixes N+1 query)
+    const productIds = [...new Set(
+      requests.filter(r => r.deviceCategory).map(r => r.deviceCategory._id.toString())
+    )];
+    const productMap = {};
+    if (productIds.length) {
+      const products = await Product.find({ _id: { $in: productIds } }).select('Models');
+      products.forEach(p => { productMap[p._id.toString()] = p; });
+    }
+
+    const requestsWithModelNames = requests.map(r => {
       let modelName = 'None';
-      if (req.deviceCategory && req.deviceModel) {
-        const product = await Product.findById(req.deviceCategory._id);
-        const model = product?.Models?.id(req.deviceModel);
+      if (r.deviceCategory && r.deviceModel) {
+        const product = productMap[r.deviceCategory._id.toString()];
+        const model = product?.Models?.id(r.deviceModel);
         modelName = model?.Language?.EN?.[0]?.ModelName || 'None';
       }
+      return { ...r.toObject(), modelName };
+    });
 
-      return {
-        ...req.toObject(),
-        modelName
-      };
-    }));
-
-    res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'sellercompany', 'all-technical-service'), {
+    const isAdmin = !!(req.user && (req.user.role === 'admin' || req.user.isAdmin === true));
+    res.render('sellercompany/all-technical-service', {
       pageTitle: 'Technical Support Requests',
       path: '/admin/TechnicalRequests',
       requests: requestsWithModelNames,
-      isAuthenticated: req.session.isLoggedIn
+      isAuthenticated: req.session.isLoggedIn,
+      isAdmin,
+      currentPage: page,
+      totalPages,
+      totalItems,
+      baseUrl: '/admin/TechnicalRequests'
     });
   } catch (err) {
     console.error('Error loading technical requests:', err);
@@ -1410,7 +2108,7 @@ exports.getTechnicalRequestById = async (req, res) => {
       modelName = model?.Language?.EN?.[0]?.ModelName || 'None';
     }
 
-    res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'sellercompany', 'view-technical-request'), {
+    res.render('sellercompany/view-technical-request', {
       pageTitle: 'Technical Request Details',
       path: '/admin/technical-requests',
       request,
@@ -1435,6 +2133,27 @@ exports.markTechnicalRequestDone = async (req, res) => {
   }
 };
 
+
+exports.postMarkTechnicalSpam = async (req, res, next) => {
+  try {
+    const isAdmin = !!(req.user && (req.user.role === 'admin' || req.user.isAdmin === true));
+    if (!isAdmin) return res.status(403).send('Forbidden');
+    const doc = await TechnicalService.findById(req.params.id);
+    if (!doc) return res.redirect('/admin/TechnicalRequests');
+    doc.isSpam = !doc.isSpam;
+    await doc.save();
+    res.redirect('/admin/TechnicalRequests');
+  } catch (err) { console.error(err); next(err); }
+};
+
+exports.deleteTechnicalRequest = async (req, res, next) => {
+  try {
+    const isAdmin = !!(req.user && (req.user.role === 'admin' || req.user.isAdmin === true));
+    if (!isAdmin) return res.status(403).send('Forbidden');
+    await TechnicalService.findByIdAndDelete(req.params.id);
+    res.redirect('/admin/TechnicalRequests');
+  } catch (err) { console.error(err); next(err); }
+};
 
 exports.exportTechnicalRequestPDF = async (req, res) => {
   try {
@@ -1547,24 +2266,47 @@ exports.exportTechnicalRequestPDF = async (req, res) => {
 
 exports.getAllWarrantyRegistrations = async (req, res) => {
   try {
+    const PAGE_SIZE = 20;
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const totalItems = await WarrantyRegistration.countDocuments();
+    const totalPages = Math.ceil(totalItems / PAGE_SIZE);
+
     const warranties = await WarrantyRegistration.find()
       .populate('deviceCategory')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * PAGE_SIZE)
+      .limit(PAGE_SIZE);
 
-    const withModelNames = await Promise.all(warranties.map(async (reg) => {
-      const product = await Product.findById(reg.deviceCategory);
+    // Batch-fetch all products needed for model names (fixes N+1 query)
+    const productIds = [...new Set(
+      warranties.filter(r => r.deviceCategory).map(r => r.deviceCategory._id.toString())
+    )];
+    const productMap = {};
+    if (productIds.length) {
+      const products = await Product.find({ _id: { $in: productIds } }).select('Models');
+      products.forEach(p => { productMap[p._id.toString()] = p; });
+    }
+
+    const withModelNames = warranties.map(reg => {
+      const product = productMap[reg.deviceCategory?._id?.toString()];
       const model = product?.Models?.id(reg.deviceModel);
       return {
         ...reg.toObject(),
         modelName: model?.Language?.EN?.[0]?.ModelName || 'None'
       };
-    }));
+    });
 
-    res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'sellercompany', 'all-warranty-registrations'), {
+    const isAdmin = !!(req.user && (req.user.role === 'admin' || req.user.isAdmin === true));
+    res.render('sellercompany/all-warranty-registrations', {
       warranties: withModelNames,
       pageTitle: 'Warranty Registrations',
       path: '/admin/warranty-registrations',
-      isAuthenticated: req.session.isLoggedIn
+      isAuthenticated: req.session.isLoggedIn,
+      isAdmin,
+      currentPage: page,
+      totalPages,
+      totalItems,
+      baseUrl: '/admin/warranty-registrations'
     });
   } catch (err) {
     console.error('Error loading warranties:', err);
@@ -1579,7 +2321,7 @@ exports.getWarrantyRegistrationById = async (req, res) => {
     const product = await Product.findById(reg.deviceCategory);
     const model = product?.Models?.id(reg.deviceModel);
 
-    res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'sellercompany', 'view-warranty-registration'), {
+    res.render('sellercompany/view-warranty-registration', {
       registration: reg,
       modelName: model?.Language?.EN?.[0]?.ModelName || 'None',
       isAuthenticated: req.session.isLoggedIn,
@@ -1606,6 +2348,27 @@ exports.markWarrantyAsDone = async (req, res) => {
 };
 
 
+
+exports.postMarkWarrantySpam = async (req, res, next) => {
+  try {
+    const isAdmin = !!(req.user && (req.user.role === 'admin' || req.user.isAdmin === true));
+    if (!isAdmin) return res.status(403).send('Forbidden');
+    const doc = await WarrantyRegistration.findById(req.params.id);
+    if (!doc) return res.redirect('/admin/warranty-registrations');
+    doc.isSpam = !doc.isSpam;
+    await doc.save();
+    res.redirect('/admin/warranty-registrations');
+  } catch (err) { console.error(err); next(err); }
+};
+
+exports.deleteWarrantyRegistration = async (req, res, next) => {
+  try {
+    const isAdmin = !!(req.user && (req.user.role === 'admin' || req.user.isAdmin === true));
+    if (!isAdmin) return res.status(403).send('Forbidden');
+    await WarrantyRegistration.findByIdAndDelete(req.params.id);
+    res.redirect('/admin/warranty-registrations');
+  } catch (err) { console.error(err); next(err); }
+};
 
 exports.exportWarrantyToPDF = async (req, res) => {
   try {
@@ -1669,21 +2432,64 @@ exports.exportWarrantyToPDF = async (req, res) => {
 
 
 // Admin - List All
-exports.getAllContactUs = (req, res, next) => {
-  ContactUs.find()
-    .sort({ dateSubmitted: -1 })
-    .then(messages => {
-      res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'sellercompany', 'contactUs-list'), {
-        pageTitle: 'Contact Messages',
-        path: '/admin/contactUs-list',
-        isAuthenticated: req.session.isLoggedIn,
-        messages
-      });
-    })
-    .catch(err => {
-      console.error(err);
-      next(err);
+exports.getAllContactUs = async (req, res, next) => {
+  try {
+    const PAGE_SIZE = 20;
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const isAdmin = !!(req.user && (req.user.role === 'admin' || req.user.isAdmin === true));
+    const totalItems = await ContactUs.countDocuments();
+    const totalPages = Math.ceil(totalItems / PAGE_SIZE);
+    const messages = await ContactUs.find()
+      .sort({ dateSubmitted: -1 })
+      .skip((page - 1) * PAGE_SIZE)
+      .limit(PAGE_SIZE);
+    res.render('sellercompany/contactUs-list', {
+      pageTitle: 'Contact Messages',
+      path: '/admin/contactUs-list',
+      isAuthenticated: req.session.isLoggedIn,
+      isAdmin,
+      messages,
+      currentPage: page,
+      totalPages,
+      totalItems,
+      baseUrl: '/admin/contact-messages'
     });
+  } catch (err) {
+    console.error(err);
+    next(err);
+  }
+};
+
+// Admin only — toggle spam flag
+exports.postMarkContactUsSpam = async (req, res, next) => {
+  try {
+    const isAdmin = !!(req.user && (req.user.role === 'admin' || req.user.isAdmin === true));
+    if (!isAdmin) return res.status(403).send('Forbidden');
+
+    const message = await ContactUs.findById(req.params.id);
+    if (!message) return res.redirect('/admin/contact-messages');
+
+    message.isSpam = !message.isSpam; // toggle
+    await message.save();
+    res.redirect('/admin/contact-messages');
+  } catch (err) {
+    console.error(err);
+    next(err);
+  }
+};
+
+// Admin only — permanently delete a contact message
+exports.deleteContactUs = async (req, res, next) => {
+  try {
+    const isAdmin = !!(req.user && (req.user.role === 'admin' || req.user.isAdmin === true));
+    if (!isAdmin) return res.status(403).send('Forbidden');
+
+    await ContactUs.findByIdAndDelete(req.params.id);
+    res.redirect('/admin/contact-messages');
+  } catch (err) {
+    console.error(err);
+    next(err);
+  }
 };
 
 // Admin - View Single ContactUs
@@ -1692,7 +2498,7 @@ exports.getContactUsDetail = (req, res, next) => {
   ContactUs.findById(messageId)
     .then(message => {
       if (!message) return res.redirect('/admin/contact-messages');
-      res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'sellercompany', 'contactUs-detail'), {
+      res.render('sellercompany/contactUs-detail', {
         pageTitle: 'Contact Message Detail',
         path: '/admin/contactUs-detail',
         isAuthenticated: req.session.isLoggedIn,
@@ -1725,61 +2531,2286 @@ exports.postMarkContactUsDone = (req, res, next) => {
 exports.exportContactUsToPDF = async (req, res) => {
   try {
     const contact = await ContactUs.findById(req.params.id);
+    if (!contact) return res.redirect('/admin/contact-messages');
 
-    if (!contact) {
-      return res.redirect('/admin/contact-messages');
-    }
+    const PRIMARY  = '#293C95';
+    const GREY     = '#6b7280';
+    const LIGHT_BG = '#EEF1FB';
+    const OR       = (v) => v || '—';
+    const FOOTER_H = 28;
 
-    const doc = new PDFDocument({ margin: 50 });
+    const fontDir = require('path').resolve(__dirname, '../Front-end/assets/fonts');
 
-    res.setHeader('Content-disposition', `attachment; filename=contact-${contact._id}.pdf`);
-    res.setHeader('Content-type', 'application/pdf');
+    const doc = new PDFDocument({ size: 'A4', margin: 50, bufferPages: true });
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="contact-message-${contact._id}.pdf"`);
     doc.pipe(res);
 
-    const getOrNone = (val) => val || 'None';
+    doc.registerFont('Regular', `${fontDir}/Aptos.ttf`);
+    doc.registerFont('Bold',    `${fontDir}/Aptos-Bold.ttf`);
 
-    // Header
-    doc
-      .fontSize(20)
-      .fillColor('#1f4e78')
-      .text('Contact Message', { align: 'center', underline: true })
-      .moveDown(1.5);
+    const pageW = doc.page.width - 100;  // 495pt
+    const colW  = (pageW - 16) / 2;
+    const leftX = 50;
+    const rightX = leftX + colW + 16;
 
-    // Contact Info
-    doc
-      .fontSize(14)
-      .fillColor('black')
-      .text('Customer Info', { underline: true })
-      .moveDown(0.5)
-      .fontSize(12)
-      .font('Helvetica')
-      .text(`First Name: ${getOrNone(contact.firstName)}`)
-      .text(`Last Name: ${getOrNone(contact.lastName)}`)
-      .text(`Email: ${getOrNone(contact.email)}`)
-      .text(`Subject: ${getOrNone(contact.subject)}`)
-      .moveDown();
+    const submitted = new Date(contact.dateSubmitted).toLocaleDateString('en-GB',
+      { day: '2-digit', month: 'long', year: 'numeric' });
 
-    // Message
-    doc
-      .fontSize(14)
-      .text('Message', { underline: true })
-      .moveDown(0.5)
-      .fontSize(12)
-      .text(`${getOrNone(contact.message)}`)
-      .moveDown();
+    /* ── Helpers ── */
+    function sectionTitle(label) {
+      const sy = doc.y;
+      doc.rect(50, sy, pageW, 18).fill(LIGHT_BG);
+      doc.fillColor(PRIMARY).font('Bold').fontSize(9)
+         .text(label.toUpperCase(), 58, sy + 4, { width: pageW - 16 });
+      doc.y = sy + 18 + 8;
+    }
 
-    // Status and Date
-    doc
-      .fontSize(14)
-      .text('Submission Info', { underline: true })
-      .moveDown(0.5)
-      .fontSize(12)
-      .text(`Status: ${contact.isDone ? 'Done' : 'Pending'}`)
-      .text(`Date Submitted: ${contact.dateSubmitted.toLocaleDateString()}`);
+    function field(label, value, x, w) {
+      const fx = x !== undefined ? x : 50;
+      const fw = w !== undefined ? w : pageW;
+      // truncate very long single-line values (e.g. user-agent) so they never overflow onto a new page alone
+      const displayVal = String(value).length > 120 ? String(value).slice(0, 117) + '…' : String(value);
+      doc.fillColor(GREY).font('Bold').fontSize(7.5).text(label, fx, doc.y, { width: fw, lineBreak: false });
+      doc.y += 10;
+      doc.fillColor('#1a1a2e').font('Regular').fontSize(9.5).text(displayVal, fx, doc.y, { width: fw });
+      doc.y += 5;
+    }
+
+    function statusBadge(isDone, x) {
+      const color = isDone ? '#15803d' : '#b45309';
+      const bg    = isDone ? '#dcfce7' : '#fef3c7';
+      const lbl   = isDone ? 'DONE'    : 'PENDING';
+      const bx = x !== undefined ? x : 50;
+      const by = doc.y, bw = 62, bh = 16;
+      doc.roundedRect(bx, by, bw, bh, 3).fill(bg);
+      doc.fillColor(color).font('Bold').fontSize(8)
+         .text(lbl, bx, by + 3, { width: bw, align: 'center' });
+      doc.y = by + bh + 7;
+    }
+
+    /* ── Header ── */
+    doc.rect(0, 0, doc.page.width, 55).fill(PRIMARY);
+    doc.fillColor('#ffffff').font('Bold').fontSize(18).text('DragLab Technologies', 50, 16);
+    doc.fillColor('rgba(255,255,255,0.6)').font('Regular').fontSize(9).text('www.drag-lab.de', 50, 38);
+    doc.fillColor('#ffffff').font('Bold').fontSize(12).text('CONTACT MESSAGE', 50, 20, { align: 'right' });
+    doc.fillColor('rgba(255,255,255,0.6)').font('Regular').fontSize(8)
+       .text(`ID: ${contact._id}`, 50, 38, { align: 'right' });
+
+    /* ── Meta bar ── */
+    doc.y = 65;
+    doc.fillColor(GREY).font('Regular').fontSize(8.5)
+       .text(`Submitted: ${submitted}   |   Status: ${contact.isDone ? 'DONE' : 'PENDING'}`,
+             50, doc.y, { width: pageW, align: 'right' });
+    doc.y += 13;
+    doc.moveTo(50, doc.y).lineTo(50 + pageW, doc.y).strokeColor('#dee2e6').lineWidth(0.8).stroke();
+    doc.y += 10;
+
+    /* ── Section 1: Sender Info (2-col) ── */
+    sectionTitle('Sender Information');
+    const s1Y = doc.y;
+
+    doc.y = s1Y;
+    field('FULL NAME', `${OR(contact.firstName)} ${OR(contact.lastName)}`, leftX, colW);
+    field('EMAIL',     OR(contact.email),   leftX, colW);
+    field('SUBJECT',   OR(contact.subject), leftX, colW);
+    const leftS1End = doc.y;
+
+    doc.y = s1Y;
+    doc.fillColor(GREY).font('Bold').fontSize(7.5).text('STATUS', rightX, doc.y, { width: colW, lineBreak: false });
+    doc.y += 10;
+    statusBadge(contact.isDone, rightX);
+    field('DATE SUBMITTED', submitted, rightX, colW);
+    const rightS1End = doc.y;
+
+    doc.y = Math.max(leftS1End, rightS1End) + 8;
+
+    /* ── Section 2: Message ── */
+    sectionTitle('Message');
+    doc.fillColor('#1a1a2e').font('Regular').fontSize(9.5)
+       .text(OR(contact.message), 50, doc.y, { width: pageW });
+    doc.y += 10;
+
+    /* ── Section 3: Submission Metadata (2-col) ── */
+    sectionTitle('Submission Metadata');
+    const s3Y = doc.y;
+
+    doc.y = s3Y;
+    field('LANGUAGE',       OR(contact.lang),                    leftX, colW);
+    field('COUNTRY',        OR(contact.geoLocation?.country),    leftX, colW);
+    field('REGION / STATE', OR(contact.geoLocation?.region),     leftX, colW);
+    field('CITY',           OR(contact.geoLocation?.city),       leftX, colW);
+    const leftS3End = doc.y;
+
+    doc.y = s3Y;
+    field('ISP / ORG',    OR(contact.geoLocation?.isp), rightX, colW);
+    field('IP ADDRESS',   OR(contact.ipAddress),         rightX, colW);
+    field('REFERRER',     OR(contact.referrer),          rightX, colW);
+    field('BROWSER / OS', OR(contact.userAgent),         rightX, colW);
+    const rightS3End = doc.y;
+
+    doc.y = Math.max(leftS3End, rightS3End) + 4;
+
+    /* ── Stamp header + footer on every buffered page ── */
+    const totalPages = doc.bufferedPageRange().count;
+    for (let i = 0; i < totalPages; i++) {
+      doc.switchToPage(i);
+
+      // Repeat header on page 2+
+      if (i > 0) {
+        doc.rect(0, 0, doc.page.width, 40).fill(PRIMARY);
+        doc.page.margins.top = 0;
+        doc.fillColor('#ffffff').font('Bold').fontSize(12).text('DragLab Technologies', 50, 14);
+        doc.fillColor('rgba(255,255,255,0.6)').font('Regular').fontSize(8)
+           .text('CONTACT MESSAGE — continued', 50, 14, { align: 'right' });
+        doc.page.margins.top = 50;
+      }
+
+      // Disable bottom margin so text at page bottom doesn't trigger a new page
+      doc.page.margins.bottom = 0;
+
+      const fy = doc.page.height - FOOTER_H;
+      doc.moveTo(50, fy).lineTo(50 + pageW, fy).strokeColor('#dee2e6').lineWidth(0.5).stroke();
+      doc.fillColor(GREY).font('Regular').fontSize(7.5)
+         .text('DragLab Technologies  ·  www.drag-lab.de  ·  Generated by DragLab Admin',
+               50, fy + 7, { width: pageW / 2, lineBreak: false });
+      doc.fillColor(GREY).font('Regular').fontSize(7.5)
+         .text(`Page ${i + 1} of ${totalPages}`, 50, fy + 7,
+               { width: pageW, align: 'right', lineBreak: false });
+
+      doc.page.margins.bottom = 50;
+    }
 
     doc.end();
   } catch (err) {
     console.error('PDF export error:', err);
     res.redirect(`/admin/contact-message/${req.params.id}`);
+  }
+};
+
+
+
+exports.getAddIndustry = async (req, res) => {
+  try {
+    const allProducts = await Product.find({}, 'slug Language'); // only fetch necessary fields
+
+    res.render('sellercompany/add-industry', {
+      pageTitle: 'Add Industry Page',
+      path: '/admin/add-industry',
+      editing: false,
+      hasError: false,
+      errorMessage: null,
+      validationErrors: [],
+      industry: null,
+      allProducts, // ✅ send products to EJS
+      isAuthenticated: req.session.isLoggedIn
+    });
+  } catch (err) {
+    console.error('❌ Error loading Add Industry Page:', err);
+    res.status(500).render('500', {
+      pageTitle: 'Error!',
+      path: '/500',
+      isAuthenticated: req.session?.isLoggedIn || false
+    });
+  }
+};
+
+
+
+exports.postAddIndustry = async (req, res) => {
+  try {
+    const { saveType } = req.body;
+    const isDraft = saveType === 'draft';
+    const slideImage = req.files?.slideImage?.[0]?.cloudinaryUrl || '';
+    const introImage = req.files?.introImage?.[0]?.cloudinaryUrl || '';
+
+    const languages = allanguages;
+    const languageData = {};
+    const validationErrors = [];
+
+    const frequentlyUsedProducts = {}; // ✅ FIXED
+
+    for (const lang of languages) {
+      const slideTitle = req.body[`slideTitle_${lang}`] || '';
+      const slideSubTitle = req.body[`slideSubTitle_${lang}`] || '';
+      const slideDesc = req.body[`slideDesc_${lang}`] || '';
+      const introTitle = req.body[`introTitle_${lang}`] || '';
+      const introDesc = req.body[`introDesc_${lang}`] || '';
+      const featureNames = req.body[`FeatureName_${lang}`] || [];
+      const featureDescs = req.body[`FeatureDesc_${lang}`] || [];
+      const oldFeatureImages = req.body[`OldFeatureImage_${lang}`] || [];
+
+      const features = [];
+
+      for (let i = 0; i < 3; i++) {
+        let FeatureImage = '';
+        if (lang === 'EN') {
+          FeatureImage = req.files?.[`FeatureImage_${lang}[${i}]`]?.[0]?.cloudinaryUrl || oldFeatureImages[i] || '';
+        }
+
+        if (!isDraft && lang === 'EN') {
+          if (!featureNames[i]) {
+            validationErrors.push({ path: `FeatureName_${lang}_${i}`, msg: `Feature Name ${i + 1} (${lang}) is required.` });
+          }
+          if (!FeatureImage) {
+            validationErrors.push({ path: `FeatureImage_${lang}_${i}`, msg: `Feature Image ${i + 1} (${lang}) is required.` });
+          }
+        }
+
+        features.push({
+          FeatureName: featureNames[i] || '',
+          FeatureDesc: featureDescs[i] || '',
+          ...(lang === 'EN' ? { FeatureImage } : {})
+        });
+      }
+
+      // ✅ Handle Frequently Used Products per language
+      frequentlyUsedProducts[lang] = [];
+      const productIds = req.body[`frequentlyUsedProductId_${lang}`] || [];
+      const productTexts = req.body[`frequentlyUsedProductText_${lang}`] || [];
+
+      for (let i = 0; i < productIds.length; i++) {
+        if (productIds[i] && productTexts[i]) {
+          frequentlyUsedProducts[lang].push({
+            productId: productIds[i],
+            text: productTexts[i]
+          });
+        }
+      }
+
+      languageData[lang] = [{
+        slideTitle, slideSubTitle, slideDesc, introTitle, introDesc, features
+      }];
+    }
+
+    // ✅ Validate shared images
+    if (!isDraft) {
+      if (!slideImage) {
+        validationErrors.push({ path: 'slideImage', msg: 'Slide Image is required.' });
+      }
+      if (!introImage) {
+        validationErrors.push({ path: 'introImage', msg: 'Intro Image is required.' });
+      }
+    }
+
+    // ✅ Generate slug
+    const slug = slugify(req.body['slideTitle_EN'] || 'untitled-industry', { lower: true, strict: true });
+
+    // ✅ Check for duplicate
+    const existing = await IndustryPage.findOne({ slug });
+    if (existing) {
+      validationErrors.push({ path: 'slideTitle_EN', msg: 'An industry page with this title already exists.' });
+    }
+
+    if (validationErrors.length > 0) {
+      const allProducts = await Product.find({ isDraft: false });
+
+      return res.status(422).render('sellercompany/add-industry', {
+        pageTitle: 'Add Industry Page',
+        path: '/admin/add-industry',
+        editing: false,
+        hasError: true,
+        errorMessage: 'Please fix the errors below.',
+        validationErrors,
+        industry: {
+          slug,
+          sharedImages: { slideImage, introImage },
+          Language: languageData,
+          frequentlyUsedProducts
+        },
+        allProducts,
+        isAuthenticated: req.session.isLoggedIn
+      });
+    }
+
+    // ✅ Save
+    const page = new IndustryPage({
+      slug,
+      sharedImages: { slideImage, introImage },
+      Language: languageData,
+      frequentlyUsedProducts,
+      isDraft
+    });
+
+    await page.save();
+    console.log('✅ Industry Page Saved Successfully');
+    res.redirect('/admin/industry-pages');
+
+  } catch (err) {
+    console.error('❌ Error saving Industry Page:', err);
+    res.status(500).send('Internal Server Error');
+  }
+};
+
+
+
+exports.getEditIndustryPage = async (req, res) => {
+  const slug = req.params.slug;
+
+  try {
+    const industry = await IndustryPage.findOne({ slug });
+    const allProducts = await Product.find({}, 'slug ProductThumbnail Language');
+
+    if (!industry) {
+      return res.status(404).render('404', {
+        pageTitle: 'Not Found',
+        path: '/sellercompany/industry-pages'
+      });
+    }
+
+    res.render('sellercompany/add-industry', {
+      pageTitle: 'Edit Industry Page',
+      path: '/admin/edit-industry',
+      editing: true,
+      hasError: false,
+      errorMessage: null,
+      validationErrors: [],
+      industry,
+      allProducts,
+      isAuthenticated: req.session.isLoggedIn
+    });
+  } catch (err) {
+    console.error('❌ Error loading Industry Page for edit:', err.message);
+    res.status(500).send('Internal Server Error');
+  }
+};
+
+exports.postEditIndustryPage = async (req, res) => {
+  try {
+    const { industryId, slug, saveType } = req.body;
+    const isDraft = saveType === 'draft';
+    const languages = ['EN', 'ES', 'DE', 'TR', 'FR'];
+    const validationErrors = [];
+    const languageData = {};
+
+    const slideImage = req.files?.slideImage?.[0]?.cloudinaryUrl || '';
+    const introImage = req.files?.introImage?.[0]?.cloudinaryUrl || '';
+
+    // ✅ Fetch the existing document
+    const industry = await IndustryPage.findById(industryId);
+    if (!industry) {
+      return res.status(404).send('Industry page not found.');
+    }
+    const allProducts = await Product.find({ isDraft: false }); // ✅ FIX HERE
+
+    // ✅ Build language data
+    const frequentlyUsedProducts = {};
+
+    for (const lang of languages) {
+      const slideTitle = req.body[`slideTitle_${lang}`] || '';
+      const slideSubTitle = req.body[`slideSubTitle_${lang}`] || '';
+      const slideDesc = req.body[`slideDesc_${lang}`] || '';
+      const introTitle = req.body[`introTitle_${lang}`] || '';
+      const introDesc = req.body[`introDesc_${lang}`] || '';
+      const featureNames = req.body[`FeatureName_${lang}`] || [];
+      const featureDescs = req.body[`FeatureDesc_${lang}`] || [];
+      const oldFeatureImages = req.body[`OldFeatureImage_${lang}`] || [];
+
+      const features = [];
+
+      for (let i = 0; i < 3; i++) {
+        let FeatureImage = '';
+        if (lang === 'EN') {
+          const file = req.files?.[`FeatureImage_${lang}[${i}]`]?.[0];
+          FeatureImage = file?.cloudinaryUrl || oldFeatureImages[i] || '';
+        }
+
+        if (!isDraft && lang === 'EN') {
+          if (!featureNames[i]) {
+            validationErrors.push({
+              path: `FeatureName_${lang}_${i}`,
+              msg: `Feature Name ${i + 1} (${lang}) is required.`
+            });
+          }
+          if (!FeatureImage) {
+            validationErrors.push({
+              path: `FeatureImage_${lang}_${i}`,
+              msg: `Feature Image ${i + 1} (${lang}) is required.`
+            });
+          }
+        }
+
+        features.push({
+          FeatureName: featureNames[i] || '',
+          FeatureDesc: featureDescs[i] || '',
+          ...(lang === 'EN' ? { FeatureImage } : {})
+        });
+      }
+      // ✅ Save frequently used products for this language
+      const productIds = req.body[`frequentlyUsedProductId_${lang}`] || [];
+      const productTexts = req.body[`frequentlyUsedProductText_${lang}`] || [];
+      frequentlyUsedProducts[lang] = [];
+
+      for (let i = 0; i < productIds.length; i++) {
+        if (productIds[i] && productTexts[i]) {
+          frequentlyUsedProducts[lang].push({
+            productId: productIds[i],
+            text: productTexts[i]
+          });
+        }
+      }
+
+      languageData[lang] = [{
+        slideTitle,
+        slideSubTitle,
+        slideDesc,
+        introTitle,
+        introDesc,
+        features
+      }];
+    }
+
+    // ✅ Check shared images if required
+    if (!isDraft) {
+      if (!slideImage && !industry.sharedImages?.slideImage) {
+        validationErrors.push({ path: 'slideImage', msg: 'Slide Image is required.' });
+      }
+      if (!introImage && !industry.sharedImages?.introImage) {
+        validationErrors.push({ path: 'introImage', msg: 'Intro Image is required.' });
+      }
+    }
+
+    if (validationErrors.length > 0) {
+      return res.status(422).render('sellercompany/add-industry', {
+        pageTitle: 'Edit Industry Page',
+        path: '/admin/edit-industry',
+        editing: true,
+        hasError: true,
+        errorMessage: 'Please fix the errors below.',
+        validationErrors,
+        industry: {
+          _id: industryId,
+          slug: slug,
+          sharedImages: {
+            slideImage: slideImage || industry.sharedImages.slideImage,
+            introImage: introImage || industry.sharedImages.introImage
+          },
+          Language: languageData,
+          frequentlyUsedProducts
+        },
+        allProducts,
+        isAuthenticated: req.session.isLoggedIn
+      });
+    }
+
+    // ✅ Update and save
+    industry.slug = slugify(req.body['slideTitle_EN'] || 'industry', {
+      lower: true,
+      strict: true
+    });
+
+    industry.sharedImages.slideImage = slideImage || industry.sharedImages.slideImage;
+    industry.sharedImages.introImage = introImage || industry.sharedImages.introImage;
+    industry.Language = languageData;
+    industry.frequentlyUsedProducts = frequentlyUsedProducts;
+    industry.isDraft = isDraft;
+
+    await industry.save();
+
+    console.log('✅ Industry page updated successfully.');
+    res.redirect('/admin/industry-pages');
+
+  } catch (err) {
+    console.error('❌ Error updating Industry Page:', err.message);
+    res.status(500).send('Internal Server Error');
+  }
+};
+
+
+
+exports.getMyIndustriesPage = async (req, res) => {
+  try {
+    const industries = await IndustryPage.find().sort({ createdAt: -1 });
+    res.render('sellercompany/my-industries', {
+      pageTitle: 'My Industries',
+      path: '/admin/industry-pages',
+      industries,
+      isAuthenticated: req.session.isLoggedIn
+    });
+  } catch (err) {
+    console.error('❌ Failed to load industries:', err.message);
+    res.status(500).render('500', {
+      pageTitle: 'Error',
+      path: '/500',
+      isAuthenticated: req.session.isLoggedIn
+    });
+  }
+};
+
+
+
+exports.postDeleteIndustry = async (req, res) => {
+  const industryId = req.body.industryId;
+
+  try {
+    const industry = await IndustryPage.findById(industryId);
+    if (!industry) {
+      return res.status(404).redirect('/admin/industry-pages');
+    }
+
+    // 🧹 Delete images from Cloudinary (if you saved public_ids)
+    const EN = industry.Language?.EN?.[0];
+    if (EN?.slideImageId) await cloudinary.uploader.destroy(EN.slideImageId);
+    if (EN?.heroImageId) await cloudinary.uploader.destroy(EN.heroImageId);
+
+    // Delete from DB
+    await IndustryPage.findByIdAndDelete(industryId);
+
+    res.redirect('/admin/industry-pages');
+  } catch (err) {
+    console.error('❌ Error deleting industry:', err.message);
+    res.status(500).redirect('/admin/industry-pages');
+  }
+};
+
+
+
+exports.getNewsletterList = async (req, res, next) => {
+  try {
+    const PAGE_SIZE = 50;
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const totalItems = await NewsletterSubscriber.countDocuments();
+    const totalPages = Math.ceil(totalItems / PAGE_SIZE);
+    const subscribers = await NewsletterSubscriber.find()
+      .sort({ subscribedAt: -1 })
+      .skip((page - 1) * PAGE_SIZE)
+      .limit(PAGE_SIZE);
+    res.render('sellercompany/newsletter-list', {
+      pageTitle: 'Newsletter Subscribers',
+      path: '/admin/newsletter',
+      subscribers,
+      currentPage: page,
+      totalPages,
+      totalItems,
+      baseUrl: '/admin/newsletter'
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+
+const ExcelJS = require('exceljs');
+const { all } = require('axios');
+
+async function exportSubscribers(res, filter, markExtracted = false) {
+  const subscribers = await NewsletterSubscriber.find(filter);
+  const workbook = new ExcelJS.Workbook();
+  const sheet = workbook.addWorksheet('Subscribers');
+
+  sheet.columns = [
+    { header: 'Email', key: 'email', width: 30 },
+    { header: 'Language', key: 'language', width: 10 },
+    { header: 'Subscribed At', key: 'subscribedAt', width: 25 },
+    { header: 'IP Address', key: 'ipAddress', width: 20 },
+    { header: 'Country', key: 'country', width: 15 },
+    { header: 'City', key: 'city', width: 15 }
+  ];
+
+  subscribers.forEach(sub => {
+    sheet.addRow({
+      email: sub.email,
+      language: sub.language,
+      subscribedAt: sub.subscribedAt.toLocaleString(),
+      ipAddress: sub.ipAddress || '-',
+      country: sub.geoLocation?.country || '-',
+      city: sub.geoLocation?.city || '-'
+    });
+  });
+
+  if (markExtracted) {
+    await NewsletterSubscriber.updateMany(filter, { isExtracted: true });
+  }
+
+  res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  res.setHeader('Content-Disposition', 'attachment; filename=newsletter.xlsx');
+  await workbook.xlsx.write(res);
+  res.end();
+}
+
+exports.exportAllSubscribers = (req, res) => exportSubscribers(res, {});
+exports.exportNewSubscribers = (req, res) => exportSubscribers(res, { isExtracted: false }, true);
+
+
+// ─── User Management (admin only) ────────────────────────────────────────────
+
+const bcrypt = require('bcryptjs');
+
+exports.getUsersList = async (req, res, next) => {
+    try {
+        const PAGE_SIZE = 20;
+        const page = Math.max(1, parseInt(req.query.page) || 1);
+        const totalItems = await user.countDocuments();
+        const totalPages = Math.ceil(totalItems / PAGE_SIZE);
+        const users = await user.find()
+            .select('-password -resetToken -resetTokenExpiration')
+            .skip((page - 1) * PAGE_SIZE)
+            .limit(PAGE_SIZE)
+            .lean();
+        const successMessage = req.flash('success')[0] || null;
+        const errorMessage = req.flash('error')[0] || null;
+        res.render('sellercompany/users-list', {
+            path: '/admin/users',
+            pageTitle: 'User Management',
+            isAuthenticated: true,
+            isAdmin: req.user.role === 'admin',
+            users,
+            currentUserId: req.user._id.toString(),
+            successMessage,
+            errorMessage,
+            currentPage: page,
+            totalPages,
+            totalItems,
+            baseUrl: '/admin/users'
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
+exports.getAddUserForm = (req, res, next) => {
+    const errorMessage = req.flash('error')[0] || null;
+    res.render('sellercompany/add-user', {
+        path: '/admin/users/add',
+        pageTitle: 'Add User',
+        isAuthenticated: true,
+        isAdmin: req.user.role === 'admin',
+        errorMessage,
+        oldInput: { name: '', email: '', phoneNumber: '', role: 'subAdmin' },
+        validationErrors: []
+    });
+};
+
+exports.postAddUser = async (req, res, next) => {
+    const { name, email, phoneNumber, password, confirmPassword, role } = req.body;
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+        const msgs = errors.array().map(e => e.msg).join(', ');
+        return res.status(422).render('sellercompany/add-user', {
+            path: '/admin/users/add',
+            pageTitle: 'Add User',
+            isAuthenticated: true,
+            isAdmin: req.user.role === 'admin',
+            errorMessage: msgs,
+            oldInput: { name, email, phoneNumber, role },
+            validationErrors: errors.array()
+        });
+    }
+
+    if (password !== confirmPassword) {
+        return res.status(422).render('sellercompany/add-user', {
+            path: '/admin/users/add',
+            pageTitle: 'Add User',
+            isAuthenticated: true,
+            isAdmin: req.user.role === 'admin',
+            errorMessage: 'Passwords do not match.',
+            oldInput: { name, email, phoneNumber, role },
+            validationErrors: []
+        });
+    }
+
+    try {
+        const existing = await user.findOne({ email: email.toLowerCase().trim() });
+        if (existing) {
+            return res.status(422).render('sellercompany/add-user', {
+                path: '/admin/users/add',
+                pageTitle: 'Add User',
+                isAuthenticated: true,
+                isAdmin: req.user.role === 'admin',
+                errorMessage: 'A user with this email already exists.',
+                oldInput: { name, email, phoneNumber, role },
+                validationErrors: []
+            });
+        }
+        const hashedPassword = await bcrypt.hash(password, 12);
+        const newUser = new user({
+            name: name.trim(),
+            email: email.toLowerCase().trim(),
+            password: hashedPassword,
+            phoneNumber: phoneNumber.trim(),
+            role: role === 'admin' ? 'admin' : 'subAdmin'
+        });
+        await newUser.save();
+        req.flash('success', `User "${name}" created successfully.`);
+        res.redirect('/admin/users');
+    } catch (err) {
+        next(err);
+    }
+};
+
+exports.getEditUser = async (req, res, next) => {
+    try {
+        const targetUser = await user.findById(req.params.id).select('-password -resetToken -resetTokenExpiration').lean();
+        if (!targetUser) {
+            req.flash('error', 'User not found.');
+            return res.redirect('/admin/users');
+        }
+        const errorMessage = req.flash('error')[0] || null;
+        const successMessage = req.flash('success')[0] || null;
+        res.render('sellercompany/edit-user', {
+            path: '/admin/users',
+            pageTitle: 'Edit User',
+            isAuthenticated: true,
+            isAdmin: req.user.role === 'admin',
+            targetUser,
+            errorMessage,
+            successMessage,
+            validationErrors: []
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
+exports.postEditUser = async (req, res, next) => {
+    const { name, email, phoneNumber, role } = req.body;
+    const userId = req.params.id;
+
+    try {
+        const targetUser = await user.findById(userId);
+        if (!targetUser) {
+            req.flash('error', 'User not found.');
+            return res.redirect('/admin/users');
+        }
+
+        // Check email uniqueness (excluding current user)
+        const emailConflict = await user.findOne({ email: email.toLowerCase().trim(), _id: { $ne: userId } });
+        if (emailConflict) {
+            return res.status(422).render('sellercompany/edit-user', {
+                path: '/admin/users',
+                pageTitle: 'Edit User',
+                isAuthenticated: true,
+                isAdmin: req.user.role === 'admin',
+                targetUser: { ...targetUser.toObject(), name, email, phoneNumber, role },
+                errorMessage: 'A user with this email already exists.',
+                successMessage: null,
+                validationErrors: []
+            });
+        }
+
+        targetUser.name = name.trim();
+        targetUser.email = email.toLowerCase().trim();
+        targetUser.phoneNumber = phoneNumber.trim();
+        targetUser.role = role === 'admin' ? 'admin' : 'subAdmin';
+        await targetUser.save();
+
+        req.flash('success', 'User info updated successfully.');
+        res.redirect('/admin/users/edit/' + userId);
+    } catch (err) {
+        next(err);
+    }
+};
+
+exports.postDeleteUser = async (req, res, next) => {
+    const userId = req.params.id;
+
+    if (userId === req.user._id.toString()) {
+        req.flash('error', 'You cannot delete your own account.');
+        return res.redirect('/admin/users');
+    }
+
+    try {
+        await user.findByIdAndDelete(userId);
+        req.flash('success', 'User deleted successfully.');
+        res.redirect('/admin/users');
+    } catch (err) {
+        next(err);
+    }
+};
+
+exports.postChangeUserPassword = async (req, res, next) => {
+    const { newPassword, confirmNewPassword } = req.body;
+    const userId = req.params.id;
+
+    if (!newPassword || newPassword.length < 8) {
+        req.flash('error', 'Password must be at least 8 characters.');
+        return res.redirect('/admin/users/edit/' + userId);
+    }
+
+    if (newPassword !== confirmNewPassword) {
+        req.flash('error', 'Passwords do not match.');
+        return res.redirect('/admin/users/edit/' + userId);
+    }
+
+    try {
+        const targetUser = await user.findById(userId);
+        if (!targetUser) {
+            req.flash('error', 'User not found.');
+            return res.redirect('/admin/users');
+        }
+        targetUser.password = await bcrypt.hash(newPassword, 12);
+        await targetUser.save();
+        req.flash('success', 'Password changed successfully.');
+        res.redirect('/admin/users/edit/' + userId);
+    } catch (err) {
+        next(err);
+    }
+};
+
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ADMIN: QUOTES
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Builds two lookup maps for a given language:
+ *   modelMap:   { [localizedModelName]   → englishModelName }
+ *   productMap: { [localizedProductName] → englishProductName }
+ * Returns empty maps when lang is 'EN' (no lookup needed).
+ */
+async function buildEnNameMaps(lang) {
+  if (!lang || lang === 'EN') return { modelMap: {}, productMap: {} };
+  const products = await Product.find(
+    { isDraft: false },
+    { [`Language.${lang}`]: 1, 'Language.EN': 1, [`Models.Language.${lang}`]: 1, 'Models.Language.EN': 1 }
+  ).lean();
+
+  const modelMap = {};
+  const productMap = {};
+  products.forEach(p => {
+    const langProdName = p.Language?.[lang]?.[0]?.ProductName;
+    const enProdName   = p.Language?.EN?.[0]?.ProductName;
+    if (langProdName && enProdName && langProdName !== enProdName) {
+      productMap[langProdName] = enProdName;
+    }
+    (p.Models || []).forEach(m => {
+      const langName = m.Language?.[lang]?.[0]?.ModelName;
+      const enName   = m.Language?.EN?.[0]?.ModelName;
+      if (langName && enName && langName !== enName) {
+        modelMap[langName] = enName;
+      }
+    });
+  });
+  return { modelMap, productMap };
+}
+
+exports.getAllQuotes = async (req, res) => {
+  try {
+    const statusFilter = req.query.status || '';
+    const query = statusFilter ? { status: statusFilter } : {};
+    const quotes = await Quote.find(query).sort({ createdAt: -1 }).lean();
+    const isAdmin = !!(req.user && (req.user.role === 'admin' || req.user.isAdmin === true));
+    res.render('sellercompany/all-quotes', {
+      pageTitle: 'Quote Requests',
+      path: '/admin/quotes',
+      quotes,
+      statusFilter,
+      isAdmin,
+      nonce: res.locals.nonce
+    });
+  } catch (err) {
+    console.error('getAllQuotes error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+exports.getQuoteDetail = async (req, res) => {
+  try {
+    const quote = await Quote.findById(req.params.id).lean();
+    if (!quote) return res.status(404).send('Quote not found');
+
+    // Build EN-name lookup maps for non-English quotes
+    const { modelMap, productMap } = await buildEnNameMaps(quote.lang);
+
+    // Parse model lines and attach English names
+    const modelLines = quote.productModel
+      ? quote.productModel.split('\n').map(l => {
+          const parts = l.split(' × ');
+          const name = parts[0] ? parts[0].trim() : l.trim();
+          const qty  = parts[1] ? parts[1].trim() : '1';
+          return { name, qty, enName: modelMap[name] || null };
+        }).filter(r => r.name)
+      : [];
+
+    // Enrich product category names with English equivalents
+    const productCategoryEN = quote.productCategory
+      ? quote.productCategory.split(', ').map(n => productMap[n.trim()] || null).filter(Boolean).join(', ')
+      : null;
+
+    res.render('sellercompany/quote-details', {
+      pageTitle: 'Quote Details',
+      path: '/admin/quotes',
+      quote,
+      modelLines,
+      productCategoryEN: productCategoryEN || null,
+      nonce: res.locals.nonce
+    });
+  } catch (err) {
+    console.error('getQuoteDetail error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+exports.postUpdateQuoteStatus = async (req, res) => {
+  try {
+    const { status } = req.body;
+    await Quote.findByIdAndUpdate(req.params.id, { status });
+    res.redirect('/admin/quotes/' + req.params.id);
+  } catch (err) {
+    console.error('postUpdateQuoteStatus error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+exports.getQuotePdf = async (req, res) => {
+  try {
+    const quote = await Quote.findById(req.params.id).lean();
+    if (!quote) return res.status(404).send('Quote not found');
+
+    const PRIMARY  = '#293C95';
+    const DARK     = '#1a2e4a';
+    const GREY     = '#7f8c8d';
+    const LIGHT_BG = '#F4F6FB';
+
+    const quoteRef = `QR-${quote._id.toString().slice(-6).toUpperCase()}`;
+    const doc = new PDFDocument({ margin: 50, size: 'A4' });
+    const filename = `Quote_${quoteRef}_${quote.companyName.replace(/[^a-z0-9]/gi, '_')}.pdf`;
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    doc.pipe(res);
+
+    /* ── Register Unicode fonts (supports Turkish, German, French, etc.) ── */
+    const fontDir = require('path').resolve(__dirname, '../Front-end/assets/fonts');
+    doc.registerFont('Regular',  `${fontDir}/Aptos.ttf`);
+    doc.registerFont('Bold',     `${fontDir}/Aptos-Bold.ttf`);
+    doc.registerFont('SemiBold', `${fontDir}/Aptos-SemiBold.ttf`);
+
+    const pageW = doc.page.width - 100; // usable width (margins 50 each side)
+    const COL_QTY = 55; // fixed width for the quantity column
+    const COL_NAME = pageW - COL_QTY - 10; // name column width
+
+    /* ── Header ── */
+    doc.rect(0, 0, doc.page.width, 70).fill(PRIMARY);
+    doc.fillColor('#ffffff').font('Bold').fontSize(20)
+       .text('DragLab Technologies', 50, 22);
+    doc.fillColor('rgba(255,255,255,0.75)').font('Regular').fontSize(10)
+       .text('www.drag-lab.de', 50, 46);
+    doc.fillColor('#ffffff').font('Bold').fontSize(13)
+       .text('QUOTE REQUEST', 50, 26, { align: 'right' });
+    doc.fillColor('rgba(255,255,255,0.75)').font('Regular').fontSize(9)
+       .text(`Ref: ${quoteRef}`, 50, 45, { align: 'right' });
+
+    /* ── Meta row ── */
+    doc.y = 90;
+    const submitted = new Date(quote.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
+    doc.fillColor(GREY).font('Regular').fontSize(9)
+       .text(`Submitted: ${submitted}   |   Language: ${quote.lang}   |   Status: ${quote.status.toUpperCase()}`,
+             50, doc.y, { align: 'right', width: pageW });
+    doc.moveDown(0.6);
+    doc.moveTo(50, doc.y).lineTo(50 + pageW, doc.y).strokeColor('#dee2e6').lineWidth(1).stroke();
+    doc.moveDown(1);
+
+    /* ── Section title helper ── */
+    function sectionTitle(label) {
+      doc.moveDown(0.3);
+      const sy = doc.y;
+      doc.rect(50, sy, pageW, 22).fill(LIGHT_BG);
+      doc.fillColor(PRIMARY).font('Bold').fontSize(10)
+         .text(label.toUpperCase(), 58, sy + 6, { width: pageW - 16 });
+      doc.moveDown(0.9);
+    }
+
+    /* ── Customer Information ── */
+    sectionTitle('Customer Information');
+
+    doc.fillColor(GREY).font('Bold').fontSize(8).text('COMPANY');
+    doc.fillColor(DARK).font('Regular').fontSize(10).text(quote.companyName);
+    doc.moveDown(0.3);
+
+    doc.fillColor(GREY).font('Bold').fontSize(8).text('COUNTRY');
+    doc.fillColor(DARK).font('Regular').fontSize(10).text(quote.country || '—');
+    doc.moveDown(0.3);
+
+    if (quote.industry) {
+      doc.fillColor(GREY).font('Bold').fontSize(8).text('INDUSTRY');
+      doc.fillColor(DARK).font('Regular').fontSize(10).text(quote.industry);
+      doc.moveDown(0.3);
+    }
+
+    doc.fillColor(GREY).font('Bold').fontSize(8).text('CONTACT NAME');
+    doc.fillColor(DARK).font('Regular').fontSize(10).text(quote.contactName || '—');
+    doc.moveDown(0.3);
+
+    doc.fillColor(GREY).font('Bold').fontSize(8).text('EMAIL');
+    doc.fillColor(DARK).font('Regular').fontSize(10).text(quote.email);
+    doc.moveDown(0.3);
+
+    if (quote.phone) {
+      doc.fillColor(GREY).font('Bold').fontSize(8).text('PHONE');
+      doc.fillColor(DARK).font('Regular').fontSize(10).text(quote.phone);
+      doc.moveDown(0.3);
+    }
+
+    /* ── Products & Models ── */
+    doc.moveDown(0.8);
+    sectionTitle('Products & Models Requested');
+
+    // Build EN name maps for non-English quotes
+    const { modelMap: pdfModelMap, productMap: pdfProductMap } = await buildEnNameMaps(quote.lang);
+
+    if (quote.productCategory) {
+      doc.fillColor(GREY).font('Bold').fontSize(8).text('SELECTED PRODUCTS');
+      const catEN = quote.productCategory.split(', ')
+        .map(n => pdfProductMap[n.trim()] ? `${n.trim()} (${pdfProductMap[n.trim()]})` : n.trim())
+        .join(', ');
+      doc.fillColor(DARK).font('Regular').fontSize(10).text(catEN, { width: pageW });
+      doc.moveDown(0.6);
+    }
+
+    const modelLines = quote.productModel
+      ? quote.productModel.split('\n').map(l => {
+          const parts = l.split(' × ');
+          const name = (parts[0] || l).trim();
+          return { name, qty: (parts[1] || '1').trim(), enName: pdfModelMap[name] || null };
+        }).filter(r => r.name)
+      : [];
+
+    if (modelLines.length) {
+      /* Table header */
+      const tY = doc.y;
+      doc.rect(50, tY, pageW, 22).fill(PRIMARY);
+      doc.fillColor('#ffffff').font('Bold').fontSize(9)
+         .text('MODEL', 58, tY + 6, { width: COL_NAME });
+      doc.fillColor('#ffffff').font('Bold').fontSize(9)
+         .text('QTY', 50 + COL_NAME + 10, tY + 6, { width: COL_QTY, align: 'center' });
+      doc.y = tY + 22;
+
+      /* Table rows — dynamic height based on text wrap */
+      const ROW_PAD_V = 6; // top+bottom padding inside each row
+      const ROW_FONT_SIZE = 10;
+
+      modelLines.forEach((row, i) => {
+        const displayName = row.enName ? `${row.name}  (${row.enName})` : row.name;
+
+        // Calculate how tall this row needs to be
+        doc.font('Regular').fontSize(ROW_FONT_SIZE);
+        const textH = doc.heightOfString(displayName, { width: COL_NAME - 8 });
+        const rowH  = textH + ROW_PAD_V * 2;
+
+        const rowY = doc.y;
+
+        // Stripe background
+        if (i % 2 === 0) doc.rect(50, rowY, pageW, rowH).fill('#f4f6fb');
+
+        // Model name — allowed to wrap
+        doc.fillColor(DARK).font('Regular').fontSize(ROW_FONT_SIZE)
+           .text(displayName, 58, rowY + ROW_PAD_V, { width: COL_NAME - 8, lineBreak: true });
+
+        // Quantity — vertically centred in the row
+        const qtyY = rowY + (rowH - ROW_FONT_SIZE) / 2 - 1;
+        doc.fillColor(PRIMARY).font('Bold').fontSize(ROW_FONT_SIZE)
+           .text(row.qty, 50 + COL_NAME + 10, qtyY, { width: COL_QTY, align: 'center' });
+
+        // Thin bottom border
+        doc.moveTo(50, rowY + rowH).lineTo(50 + pageW, rowY + rowH)
+           .strokeColor('#e0e4ef').lineWidth(0.5).stroke();
+
+        doc.y = rowY + rowH;
+      });
+      doc.moveDown(0.5);
+    } else {
+      doc.fillColor(GREY).font('Regular').fontSize(10).text('No models selected.');
+    }
+
+    /* ── Request Details ── */
+    doc.moveDown(0.5);
+    sectionTitle('Request Details');
+
+    if (quote.deliveryDeadline) {
+      doc.fillColor(GREY).font('Bold').fontSize(8).text('DELIVERY DEADLINE');
+      doc.fillColor(DARK).font('Regular').fontSize(10)
+         .text(new Date(quote.deliveryDeadline).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }));
+      doc.moveDown(0.4);
+    }
+
+    if (quote.message) {
+      doc.fillColor(GREY).font('Bold').fontSize(8).text('MESSAGE / REQUIREMENTS');
+      doc.moveDown(0.2);
+      const msgY = doc.y;
+      const msgText = quote.message;
+      doc.font('Regular').fontSize(10);
+      const msgH = doc.heightOfString(msgText, { width: pageW - 16 }) + 16;
+      doc.rect(50, msgY, pageW, msgH).fill(LIGHT_BG);
+      doc.fillColor(DARK).font('Regular').fontSize(10)
+         .text(msgText, 58, msgY + 8, { width: pageW - 16 });
+      doc.y = msgY + msgH;
+      doc.moveDown(0.6);
+    }
+
+    if (quote.fileAttachment) {
+      doc.fillColor(GREY).font('Bold').fontSize(8).text('ATTACHED SPECIFICATION FILE');
+      doc.fillColor(PRIMARY).font('Regular').fontSize(9)
+         .text(quote.fileAttachment, { link: quote.fileAttachment, underline: true });
+      doc.moveDown(0.4);
+    }
+
+    /* ── Footer (flows after content — never forces an extra page) ── */
+    doc.moveDown(1.5);
+    doc.moveTo(50, doc.y).lineTo(50 + pageW, doc.y).strokeColor('#dee2e6').lineWidth(0.5).stroke();
+    doc.moveDown(0.4);
+    doc.fillColor(GREY).font('Regular').fontSize(8)
+       .text('DragLab Technologies  ·  www.drag-lab.de  ·  info@drag-lab.de',
+             { align: 'center', width: pageW });
+
+    doc.end();
+  } catch (err) {
+    console.error('getQuotePdf error:', err);
+    res.status(500).send('Could not generate PDF');
+  }
+};
+
+
+// Admin only — toggle spam flag on a quote
+exports.postMarkQuoteSpam = async (req, res) => {
+  try {
+    const isAdmin = !!(req.user && (req.user.role === 'admin' || req.user.isAdmin === true));
+    if (!isAdmin) return res.status(403).send('Forbidden');
+    const quote = await Quote.findById(req.params.id);
+    if (!quote) return res.redirect('/admin/quotes');
+    quote.isSpam = !quote.isSpam;
+    await quote.save();
+    res.redirect('/admin/quotes');
+  } catch (err) {
+    console.error('postMarkQuoteSpam error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+// Admin only — permanently delete a quote
+exports.deleteQuote = async (req, res) => {
+  try {
+    const isAdmin = !!(req.user && (req.user.role === 'admin' || req.user.isAdmin === true));
+    if (!isAdmin) return res.status(403).send('Forbidden');
+    await Quote.findByIdAndDelete(req.params.id);
+    res.redirect('/admin/quotes');
+  } catch (err) {
+    console.error('deleteQuote error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ADMIN: DISTRIBUTOR APPLICATIONS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+exports.getAllDistributorApplications = async (req, res) => {
+  try {
+    const statusFilter = req.query.status || '';
+    const query = statusFilter ? { status: statusFilter } : {};
+    const applications = await DistributorApplication.find(query).sort({ createdAt: -1 }).lean();
+    res.render('sellercompany/all-distributor-applications', {
+      pageTitle: 'Distributor Applications',
+      path: '/admin/distributor-applications',
+      applications,
+      statusFilter,
+      nonce: res.locals.nonce
+    });
+  } catch (err) {
+    console.error('getAllDistributorApplications error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+exports.getDistributorApplicationDetail = async (req, res) => {
+  try {
+    const application = await DistributorApplication.findById(req.params.id).lean();
+    if (!application) return res.status(404).send('Application not found');
+    res.render('sellercompany/distributor-application-details', {
+      pageTitle: 'Distributor Application Details',
+      path: '/admin/distributor-applications',
+      application,
+      nonce: res.locals.nonce
+    });
+  } catch (err) {
+    console.error('getDistributorApplicationDetail error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+exports.postUpdateDistributorStatus = async (req, res) => {
+  try {
+    const { status } = req.body;
+    await DistributorApplication.findByIdAndUpdate(req.params.id, { status });
+    res.redirect('/admin/distributor-applications/' + req.params.id);
+  } catch (err) {
+    console.error('postUpdateDistributorStatus error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+exports.postMarkDistributorSpam = async (req, res) => {
+  try {
+    const app = await DistributorApplication.findById(req.params.id);
+    if (!app) return res.redirect('/admin/distributor-applications');
+    app.isSpam = !app.isSpam;
+    await app.save();
+    res.redirect('/admin/distributor-applications');
+  } catch (err) {
+    console.error('postMarkDistributorSpam error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+exports.deleteDistributorApplication = async (req, res) => {
+  try {
+    await DistributorApplication.findByIdAndDelete(req.params.id);
+    res.redirect('/admin/distributor-applications');
+  } catch (err) {
+    console.error('deleteDistributorApplication error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ADMIN: FAQs
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const FAQ_LANGS = ['en', 'es', 'de', 'tr', 'fr'];
+
+exports.getAllFaqs = async (req, res) => {
+  try {
+    const faqs = await FAQ.find().sort({ category: 1, order: 1 }).lean();
+    res.render('sellercompany/all-faqs', {
+      pageTitle: 'Manage FAQs',
+      path: '/admin/faqs',
+      faqs,
+      nonce: res.locals.nonce
+    });
+  } catch (err) {
+    console.error('getAllFaqs error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+exports.getAddFaq = async (req, res) => {
+  try {
+    const products = await Product.find().lean();
+    res.render('sellercompany/add-faq', {
+      pageTitle: 'Add FAQ',
+      path: '/admin/faqs',
+      editing: false,
+      faq: null,
+      products,
+      nonce: res.locals.nonce
+    });
+  } catch (err) {
+    console.error('getAddFaq error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+exports.postAddFaq = async (req, res) => {
+  try {
+    const { category, order, slug } = req.body;
+    const translations = {};
+    for (const l of FAQ_LANGS) {
+      const question = (req.body[l + '_question'] || '').trim();
+      const answer   = (req.body[l + '_answer']   || '').trim();
+      const status   = req.body[l + '_status'] || 'none';
+      translations[l] = {
+        question,
+        answer,
+        status: status === 'published' && (!question || !answer) ? 'none' : status
+      };
+    }
+    let relatedProducts = req.body.relatedProducts || [];
+    if (!Array.isArray(relatedProducts)) relatedProducts = [relatedProducts];
+    const relatedProductNamesRaw = req.body.relatedProductNames || '';
+    const relatedProductNames = typeof relatedProductNamesRaw === 'string'
+      ? relatedProductNamesRaw.split(',').map(s => s.trim()).filter(Boolean)
+      : [];
+    const baseQuestion = translations.en.question || translations.de.question || '';
+    const faq = new FAQ({
+      translations,
+      category: category || 'General',
+      relatedProducts,
+      relatedProductNames,
+      order: order ? parseInt(order) : 0,
+      slug: slug || baseQuestion.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+    });
+    await faq.save();
+    res.redirect('/admin/faqs');
+  } catch (err) {
+    console.error('postAddFaq error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+exports.getEditFaq = async (req, res) => {
+  try {
+    const [faq, products] = await Promise.all([
+      FAQ.findById(req.params.id).lean(),
+      Product.find().lean()
+    ]);
+    if (!faq) return res.status(404).send('FAQ not found');
+    res.render('sellercompany/add-faq', {
+      pageTitle: 'Edit FAQ',
+      path: '/admin/faqs',
+      editing: true,
+      faq,
+      products,
+      nonce: res.locals.nonce
+    });
+  } catch (err) {
+    console.error('getEditFaq error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+exports.postEditFaq = async (req, res) => {
+  try {
+    const { category, order, slug } = req.body;
+    const translations = {};
+    for (const l of FAQ_LANGS) {
+      const question = (req.body[l + '_question'] || '').trim();
+      const answer   = (req.body[l + '_answer']   || '').trim();
+      const status   = req.body[l + '_status'] || 'none';
+      translations[l] = {
+        question,
+        answer,
+        status: status === 'published' && (!question || !answer) ? 'none' : status
+      };
+    }
+    let relatedProducts = req.body.relatedProducts || [];
+    if (!Array.isArray(relatedProducts)) relatedProducts = [relatedProducts];
+    const relatedProductNamesRaw = req.body.relatedProductNames || '';
+    const relatedProductNames = typeof relatedProductNamesRaw === 'string'
+      ? relatedProductNamesRaw.split(',').map(s => s.trim()).filter(Boolean)
+      : [];
+    const baseQuestion = translations.en.question || translations.de.question || '';
+    await FAQ.findByIdAndUpdate(req.params.id, {
+      translations,
+      category: category || 'General',
+      relatedProducts,
+      relatedProductNames,
+      order: order ? parseInt(order) : 0,
+      slug: slug || baseQuestion.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+    });
+    res.redirect('/admin/faqs');
+  } catch (err) {
+    console.error('postEditFaq error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+exports.postDeleteFaq = async (req, res) => {
+  try {
+    await FAQ.findByIdAndDelete(req.params.id);
+    res.redirect('/admin/faqs');
+  } catch (err) {
+    console.error('postDeleteFaq error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+exports.getDistributorApplicationPdf = async (req, res) => {
+  try {
+    const application = await DistributorApplication.findById(req.params.id).lean();
+    if (!application) return res.status(404).send('Application not found');
+
+    const PAGE_H  = 841.89;
+    const FOOTER_H = 30;           // reserved at bottom of every page for footer
+    const USABLE   = PAGE_H - FOOTER_H - 50; // ~762
+
+    const distRef = `DA-${application._id.toString().slice(-6).toUpperCase()}`;
+    const doc = new PDFDocument({ size: 'A4', margin: 0, autoFirstPage: true });
+    const filename = `Distributor_${distRef}_${application.companyName.replace(/[^a-z0-9]/gi, '-').toLowerCase()}.pdf`;
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    doc.pipe(res);
+
+    const logoPath = path.join(__dirname, '..', 'Front-end', 'assets', 'Imgs', 'logo', 'DragLab-Logo.png');
+    const PRIMARY = '#293C95';
+    const DARK    = '#1a2e4a';
+    const GRAY    = '#7f8c8d';
+    const LIGHT   = '#f0f2f8';
+
+    // ── Draw footer on the current page ──────────────────────────────────────
+    const drawFooter = () => {
+      const fy = PAGE_H - FOOTER_H;
+      doc.moveTo(50, fy).lineTo(545, fy).strokeColor('#d1d8e0').lineWidth(0.5).stroke();
+      doc.fontSize(7.5).font('Helvetica').fillColor(GRAY)
+         .text('DragLab Technologies · www.drag-lab.de · info@drag-lab.de', 50, fy + 6, { align: 'center', width: 495 });
+      doc.y = 50; // reset cursor to top so PDFKit stays calm
+    };
+
+    // ── Header (first page only) ──────────────────────────────────────────────
+    try { doc.image(logoPath, 50, 40, { height: 38 }); } catch (_) {}
+    doc.fontSize(18).font('Helvetica-Bold').fillColor(PRIMARY).text('Distributor Application', 50, 92);
+    doc.fontSize(8.5).font('Helvetica').fillColor(GRAY)
+       .text(`Ref: ${distRef}   ·   Generated: ${new Date().toLocaleString()}`, 50, 115);
+    doc.moveTo(50, 128).lineTo(545, 128).strokeColor('#d1d8e0').lineWidth(1).stroke();
+
+    // ── Status badge ──────────────────────────────────────────────────────────
+    const statusMap = {
+      new:          { bg: '#cfe2ff', fg: '#084298' },
+      under_review: { bg: '#fff3cd', fg: '#664d03' },
+      accepted:     { bg: '#d1e7dd', fg: '#0f5132' },
+      rejected:     { bg: '#f8d7da', fg: '#842029' }
+    };
+    const badge = statusMap[application.status] || statusMap.new;
+    doc.roundedRect(50, 138, 130, 20, 4).fill(badge.bg);
+    doc.fontSize(8.5).font('Helvetica-Bold').fillColor(badge.fg)
+       .text(application.status.replace('_', ' ').toUpperCase(), 50, 144, { width: 130, align: 'center' });
+
+    let y = 172;
+
+    // ── Page break guard ──────────────────────────────────────────────────────
+    const checkY = (needed) => {
+      if (y + needed > USABLE) {
+        drawFooter();
+        doc.addPage();
+        y = 50;
+      }
+    };
+
+    // ── Section helper ────────────────────────────────────────────────────────
+    const drawSection = (title, rows) => {
+      const totalH = 22 + rows.length * 38 + 14;
+      checkY(totalH);
+      doc.rect(50, y, 495, 22).fill(PRIMARY);
+      doc.fontSize(9.5).font('Helvetica-Bold').fillColor('#fff').text(title, 60, y + 6);
+      y += 28;
+      rows.forEach((cols, ri) => {
+        const rowH = 38;
+        checkY(rowH);
+        if (ri % 2 === 0) doc.rect(50, y, 495, rowH).fill(LIGHT);
+        const colW = Math.floor(495 / cols.length);
+        cols.forEach((field, ci) => {
+          const x = 50 + ci * colW;
+          doc.fontSize(7).font('Helvetica-Bold').fillColor(GRAY)
+             .text((field.label || '').toUpperCase(), x + 8, y + 6, { width: colW - 16 });
+          doc.fontSize(9).font('Helvetica').fillColor(DARK)
+             .text(field.value || '—', x + 8, y + 17, { width: colW - 16, ellipsis: true });
+        });
+        y += rowH;
+      });
+      y += 14;
+    };
+
+    // ── Text block helper ─────────────────────────────────────────────────────
+    const drawTextBlock = (title, text) => {
+      // Normalize line endings — strip \r so PDFKit doesn't render Ð characters
+      const cleanText = (text || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim();
+      // Measure height with the same font/size that will be used to render
+      doc.fontSize(9).font('Helvetica');
+      const textH  = doc.heightOfString(cleanText, { width: 463 });
+      const blockH = Math.max(44, textH + 20);
+      checkY(22 + blockH + 14);
+      doc.rect(50, y, 495, 22).fill(PRIMARY);
+      doc.fontSize(9.5).font('Helvetica-Bold').fillColor('#fff').text(title, 60, y + 6);
+      y += 28;
+      doc.rect(50, y, 495, blockH).fill(LIGHT);
+      doc.fontSize(9).font('Helvetica').fillColor(DARK).text(cleanText, 58, y + 10, { width: 463 });
+      y += blockH + 14;
+    };
+
+    // ── Company Information ───────────────────────────────────────────────────
+    drawSection('Company Information', [
+      [
+        { label: 'Company Name', value: application.companyName },
+        { label: 'Country',      value: application.country },
+        { label: 'Website',      value: application.website || '—' }
+      ]
+    ]);
+
+    if (application.companyOverview) drawTextBlock('Company Overview', application.companyOverview);
+
+    // ── Business & Distribution Capability ───────────────────────────────────
+    drawSection('Business & Distribution Capability', [
+      [
+        { label: 'Company Established', value: application.companyEstablished || '—' },
+        { label: 'Annual Sales Volume', value: application.annualSalesVolume || '—' },
+        { label: 'Current Brands',      value: application.currentBrands || '—' }
+      ]
+    ]);
+
+    if (application.industryFocus && application.industryFocus.length) {
+      drawTextBlock('Industry Focus', [].concat(application.industryFocus).join(', '));
+    }
+
+    if (application.salesChannels && application.salesChannels.length) {
+      const scText = [].concat(application.salesChannels).join(', ') +
+        (application.salesChannelsOther ? ` — Other: ${application.salesChannelsOther}` : '');
+      drawTextBlock('Sales Channels', scText);
+    }
+
+    // ── Market & Territory ────────────────────────────────────────────────────
+    drawSection('Market & Territory', [
+      [
+        { label: 'Distribution Territory', value: application.distributionTerritory || '—' },
+        { label: 'Target Market',          value: application.targetMarket || '—' },
+        { label: '',                       value: '' }
+      ]
+    ]);
+
+    // ── Contact Information ───────────────────────────────────────────────────
+    drawSection('Contact Information', [
+      [
+        { label: 'Contact Name', value: application.contactName },
+        { label: 'Email',        value: application.email },
+        { label: 'Phone',        value: application.phone || '—' }
+      ],
+      [
+        { label: 'Language',  value: application.lang },
+        { label: 'Submitted', value: new Date(application.createdAt).toLocaleString() },
+        { label: '',          value: '' }
+      ]
+    ]);
+
+    // ── Supporting Documents ──────────────────────────────────────────────────
+    if (application.companyProfileUrl) {
+      checkY(22 + 44 + 14);
+      doc.rect(50, y, 495, 22).fill(PRIMARY);
+      doc.fontSize(9.5).font('Helvetica-Bold').fillColor('#fff').text('Supporting Documents', 60, y + 6);
+      y += 28;
+      doc.rect(50, y, 495, 44).fill(LIGHT);
+      doc.fontSize(7).font('Helvetica-Bold').fillColor(GRAY).text('COMPANY PROFILE / BROCHURE', 58, y + 7);
+      doc.fontSize(9).font('Helvetica').fillColor(PRIMARY)
+         .text(application.companyProfileUrl, 58, y + 20, {
+           width: 479,
+           link: application.companyProfileUrl,
+           underline: true,
+           ellipsis: true
+         });
+      y += 58;
+    }
+
+    // Draw footer on the last page then end
+    drawFooter();
+    doc.end();
+  } catch (err) {
+    console.error('getDistributorApplicationPdf error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ADMIN: CASE STUDIES
+// ═══════════════════════════════════════════════════════════════════════════════
+
+exports.getAllCaseStudies = async (req, res) => {
+  try {
+    const caseStudies = await CaseStudy.find().sort({ createdAt: -1 }).lean();
+    res.render('sellercompany/all-case-studies', {
+      pageTitle: 'Manage Case Studies',
+      path: '/admin/case-studies',
+      caseStudies,
+      nonce: res.locals.nonce
+    });
+  } catch (err) {
+    console.error('getAllCaseStudies error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+exports.getAddCaseStudy = (req, res) => {
+  res.render('sellercompany/add-case-study', {
+    pageTitle: 'Add Case Study',
+    path: '/admin/case-studies',
+    editing: false,
+    caseStudy: null,
+    nonce: res.locals.nonce
+  });
+};
+
+exports.postAddCaseStudy = async (req, res) => {
+  try {
+    const { slug, clientType, clientLocation, clientSize, industry, problem, solution, results, status } = req.body;
+    const langs = ['en', 'es', 'de', 'tr', 'fr'];
+    const translations = {};
+    langs.forEach(l => {
+      translations[l] = {
+        title: req.body[`title_${l}`] || '',
+        slug: req.body[`slug_${l}`] || '',
+        clientProfile: req.body[`clientProfile_${l}`] || '',
+        problem: req.body[`problem_${l}`] || '',
+        solution: req.body[`solution_${l}`] || '',
+        results: req.body[`results_${l}`] || '',
+        summary: req.body[`summary_${l}`] || '',
+        status: req.body[`status_${l}`] || 'draft'
+      };
+    });
+    const cs = new CaseStudy({
+      title: translations.en.title || req.body.title_en,
+      slug: slug || (translations.en.title || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
+      clientType, clientLocation, clientSize, industry, problem, solution, results,
+      status: status || 'draft',
+      translations
+    });
+    await cs.save();
+    res.redirect('/admin/case-studies');
+  } catch (err) {
+    console.error('postAddCaseStudy error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+exports.getEditCaseStudy = async (req, res) => {
+  try {
+    const caseStudy = await CaseStudy.findById(req.params.id).lean();
+    if (!caseStudy) return res.status(404).send('Case study not found');
+    res.render('sellercompany/add-case-study', {
+      pageTitle: 'Edit Case Study',
+      path: '/admin/case-studies',
+      editing: true,
+      caseStudy,
+      nonce: res.locals.nonce
+    });
+  } catch (err) {
+    console.error('getEditCaseStudy error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+exports.postEditCaseStudy = async (req, res) => {
+  try {
+    const { slug, clientType, clientLocation, clientSize, industry, problem, solution, results, status } = req.body;
+    const langs = ['en', 'es', 'de', 'tr', 'fr'];
+    const translations = {};
+    langs.forEach(l => {
+      translations[l] = {
+        title: req.body[`title_${l}`] || '',
+        slug: req.body[`slug_${l}`] || '',
+        clientProfile: req.body[`clientProfile_${l}`] || '',
+        problem: req.body[`problem_${l}`] || '',
+        solution: req.body[`solution_${l}`] || '',
+        results: req.body[`results_${l}`] || '',
+        summary: req.body[`summary_${l}`] || '',
+        status: req.body[`status_${l}`] || 'draft'
+      };
+    });
+    await CaseStudy.findByIdAndUpdate(req.params.id, {
+      title: translations.en.title,
+      slug: slug || (translations.en.title || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
+      clientType, clientLocation, clientSize, industry, problem, solution, results,
+      status: status || 'draft',
+      translations
+    });
+    res.redirect('/admin/case-studies');
+  } catch (err) {
+    console.error('postEditCaseStudy error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+exports.postDeleteCaseStudy = async (req, res) => {
+  try {
+    await CaseStudy.findByIdAndDelete(req.params.id);
+    res.redirect('/admin/case-studies');
+  } catch (err) {
+    console.error('postDeleteCaseStudy error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ADMIN: GLOSSARY
+// ═══════════════════════════════════════════════════════════════════════════════
+
+exports.getAllGlossary = async (req, res) => {
+  try {
+    const [terms, categories] = await Promise.all([
+      Glossary.find().sort({ letter: 1, term: 1 }).lean(),
+      GlossaryCategory.find().sort({ name: 1 }).lean()
+    ]);
+    res.render('sellercompany/all-glossary', {
+      pageTitle: 'Manage Glossary',
+      path: '/admin/glossary',
+      terms, categories,
+      nonce: res.locals.nonce
+    });
+  } catch (err) {
+    console.error('getAllGlossary error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+exports.getAddGlossary = async (req, res) => {
+  try {
+    const categories = await GlossaryCategory.find().sort({ name: 1 }).lean();
+    res.render('sellercompany/add-glossary', {
+      pageTitle: 'Add Glossary Term',
+      path: '/admin/glossary',
+      editing: false,
+      term: null,
+      categories,
+      nonce: res.locals.nonce
+    });
+  } catch (err) {
+    console.error('getAddGlossary error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+exports.postAddGlossary = async (req, res) => {
+  try {
+    const { term, definition, description, status, relatedProducts, category } = req.body;
+    const slug = req.body.slug || term.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    const letter = term.charAt(0).toUpperCase();
+    const translations = { en: { term, definition, description: description || '', status: status || 'draft' } };
+    ['es', 'de', 'tr', 'fr'].forEach(l => {
+      translations[l] = {
+        term:        req.body[`term_${l}`]        || '',
+        definition:  req.body[`definition_${l}`]  || '',
+        description: req.body[`description_${l}`] || '',
+        status:      req.body[`status_${l}`]      || 'draft'
+      };
+    });
+    const entry = new Glossary({
+      term, slug, definition, description, letter,
+      category: category || '',
+      status: status || 'draft',
+      relatedProducts: relatedProducts ? relatedProducts.split(',').map(s => s.trim()).filter(Boolean) : [],
+      translations
+    });
+    await entry.save();
+    res.redirect('/admin/glossary');
+  } catch (err) {
+    console.error('postAddGlossary error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+exports.getEditGlossary = async (req, res) => {
+  try {
+    const [term, categories] = await Promise.all([
+      Glossary.findById(req.params.id).lean(),
+      GlossaryCategory.find().sort({ name: 1 }).lean()
+    ]);
+    if (!term) return res.status(404).send('Term not found');
+    res.render('sellercompany/add-glossary', {
+      pageTitle: 'Edit Glossary Term',
+      path: '/admin/glossary',
+      editing: true,
+      term, categories,
+      nonce: res.locals.nonce
+    });
+  } catch (err) {
+    console.error('getEditGlossary error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+exports.postEditGlossary = async (req, res) => {
+  try {
+    const { term, definition, description, status, relatedProducts, category } = req.body;
+    const slug = req.body.slug || term.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    const letter = term.charAt(0).toUpperCase();
+    const translations = { en: { term, definition, description: description || '', status: status || 'draft' } };
+    ['es', 'de', 'tr', 'fr'].forEach(l => {
+      translations[l] = {
+        term:        req.body[`term_${l}`]        || '',
+        definition:  req.body[`definition_${l}`]  || '',
+        description: req.body[`description_${l}`] || '',
+        status:      req.body[`status_${l}`]      || 'draft'
+      };
+    });
+    await Glossary.findByIdAndUpdate(req.params.id, {
+      term, slug, definition, description, letter,
+      category: category || '',
+      status: status || 'draft',
+      relatedProducts: relatedProducts ? relatedProducts.split(',').map(s => s.trim()).filter(Boolean) : [],
+      translations
+    });
+    res.redirect('/admin/glossary');
+  } catch (err) {
+    console.error('postEditGlossary error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+exports.postDeleteGlossary = async (req, res) => {
+  try {
+    await Glossary.findByIdAndDelete(req.params.id);
+    res.redirect('/admin/glossary');
+  } catch (err) {
+    console.error('postDeleteGlossary error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+// ── Glossary Categories ───────────────────────────────────────────────────────
+
+exports.getGlossaryCategories = async (req, res) => {
+  try {
+    const categories = await GlossaryCategory.find().sort({ name: 1 }).lean();
+    res.render('sellercompany/glossary-categories', {
+      pageTitle: 'Manage Glossary Categories',
+      path: '/admin/glossary',
+      categories,
+      nonce: res.locals.nonce
+    });
+  } catch (err) {
+    console.error('getGlossaryCategories error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+exports.postAddGlossaryCategory = async (req, res) => {
+  try {
+    const name = (req.body.name || '').trim();
+    if (!name) return res.redirect('/admin/glossary/categories');
+    const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    const exists = await GlossaryCategory.findOne({ slug });
+    if (!exists) {
+      await new GlossaryCategory({ name, slug }).save();
+    }
+    res.redirect('/admin/glossary/categories');
+  } catch (err) {
+    console.error('postAddGlossaryCategory error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+exports.postDeleteGlossaryCategory = async (req, res) => {
+  try {
+    await GlossaryCategory.findByIdAndDelete(req.params.id);
+    res.redirect('/admin/glossary/categories');
+  } catch (err) {
+    console.error('postDeleteGlossaryCategory error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ADMIN: TESTIMONIALS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+exports.getAllTestimonials = async (req, res) => {
+  try {
+    const testimonials = await Testimonial.find().sort({ createdAt: -1 }).lean();
+    res.render('sellercompany/all-testimonials', {
+      pageTitle: 'Manage Testimonials',
+      path: '/admin/testimonials',
+      testimonials,
+      nonce: res.locals.nonce
+    });
+  } catch (err) {
+    console.error('getAllTestimonials error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+exports.getAddTestimonial = async (req, res) => {
+  try {
+    const products = await Product.find({ isDraft: false })
+      .select('Language.EN Language.DE Models._id Models.Language.EN Models.Language.DE slug')
+      .lean();
+    res.render('sellercompany/add-testimonial', {
+      pageTitle: 'Add Testimonial',
+      path: '/admin/testimonials',
+      editing: false,
+      testimonial: null,
+      products,
+      nonce: res.locals.nonce
+    });
+  } catch (err) {
+    console.error('getAddTestimonial error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+const TESTIMONIAL_LANGS = ['en', 'es', 'de', 'tr', 'fr'];
+
+exports.postAddTestimonial = async (req, res) => {
+  try {
+    const { name, company, country, industry, productId, productName, rating, featured, caseStudy } = req.body;
+
+    let modelIds = req.body.modelIds || [];
+    if (!Array.isArray(modelIds)) modelIds = modelIds ? [modelIds] : [];
+    const modelNamesRaw = req.body.modelNames || '';
+    const modelNames = typeof modelNamesRaw === 'string'
+      ? modelNamesRaw.split(',').map(s => s.trim()).filter(Boolean)
+      : [];
+
+    // Build multilingual translations
+    const translations = {};
+    for (const l of TESTIMONIAL_LANGS) {
+      const quote  = (req.body[`${l}_quote`]  || '').trim();
+      const status = req.body[`${l}_status`] || 'none';
+      translations[l] = { quote, status: status === 'published' && !quote ? 'none' : status };
+    }
+
+    let image = '';
+    let logo  = '';
+
+    const imageFile = req.files?.testimonialImage?.[0];
+    if (imageFile) {
+      image = await new Promise((resolve, reject) => {
+        cloudinary.uploader.upload_stream(
+          { resource_type: 'image', folder: 'draglab/testimonials', format: 'webp' },
+          (err, r) => err ? reject(err) : resolve(r.secure_url)
+        ).end(imageFile.buffer);
+      }).catch(err => { console.error('Testimonial image upload error:', err.message); return ''; });
+    }
+
+    const logoFile = req.files?.testimonialLogo?.[0];
+    if (logoFile) {
+      logo = await new Promise((resolve, reject) => {
+        cloudinary.uploader.upload_stream(
+          { resource_type: 'image', folder: 'draglab/testimonials', format: 'webp' },
+          (err, r) => err ? reject(err) : resolve(r.secure_url)
+        ).end(logoFile.buffer);
+      }).catch(err => { console.error('Testimonial logo upload error:', err.message); return ''; });
+    }
+
+    await new Testimonial({
+      name:        (name        || '').trim(),
+      company:     (company     || '').trim(),
+      country:     (country     || '').trim(),
+      industry:    (industry    || '').trim(),
+      productId:   productId    || null,
+      productName: (productName || '').trim(),
+      modelIds,
+      modelNames,
+      rating:       parseInt(rating) || 5,
+      translations,
+      image,
+      logo,
+      featured:  featured  === 'on',
+      caseStudy: caseStudy === 'on'
+    }).save();
+
+    res.redirect('/admin/testimonials');
+  } catch (err) {
+    console.error('postAddTestimonial error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+exports.getEditTestimonial = async (req, res) => {
+  try {
+    const testimonial = await Testimonial.findById(req.params.id).lean();
+    if (!testimonial) return res.status(404).send('Testimonial not found');
+    const products = await Product.find({ isDraft: false })
+      .select('Language.EN Language.DE Models._id Models.Language.EN Models.Language.DE slug')
+      .lean();
+    res.render('sellercompany/add-testimonial', {
+      pageTitle: 'Edit Testimonial',
+      path: '/admin/testimonials',
+      editing: true,
+      testimonial,
+      products,
+      nonce: res.locals.nonce
+    });
+  } catch (err) {
+    console.error('getEditTestimonial error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+exports.postEditTestimonial = async (req, res) => {
+  try {
+    const { name, company, country, industry, productId, productName, rating, featured, caseStudy } = req.body;
+
+    let modelIds = req.body.modelIds || [];
+    if (!Array.isArray(modelIds)) modelIds = modelIds ? [modelIds] : [];
+    const modelNamesRaw = req.body.modelNames || '';
+    const modelNames = typeof modelNamesRaw === 'string'
+      ? modelNamesRaw.split(',').map(s => s.trim()).filter(Boolean)
+      : [];
+
+    const translations = {};
+    for (const l of TESTIMONIAL_LANGS) {
+      const quote  = (req.body[`${l}_quote`]  || '').trim();
+      const status = req.body[`${l}_status`] || 'none';
+      translations[l] = { quote, status: status === 'published' && !quote ? 'none' : status };
+    }
+
+    const testimonial = await Testimonial.findById(req.params.id);
+    if (!testimonial) return res.status(404).send('Not found');
+
+    const imageFile = req.files?.testimonialImage?.[0];
+    if (imageFile) {
+      testimonial.image = await new Promise((resolve, reject) => {
+        cloudinary.uploader.upload_stream(
+          { resource_type: 'image', folder: 'draglab/testimonials', format: 'webp' },
+          (err, r) => err ? reject(err) : resolve(r.secure_url)
+        ).end(imageFile.buffer);
+      }).catch(err => { console.error('Image upload error:', err.message); return testimonial.image; });
+    }
+
+    const logoFile = req.files?.testimonialLogo?.[0];
+    if (logoFile) {
+      testimonial.logo = await new Promise((resolve, reject) => {
+        cloudinary.uploader.upload_stream(
+          { resource_type: 'image', folder: 'draglab/testimonials', format: 'webp' },
+          (err, r) => err ? reject(err) : resolve(r.secure_url)
+        ).end(logoFile.buffer);
+      }).catch(err => { console.error('Logo upload error:', err.message); return testimonial.logo; });
+    }
+
+    testimonial.name        = (name        || '').trim();
+    testimonial.company     = (company     || '').trim();
+    testimonial.country     = (country     || '').trim();
+    testimonial.industry    = (industry    || '').trim();
+    testimonial.productId   = productId    || null;
+    testimonial.productName = (productName || '').trim();
+    testimonial.modelIds    = modelIds;
+    testimonial.modelNames  = modelNames;
+    testimonial.rating      = parseInt(rating) || 5;
+    testimonial.translations = translations;
+    testimonial.featured    = featured  === 'on';
+    testimonial.caseStudy   = caseStudy === 'on';
+
+    await testimonial.save();
+    res.redirect('/admin/testimonials');
+  } catch (err) {
+    console.error('postEditTestimonial error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+exports.postDeleteTestimonial = async (req, res) => {
+  try {
+    await Testimonial.findByIdAndDelete(req.params.id);
+    res.redirect('/admin/testimonials');
+  } catch (err) {
+    console.error('postDeleteTestimonial error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+// ── Accessories ───────────────────────────────────────────────────────────────
+
+const Accessory = require('../models/accessory');
+const mongoose  = require('mongoose');
+
+exports.getAllAccessories = async (req, res, next) => {
+  try {
+    const PAGE_SIZE  = 20;
+    const page       = Math.max(1, parseInt(req.query.page) || 1);
+    const totalItems = await Accessory.countDocuments();
+    const totalPages = Math.ceil(totalItems / PAGE_SIZE);
+    const accessories = await Accessory.find()
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * PAGE_SIZE)
+      .limit(PAGE_SIZE)
+      .lean();
+
+    res.render('sellercompany/all-accessories', {
+      path: '/admin/accessories',
+      pageTitle: 'Accessories',
+      accessories,
+      isAuthenticated: req.session.isLoggedIn,
+      currentPage: page,
+      totalPages,
+      totalItems,
+      baseUrl: '/admin/accessories'
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.getAddAccessory = async (req, res, next) => {
+  try {
+    const rawProducts = await Product.find({ isDraft: false })
+      .select('_id slug Language.EN')
+      .lean();
+
+    const productList = rawProducts.map(p => ({
+      _id:  p._id,
+      slug: p.slug || '',
+      name: p.Language?.EN?.[0]?.ProductName || p.slug || 'Unnamed Product'
+    }));
+
+    res.render('sellercompany/add-accessory', {
+      path:            '/admin/accessories',
+      pageTitle:       'Add Accessory',
+      editing:         false,
+      accessory:       null,
+      productList,
+      isAuthenticated: req.session.isLoggedIn
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.postAddAccessory = async (req, res) => {
+  try {
+    const { name, articleNumber, applicableProductsJson } = req.body;
+
+    // Upload image to Cloudinary
+    const file = req.files?.accessoryImage?.[0];
+    let image  = '';
+    if (file) {
+      image = await new Promise((resolve, reject) => {
+        cloudinary.uploader.upload_stream(
+          { resource_type: 'image', folder: 'draglab/accessories', format: 'webp', quality: 'auto' },
+          (error, r) => error ? reject(error) : resolve(r.secure_url)
+        ).end(file.buffer);
+      });
+    }
+
+    const LANGS = ['en', 'es', 'de', 'tr', 'fr'];
+    const validStatuses = ['none', 'draft', 'published'];
+
+    const description = {};
+    const langStatus  = {};
+    LANGS.forEach(l => {
+      description[l] = req.body[`description_${l}`] || '';
+      const st = req.body[`${l}_status`];
+      langStatus[l] = validStatuses.includes(st) ? st : 'none';
+    });
+
+    // Derive global status: published if any language is published
+    const status = LANGS.some(l => langStatus[l] === 'published') ? 'published' : 'draft';
+
+    let applicableProducts = [];
+    try { applicableProducts = JSON.parse(applicableProductsJson || '[]'); } catch (e) {}
+
+    const baseSlug = slugify(name || 'accessory', { lower: true, strict: true });
+    let slug = baseSlug;
+    let counter = 1;
+    while (await Accessory.findOne({ slug }).lean()) {
+      slug = baseSlug + '-' + counter++;
+    }
+
+    await new Accessory({
+      name:               (name || '').trim(),
+      slug,
+      articleNumber:      (articleNumber || '').trim(),
+      image,
+      description,
+      langStatus,
+      applicableProducts,
+      status
+    }).save();
+
+    res.redirect('/admin/accessories');
+  } catch (err) {
+    console.error('postAddAccessory error:', err);
+    res.status(500).send('Error adding accessory');
+  }
+};
+
+exports.getEditAccessory = async (req, res, next) => {
+  try {
+    const accessory = await Accessory.findById(req.params.id).lean();
+    if (!accessory) return res.redirect('/admin/accessories');
+
+    const rawProducts = await Product.find({ isDraft: false })
+      .select('_id slug Language.EN')
+      .lean();
+
+    const productList = rawProducts.map(p => ({
+      _id:  p._id,
+      slug: p.slug || '',
+      name: p.Language?.EN?.[0]?.ProductName || p.slug || 'Unnamed Product'
+    }));
+
+    res.render('sellercompany/add-accessory', {
+      path:            '/admin/accessories',
+      pageTitle:       'Edit Accessory',
+      editing:         true,
+      accessory,
+      productList,
+      isAuthenticated: req.session.isLoggedIn
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.postEditAccessory = async (req, res) => {
+  try {
+    const accessory = await Accessory.findById(req.params.id);
+    if (!accessory) return res.redirect('/admin/accessories');
+
+    const { name, articleNumber, applicableProductsJson } = req.body;
+
+    // Replace image if new file uploaded
+    const file = req.files?.accessoryImage?.[0];
+    if (file) {
+      if (accessory.image) {
+        const match = accessory.image.match(/draglab\/accessories\/(.+?)(?:\.\w+)?$/);
+        if (match) {
+          try { await cloudinary.uploader.destroy('draglab/accessories/' + match[1]); } catch (e) {}
+        }
+      }
+      accessory.image = await new Promise((resolve, reject) => {
+        cloudinary.uploader.upload_stream(
+          { resource_type: 'image', folder: 'draglab/accessories', format: 'webp', quality: 'auto' },
+          (error, r) => error ? reject(error) : resolve(r.secure_url)
+        ).end(file.buffer);
+      });
+    }
+
+    const LANGS = ['en', 'es', 'de', 'tr', 'fr'];
+    const validStatuses = ['none', 'draft', 'published'];
+
+    const description = {};
+    const langStatus  = {};
+    LANGS.forEach(l => {
+      description[l] = req.body[`description_${l}`] || '';
+      const st = req.body[`${l}_status`];
+      langStatus[l] = validStatuses.includes(st) ? st : 'none';
+    });
+
+    accessory.name          = (name || '').trim();
+    accessory.articleNumber = (articleNumber || '').trim();
+    accessory.description   = description;
+    accessory.langStatus    = langStatus;
+    accessory.status        = LANGS.some(l => langStatus[l] === 'published') ? 'published' : 'draft';
+
+    try { accessory.applicableProducts = JSON.parse(applicableProductsJson || '[]'); } catch (e) {}
+
+    await accessory.save();
+    res.redirect('/admin/accessories');
+  } catch (err) {
+    console.error('postEditAccessory error:', err);
+    res.status(500).send('Error updating accessory');
+  }
+};
+
+exports.postDeleteAccessory = async (req, res) => {
+  try {
+    const accessory = await Accessory.findById(req.params.id);
+    if (!accessory) return res.redirect('/admin/accessories');
+
+    if (accessory.image) {
+      const match = accessory.image.match(/draglab\/accessories\/(.+?)(?:\.\w+)?$/);
+      if (match) {
+        try { await cloudinary.uploader.destroy('draglab/accessories/' + match[1]); } catch (e) {}
+      }
+    }
+
+    await Accessory.findByIdAndDelete(req.params.id);
+    res.redirect('/admin/accessories');
+  } catch (err) {
+    console.error('postDeleteAccessory error:', err);
+    res.redirect('/admin/accessories');
+  }
+};
+
+// API: return all models for a product (used by add-accessory form via AJAX)
+exports.getAccessoryModels = async (req, res) => {
+  const { productId } = req.params;
+  if (!mongoose.isValidObjectId(productId)) {
+    return res.status(400).json({ models: [] });
+  }
+  try {
+    const product = await Product.findById(productId)
+      .select('Models._id Models.slug Models.Language.EN')
+      .lean();
+    if (!product) return res.status(404).json({ models: [] });
+
+    const models = (product.Models || []).map(m => ({
+      _id:       m._id,
+      slug:      m.slug || '',
+      modelName: m.Language?.EN?.[0]?.ModelName || 'Unnamed Model'
+    }));
+
+    res.json({ models });
+  } catch (err) {
+    console.error('getAccessoryModels error:', err);
+    res.status(500).json({ models: [] });
   }
 };

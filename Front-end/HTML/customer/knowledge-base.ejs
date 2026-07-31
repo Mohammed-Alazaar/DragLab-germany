@@ -1,0 +1,167 @@
+<%- include('../../includes/customer/head.ejs') %>
+<link rel="stylesheet" href="/css/customer/knowledge-base.css">
+<%
+  const BASE = 'https://www.drag-lab.de';
+  const pageUrl = BASE + '/' + lang + '/knowledge-base';
+%>
+
+<title><%= pageTitle %></title>
+<meta name="description" content="<%= metaDescription %>">
+
+<link rel="canonical" href="<%= pageUrl %>">
+<link rel="alternate" hreflang="x-default" href="<%= BASE %>/EN/knowledge-base">
+<link rel="alternate" hreflang="en" href="<%= BASE %>/EN/knowledge-base">
+<link rel="alternate" hreflang="de" href="<%= BASE %>/DE/knowledge-base">
+<link rel="alternate" hreflang="es" href="<%= BASE %>/ES/knowledge-base">
+<link rel="alternate" hreflang="fr" href="<%= BASE %>/FR/knowledge-base">
+<link rel="alternate" hreflang="tr" href="<%= BASE %>/TR/knowledge-base">
+
+<meta property="og:title" content="<%= ogTitle %>">
+<meta property="og:description" content="<%= ogDescription %>">
+<meta property="og:url" content="<%= pageUrl %>">
+<meta property="og:type" content="website">
+
+<script type="application/ld+json" nonce="<%= nonce %>"><%- JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": faqs.map(f => ({
+    "@type": "Question",
+    "name": f.question,
+    "acceptedAnswer": { "@type": "Answer", "text": f.answer }
+  }))
+}) %></script>
+
+<script type="application/ld+json" nonce="<%= nonce %>"><%- JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type":"ListItem","position":1,"name":(lang==='DE'?'Startseite':lang==='ES'?'Inicio':lang==='TR'?'Ana Sayfa':lang==='FR'?'Accueil':'Home'),"item": BASE + "/" + lang + "/"},
+    {"@type":"ListItem","position":2,"name":(lang==='DE'?'Wissensdatenbank':lang==='ES'?'Base de Conocimiento':lang==='TR'?'Bilgi Bankası':lang==='FR'?'Base de Connaissances':'Knowledge Base'),"item": pageUrl}
+  ]
+}) %></script>
+</head>
+
+<body>
+<%- include('../../includes/customer/navbar.ejs') %>
+
+<!-- Hero -->
+<div class="kb-hero">
+  <div class="kb-hero-text">
+    <h1><%= heroTitle %></h1>
+    <p><%= heroSub %></p>
+  </div>
+  <img src="/assets/Imgs/Icons/products/contactus-BC.png" alt="" class="kb-hero-bg">
+</div>
+
+<!-- Search Bar -->
+<div class="kb-search-wrap">
+  <input type="text" id="kb-search" class="kb-search-input" placeholder="<%= searchPlaceholder %>">
+</div>
+
+<!-- Category Tabs -->
+<nav class="kb-tabs" aria-label="FAQ Categories">
+  <% categories.forEach(cat => {
+       const catParam = cat !== 'All' ? 'category=' + encodeURIComponent(cat) : '';
+       const prodParam = activeProduct ? 'product=' + encodeURIComponent(activeProduct) : '';
+       const params = [catParam, prodParam].filter(Boolean).join('&');
+       const href = '/' + lang + '/knowledge-base' + (params ? '?' + params : '');
+  %>
+  <a href="<%= href %>" class="kb-tab-btn <%= activeCategory === cat ? 'active' : '' %>"><%= cat %></a>
+  <% }) %>
+</nav>
+
+<% if (filterProducts && filterProducts.length > 0) { %>
+<!-- Product Filter -->
+<div class="kb-product-filter-wrap">
+  <span class="kb-filter-label">🔬</span>
+  <nav class="kb-product-tabs" aria-label="Filter by Product">
+    <% const catParam0 = activeCategory !== 'All' ? 'category=' + encodeURIComponent(activeCategory) : ''; %>
+    <a href="/<%= lang %>/knowledge-base<%= catParam0 ? '?' + catParam0 : '' %>"
+       class="kb-product-btn <%= !activeProduct ? 'active' : '' %>"><%= filterByProduct %></a>
+    <% filterProducts.forEach(function(p) {
+         const catPart = activeCategory !== 'All' ? 'category=' + encodeURIComponent(activeCategory) + '&' : '';
+         const pUrl = '/' + lang + '/knowledge-base?' + catPart + 'product=' + encodeURIComponent(p.id);
+    %>
+    <a href="<%= pUrl %>" class="kb-product-btn <%= activeProduct === p.id ? 'active' : '' %>"><%= p.name %></a>
+    <% }) %>
+  </nav>
+</div>
+<% } %>
+
+<!-- FAQ Content -->
+<div class="kb-content">
+  <% if (Object.keys(grouped).length === 0) { %>
+  <div class="kb-empty"><%= noResults %></div>
+  <% } else { %>
+    <% Object.entries(grouped).forEach(([category, items]) => { %>
+    <div class="kb-category-group" data-category="<%= category %>">
+      <% if (activeCategory === 'All') { %>
+      <h2 class="kb-category-heading"><%= category %></h2>
+      <% } %>
+      <% items.forEach((faq, idx) => { %>
+      <div class="kb-faq-item" data-question="<%= faq.question.toLowerCase() %>" data-answer="<%= faq.answer.toLowerCase() %>">
+        <button class="kb-faq-question" aria-expanded="false" aria-controls="answer-<%= faq._id %>">
+          <%= faq.question %>
+          <img src="/assets/Imgs/Icons/Down-arrow-blue.png" alt="" class="kb-faq-arrow" aria-hidden="true">
+        </button>
+        <div class="kb-faq-answer" id="answer-<%= faq._id %>" role="region">
+          <%- faq.answer %>
+        </div>
+      </div>
+      <% }) %>
+    </div>
+    <% }) %>
+  <% } %>
+</div>
+
+<%- include('../../includes/customer/footer.ejs') %>
+
+<script nonce="<%= nonce %>">
+(function() {
+  // Accordion
+  document.querySelectorAll('.kb-faq-question').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var isOpen = this.classList.contains('open');
+      // Close all
+      document.querySelectorAll('.kb-faq-question').forEach(function(b) {
+        b.classList.remove('open');
+        b.setAttribute('aria-expanded', 'false');
+        var ans = b.nextElementSibling;
+        if (ans) ans.classList.remove('open');
+      });
+      // Toggle clicked
+      if (!isOpen) {
+        this.classList.add('open');
+        this.setAttribute('aria-expanded', 'true');
+        var answer = this.nextElementSibling;
+        if (answer) answer.classList.add('open');
+      }
+    });
+  });
+
+  // Client-side search filter
+  var searchInput = document.getElementById('kb-search');
+  if (searchInput) {
+    searchInput.addEventListener('input', function() {
+      var q = this.value.toLowerCase().trim();
+      document.querySelectorAll('.kb-faq-item').forEach(function(item) {
+        if (!q) {
+          item.classList.remove('hidden-by-search');
+        } else {
+          var q2 = (item.dataset.question || '') + ' ' + (item.dataset.answer || '');
+          item.classList.toggle('hidden-by-search', !q2.includes(q));
+        }
+      });
+      // Hide empty groups
+      document.querySelectorAll('.kb-category-group').forEach(function(group) {
+        var visible = group.querySelectorAll('.kb-faq-item:not(.hidden-by-search)').length;
+        group.style.display = visible ? '' : 'none';
+      });
+    });
+  }
+})();
+</script>
+
+</body>
+<%- include('../../includes/customer/script.ejs') %>
+</html>

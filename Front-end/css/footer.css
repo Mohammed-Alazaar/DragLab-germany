@@ -1,0 +1,367 @@
+.footer {
+    background-color: #f6f7ff;
+    padding: 0px 10px 20px 10px;
+    margin: 10px 0 0 0;
+    color: #000;
+}
+
+.footer-container {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    /* max-width: 1200px; */
+    margin: 0 auto;
+    gap: 30px;
+}
+
+.footer-left {
+    flex: 1 1 135px;
+}
+
+.footer-logo {
+    width: 210px;
+}
+
+.footer-left p {
+    margin: 6px 0;
+    font-size: 17px;
+}
+
+.footer-links {
+    flex: 3 1 600px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 30px;
+}
+
+.footer-column {
+    flex: 1 1 150px;
+}
+
+.footer-column h3 {
+    font-size: 22px;
+    font-weight: bold;
+    color: var(--primary-Color);
+    margin-bottom: 10px;
+}
+
+.footer-column ul {
+    list-style: none;
+    padding: 0;
+}
+
+.footer-column ul li {
+    margin-bottom: 8px;
+}
+
+.footer-column ul li a {
+    color: #000;
+    text-decoration: none;
+    font-size: 17px;
+    line-height: 150%;
+
+}
+
+.footer-column ul li a:hover {
+    text-decoration: underline;
+}
+
+.footer-bottom {
+    border-top: 1px solid #ccc;
+    margin-top: 30px;
+    padding-top: 20px;
+    text-align: center;
+}
+
+.footer-legal,
+.footer-legal2 {
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+
+.footer-legal a {
+    color: #000;
+    text-decoration: none;
+}
+
+.footer-legal a:hover {
+    text-decoration: underline;
+}
+
+.footer-legal2 a:hover {
+    text-decoration: underline;
+}
+
+.footer-social {
+    margin-bottom: 10px;
+}
+
+.footer-social a {
+    margin: 0 5px;
+    font-size: 18px;
+    color: #000;
+}
+
+.footer-social a img {
+    object-fit: contain;
+    transition: transform 0.2s ease;
+}
+
+.footer-social a:hover img {
+    transform: scale(1.15);
+}
+
+.footer-social a:hover {
+    color: var(--primary-Color);
+}
+
+.footer-copy {
+    font-size: 14px;
+    color: #666;
+}
+
+/* 📱 Mobile Responsive */
+@media (max-width: 768px) {
+    .footer-container {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .footer-links {
+        flex-direction: column !important;
+        align-items: center;
+        height: max-content;
+    }
+
+    .footer-column {
+        width: 100%;
+    }
+
+    .footer-left {
+        text-align: center;
+    }
+}
+
+.contactusFooter a:hover {
+    color: var(--primary-Color);
+}
+
+.highlighted {
+    color: var(--primary-Color);
+    font-weight: bold;
+}
+
+
+.newsletter-banner {
+    background: linear-gradient(90deg, #2c3e94, #0d143e);
+    padding: 30px 40px;
+    color: white;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    width: 100%;
+    margin: 0 0 20px 0;
+}
+
+.newsletter-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.newsletter-content h2 {
+    font-size: 1.6rem;
+    font-weight: 600;
+    margin: 0;
+    flex: 1;
+    color: #ffffff;
+}
+
+.newsletter-form {
+    display: flex;
+    gap: 10px;
+    flex-shrink: 0;
+    gap: 20px;
+}
+
+.newsletter-form input[type="email"] {
+    padding: 12px 15px;
+    font-size: 1rem;
+    border: none;
+    border-radius: 3px;
+    width: 250px;
+}
+
+.newsletter-form button {
+    padding: 12px 20px;
+    background-color: white;
+    color: #2c3e94;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: background 0.3s ease;
+}
+
+.newsletter-form button:hover {
+    background-color: #f0f0f0;
+}
+
+@media screen and (max-width: 768px) {
+    .newsletter-banner {
+        background: linear-gradient(90deg, #2c3e94, #0d143e);
+        padding: 30px 20px;
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        margin: 0 0 20px 0;
+        flex-direction: column;
+    }
+
+    form#newsletterForm {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .newsletter-banner {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .newsletter-content h2 {
+        margin-bottom: 15px;
+    }
+
+    .newsletter-form {
+        flex-direction: column;
+        width: 100%;
+        align-items: center;
+    }
+
+    .newsletter-form input[type="email"] {
+        width: 100%;
+        max-width: 300px;
+    }
+}
+
+
+/* 1) Let flex items actually shrink on Safari */
+.footer-left,
+.footer-column {
+    min-width: 0;
+}
+
+/* critical for Safari flex */
+
+/* 2) Force wrapping in the Contact Us column */
+.contactusFooter li,
+.contactusFooter a {
+    overflow-wrap: anywhere;
+    /* modern wrap */
+    word-break: break-word;
+    /* fallback */
+    -webkit-hyphens: auto;
+    hyphens: auto;
+    /* break long hyphenated words */
+    line-height: 1.5;
+    display: inline-block;
+    /* makes wrap rules more reliable in <a> */
+    max-width: 100%;
+}
+
+/* 3) Prevent columns from stretching apart on iOS */
+.footer-links {
+    align-items: flex-start;
+}
+
+/* instead of center */
+
+/* 4) Tighten the Contact Us column so it doesn't dominate the row */
+.contactusFooter {
+    max-width: 320px;
+}
+
+/* tweak 280–340 as you like */
+
+/* Mobile: ensure single-column stack */
+@media (max-width: 768px) {
+    .footer-container {
+        flex-direction: column;
+    }
+
+    .footer-links {
+        flex-direction: column;
+        align-items: stretch;
+        text-align: center;
+    }
+
+    .footer-column {
+        width: 100%;
+    }
+
+}
+
+
+/* --- iOS-safe mobile stack for footer --- */
+@media (max-width: 768px) {
+
+    /* Stop using flex on mobile to avoid Safari wrap quirks */
+    .footer-container {
+        display: block !important;
+    }
+
+    .footer-left {
+        width: 100% !important;
+        text-align: center;
+    }
+
+    .footer-links {
+        display: block !important;
+        width: 100% !important;
+        margin: 0 auto;
+    }
+
+    .footer-column,
+    .contactusFooter {
+        display: block !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        flex: none !important;
+        /* overrides flex: 1 1 150px */
+        min-width: 0 !important;
+        /* let long lines wrap */
+    }
+
+    /* spacing between stacked sections */
+    .footer-column+.footer-column {
+        margin-top: 18px;
+    }
+
+    /* make long address/links actually wrap */
+    .contactusFooter li,
+    .contactusFooter a {
+        overflow-wrap: anywhere;
+        word-break: break-word;
+        -webkit-hyphens: auto;
+        hyphens: auto;
+        line-height: 1.5;
+    }
+
+    .footer-column ul {
+
+        list-style: none;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .footer-column ul li a {
+        display: inline;
+    }
+
+}

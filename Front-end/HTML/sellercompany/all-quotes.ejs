@@ -1,0 +1,210 @@
+<%- include('../../includes/sellercompany/head.ejs') %>
+<link rel="stylesheet" href="/css/sellercompany/all-technical-service.css">
+
+<style nonce="<%= nonce %>">
+  .status-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .status-new     { background: #cfe2ff; color: #084298; }
+  .status-contacted { background: #fff3cd; color: #664d03; }
+  .status-closed  { background: #d1e7dd; color: #0f5132; }
+  .filter-bar { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+  .filter-btn { padding: 5px 14px; border-radius: 50px; border: 2px solid #dee2e6; background: #fff; cursor: pointer; font-size: 0.85rem; text-decoration: none; color: #2c3e50; font-weight: 600; }
+  .filter-btn.active, .filter-btn:hover { background: #0d3b6e; border-color: #0d3b6e; color: #fff; }
+
+  /* Spam row */
+  .spam-row { background-color: #fff3cd !important; opacity: 0.85; }
+  .spam-row td { color: #856404; }
+  .badge-spam {
+    display: inline-block;
+    background: #ffc107; color: #333;
+    font-size: 0.7rem; font-weight: 700;
+    padding: 2px 7px; border-radius: 10px;
+    margin-left: 6px; vertical-align: middle;
+  }
+
+  /* Action buttons */
+  .btn-spam {
+    background: #ffc107; color: #333;
+    border: none; padding: 4px 10px; border-radius: 4px;
+    cursor: pointer; font-size: 0.82rem; font-weight: 600; margin-right: 4px;
+  }
+  .btn-spam:hover { background: #e0a800; }
+  .btn-spam.marked { background: #6c757d; color: #fff; }
+  .btn-spam.marked:hover { background: #5a6268; }
+  .btn-delete {
+    background: #dc3545; color: #fff;
+    border: none; padding: 4px 10px; border-radius: 4px;
+    cursor: pointer; font-size: 0.82rem; font-weight: 600;
+  }
+  .btn-delete:hover { background: #b02a37; }
+
+  /* Delete confirmation modal */
+  #delete-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+  }
+  #delete-modal.open { display: flex; }
+  .modal-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 36px 32px 28px;
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.2);
+  }
+  .modal-card .modal-icon { font-size: 2.4rem; margin-bottom: 12px; }
+  .modal-card h3 { margin: 0 0 8px; font-size: 1.2rem; color: #1a1a1a; }
+  .modal-card p { margin: 0 0 24px; color: #555; font-size: 0.93rem; line-height: 1.5; }
+  .modal-card p strong { color: #1a1a1a; }
+  .modal-buttons { display: flex; gap: 12px; justify-content: center; }
+  .modal-btn-cancel {
+    flex: 1; background: #f0f0f0; color: #333;
+    border: none; padding: 10px 0; border-radius: 6px;
+    cursor: pointer; font-size: 0.95rem; font-weight: 600;
+  }
+  .modal-btn-cancel:hover { background: #ddd; }
+  .modal-btn-confirm {
+    flex: 1; background: #dc3545; color: #fff;
+    border: none; padding: 10px 0; border-radius: 6px;
+    cursor: pointer; font-size: 0.95rem; font-weight: 600;
+  }
+  .modal-btn-confirm:hover { background: #b02a37; }
+</style>
+
+<body>
+  <%- include('../../includes/sellercompany/navbar-dash.ejs') %>
+
+  <section class="sidebar-content-container">
+    <section class="sidebar-container">
+      <%- include('../../includes/sellercompany/sidebar.ejs') %>
+    </section>
+
+    <div class="article-dashboard-container">
+      <h1>Quote Requests</h1>
+
+      <div class="filter-bar">
+        <a href="/admin/quotes" class="filter-btn <%= !statusFilter ? 'active' : '' %>">All</a>
+        <a href="/admin/quotes?status=new" class="filter-btn <%= statusFilter === 'new' ? 'active' : '' %>">New</a>
+        <a href="/admin/quotes?status=contacted" class="filter-btn <%= statusFilter === 'contacted' ? 'active' : '' %>">Contacted</a>
+        <a href="/admin/quotes?status=closed" class="filter-btn <%= statusFilter === 'closed' ? 'active' : '' %>">Closed</a>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Reference</th>
+            <th>Company</th>
+            <th>Country</th>
+            <th>Email</th>
+            <th>Product / Category</th>
+            <th>Status</th>
+            <th>Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% quotes.forEach((q, i) => { %>
+          <tr class="<%= q.isSpam ? 'spam-row' : '' %>">
+            <td style="font-family:monospace;font-size:0.82rem;font-weight:700;color:#293C95;white-space:nowrap">QR-<%= q._id.toString().slice(-6).toUpperCase() %></td>
+            <td>
+              <strong><%= q.companyName %></strong>
+              <% if (q.isSpam) { %><span class="badge-spam">SPAM</span><% } %>
+            </td>
+            <td><%= q.country %></td>
+            <td><a href="mailto:<%= q.email %>"><%= q.email %></a></td>
+            <td><%= q.productCategory || '—' %><% if (q.productModel) { %><br><small><%= q.productModel %></small><% } %></td>
+            <td><span class="status-badge status-<%= q.status %>"><%= q.status %></span></td>
+            <td><%= new Date(q.createdAt).toLocaleDateString() %></td>
+            <td>
+              <a href="/admin/quotes/<%= q._id %>" class="btn-view">View</a>
+
+              <% if (isAdmin) { %>
+                <form method="POST" action="/admin/quotes/<%= q._id %>/spam" style="display:inline;">
+                  <button type="submit" class="btn-spam <%= q.isSpam ? 'marked' : '' %>">
+                    <%= q.isSpam ? 'Unmark Spam' : 'Mark Spam' %>
+                  </button>
+                </form>
+
+                <form method="POST" action="/admin/quotes/<%= q._id %>/delete" style="display:inline;" class="delete-form" data-name="<%= q.companyName %>">
+                  <button type="submit" class="btn-delete">Delete</button>
+                </form>
+              <% } %>
+            </td>
+          </tr>
+          <% }) %>
+          <% if (quotes.length === 0) { %>
+          <tr><td colspan="8" style="text-align:center;color:#aaa;padding:2rem;">No quote requests yet.</td></tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Delete confirmation modal -->
+  <div id="delete-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-card">
+      <div class="modal-icon">🗑️</div>
+      <h3 id="modal-title">Delete Quote?</h3>
+      <p id="modal-body">This action is permanent and cannot be undone.</p>
+      <div class="modal-buttons">
+        <button id="modal-cancel" class="modal-btn-cancel">Cancel</button>
+        <button id="modal-confirm" class="modal-btn-confirm">Yes, Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <script nonce="<%= nonce %>">
+    (function () {
+      var modal      = document.getElementById('delete-modal');
+      var modalBody  = document.getElementById('modal-body');
+      var btnCancel  = document.getElementById('modal-cancel');
+      var btnConfirm = document.getElementById('modal-confirm');
+      var pendingForm = null;
+
+      function openModal(name, form) {
+        pendingForm = form;
+        modalBody.innerHTML = 'You are about to permanently delete the quote from <strong>' + name + '</strong>.<br>This cannot be undone.';
+        modal.classList.add('open');
+      }
+
+      function closeModal() {
+        modal.classList.remove('open');
+        pendingForm = null;
+      }
+
+      document.querySelectorAll('.delete-form').forEach(function (form) {
+        form.addEventListener('submit', function (e) {
+          e.preventDefault();
+          openModal(form.dataset.name, form);
+        });
+      });
+
+      btnCancel.addEventListener('click', closeModal);
+
+      btnConfirm.addEventListener('click', function () {
+        if (pendingForm) pendingForm.submit();
+      });
+
+      modal.addEventListener('click', function (e) {
+        if (e.target === modal) closeModal();
+      });
+
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') closeModal();
+      });
+    })();
+  </script>
+</body>

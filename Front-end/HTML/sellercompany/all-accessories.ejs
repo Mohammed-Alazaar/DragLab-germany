@@ -1,0 +1,83 @@
+<%- include('../../includes/sellercompany/head.ejs') %>
+<link rel="stylesheet" href="/css/sellercompany/all-technical-service.css">
+
+<style nonce="<%= nonce %>">
+  .badge-pub   { background:#d1e7dd; color:#0f5132; }
+  .badge-draft { background:#fff3cd; color:#664d03; }
+  .badge { display:inline-block; padding:2px 10px; border-radius:10px; font-size:0.75rem; font-weight:700; text-transform:uppercase; }
+  .thumb { width:50px; height:50px; object-fit:contain; border:1px solid #dee2e6; border-radius:4px; background:#f8f9fa; }
+  .applicable-list { font-size:0.78rem; color:#555; max-width:200px; }
+</style>
+
+<body>
+  <%- include('../../includes/sellercompany/navbar-dash.ejs') %>
+
+  <section class="sidebar-content-container">
+    <section class="sidebar-container">
+      <%- include('../../includes/sellercompany/sidebar.ejs') %>
+    </section>
+
+    <div class="article-dashboard-container">
+      <h1>Manage Accessories</h1>
+      <a href="/admin/accessories/add" class="add-button">+ Add Accessory</a>
+
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Image</th>
+            <th>Name</th>
+            <th>Article No.</th>
+            <th>Applicable Products</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (!accessories || accessories.length === 0) { %>
+          <tr><td colspan="7" style="text-align:center;color:#aaa;padding:2rem;">No accessories found.</td></tr>
+          <% } else { %>
+          <% accessories.forEach(function(acc, i) { %>
+          <tr>
+            <td><%= (currentPage - 1) * 20 + i + 1 %></td>
+            <td>
+              <% if (acc.image) { %>
+                <img src="<%= acc.image %>" class="thumb" alt="<%= acc.name %>">
+              <% } else { %>
+                <span style="color:#aaa;">—</span>
+              <% } %>
+            </td>
+            <td><strong><%= acc.name %></strong></td>
+            <td><%= acc.articleNumber || '—' %></td>
+            <td>
+              <div class="applicable-list">
+                <% if (acc.applicableProducts && acc.applicableProducts.length > 0) { %>
+                  <% acc.applicableProducts.forEach(function(ap) { %>
+                    <div><%= ap.productName %><% if (ap.models && ap.models.length) { %> (<%= ap.models.length %> model<%= ap.models.length !== 1 ? 's' : '' %>)<% } %></div>
+                  <% }); %>
+                <% } else { %>
+                  <span style="color:#aaa;">—</span>
+                <% } %>
+              </div>
+            </td>
+            <td>
+              <span class="badge <%= acc.status === 'published' ? 'badge-pub' : 'badge-draft' %>"><%= acc.status %></span>
+            </td>
+            <td>
+              <a href="/admin/accessories/edit/<%= acc._id %>">Edit</a> |
+              <form action="/admin/accessories/delete/<%= acc._id %>" method="POST" style="display:inline"
+                    onsubmit="return confirm('Delete this accessory?')">
+                <button type="submit" style="background:none;border:none;color:#dc3545;cursor:pointer;font-size:inherit;">Delete</button>
+              </form>
+            </td>
+          </tr>
+          <% }); %>
+          <% } %>
+        </tbody>
+      </table>
+
+      <%- include('../../includes/sellercompany/pagination.ejs') %>
+    </div>
+  </section>
+</body>
+</html>

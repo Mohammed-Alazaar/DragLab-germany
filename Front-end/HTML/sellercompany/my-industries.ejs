@@ -1,0 +1,69 @@
+<%- include('../../includes/sellercompany/head.ejs') %>
+    <link rel="stylesheet" href="/css/sellercompany/my-industries.css">
+    <%- include('../../includes/sellercompany/head-end.ejs') %>
+
+        <body>
+            <%- include('../../includes/sellercompany/navbar-dash.ejs') %>
+
+                <section class="sidebar-content-container">
+                    <section class="sidebar-container">
+                        <%- include('../../includes/sellercompany/sidebar.ejs') %>
+                    </section>
+
+                    <section class="content-container">
+                        <h1>My Industries</h1>
+
+                        <div class="product-side-header">
+                            <a class="add-button" href="/admin/add-industry">&plus; Add New Industry</a>
+                        </div>
+
+
+                        <% if (industries.length> 0) { %>
+                            <div class="industries-container">
+                                <% industries.forEach(ind=> { %>
+                                    <div class="industry-card">
+                                        <div class="industry-info">
+                                            <h3>
+                                                <%= ind.Language?.EN?.[0]?.slideTitle || '[No EN Title]' %>
+                                            </h3>
+                                            <p><strong>Slug:</strong>
+                                                <%= ind.slug %>
+                                            </p>
+                                            <p><strong>Status:</strong>
+                                                <%= ind.isDraft ? 'Draft' : 'Published' %>
+                                            </p>
+                                        </div>
+
+                                        <div class="industry-actions">
+                                            <a class="btn-edit" href="/admin/edit-industry/<%= ind.slug %>">✏️ Edit</a>
+                                            <!-- Delete Button -->
+                                            <button class="delete-btn" data-industry-id="<%= ind._id %>">
+                                                🗑️ Delete
+                                            </button>
+
+                                            <!-- Hidden Form -->
+                                            <form id="deleteForm-<%= ind._id %>" method="POST"
+                                                action="/admin/delete-industry" style="display: none;">
+                                                <input type="hidden" name="industryId" value="<%= ind._id %>">
+                                            </form>
+
+                                            <% if (!ind.isDraft) { %>
+                                                <a class="btn-view" href="/EN/industry/<%= ind.slug %>"
+                                                    target="_blank">🔍 View</a>
+                                                <% } %>
+                                        </div>
+                                    </div>
+                                    <% }); %>
+                            </div>
+                            <% } else { %>
+                                <p class="no-industry-msg">No industry pages found. Start by creating one!</p>
+                                <% } %>
+                    </section>
+                </section>
+
+                <script src="/assets/Js/nav-bar.js"></script>
+                <script src="/js/my-industries.js" defer nonce="<%= nonce %>"></script>
+
+        </body>
+
+        </html>

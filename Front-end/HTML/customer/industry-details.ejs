@@ -1,0 +1,226 @@
+<%- include('../../includes/customer/head.ejs') %>
+<%
+  const langLc = (lang || 'EN').toLowerCase();
+  const iTitle = translation.slideTitle || 'Industry';
+  const iSubtitle = translation.subtitle || '';
+  const iDesc = (translation.description || 'Discover solutions for this industry.').toString();
+  const cleanDesc = iDesc.replace(/<\/?[^>]+(>|$)/g, '').replace(/\s+/g, ' ').trim().slice(0, 160);
+
+  const industrySlug = industry.slug || 'industry';
+  const canonicalUrl = `https://www.drag-lab.de/${lang}/industry/${industrySlug}`;
+
+  const pageTitle =
+    (lang === 'ES') ? `${iTitle} | Soluciones por Industria` :
+    (lang === 'DE') ? `${iTitle} | Branchenlösungen` :
+                      `${iTitle} | Industry Solutions`;
+
+  const ogImage = industry.sharedSlideImage || 'https://www.drag-lab.de/assets/Imgs/thumbnils/industry-thumbnail.webp';
+  const ogImageAbs = ogImage.startsWith('http') ? ogImage : `https://www.drag-lab.de${ogImage}`;
+  const ogImageWidth = 1200;
+  const ogImageHeight = 630;
+%>
+
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title><%= pageTitle %> | DragLab</title>
+<meta name="description" content="<%= cleanDesc %>" />
+<link rel="canonical" href="<%= canonicalUrl %>" />
+<link rel="stylesheet" href="/css/customer/industry-details.css" />
+
+
+<!-- Hreflang cluster -->
+<link rel="alternate" hreflang="x-default" href="https://www.drag-lab.de/EN/industry/<%= industrySlug %>" />
+<link rel="alternate" hreflang="en" href="https://www.drag-lab.de/EN/industry/<%= industrySlug %>" />
+<link rel="alternate" hreflang="es" href="https://www.drag-lab.de/ES/industry/<%= industrySlug %>" />
+<link rel="alternate" hreflang="de" href="https://www.drag-lab.de/DE/industry/<%= industrySlug %>" />
+<link rel="alternate" hreflang="tr" href="https://www.drag-lab.de/TR/industry/<%= industrySlug %>">
+<link rel="alternate" hreflang="fr" href="https://www.drag-lab.de/FR/industry/<%= industrySlug %>">
+<meta name="robots" content="index, follow">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="DragLab" />
+<meta property="og:title" content="<%= pageTitle %> | DragLab" />
+<meta property="og:description" content="<%= cleanDesc %>" />
+<meta property="og:url" content="<%= canonicalUrl %>" />
+<meta property="og:locale" content="<%= lang === 'ES' ? 'es_ES' : lang === 'DE' ? 'de_DE' : lang === 'TR' ? 'tr_TR' : lang === 'FR' ? 'fr_FR' : 'en_US' %>" />
+<meta property="og:image" content="<%= ogImageAbs %>" />
+<meta property="og:image:alt" content="<%= iTitle %>" />
+<meta property="og:image:width" content="<%= ogImageWidth %>" />
+<meta property="og:image:height" content="<%= ogImageHeight %>" />
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="<%= pageTitle %> | DragLab" />
+<meta name="twitter:description" content="<%= cleanDesc %>" />
+<meta name="twitter:image" content="<%= ogImageAbs %>" />
+
+<!-- Optional LCP preload if hero is above-the-fold -->
+<link rel="preload" as="image" href="<%= ogImageAbs %>" />
+
+<!-- JSON-LD: CollectionPage describing this industry and listing products -->
+<script type="application/ld+json" nonce="<%= nonce %>">
+<%
+  const prodItems = (structuredProducts || []).map((p, idx) => {
+    const pDesc = p.desc.toString().replace(/<\/?[^>]+(>|$)/g, '').trim().slice(0, 160);
+    const pImg = p.thumbnail
+      ? (p.thumbnail.startsWith('http') ? p.thumbnail : `https://www.drag-lab.de${p.thumbnail}`)
+      : ogImageAbs;
+    const pUrl = `https://www.drag-lab.de/${lang}/products/${p.slug}`;
+    return {
+      "@type": "ListItem",
+      "position": idx + 1,
+      "item": {
+        "@type": "Product",
+        "name": p.name,
+        "description": pDesc,
+        "image": [pImg],
+        "url": pUrl,
+        "brand": { "@type": "Organization", "name": "DragLab" }
+      }
+    };
+  });
+%>
+<%= JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "name": `${iTitle} | DragLab`,
+  "inLanguage": langLc,
+  "url": canonicalUrl,
+  "description": cleanDesc,
+  "isPartOf": { "@type": "WebSite", "name": "DragLab", "url": "https://www.drag-lab.de" },
+  "primaryImageOfPage": { "@type": "ImageObject", "url": ogImageAbs, "width": ogImageWidth, "height": ogImageHeight },
+  "about": { "@type": "Thing", "name": iTitle },
+  "mainEntity": {
+    "@type": "ItemList",
+    "name": "Frequently Used Products",
+    "numberOfItems": prodItems.length,
+    "itemListElement": prodItems
+  }
+}, null, 2) %>
+</script>
+
+
+<!-- JSON-LD: Breadcrumbs -->
+<script type="application/ld+json" nonce="<%= nonce %>">
+<%= JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": (lang === 'ES' ? 'Inicio' : (lang === 'DE' ? 'Startseite' : 'Home')), "item": `https://www.drag-lab.de/${lang}` },
+    { "@type": "ListItem", "position": 2, "name": (lang === 'ES' ? 'Industrias' : (lang === 'DE' ? 'Branchen' : 'Industry')), "item": `https://www.drag-lab.de/${lang}/Industry` },
+    { "@type": "ListItem", "position": 3, "name": iTitle, "item": canonicalUrl }
+  ]
+}, null, 2) %>
+</script>
+</head>
+
+  <body>
+
+
+    <% const usedProductsMap={}; (usedProducts || []).forEach(p=> {
+      if (p && p.productId) {
+      usedProductsMap[p.productId.toString()] = p;
+      }
+      });
+
+      const filteredProducts = (products || []).filter(p => usedProductsMap[p._id.toString()]);
+      %>
+      <%- include('../../includes/customer/navbar.ejs') %>
+
+        <div class="slide">
+          <div class="slide-text">
+            <div class="slide-text-content">
+              <h1>
+                <%= translation?.slideTitle %>
+              </h1>
+              <h3>
+                <%= translation?.subtitle %>
+              </h3>
+              <p>
+                <%= translation?.description %>
+              </p>
+
+            </div>
+
+          </div>
+          <img src="<%= industry?.sharedSlideImage %>" alt=" <%= translation?.slideTitle %>" />
+
+        </div>
+
+
+        <section class="introduction-section">
+          <h2>Industry Solutions</h2>
+          <div class="introduction-container">
+            <div class="introduction-text">
+              <h3>
+                <%= translation?.introTitle %>
+              </h3>
+              <p>
+                <%= translation?.introDesc %>
+              </p>
+            </div>
+            <div class="introduction-img">
+              <img src="<%= industry?.sharedIntroImage %>" alt="<%= translation?.slideTitle %>" />
+            </div>
+          </div>
+        </section>
+
+        <section class="features-section">
+          <h2 class="section-title">Typical Applications</h2>
+          <div class="features-container">
+            <% (translation?.features || []).forEach(f=> { %>
+              <div class="feature-box">
+                <img src="<%= f.featureImage %>" alt="<%= f.featureTitle %>" class="feature-icon" />
+                <h3 class="feature-title">
+                  <%= f.featureTitle %>
+                </h3>
+                <p class="feature-text">
+                  <%= f.featureDesc %>
+                </p>
+              </div>
+              <% }) %>
+          </div>
+        </section>
+
+        
+<% if (products && products.length) { %>
+  <section class="slideshow-container">
+    <h2>Frequently Used Products</h2>
+    <div class="slides-wrapper" id="slidesWrapper">
+      <% products.forEach(product => { %>
+        <div class="product-slide">
+          <a href="/<%= lang %>/products/<%= product.slug %>" class="product-card-link">
+            <div class="product-card">
+              <div class="product-image-wrapper">
+                <img loading="lazy"
+                     src="<%= product.thumbnail %>"
+                     alt="<%= product.name %>">
+                <div class="product-bg-overlay"></div>
+              </div>
+              <div class="product-card-information">
+                <h4><%= product.name %></h4>
+                <p><%= product.desc %></p>
+              </div>
+              <button class="article-btn">View Details</button>
+            </div>
+          </a>
+        </div>
+      <% }) %>
+    </div>
+
+    <button class="slideshow-btn prev-btn" data-dir="-1">
+      <img loading="lazy" src="/assets/Imgs/Icons/right-products-arrow.png" alt="Prev">
+    </button>
+    <button class="slideshow-btn next-btn" data-dir="1">
+      <img loading="lazy" src="/assets/Imgs/Icons/left-products-arrow.png" alt="Next">
+    </button>
+  </section>
+<% } %>
+
+
+            <%- include('../../includes/customer/footer.ejs') %>
+              <script src="/js/index.js?v=1.0.1" defer></script>
+  </body>
+
+  </html>

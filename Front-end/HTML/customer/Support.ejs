@@ -1,155 +1,152 @@
 <%- include('../../includes/customer/head.ejs') %>
 
+<link rel="stylesheet" href="/css/customer/Support.css">
 
-    <link rel="stylesheet" href="/front-end/Css/customer/support.css">
+<!-- ✅ SEO Meta Tags -->
+<title><%= content.pageTitle %> | DragLab</title>
+<meta name="description" content="<%= content.heroDesc %>">
+<link rel="canonical" href="https://www.drag-lab.de/<%= lang %>/support">
+<link rel="alternate" hreflang="x-default" href="https://www.drag-lab.de/EN/support">
+<link rel="alternate" hreflang="en" href="https://www.drag-lab.de/EN/support">
+<link rel="alternate" hreflang="es" href="https://www.drag-lab.de/ES/support">
+<link rel="alternate" hreflang="de" href="https://www.drag-lab.de/DE/support">
+<link rel="alternate" hreflang="tr" href="https://www.drag-lab.de/TR/support">
+<link rel="alternate" hreflang="fr" href="https://www.drag-lab.de/FR/support">
+<meta property="og:title" content="<%= content.pageTitle %> | DragLab">
+<meta property="og:description" content="<%= content.heroDesc %>">
+<meta property="og:url" content="https://www.drag-lab.de/<%= lang %>/support">
+<meta property="og:type" content="website">
+<meta name="robots" content="index, follow">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="<%= content.pageTitle %> | DragLab">
+<meta name="twitter:description" content="<%= content.heroDesc %>">
+<meta property="og:image" content="https://www.drag-lab.de/assets/Imgs/Icons/products/support.webp">
+<meta name="twitter:image" content="https://www.drag-lab.de/assets/Imgs/Icons/products/support.webp">
 
+<script src="https://www.google.com/recaptcha/enterprise.js?render=6LdBFQkrAAAAALGPy8986JpxndbqzY1_6kEDxH1s"></script>
+<script type="application/ld+json" nonce="<%= nonce %>">
+<%- JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": (content && content.pageTitle) ? content.pageTitle + ' | DragLab' : 'Support | DragLab',
+  "url": `https://www.drag-lab.de/${lang}/support`,
+  "inLanguage": (lang || 'EN').toLowerCase(),
+  "publisher": { "@type": "Organization", "name": "DragLab", "url": "https://www.drag-lab.de/" },
+  "breadcrumb": {
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": (lang==='DE'?'Startseite':lang==='ES'?'Inicio':lang==='TR'?'Ana Sayfa':lang==='FR'?'Accueil':'Home'), "item": `https://www.drag-lab.de/${(lang||'EN').toLowerCase()}` },
+      { "@type": "ListItem", "position": 2, "name": (content && content.pageTitle) || 'Support', "item": `https://www.drag-lab.de/${lang}/support` }
+    ]
+  }
+}) %>
+</script>
 
+<body>
+    <!-- nav-bar -->
+    <%- include('../../includes/customer/navbar.ejs') %>
 
-
-
-    <body>
-        <!-- nav-bar -->
-
-        <%- include('../../includes/customer/navbar.ejs') %>
-
-
-            <!-- nav-bar -->
-
-            <!-- Product Details -->
-            <div class="slide">
-                <div class="slide-text">
-                    <!-- <h1>Water Still Series</h1> -->
-                    <div class="slide-text-content">
-                        <h1>Professional Support When You Need It</h1>
-                        <p>Comprehensive services to design the perfect solution and ensure long-term operation.</p>
-                    </div>
-                    <a href="/Contactus" class="scroll-button">Contact Us</a>
-                </div>
-                <img src="/assets/Imgs/Icons/products/support.webp" alt="Photo 1">
+    <!-- Hero Slide -->
+    <div class="slide">
+        <div class="slide-text">
+            <div class="slide-text-content">
+                <h1><%= content.pageTitle %></h1>
+                <p><%= content.heroDesc %></p>
             </div>
+            <a href="/<%= lang %>/Contactus" class="scroll-button"><%= content.contactUs %></a>
+        </div>
+        <img src="/assets/Imgs/Icons/products/support.webp" alt="Support Image">
+    </div>
 
+    <!-- Qualification & Validation -->
+    <section class="introduction-section">
+        <div class="introduction-container">
+            <div class="introduction-text">
+                <h3><%= content.qualificationTitle %></h3>
+                <p><%= content.qualificationDesc %></p>
+                <a href="/<%= lang %>/Contactus"><%= content.qualificationCTA %></a>
+            </div>
+            <div class="introduction-img">
+                <img src="/assets/Imgs/Icons/products/Qualification&Validation.webp" alt="Qualification Image">
+            </div>
+        </div>
+    </section>
 
-            <SECtion class="introduction-section">
-                <div class="introduction-container">
+    <!-- Calibration & Adjustment -->
+    <section class="introduction-section">
+        <div class="inverse-introduction-container">
+            <div class="introduction-img">
+                <img src="/assets/Imgs/Icons/products/Calibration&Adjustment.webp" alt="Calibration Image">
+            </div>
+            <div class="introduction-text">
+                <h3><%= content.calibrationTitle %></h3>
+                <p><%= content.calibrationDesc %></p>
+                <ul>
+                    <% content.calibrationBenefits.forEach(benefit => { %>
+                        <li><%= benefit %></li>
+                    <% }) %>
+                </ul>
+                <a href="/<%= lang %>/Contactus"><%= content.calibrationCTA %></a>
+            </div>
+        </div>
+    </section>
 
+    <!-- Maintenance & Technical Support -->
+    <section class="introduction-section">
+        <div class="introduction-container">
+            <div class="introduction-text">
+                <h3><%= content.maintenanceTitle %></h3>
+                <p><%= content.maintenanceDesc %></p>
+                <ul>
+                    <% content.maintenanceBenefits.forEach(benefit => { %>
+                        <li><%= benefit %></li>
+                    <% }) %>
+                </ul>
+                <a href="/<%= lang %>/technical-service"><%= content.maintenanceCTA %></a>
+            </div>
+            <div class="introduction-img">
+                <img src="/assets/Imgs/Icons/products/Maintenance.webp" alt="Maintenance Image">
+            </div>
+        </div>
+    </section>
 
-                    <div class="introduction-text">
-                        <h3>Qualification & Validation</h3>
-                        <p>Qualification ensures that DragLab product quality is satisfied and that proper procedures
-                            are in place for maintenance and operation.
-                            We support you to ensure that production and testing processes run smoothly, and product
-                            quality remains high.</p>
-                        <a href="/Contactus">Contact us for your IQ/OQ qualification plans.</a>
-                    </div>
-                    <div class="introduction-img">
-                        <img src="/assets/Imgs/Icons/products/Qualification&Validation.webp" alt="">
-                    </div>
-                </div>
-            </SECtion>
+    <!-- Training -->
+    <section class="introduction-section">
+        <div class="inverse-introduction-container">
+            <div class="introduction-img">
+                <img src="/assets/Imgs/Icons/products/Training.webp" alt="Training Image">
+            </div>
+            <div class="introduction-text">
+                <h3><%= content.trainingTitle %></h3>
+                <p><%= content.trainingDesc %></p>
+                <ul>
+                    <% content.trainingBenefits.forEach(benefit => { %>
+                        <li><%= benefit %></li>
+                    <% }) %>
+                </ul>
+                <a href="/<%= lang %>/Contactus"><%= content.trainingCTA %></a>
+            </div>
+        </div>
+    </section>
 
+    <!-- Download Area -->
+    <section class="download-area">
+        <div class="left-side">
+            <h2><%= content.downloadTitle %></h2>
+            <p><%= content.downloadDesc %></p>
+            <a href="/<%= lang %>/Downloads"><%= content.downloadExplore %></a>
+        </div>
+        <div class="right-side">
+            <ul>
+                <% content.downloadOptions.forEach(opt => { %>
+                    <li><a href="#"><%= opt %></a></li>
+                <% }) %>
+            </ul>
+        </div>
+    </section>
 
-            <SECtion class="introduction-section">
-                <div class="inverse-introduction-container">
-                    <div class="introduction-img">
-                        <img src="/assets/Imgs/Icons/products/Calibration&Adjustment.webp" alt="">
-                    </div>
-                    <div class="introduction-text">
-                        <h3>Calibration & Adjustment</h3>
-                        <p>Calibration is essential to validate laboratory equipment. We identify and document
-                            deviations and readjust unit settings as needed.
-                            All results are documented in a calibration certificate, ensuring quality tests and
-                            processes.
-                        <ul>Key Benefits:
+    <!-- Footer -->
+    <%- include('../../includes/customer/footer.ejs') %>
+</body>
 
-                            <li> Factory-standard calibration.</li>
-                            <li>Certified measuring devices.</li>
-                        </ul>
-                        </p>
-
-                        <a href="/Contactus">Contact us for more details on calibration.</a>
-                    </div>
-                </div>
-            </SECtion>
-
-
-            <SECtion class="introduction-section">
-                <div class="introduction-container">
-
-                    <div class="introduction-text">
-                        <h3>Maintenance & Technical Support</h3>
-                        <p>DragLab devices are built with quality and reliability, but regular maintenance is essential
-                            for long-term operation.
-                            Authorized technicians provide all maintenance work quickly and competently.
-                        <ul>Key Benefits:
-
-                            <li>Expert technical support.</li>
-                            <li>Fast response to all requests.</li>
-                        </ul>
-                        </p>
-                        <a href="/technical-service">Request technical support now.</a>
-                    </div>
-                    <div class="introduction-img">
-                        <img src="/assets/Imgs/Icons/products/Maintenance.webp" alt="">
-                    </div>
-                </div>
-            </SECtion>
-
-
-            <SECtion class="introduction-section">
-                <div class="inverse-introduction-container">
-                    <div class="introduction-img">
-                        <img src="/assets/Imgs/Icons/products/Training.webp" alt="">
-                    </div>
-                    <div class="introduction-text">
-                        <h3>Training Courses & Seminars</h3>
-                        <p>The DragLab training program provides essential knowledge for users, partners, and service
-                            teams.
-                            Learn how to operate and maintain equipment efficiently, with access to the latest technical
-                            topics.
-                        <ul>Key Benefits:
-
-                            <li>Tailored training sessions.</li>
-                            <li>Scheduled programs for partners and users.</li>
-                        </ul>
-                        </p>
-                        <a href="/Contactus">Contact us for upcoming training sessions.</a>
-                    </div>
-                </div>
-            </SECtion>
-
-            <section class="download-area">
-                <div class="left-side">
-                    <h2>Download Area</h2>
-                    <p>Explore our premium-quality solutions and have all the key arguments, features, and
-                        specifications at your fingertips.</p>
-                    <a href="/Downloads">Explore Downloads</a>
-                </div>
-                <div class="right-side">
-                    <ul>Download Options:
-                        <li><a href="#">Brochures</a></li>
-                        <li><a href="#">Flyers</a></li>
-                        <li><a href="#">Installation packages.</a></li>
-                    </ul>
-                </div>
-            </section>
-
-
-
-
-
-
-
-
-
-
-
-            <!-- Footer -->
-
-            <%- include('../../includes/customer/footer.ejs') %>
-
-
-    </body>
-    <%- include('../../includes/customer/script.ejs') %>
-
-
-        </html>
+<%- include('../../includes/customer/script.ejs') %>

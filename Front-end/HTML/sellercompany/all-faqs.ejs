@@ -1,0 +1,73 @@
+<%- include('../../includes/sellercompany/head.ejs') %>
+<link rel="stylesheet" href="/css/sellercompany/all-technical-service.css">
+
+<style nonce="<%= nonce %>">
+  .status-pub { background: #d1e7dd; color: #0f5132; }
+  .status-dft { background: #f8d7da; color: #842029; }
+  .status-none { background: #e9ecef; color: #6c757d; }
+  .status-badge { display: inline-block; padding: 2px 7px; border-radius: 10px; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; margin: 1px; }
+  .lang-label { font-size: 0.72rem; font-weight: 700; color: #0d3b6e; margin-right: 1px; }
+  .lang-statuses { display: flex; flex-wrap: wrap; gap: 3px; }
+</style>
+
+<body>
+  <%- include('../../includes/sellercompany/navbar-dash.ejs') %>
+
+  <section class="sidebar-content-container">
+    <section class="sidebar-container">
+      <%- include('../../includes/sellercompany/sidebar.ejs') %>
+    </section>
+
+    <div class="article-dashboard-container">
+      <h1>Manage FAQs</h1>
+      <a href="/admin/faqs/add" class="add-button">+ Add New FAQ</a>
+
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Question (EN)</th>
+            <th>Category</th>
+            <th>Languages</th>
+            <th>Order</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% faqs.forEach((faq, i) => {
+               const enQ = faq.translations?.en?.question || faq.translations?.de?.question || '(no question)';
+               const langs = ['en','es','de','tr','fr'];
+          %>
+          <tr>
+            <td><%= i + 1 %></td>
+            <td><%= enQ.length > 70 ? enQ.substring(0, 70) + '…' : enQ %></td>
+            <td><%= faq.category %></td>
+            <td>
+              <div class="lang-statuses">
+                <% langs.forEach(function(l) {
+                     const st = faq.translations?.[l]?.status || 'none';
+                %>
+                <span class="status-badge <%= st === 'published' ? 'status-pub' : st === 'draft' ? 'status-dft' : 'status-none' %>">
+                  <%= l.toUpperCase() %>
+                </span>
+                <% }) %>
+              </div>
+            </td>
+            <td><%= faq.order %></td>
+            <td>
+              <a href="/admin/faqs/edit/<%= faq._id %>">Edit</a> |
+              <form action="/admin/faqs/delete/<%= faq._id %>" method="POST" style="display:inline"
+                    onsubmit="return confirm('Delete this FAQ?')">
+                <button type="submit" style="background:none;border:none;color:#dc3545;cursor:pointer;font-weight:600;font-size:0.9rem;">Delete</button>
+              </form>
+            </td>
+          </tr>
+          <% }) %>
+          <% if (faqs.length === 0) { %>
+          <tr><td colspan="6" style="text-align:center;color:#aaa;padding:2rem;">No FAQs yet. <a href="/admin/faqs/add">Add one</a>.</td></tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</body>

@@ -1,0 +1,60 @@
+<%- include('../../includes/customer/head.ejs') %>
+<link rel="stylesheet" href="/css/customer/model-unavailable.css">
+<title><% if(lang==='DE'){ %>Produkt nicht verfügbar<% } else if(lang==='ES'){ %>Producto no disponible<% } else if(lang==='TR'){ %>Ürün mevcut değil<% } else if(lang==='FR'){ %>Produit non disponible<% } else { %>Product Not Available<% } %> | DragLab</title>
+<meta name="description" content="<% if(lang==='DE'){ %>Dieses Produkt ist in der aktuellen Sprache nicht verfügbar. Bitte wählen Sie eine andere Sprache.<% } else if(lang==='ES'){ %>Este producto no está disponible en el idioma actual. Por favor, elija otro idioma.<% } else { %>This product is not available in the current language. Please choose another language.<% } %>">
+<meta name="robots" content="noindex, follow">
+<link rel="canonical" href="https://www.drag-lab.de/<%= lang||'EN' %>/products">
+</head>
+<body>
+  <%- include('../../includes/customer/navbar.ejs') %>
+
+  <main class="container unavailable">
+    <h1>
+      <% if (lang === 'DE') { %>
+        Produkt in dieser Sprache nicht verfügbar
+      <% } else if (lang === 'ES') { %>
+        Producto no disponible en este idioma
+      <% } else if (lang === 'TR') { %>
+        Ürün bu dilde şu anda mevcut değil
+      <% } else if (lang === 'FR') { %>
+        Produit non disponible dans cette langue
+      <% } else { %>
+        Product not available in this language
+      <% } %>
+    </h1>
+
+    <p>
+      <% if (lang === 'DE') { %>
+        Dieses Produkt ist derzeit in dieser Sprache nicht verfügbar.
+        <% if (hasAny) { %>Sie können es in einer der verfügbaren Sprachen ansehen:<% } else { %>Bitte versuchen Sie es später erneut.<% } %>
+      <% } else if (lang === 'ES') { %>
+        Este producto no está disponible en este idioma por el momento.
+        <% if (hasAny) { %>Puedes verlo en uno de los siguientes idiomas disponibles:<% } else { %>Por favor, vuelve más tarde.<% } %>
+      <% } else if (lang === 'TR') { %>
+        Bu ürün şu anda bu dilde mevcut değil.
+        <% if (hasAny) { %>Aşağıdaki mevcut dillerden birinde görüntüleyebilirsiniz:<% } else { %>Lütfen daha sonra tekrar deneyin.<% } %>
+      <% } else if (lang === 'FR') { %>
+        Ce produit n’est pas disponible dans cette langue pour le moment.
+        <% if (hasAny) { %>Vous pouvez le consulter dans l’une des langues disponibles ci-dessous :<% } else { %>Veuillez réessayer plus tard.<% } %>
+      <% } else { %>
+        This product isn’t available in the current language.
+        <% if (hasAny) { %>You can view it in one of the available languages below:<% } else { %>Please check back later.<% } %>
+      <% } %>
+    </p>
+
+    <% if (hasAny) { %>
+      <ul class="available-lang-list">
+        <% links.forEach(l => { %>
+          <li><a class="btn" href="<%= l.url %>"><%= l.name %></a></li>
+        <% }) %>
+      </ul>
+    <% } %>
+
+    <% if (!hasAny) { %>
+      <a class="btn" href="/EN/products/<%= productSlug %>">View in English</a>
+    <% } %>
+  </main>
+
+  <%- include('../../includes/customer/footer.ejs') %>
+</body>
+</html>

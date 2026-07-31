@@ -1,0 +1,364 @@
+<%- include('../../includes/sellercompany/head.ejs') %>
+<link rel="stylesheet" href="/css/sellercompany/all-technical-service.css">
+<link rel="stylesheet" href="/css/sellercompany/add-article.css">
+
+<style nonce="<%= nonce %>">
+  .form-card { background:#fff; border:1px solid #dee2e6; border-radius:8px; padding:2rem; max-width:900px; }
+  .form-group { margin-bottom:1.2rem; display:flex; flex-direction:column; gap:0.4rem; }
+  .form-group label { font-size:0.88rem; font-weight:700; color:#2c3e50; }
+  .form-group input, .form-group select, .form-group textarea {
+    padding:0.65rem 1rem; border:1.5px solid #dee2e6; border-radius:6px;
+    font-size:0.95rem; width:100%; box-sizing:border-box; font-family:inherit; color:#2c3e50;
+  }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+    outline:none; border-color:#0d3b6e; box-shadow:0 0 0 3px rgba(13,59,110,0.08);
+  }
+  .form-group textarea { min-height:130px; resize:vertical; }
+  .form-hint { font-size:0.78rem; color:#7f8c8d; }
+  .form-row { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+  @media(max-width:640px){ .form-row { grid-template-columns:1fr; } }
+  .section-title { font-size:0.82rem; font-weight:700; color:#7f8c8d; text-transform:uppercase;
+    letter-spacing:0.06em; margin:1.8rem 0 0.8rem; padding-bottom:0.4rem; border-bottom:1px solid #e9ecef; }
+  .toggle-row { display:flex; gap:2rem; flex-wrap:wrap; margin-top:0.4rem; }
+  .toggle-item { display:flex; align-items:center; gap:0.5rem; cursor:pointer; font-size:0.95rem; }
+  .toggle-item input[type=checkbox] { width:18px; height:18px; cursor:pointer; accent-color:#0d3b6e; }
+  .submit-btn { padding:0.75rem 2.5rem; background:#0d3b6e; color:#fff; border:none; border-radius:6px;
+    font-size:1rem; font-weight:700; cursor:pointer; }
+  .submit-btn:hover { background:#c9a227; }
+  .back-link { display:inline-block; margin-bottom:1.5rem; color:#0d3b6e; font-weight:600; text-decoration:none; }
+  .current-img { width:80px; height:80px; object-fit:cover; border-radius:6px;
+    border:1px solid #dee2e6; display:block; margin-bottom:0.4rem; }
+  .star-select { display:flex; gap:0.5rem; align-items:center; }
+  .star-select input[type=radio] { display:none; }
+  .star-select label { font-size:1.6rem; cursor:pointer; color:#dee2e6; transition:color 0.15s; }
+  .star-select input[type=radio]:checked + label { color:#c9a227; }
+  .star-select label:has(~ input[type=radio]:checked) { color:#c9a227; }
+  .models-select { min-height:120px; }
+  #modelsWrapper { display:none; }
+  #modelsWrapper.visible { display:block; }
+</style>
+
+<body>
+  <%- include('../../includes/sellercompany/navbar-dash.ejs') %>
+
+  <section class="sidebar-content-container">
+    <section class="sidebar-container">
+      <%- include('../../includes/sellercompany/sidebar.ejs') %>
+    </section>
+
+    <div class="article-dashboard-container">
+      <a href="/admin/testimonials" class="back-link">← Back to Testimonials</a>
+      <h1><%= editing ? 'Edit Testimonial' : 'Add New Testimonial' %></h1>
+
+      <div class="form-card">
+        <form action="<%= editing ? '/admin/testimonials/edit/' + testimonial._id : '/admin/testimonials/add' %>"
+              method="POST" enctype="multipart/form-data">
+
+          <!-- ══ SHARED FIELDS ════════════════════════════════════════════════ -->
+          <p class="section-title">Customer Details</p>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="t-name">Full Name *</label>
+              <input type="text" id="t-name" name="name" required
+                     value="<%= editing && testimonial ? testimonial.name : '' %>">
+            </div>
+            <div class="form-group">
+              <label for="t-company">Company Name</label>
+              <input type="text" id="t-company" name="company"
+                     value="<%= editing && testimonial ? testimonial.company : '' %>">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="t-country">Country</label>
+              <input type="text" id="t-country" name="country" placeholder="e.g. Germany"
+                     value="<%= editing && testimonial ? testimonial.country : '' %>">
+            </div>
+            <div class="form-group">
+              <label for="t-industry">Industry</label>
+              <select id="t-industry" name="industry">
+                <option value="">— Select Industry —</option>
+                <% [
+                  'Clinical Laboratory','Research & Development','Food & Beverage',
+                  'Environmental Testing','Pharmaceutical','Biotechnology',
+                  'Education','Industrial','Other'
+                ].forEach(function(ind) { %>
+                <option value="<%= ind %>" <%= (editing && testimonial && testimonial.industry === ind) ? 'selected' : '' %>><%= ind %></option>
+                <% }) %>
+              </select>
+            </div>
+          </div>
+
+          <p class="section-title">Product Reference</p>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="productSelect">Product</label>
+              <select id="productSelect" name="productId">
+                <option value="">— No specific product —</option>
+                <% products.forEach(function(p) {
+                   const pName = p.Language && p.Language.EN && p.Language.EN[0]
+                     ? p.Language.EN[0].ProductName
+                     : (p.Language && p.Language.DE && p.Language.DE[0] ? p.Language.DE[0].ProductName : 'Unnamed');
+                   const selected = editing && testimonial && testimonial.productId &&
+                     testimonial.productId.toString() === p._id.toString();
+                %>
+                <option value="<%= p._id %>" data-name="<%= pName %>" <%= selected ? 'selected' : '' %>><%= pName %></option>
+                <% }) %>
+              </select>
+              <input type="hidden" id="productName" name="productName"
+                     value="<%= editing && testimonial ? testimonial.productName : '' %>">
+            </div>
+            <div class="form-group" id="modelsWrapper">
+              <label for="modelSelect">Models <span class="form-hint">(optional · hold Ctrl/Cmd for multiple)</span></label>
+              <select id="modelSelect" name="modelIds" multiple class="models-select"></select>
+              <input type="hidden" id="modelNamesInput" name="modelNames" value="">
+            </div>
+          </div>
+
+          <!-- product+model data for JS -->
+          <script id="productsData" type="application/json"><%- JSON.stringify(products.map(function(p) {
+            return {
+              id: p._id.toString(),
+              name: p.Language && p.Language.EN && p.Language.EN[0] ? p.Language.EN[0].ProductName
+                    : (p.Language && p.Language.DE && p.Language.DE[0] ? p.Language.DE[0].ProductName : 'Unnamed'),
+              models: (p.Models || []).map(function(m) { return {
+                id: m._id.toString(),
+                name: m.Language && m.Language.EN && m.Language.EN[0] ? m.Language.EN[0].ModelName
+                      : (m.Language && m.Language.DE && m.Language.DE[0] ? m.Language.DE[0].ModelName : 'Unnamed Model')
+              }; })
+            };
+          })) %></script>
+
+          <% if (editing && testimonial && testimonial.modelIds && testimonial.modelIds.length) { %>
+          <script id="preselectedModels" type="application/json"><%- JSON.stringify({
+            productId: testimonial.productId ? testimonial.productId.toString() : '',
+            modelIds:   testimonial.modelIds,
+            modelNames: testimonial.modelNames
+          }) %></script>
+          <% } %>
+
+          <p class="section-title">Rating</p>
+          <div class="form-group">
+            <label>Star Rating *</label>
+            <div class="star-select" id="starSelect">
+              <% for (let s = 5; s >= 1; s--) {
+                 const checked = editing && testimonial ? testimonial.rating === s : s === 5;
+              %>
+              <input type="radio" name="rating" id="star<%= s %>" value="<%= s %>" <%= checked ? 'checked' : '' %>>
+              <label for="star<%= s %>">★</label>
+              <% } %>
+            </div>
+          </div>
+
+          <!-- ══ LANGUAGE TABS (Quote per language) ═══════════════════════════ -->
+          <p class="section-title">Testimonial Quote — by Language</p>
+          <%
+            const LANGS = [
+              { key: 'en', label: 'EN', name: 'English' },
+              { key: 'es', label: 'ES', name: 'Spanish' },
+              { key: 'de', label: 'DE', name: 'German' },
+              { key: 'tr', label: 'TR', name: 'Turkish' },
+              { key: 'fr', label: 'FR', name: 'French' }
+            ];
+          %>
+          <div class="lang-tabs-header">
+            <div class="lang-tabs">
+              <% LANGS.forEach(function(l, idx) {
+                 const tr = (editing && testimonial) ? (testimonial.translations?.[l.key] || {}) : {};
+                 const st = tr.status || 'none';
+              %>
+              <button type="button"
+                      class="lang-tab-btn <%= idx === 0 ? 'active' : '' %>"
+                      data-lang="<%= l.key %>">
+                <% if (st === 'published') { %><span class="tab-dot dot-published"></span>
+                <% } else if (st === 'draft') { %><span class="tab-dot dot-draft"></span><% } %>
+                <%= l.label %> <span class="lang-full-name"><%= l.name %></span>
+              </button>
+              <% }) %>
+            </div>
+          </div>
+
+          <% LANGS.forEach(function(l, idx) {
+             const tr = (editing && testimonial) ? (testimonial.translations?.[l.key] || {}) : {};
+             const currentStatus = tr.status || 'none';
+          %>
+          <div id="tab-<%= l.key %>" class="lang-tab-content <%= idx === 0 ? 'active' : '' %>">
+            <input type="hidden" id="status_<%= l.key %>" name="<%= l.key %>_status" value="<%= currentStatus %>">
+
+            <div class="form-group">
+              <label>Quote / Testimonial (<%= l.name %>)</label>
+              <textarea name="<%= l.key %>_quote" rows="5" placeholder="Enter the customer's testimonial in <%= l.name %>..."><%= tr.quote || '' %></textarea>
+            </div>
+
+            <div class="status-section">
+              <label>Publication status for <%= l.name %></label>
+              <div class="status-buttons" id="status-btns-<%= l.key %>">
+                <button type="button"
+                        class="status-btn btn-draft <%= currentStatus === 'draft' ? 'active' : '' %>"
+                        data-lang="<%= l.key %>" data-val="draft">Save as Draft</button>
+                <button type="button"
+                        class="status-btn btn-publish <%= currentStatus === 'published' ? 'active' : '' %>"
+                        data-lang="<%= l.key %>" data-val="published">Publish</button>
+              </div>
+            </div>
+          </div>
+          <% }) %>
+
+          <!-- ══ MEDIA ══════════════════════════════════════════════════════════ -->
+          <p class="section-title">Media</p>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="testimonialImage">Customer Photo</label>
+              <% if (editing && testimonial && testimonial.image) { %>
+                <img src="<%= testimonial.image %>" class="current-img" alt="Current photo">
+                <span class="form-hint">Upload a new image to replace</span>
+              <% } %>
+              <input type="file" id="testimonialImage" name="testimonialImage" accept="image/*">
+            </div>
+            <div class="form-group">
+              <label for="testimonialLogo">Company Logo</label>
+              <% if (editing && testimonial && testimonial.logo) { %>
+                <img src="<%= testimonial.logo %>" class="current-img" alt="Current logo"
+                     style="object-fit:contain;background:#f8f9fa;">
+                <span class="form-hint">Upload a new logo to replace</span>
+              <% } %>
+              <input type="file" id="testimonialLogo" name="testimonialLogo" accept="image/*">
+            </div>
+          </div>
+
+          <!-- ══ OPTIONS ════════════════════════════════════════════════════════ -->
+          <p class="section-title">Options</p>
+          <div class="toggle-row">
+            <label class="toggle-item">
+              <input type="checkbox" name="featured"
+                     <%= (editing && testimonial && testimonial.featured) ? 'checked' : '' %>>
+              Featured
+            </label>
+            <label class="toggle-item">
+              <input type="checkbox" name="caseStudy"
+                     <%= (editing && testimonial && testimonial.caseStudy) ? 'checked' : '' %>>
+              Case Study
+            </label>
+          </div>
+
+<div class="form-buttons" style="margin-top:1.5rem;">
+            <button type="submit" class="submit-btn"><%= editing ? 'Save Changes' : 'Add Testimonial' %></button>
+            <a href="/admin/testimonials" class="cancel-button">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <script nonce="<%= nonce %>">
+  (function () {
+    /* ── Language tabs ────────────────────────────────────────────────────── */
+    function showTab(lang) {
+      document.querySelectorAll('.lang-tab-content').forEach(function(el) { el.classList.remove('active'); });
+      document.querySelectorAll('.lang-tab-btn').forEach(function(el) { el.classList.remove('active'); });
+      var c = document.getElementById('tab-' + lang);
+      if (c) c.classList.add('active');
+      var b = document.querySelector('.lang-tab-btn[data-lang="' + lang + '"]');
+      if (b) b.classList.add('active');
+    }
+
+    document.querySelectorAll('.lang-tab-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() { showTab(this.dataset.lang); });
+    });
+
+    /* ── Status buttons (same pattern as FAQ/articles) ───────────────────── */
+    document.querySelectorAll('.status-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var lang      = this.dataset.lang;
+        var val       = this.dataset.val;
+        var hidden    = document.getElementById('status_' + lang);
+        var container = document.getElementById('status-btns-' + lang);
+
+        if (val === 'published') {
+          var quoteEl = document.querySelector('[name="' + lang + '_quote"]');
+          var quote   = quoteEl ? quoteEl.value.trim() : '';
+          var errId   = 'publish-err-' + lang;
+          var existing = document.getElementById(errId);
+          if (existing) existing.remove();
+          if (!quote) {
+            var err = document.createElement('p');
+            err.id = errId;
+            err.style.cssText = 'color:#dc3545;font-size:0.82rem;margin:6px 0 0;font-weight:600;';
+            err.textContent = 'Cannot publish: Quote is empty.';
+            container.after(err);
+            return;
+          }
+        } else {
+          var errEl = document.getElementById('publish-err-' + lang);
+          if (errEl) errEl.remove();
+        }
+
+        if (hidden.value === val) {
+          hidden.value = 'none';
+          container.querySelectorAll('.status-btn').forEach(function(b) { b.classList.remove('active'); });
+        } else {
+          hidden.value = val;
+          container.querySelectorAll('.status-btn').forEach(function(b) { b.classList.remove('active'); });
+          this.classList.add('active');
+        }
+
+        var tabBtn = document.querySelector('.lang-tab-btn[data-lang="' + lang + '"]');
+        if (tabBtn) {
+          var dot = tabBtn.querySelector('.tab-dot');
+          if (dot) dot.remove();
+          if (hidden.value === 'published' || hidden.value === 'draft') {
+            var newDot = document.createElement('span');
+            newDot.className = 'tab-dot dot-' + hidden.value;
+            tabBtn.insertBefore(newDot, tabBtn.firstChild);
+          }
+        }
+      });
+    });
+
+    /* ── Product → Models cascade ────────────────────────────────────────── */
+    var productsData  = JSON.parse(document.getElementById('productsData').textContent);
+    var productSelect = document.getElementById('productSelect');
+    var modelSelect   = document.getElementById('modelSelect');
+    var modelsWrapper = document.getElementById('modelsWrapper');
+    var productNameIn = document.getElementById('productName');
+    var modelNamesIn  = document.getElementById('modelNamesInput');
+
+    function populateModels(productId, preselectedIds) {
+      modelSelect.innerHTML = '';
+      var product = productsData.find(function(p) { return p.id === productId; });
+      if (!product || !product.models.length) { modelsWrapper.classList.remove('visible'); return; }
+      product.models.forEach(function(m) {
+        var opt = document.createElement('option');
+        opt.value = m.id;
+        opt.textContent = m.name;
+        if (preselectedIds && preselectedIds.indexOf(m.id) !== -1) opt.selected = true;
+        modelSelect.appendChild(opt);
+      });
+      modelsWrapper.classList.add('visible');
+    }
+
+    function syncModelNames() {
+      modelNamesIn.value = Array.from(modelSelect.selectedOptions).map(function(o) { return o.textContent; }).join(',');
+    }
+
+    productSelect.addEventListener('change', function() {
+      productNameIn.value = this.options[this.selectedIndex].dataset.name || '';
+      populateModels(this.value, []);
+    });
+    modelSelect.addEventListener('change', syncModelNames);
+
+    var preEl = document.getElementById('preselectedModels');
+    if (preEl) {
+      var pre = JSON.parse(preEl.textContent);
+      if (pre.productId) { populateModels(pre.productId, pre.modelIds); modelNamesIn.value = (pre.modelNames || []).join(','); }
+    } else if (productSelect.value) {
+      populateModels(productSelect.value, []);
+    }
+
+    /* ── Star rating: reverse-order CSS trick fix ────────────────────────── */
+    var starContainer = document.getElementById('starSelect');
+    starContainer.style.flexDirection = 'row-reverse';
+    starContainer.style.justifyContent = 'flex-end';
+  })();
+  </script>
+</body>

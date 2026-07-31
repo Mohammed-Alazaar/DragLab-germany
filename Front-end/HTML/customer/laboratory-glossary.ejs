@@ -1,0 +1,165 @@
+<%- include('../../includes/customer/head.ejs') %>
+<link rel="stylesheet" href="/css/customer/about-us.css">
+<link rel="stylesheet" href="/css/customer/laboratory-glossary.css">
+<%
+  const BASE = 'https://www.drag-lab.de';
+  const pageUrl = BASE + '/' + lang + '/laboratory-glossary';
+%>
+
+<title><%= pageTitle %></title>
+<meta name="description" content="<%= metaDescription %>">
+
+<link rel="canonical" href="<%= pageUrl %>">
+<link rel="alternate" hreflang="x-default" href="<%= BASE %>/EN/laboratory-glossary">
+<link rel="alternate" hreflang="en" href="<%= BASE %>/EN/laboratory-glossary">
+<link rel="alternate" hreflang="de" href="<%= BASE %>/DE/laboratory-glossary">
+<link rel="alternate" hreflang="es" href="<%= BASE %>/ES/laboratory-glossary">
+<link rel="alternate" hreflang="fr" href="<%= BASE %>/FR/laboratory-glossary">
+<link rel="alternate" hreflang="tr" href="<%= BASE %>/TR/laboratory-glossary">
+
+<meta property="og:title" content="<%= ogTitle %>">
+<meta property="og:description" content="<%= ogDescription %>">
+<meta property="og:url" content="<%= pageUrl %>">
+<meta property="og:type" content="website">
+
+<script type="application/ld+json" nonce="<%= nonce %>"><%- JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type":"ListItem","position":1,"name":(lang==='DE'?'Startseite':lang==='ES'?'Inicio':lang==='TR'?'Ana Sayfa':lang==='FR'?'Accueil':'Home'),"item": BASE + "/" + lang + "/"},
+    {"@type":"ListItem","position":2,"name":(lang==='DE'?'Laborglossar':lang==='ES'?'Glosario de Laboratorio':lang==='TR'?'Laboratuvar Sözlüğü':lang==='FR'?'Glossaire de Laboratoire':'Laboratory Glossary'),"item": pageUrl}
+  ]
+}) %></script>
+</head>
+
+<body>
+<%- include('../../includes/customer/navbar.ejs') %>
+
+<!-- Hero -->
+<div class="slide">
+  <div class="slide-text">
+    <h1><%= heroTitle %></h1>
+    <p><%= heroSub %></p>
+  </div>
+  <img src="/assets/Imgs/Icons/products/ArticlesBg.webp" alt="">
+</div>
+
+<!-- Search -->
+<div class="gloss-search-wrap">
+  <input type="text" id="gloss-search" class="gloss-search-input" placeholder="<%= searchPlaceholder %>">
+</div>
+
+<!-- Category Filter -->
+<% if (categories && categories.length > 0) { %>
+<div class="gloss-category-nav">
+  <button class="gloss-cat-btn active" data-cat="all">All Terms</button>
+  <% categories.forEach(cat => { %>
+  <button class="gloss-cat-btn" data-cat="<%= cat.slug %>"><%= cat.name %></button>
+  <% }) %>
+</div>
+<% } %>
+
+<!-- Alphabet Navigation -->
+<nav class="gloss-alphabet-nav" aria-label="Alphabet navigation">
+  <a href="#" class="gloss-alpha-btn has-terms active" data-letter="all">All</a>
+  <% alphabet.forEach(letter => {
+     const hasTerms = availableLetters.includes(letter);
+  %>
+  <a href="#letter-<%= letter %>"
+     class="gloss-alpha-btn <%= hasTerms ? 'has-terms' : 'disabled' %>"
+     <% if (!hasTerms) { %>aria-disabled="true"<% } %>
+     data-letter="<%= letter %>"><%= letter %></a>
+  <% }) %>
+</nav>
+
+<!-- Content -->
+<div class="gloss-content">
+  <% if (Object.keys(grouped).length === 0) { %>
+  <div class="gloss-empty"><%= noResults %></div>
+  <% } else { %>
+    <% Object.entries(grouped).sort((a,b) => a[0].localeCompare(b[0])).forEach(([letter, terms]) => { %>
+    <div class="gloss-letter-group" id="letter-<%= letter %>" data-letter="<%= letter %>">
+      <div class="gloss-letter-heading"><%= letter %></div>
+      <div class="gloss-term-grid">
+        <% terms.forEach(term => { %>
+        <div class="gloss-term-card" data-term="<%= term.displayTerm.toLowerCase() %>" data-def="<%= term.displayDef.toLowerCase() %>" data-category="<%= term.category || '' %>">
+          <div class="gloss-term-name">
+            <a href="/<%= lang %>/laboratory-glossary/<%= term.slug %>"><%= term.displayTerm %></a>
+          </div>
+          <p class="gloss-term-def"><%= term.displayDef.length > 120 ? term.displayDef.substring(0, 120) + '…' : term.displayDef %></p>
+        </div>
+        <% }) %>
+      </div>
+    </div>
+    <% }) %>
+  <% } %>
+</div>
+
+<%- include('../../includes/customer/footer.ejs') %>
+
+<script nonce="<%= nonce %>">
+(function() {
+  var activeAlpha = 'all';
+  var activeCat   = 'all';
+
+  function applyFilters() {
+    var q = (document.getElementById('gloss-search') || {}).value;
+    q = q ? q.toLowerCase().trim() : '';
+
+    document.querySelectorAll('.gloss-term-card').forEach(function(card) {
+      var text    = (card.dataset.term || '') + ' ' + (card.dataset.def || '');
+      var catSlug = card.dataset.category || '';
+
+      var matchSearch = !q || text.includes(q);
+      var matchCat    = activeCat === 'all' || catSlug === activeCat;
+      card.classList.toggle('hidden-by-search', !(matchSearch && matchCat));
+    });
+
+    // Show/hide letter groups based on active alpha + remaining visible cards
+    document.querySelectorAll('.gloss-letter-group').forEach(function(group) {
+      var letter  = group.dataset.letter;
+      var inAlpha = activeAlpha === 'all' || activeAlpha === letter;
+      if (!inAlpha) { group.style.display = 'none'; return; }
+      var visible = group.querySelectorAll('.gloss-term-card:not(.hidden-by-search)').length;
+      group.style.display = visible ? '' : 'none';
+    });
+  }
+
+  // Search
+  var searchInput = document.getElementById('gloss-search');
+  if (searchInput) {
+    searchInput.addEventListener('input', applyFilters);
+  }
+
+  // Alphabet buttons
+  document.querySelectorAll('.gloss-alpha-btn').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
+      document.querySelectorAll('.gloss-alpha-btn').forEach(function(b) { b.classList.remove('active'); });
+      this.classList.add('active');
+      activeAlpha = this.dataset.letter;
+      applyFilters();
+      if (activeAlpha !== 'all') {
+        var target = document.getElementById('letter-' + activeAlpha);
+        if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    });
+  });
+
+  // Category buttons
+  document.querySelectorAll('.gloss-cat-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.gloss-cat-btn').forEach(function(b) { b.classList.remove('active'); });
+      this.classList.add('active');
+      activeCat = this.dataset.cat;
+      applyFilters();
+    });
+  });
+})();
+</script>
+
+</body>
+<%- include('../../includes/customer/script.ejs') %>
+</html>

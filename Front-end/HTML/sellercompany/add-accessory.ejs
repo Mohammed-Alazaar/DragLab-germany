@@ -1,0 +1,433 @@
+<%- include('../../includes/sellercompany/head.ejs') %>
+<link rel="stylesheet" href="/css/sellercompany/add-article.css">
+<script src="https://cdn.tiny.cloud/1/mtjy6djndp0eitzxztgrpeyb5j51l2d31765itt3gj45jl8c/tinymce/6/tinymce.min.js"
+        referrerpolicy="origin"></script>
+
+<style nonce="<%= nonce %>">
+.form-container { max-width: 860px; }
+
+/* Product picker */
+.picker-row {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  margin-bottom: 0.8rem;
+}
+.picker-row select { flex: 1; min-width: 200px; }
+
+.picker-btn {
+  padding: 10px 18px;
+  background: var(--primary-Color, #0d3b6e);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.picker-btn:hover { background: #c9a227; }
+.picker-btn.secondary {
+  background: #f0f0f0;
+  color: #333;
+  border: 1px solid #ccc;
+}
+.picker-btn.secondary:hover { background: #ddd; }
+
+#modelsArea {
+  display: none;
+  margin-bottom: 1rem;
+  padding: 0.8rem 1rem;
+  background: #f8f9fb;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+}
+#modelsArea > p {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #555;
+  margin: 0 0 0.6rem;
+}
+#modelsCheckboxes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.8rem;
+}
+.model-cb-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.88rem;
+  padding: 0.35rem 0.8rem;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  cursor: pointer;
+  background: #fff;
+  user-select: none;
+}
+.model-cb-label:hover { border-color: #0d3b6e; }
+.model-cb-label input { cursor: pointer; accent-color: #0d3b6e; }
+.models-area-btns { display: flex; gap: 0.5rem; }
+
+/* Selected products */
+#selectedList { margin-bottom: 0.5rem; }
+.sel-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.55rem 0.9rem;
+  background: #f4f6fb;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  margin-bottom: 0.4rem;
+  font-size: 0.88rem;
+}
+.sel-item-info strong { display: block; color: #1a2e4a; }
+.sel-item-info span   { color: #7f8c8d; font-size: 0.8rem; }
+.sel-remove {
+  background: none;
+  border: none;
+  color: #dc3545;
+  cursor: pointer;
+  font-size: 1.2rem;
+  line-height: 1;
+  padding: 0 0 0 0.8rem;
+}
+
+/* Current image */
+.current-img {
+  max-width: 120px;
+  max-height: 120px;
+  object-fit: contain;
+  border-radius: 6px;
+  border: 1px solid #dee2e6;
+  display: block;
+  margin-bottom: 0.4rem;
+  background: #f8f9fa;
+  padding: 4px;
+}
+</style>
+
+<body>
+  <%- include('../../includes/sellercompany/navbar-dash.ejs') %>
+
+  <section class="sidebar-content-container">
+    <section class="sidebar-container">
+      <%- include('../../includes/sellercompany/sidebar.ejs') %>
+    </section>
+
+    <div class="form-container">
+      <h1><%= editing ? 'Edit Accessory' : 'Add Accessory' %></h1>
+
+      <form id="accForm"
+            action="/admin/accessories/<%= editing ? 'edit/' + accessory._id : 'add' %>"
+            method="POST"
+            enctype="multipart/form-data">
+
+        <!-- Basic info -->
+        <label for="acc-name">Name *</label>
+        <input type="text" id="acc-name" name="name" required
+               value="<%= editing && accessory ? accessory.name : '' %>">
+
+        <label for="acc-article">Article Number</label>
+        <input type="text" id="acc-article" name="articleNumber"
+               value="<%= editing && accessory ? (accessory.articleNumber || '') : '' %>">
+
+        <label for="acc-image">Image<% if (editing && accessory && accessory.image) { %> (upload to replace)<% } %></label>
+        <% if (editing && accessory && accessory.image) { %>
+          <img src="<%= accessory.image %>" class="current-img" alt="Current image">
+        <% } %>
+        <input type="file" id="acc-image" name="accessoryImage" accept="image/*">
+
+        <!-- Applicable Products builder -->
+        <label style="margin-top:24px;">Applicable Products &amp; Models</label>
+        <small style="display:block;margin:4px 0 12px;color:#888;">
+          Pick a product → click "Load Models" → tick the models that apply
+          (leave all unticked = all models) → click "+ Add". Repeat for more products.
+        </small>
+
+        <div class="picker-row">
+          <select id="productSelect">
+            <option value="">— Choose a product —</option>
+            <% productList.forEach(function(p) { %>
+            <option value="<%= p._id %>"
+                    data-slug="<%= p.slug %>"
+                    data-name="<%= p.name.replace(/&/g,'&amp;').replace(/"/g,'&quot;') %>">
+              <%= p.name %>
+            </option>
+            <% }); %>
+          </select>
+          <button type="button" id="btnLoadModels" class="picker-btn">Load Models</button>
+        </div>
+
+        <div id="modelsArea">
+          <p>Tick models (leave all unticked = applies to all models of this series)</p>
+          <div id="modelsCheckboxes"></div>
+          <div class="models-area-btns">
+            <button type="button" id="btnAddProduct" class="picker-btn">+ Add to list</button>
+            <button type="button" id="btnCancelPicker" class="picker-btn secondary">Cancel</button>
+          </div>
+        </div>
+
+        <div id="selectedList"></div>
+        <input type="hidden" id="applicableProductsJson" name="applicableProductsJson" value="[]">
+
+        <!-- Language tabs -->
+        <%
+          const LANGS = [
+            { key: 'en', label: 'EN', name: 'English' },
+            { key: 'es', label: 'ES', name: 'Spanish' },
+            { key: 'de', label: 'DE', name: 'German' },
+            { key: 'tr', label: 'TR', name: 'Turkish' },
+            { key: 'fr', label: 'FR', name: 'French' }
+          ];
+        %>
+
+        <div class="lang-tabs-header" style="margin-top:30px;">
+          <div class="lang-tabs">
+            <% LANGS.forEach(function(l, idx) {
+               const st = (editing && accessory && accessory.langStatus)
+                 ? (accessory.langStatus[l.key] || 'none') : 'none';
+            %>
+            <button type="button" class="lang-tab-btn <%= idx === 0 ? 'active' : '' %>"
+                    data-lang="<%= l.key %>">
+              <% if (st === 'published') { %><span class="tab-dot dot-published"></span>
+              <% } else if (st === 'draft') { %><span class="tab-dot dot-draft"></span>
+              <% } %>
+              <%= l.label %> <span class="lang-full-name"><%= l.name %></span>
+            </button>
+            <% }); %>
+          </div>
+        </div>
+
+        <% LANGS.forEach(function(l, idx) {
+           const st = (editing && accessory && accessory.langStatus)
+             ? (accessory.langStatus[l.key] || 'none') : 'none';
+           const body = (editing && accessory && accessory.description)
+             ? (accessory.description[l.key] || '') : '';
+        %>
+        <div id="tab-<%= l.key %>" class="lang-tab-content <%= idx === 0 ? 'active' : '' %>">
+          <input type="hidden" id="status_<%= l.key %>" name="<%= l.key %>_status" value="<%= st %>">
+
+          <label>Description (<%= l.name %>)</label>
+          <textarea id="desc_<%= l.key %>" name="description_<%= l.key %>" rows="6"><%= body %></textarea>
+
+          <div class="status-section">
+            <label>Publication status for <%= l.name %></label>
+            <div class="status-buttons" id="status-btns-<%= l.key %>">
+              <button type="button"
+                      class="status-btn btn-draft <%= st === 'draft' ? 'active' : '' %>"
+                      data-lang="<%= l.key %>" data-val="draft">Save as Draft</button>
+              <button type="button"
+                      class="status-btn btn-publish <%= st === 'published' ? 'active' : '' %>"
+                      data-lang="<%= l.key %>" data-val="published">Publish</button>
+            </div>
+          </div>
+        </div>
+        <% }); %>
+
+        <div class="form-buttons" style="margin-top:1.5rem;">
+          <button type="submit"><%= editing ? 'Save Changes' : 'Add Accessory' %></button>
+          <a href="/admin/accessories" class="cancel-button">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <script nonce="<%= nonce %>">
+  (function () {
+    /* ── TinyMCE ──────────────────────────────────────────────────────────── */
+    var tinyInitialized = {};
+
+    function initTinyMCE(lang) {
+      if (tinyInitialized[lang] || typeof tinymce === 'undefined') return;
+      tinymce.init({
+        selector: '#desc_' + lang,
+        plugins: 'link lists table code',
+        toolbar: 'undo redo | bold italic underline | alignleft aligncenter alignright | bullist numlist | link | code',
+        height: 350,
+        menubar: false,
+        branding: false
+      });
+      tinyInitialized[lang] = true;
+    }
+
+    /* ── State ────────────────────────────────────────────────────────────── */
+    var selectedProducts = <%- (editing && accessory && accessory.applicableProducts)
+      ? JSON.stringify(accessory.applicableProducts) : '[]' %>;
+    var pendingProductId   = null;
+    var pendingProductName = '';
+    var pendingProductSlug = '';
+
+    /* ── Helpers ──────────────────────────────────────────────────────────── */
+    function esc(s) {
+      return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    function syncHidden() {
+      document.getElementById('applicableProductsJson').value = JSON.stringify(selectedProducts);
+    }
+
+    function renderSelected() {
+      var list = document.getElementById('selectedList');
+      if (!selectedProducts.length) { list.innerHTML = ''; syncHidden(); return; }
+      list.innerHTML = selectedProducts.map(function(p, i) {
+        var modelTxt = (p.models && p.models.length)
+          ? p.models.map(function(m){ return esc(m.modelName); }).join(', ')
+          : 'All models';
+        return '<div class="sel-item">' +
+          '<div class="sel-item-info"><strong>' + esc(p.productName) + '</strong>' +
+          '<span>' + modelTxt + '</span></div>' +
+          '<button class="sel-remove" type="button" data-idx="' + i + '" title="Remove">✕</button>' +
+          '</div>';
+      }).join('');
+      syncHidden();
+
+      // Wire remove buttons
+      list.querySelectorAll('.sel-remove').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          selectedProducts.splice(Number(this.dataset.idx), 1);
+          renderSelected();
+        });
+      });
+    }
+
+    function resetPicker() {
+      document.getElementById('productSelect').value = '';
+      document.getElementById('modelsCheckboxes').innerHTML = '';
+      document.getElementById('modelsArea').style.display = 'none';
+      pendingProductId = null;
+    }
+
+    /* ── Load Models button ───────────────────────────────────────────────── */
+    document.getElementById('btnLoadModels').addEventListener('click', function() {
+      var sel = document.getElementById('productSelect');
+      var opt = sel.options[sel.selectedIndex];
+      if (!opt || !opt.value) { alert('Please choose a product first.'); return; }
+
+      pendingProductId   = opt.value;
+      pendingProductName = opt.dataset.name || opt.text;
+      pendingProductSlug = opt.dataset.slug || '';
+
+      fetch('/admin/accessories/get-models/' + pendingProductId)
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          var wrap = document.getElementById('modelsCheckboxes');
+          wrap.innerHTML = '';
+
+          if (!data.models || data.models.length === 0) {
+            wrap.innerHTML = '<em style="color:#888;font-size:0.85rem;">No models found for this product.</em>';
+          } else {
+            data.models.forEach(function(m) {
+              var lbl = document.createElement('label');
+              lbl.className = 'model-cb-label';
+
+              var cb = document.createElement('input');
+              cb.type = 'checkbox';
+              cb.value = m._id;
+              cb.dataset.name = m.modelName;
+              cb.dataset.slug = m.slug || '';
+
+              lbl.appendChild(cb);
+              lbl.appendChild(document.createTextNode(' ' + m.modelName));
+              wrap.appendChild(lbl);
+            });
+          }
+
+          document.getElementById('modelsArea').style.display = 'block';
+        })
+        .catch(function() { alert('Failed to load models. Please try again.'); });
+    });
+
+    /* ── Add product to list ──────────────────────────────────────────────── */
+    document.getElementById('btnAddProduct').addEventListener('click', function() {
+      if (!pendingProductId) return;
+
+      var checked = document.querySelectorAll('#modelsCheckboxes input[type=checkbox]:checked');
+      var models  = Array.from(checked).map(function(cb) {
+        return { modelId: cb.value, modelName: cb.dataset.name, modelSlug: cb.dataset.slug };
+      });
+
+      // Replace existing entry for the same product
+      selectedProducts = selectedProducts.filter(function(p) {
+        return String(p.productId) !== String(pendingProductId);
+      });
+      selectedProducts.push({
+        productId:   pendingProductId,
+        productName: pendingProductName,
+        productSlug: pendingProductSlug,
+        models:      models
+      });
+
+      resetPicker();
+      renderSelected();
+    });
+
+    /* ── Cancel picker ────────────────────────────────────────────────────── */
+    document.getElementById('btnCancelPicker').addEventListener('click', resetPicker);
+
+    /* ── Language tabs ────────────────────────────────────────────────────── */
+    function showTab(lang) {
+      document.querySelectorAll('.lang-tab-content').forEach(function(el) { el.classList.remove('active'); });
+      document.querySelectorAll('.lang-tab-btn').forEach(function(el) { el.classList.remove('active'); });
+      var c = document.getElementById('tab-' + lang);
+      if (c) c.classList.add('active');
+      var b = document.querySelector('.lang-tab-btn[data-lang="' + lang + '"]');
+      if (b) b.classList.add('active');
+    }
+
+    document.querySelectorAll('.lang-tab-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        showTab(this.dataset.lang);
+        initTinyMCE(this.dataset.lang);
+      });
+    });
+
+    /* ── Status buttons ───────────────────────────────────────────────────── */
+    function updateTabDot(lang, status) {
+      var tabBtn = document.querySelector('.lang-tab-btn[data-lang="' + lang + '"]');
+      if (!tabBtn) return;
+      var dot = tabBtn.querySelector('.tab-dot');
+      if (dot) dot.remove();
+      if (status === 'published' || status === 'draft') {
+        var newDot = document.createElement('span');
+        newDot.className = 'tab-dot dot-' + status;
+        tabBtn.insertBefore(newDot, tabBtn.firstChild);
+      }
+    }
+
+    document.querySelectorAll('.status-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var lang      = this.dataset.lang;
+        var val       = this.dataset.val;
+        var hidden    = document.getElementById('status_' + lang);
+        var container = document.getElementById('status-btns-' + lang);
+
+        if (hidden.value === val) {
+          hidden.value = 'none';
+          container.querySelectorAll('.status-btn').forEach(function(b) { b.classList.remove('active'); });
+        } else {
+          hidden.value = val;
+          container.querySelectorAll('.status-btn').forEach(function(b) { b.classList.remove('active'); });
+          this.classList.add('active');
+        }
+        updateTabDot(lang, hidden.value);
+      });
+    });
+
+    /* ── Init ─────────────────────────────────────────────────────────────── */
+    renderSelected();
+
+    // Init TinyMCE for the first tab (EN) immediately
+    initTinyMCE('en');
+
+    // Save all TinyMCE content into textareas before form submit
+    document.getElementById('accForm').addEventListener('submit', function() {
+      if (typeof tinymce !== 'undefined') tinymce.triggerSave();
+    });
+  })();
+  </script>
+
+</body>
+</html>

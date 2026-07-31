@@ -1,0 +1,81 @@
+<%- include('../../includes/customer/head.ejs') %>
+<link rel="stylesheet" href="/css/customer/case-studies.css">
+<%
+  const BASE = 'https://www.drag-lab.de';
+  const pageUrl = BASE + '/' + lang + '/case-studies';
+%>
+
+<title><%= pageTitle %></title>
+<meta name="description" content="<%= metaDescription %>">
+
+<link rel="canonical" href="<%= pageUrl %>">
+<link rel="alternate" hreflang="x-default" href="<%= BASE %>/EN/case-studies">
+<link rel="alternate" hreflang="en" href="<%= BASE %>/EN/case-studies">
+<link rel="alternate" hreflang="de" href="<%= BASE %>/DE/case-studies">
+<link rel="alternate" hreflang="es" href="<%= BASE %>/ES/case-studies">
+<link rel="alternate" hreflang="fr" href="<%= BASE %>/FR/case-studies">
+<link rel="alternate" hreflang="tr" href="<%= BASE %>/TR/case-studies">
+
+<meta property="og:title" content="<%= ogTitle %>">
+<meta property="og:description" content="<%= ogDescription %>">
+<meta property="og:url" content="<%= pageUrl %>">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="<%= ogTitle %>">
+<meta name="twitter:description" content="<%= ogDescription %>">
+
+<script type="application/ld+json" nonce="<%= nonce %>"><%- JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type":"ListItem","position":1,"name":(lang==='DE'?'Startseite':lang==='ES'?'Inicio':lang==='TR'?'Ana Sayfa':lang==='FR'?'Accueil':'Home'),"item": BASE + "/" + lang + "/"},
+    {"@type":"ListItem","position":2,"name":(lang==='DE'?'Fallstudien':lang==='ES'?'Casos de Estudio':lang==='TR'?'Vaka Çalışmaları':lang==='FR'?'Études de Cas':'Case Studies'),"item": pageUrl}
+  ]
+}) %></script>
+</head>
+
+<body>
+<%- include('../../includes/customer/navbar.ejs') %>
+
+<!-- Hero -->
+<div class="cs-hero">
+  <div class="cs-hero-text">
+    <h1><%= heroTitle %></h1>
+    <p><%= heroSub %></p>
+  </div>
+</div>
+
+<!-- Grid -->
+<div class="cs-grid-section">
+  <% if (!caseStudies || caseStudies.length === 0) { %>
+  <div class="cs-empty">
+    <p><%= lang==='DE'?'Noch keine Fallstudien veröffentlicht.':lang==='ES'?'No hay casos de estudio publicados todavía.':lang==='TR'?'Henüz vaka çalışması yayınlanmamış.':lang==='FR'?'Aucune étude de cas publiée pour l\'instant.':'No case studies published yet.' %></p>
+  </div>
+  <% } else { %>
+  <div class="cs-grid">
+    <% caseStudies.forEach(cs => { %>
+    <article class="cs-card">
+      <% if (cs.thumbnail) { %>
+      <img src="<%= cs.thumbnail %>" alt="<%= cs.displayTitle %>" class="cs-card-thumbnail" loading="lazy">
+      <% } else { %>
+      <div class="cs-card-thumbnail-placeholder">🔬</div>
+      <% } %>
+      <div class="cs-card-body">
+        <div class="cs-card-meta">
+          <% if (cs.industry) { %><span class="cs-tag"><%= cs.industry %></span><% } %>
+          <% if (cs.clientLocation) { %><span class="cs-tag"><%= cs.clientLocation %></span><% } %>
+        </div>
+        <h2 class="cs-card-title"><%= cs.displayTitle %></h2>
+        <p class="cs-card-summary"><%= cs.displaySummary || (cs.displayTitle ? '' : '—') %></p>
+        <a href="/<%= lang %>/case-studies/<%= cs.displaySlug %>" class="cs-read-more"><%= readMore %></a>
+      </div>
+    </article>
+    <% }) %>
+  </div>
+  <% } %>
+</div>
+
+<%- include('../../includes/customer/footer.ejs') %>
+</body>
+<%- include('../../includes/customer/script.ejs') %>
+</html>

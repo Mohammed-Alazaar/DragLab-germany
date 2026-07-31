@@ -1,6 +1,6 @@
 <%- include('../../includes/sellercompany/head.ejs') %>
 
-    <link rel="stylesheet" href="/front-end/Css/sellercompany/addcataloge.css">
+    <link rel="stylesheet" href="/css/sellercompany/addcataloge.css">
 
     <%- include('../../includes/sellercompany/head-end.ejs') %>
 
@@ -13,23 +13,23 @@
 
 
 
-                    <section>
-                        <% if (query.error === 'duplicate') { %>
+                    <section class="content-container">
+                        <% if (query.error==='duplicate' ) { %>
                             <div class="alert-error">❌ A category with this key already exists.</div>
-                          <% } else if (query.error === 'unexpected') { %>
-                            <div class="alert-error">❌ An unexpected error occurred. Please try again.</div>
-                          <% } else if (query.success === 'added') { %>
-                            <div class="alert-success">✅ Category added successfully.</div>
-                          <% } %>
-                          
-                        <h1>Add Catalog Category</h1>
-                        <form action="/admin/catalogs/add" method="POST">
-                            <label>Category Name</label>
-                            <input type="text" name="categoryName" required>
-                            <label>Category Key (e.g. logo, generalCatalogs)</label>
-                            <input type="text" name="categoryKey" required>
-                            <button type="submit">Add Category</button>
-                        </form>
+                            <% } else if (query.error==='unexpected' ) { %>
+                                <div class="alert-error">❌ An unexpected error occurred. Please try again.</div>
+                                <% } else if (query.success==='added' ) { %>
+                                    <div class="alert-success">✅ Category added successfully.</div>
+                                    <% } %>
+
+                                        <h1>Add Catalog Category</h1>
+                                        <form action="/admin/catalogs/add" method="POST">
+                                            <label>Category Name</label>
+                                            <input type="text" name="categoryName" required>
+                                            <label>Category Key (e.g. logo, generalCatalogs)</label>
+                                            <input type="text" name="categoryKey" required>
+                                            <button type="submit">Add Category</button>
+                                        </form>
 
                     </section>
 
@@ -39,7 +39,7 @@
 
 
 
-                <script src="/assets/Js/nav-bar.js"></script>
+                <script src="/assets/js-bar.js"></script>
         </body>
 
         </html>

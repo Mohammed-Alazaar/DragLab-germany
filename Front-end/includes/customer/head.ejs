@@ -1,48 +1,153 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<%= lang.toLowerCase() %>">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/Css/reset-code.css">
-    <link rel="stylesheet" href="/Css/nav-bar.css">
-    <link rel="stylesheet" href="/Css/footer.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:slnt,wght@-10..0,100..900&display=swap" rel="stylesheet">
-    <!--Start of Tawk.to Script-->
-    <script type="text/javascript">
-        var Tawk_API = Tawk_API || {}, Tawk_LoadStart = new Date();
-        (function () {
-            var s1 = document.createElement("script"), s0 = document.getElementsByTagName("script")[0];
-            s1.async = true;
-            s1.src = 'https://embed.tawk.to/680d85354b378d190bfa2ea0/1ipqd0mat';
-            s1.charset = 'UTF-8';
-            s1.setAttribute('crossorigin', '*');
-            s0.parentNode.insertBefore(s1, s0);
-        })();
-    </script>
-    <!--End of Tawk.to Script-->
-    <!-- use Microsoft strict  -->
-    <script type="text/javascript">
-        (function (c, l, a, r, i, t, y) {
-            c[a] = c[a] || function () { (c[a].q = c[a].q || []).push(arguments) };
-            t = l.createElement(r); t.async = 1; t.src = "https://www.clarity.ms/tag/" + i;
-            y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y);
-        })(window, document, "clarity", "script", "rafdtxx5y2");
-    </script>
+  <link rel="stylesheet" href="/css/reset-code.css">
+  <link rel="stylesheet" href="/css/nav-bar.css">
+  <link rel="stylesheet" href="/css/footer.css">
+  <script src="/js/navbar.js" defer></script>
+  <script nonce="<%= nonce %>">
+    // Load cookie UI after idle so it never competes with LCP
+    (window.requestIdleCallback || function (cb) { return setTimeout(cb, 1200); })(function () {
+      var s = document.createElement('script');
+      s.src = "https://www.termsfeed.com/public/cookie-consent/4.2.0/cookie-consent.js";
+      s.defer = true;
+      s.setAttribute('nonce', "<%= nonce %>");
+      document.head.appendChild(s);
+    });
+  </script>
+
+  <script src="/js/termsfeed-init.js" defer nonce="<%= nonce %>"></script>
+  <script type="text/plain" data-cookie-consent="strictly-necessary" src="/js/tawkto-init.js" defer></script>
+  <!-- In your head.ejs -->
+  <script src="/js/clarity.js" defer nonce="<%= nonce %>"></script>
+  <script type="text/plain" data-cookie-consent="tracking" defer
+    src="https://www.googletagmanager.com/gtag/js?id=G-6HXYVZ8CMN"></script>
+  <script type="text/plain" data-cookie-consent="tracking" src="/js/gtag-config.js" defer></script>
+  <link rel="icon" href="/assets/Imgs/logo/favicon.ico">
+  <link rel="icon" href="/assets/Imgs/logo/favicon-32.png" type="image/png" sizes="32x32">
+  <link rel="icon" href="/assets/Imgs/logo/favicon-192.png" type="image/png" sizes="192x192">
+  <link rel="apple-touch-icon" href="/assets/Imgs/logo/favicon-180.png" sizes="180x180">
+  <link rel="preconnect" href="https://res.cloudinary.com" crossorigin>
+  <!-- DNS prefetch for additional third-parties that don't need a full preconnect -->
+  <link rel="dns-prefetch" href="https://embed.tawk.to">
+  <link rel="dns-prefetch" href="https://va.tawk.to">
+  <link rel="dns-prefetch" href="https://www.google-analytics.com">
+  <!-- Preload the two most-used font weights so above-fold text isn't invisible -->
+  <link rel="preload" href="/assets/fonts/Aptos.ttf" as="font" type="font/ttf" crossorigin>
+  <link rel="preload" href="/assets/fonts/Aptos-SemiBold.ttf" as="font" type="font/ttf" crossorigin>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+  <meta name="robots" content="index, follow">
+  <meta name="theme-color" content="#005bac">
+  <meta name="author" content="DragLab">
+  <meta name="twitter:site" content="@DraglabGermany">
+  <meta property="og:locale" content="<%= lang === 'EN' ? 'en_US' : lang === 'ES' ? 'es_ES' : lang === 'TR' ? 'tr_TR' : lang === 'FR' ? 'fr_FR' : 'de_DE' %>">
+
+  <% const metaKeywords={
+    EN: "DragLab, laboratory equipment, medical equipment, incubators, ovens, distillers, water baths, drying ovens, quality policy, privacy policy, code of ethics, terms and conditions, contact us, technical service, warranty registration, download center, multilingual support, global distribution, ISO certified, CE compliant, quality assurance, customer support, research equipment, healthcare devices, lab technology, lab instruments, medical instruments, scientific equipment, biotech equipment, lab solutions, medical supplies, laboratory solutions provider"
+    ,
+    ES: "DragLab, equipos de laboratorio, equipos médicos, incubadoras, hornos, destiladores, baños maría, hornos de secado, política de calidad, política de privacidad, código de ética, términos y condiciones, contáctenos, servicio técnico, registro de garantía, centro de descargas, soporte multilingüe, distribución global, certificado ISO, cumplimiento CE, aseguramiento de calidad, atención al cliente, equipos de investigación, dispositivos médicos, tecnología de laboratorio, instrumentos médicos, instrumentos científicos, soluciones de laboratorio, proveedor de soluciones médicas"
+    ,
+    DE: "DragLab, Laborausrüstung, medizinische Geräte, Inkubatoren, Öfen, Destillierer, Wasserbäder, Trockenschränke, Qualitätspolitik, Datenschutzrichtlinie, Ethikkodex, Allgemeine Geschäftsbedingungen, Kontakt, technischer Support, Garantieanmeldung, Download-Center, mehrsprachiger Support, weltweiter Vertrieb, ISO-zertifiziert, CE-konform, Qualitätssicherung, Kundenservice, Forschungsausrüstung, medizinische Lösungen, Labortechnologie, medizinische Instrumente, wissenschaftliche Geräte, Laborbedarf, Anbieter von Laborausrüstung"
+    ,
+    TR: "DragLab, laboratuvar ekipmanları, tıbbi cihazlar, inkübatörler, fırınlar, damıtıcılar, su banyoları, kurutma fırınları, kalite politikası, gizlilik politikası, etik kuralları, hizmet şartları, bize ulaşın, teknik servis, garanti kaydı, indirme merkezi, çok dilli destek, küresel dağıtım, ISO sertifikalı, CE uyumlu, kalite güvencesi, müşteri desteği, araştırma ekipmanları, laboratuvar teknolojisi, tıbbi enstrümanlar, bilimsel ekipmanlar, laboratuvar çözümleri"
+    ,
+    FR: "DragLab, équipements de laboratoire, équipements médicaux, incubateurs, fours, distillateurs, bains-marie, étuves de séchage, politique qualité, politique de confidentialité, code d'éthique, conditions d'utilisation, contactez-nous, service technique, enregistrement de garantie, centre de téléchargement, support multilingue, distribution mondiale, certifié ISO, conforme CE, assurance qualité, support client, équipements de recherche, technologie de laboratoire, instruments médicaux, équipements scientifiques, solutions de laboratoire"
+    }; %>
+    <meta name="keywords" content="<%= metaKeywords[lang] %>">
+    <!-- speed up 3rd-party requests -->
+    <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
+    <link rel="preconnect" href="https://embed.tawk.to" crossorigin>
+    <!-- speed up 3rd-party requests -->
+    <%- include('./faqSchema.ejs', { lang, faqSchema }) %>
+      <!-- FAQ Schema (JSON-LD Structured Data) For the SEO -->
+      <% const sameAsLinks=[ "https://www.linkedin.com/company/draglab-technologies"
+        , "https://www.facebook.com/draglabde/" , "https://www.youtube.com/channel/UC5TffQfcaIONbKBBxKpyxag" ]; %>
+
+        <!-- Organization / Brand Logo (square) -->
+        <script type="application/ld+json" nonce="<%= nonce %>">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "DragLab",
+  "url": "https://www.drag-lab.de/",
+  "logo": "https://www.drag-lab.de/assets/Imgs/logo/logo.png",
+  "sameAs": [
+    "https://www.linkedin.com/company/draglab-technologies",
+    "https://www.facebook.com/draglabde/",
+    "https://www.youtube.com/channel/UC5TffQfcaIONbKBBxKpyxag"
+  ]
+}
+</script>
+
+        <link rel="alternate" type="application/rss+xml" title="DragLab Articles (EN)"
+          href="https://www.drag-lab.de/EN/feed.xml">
+        <link rel="alternate" type="application/rss+xml" title="DragLab Articles (ES)"
+          href="https://www.drag-lab.de/ES/feed.xml">
+        <link rel="alternate" type="application/rss+xml" title="DragLab Articles (DE)"
+          href="https://www.drag-lab.de/DE/feed.xml">
 
 
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-6HXYVZ8CMN"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag() { dataLayer.push(arguments); }
-        gtag('js', new Date());
+        <style nonce="<%= nonce %>">
+          /* Keep the banner out of viewport & clicks until we explicitly show it */
+          #cc--main,
+          #cc--main .cc-window {
+            pointer-events: none;
+          }
 
-        // Google Analytics (GA4) config
-        gtag('config', 'G-6HXYVZ8CMN');
+          #cc--main .cc-window {
+            position: fixed !important;
+            left: 50% !important;
+            bottom: 16px !important;
+            transform: translate(-50%, 200%);
+            /* off-screen */
+            transition: transform .25s ease;
+            z-index: 2147483647 !important;
+            max-width: 680px !important;
+            width: calc(100% - 32px) !important;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, .15);
+            border-radius: 12px;
+            visibility: hidden;
+            /* not paintable -> not a candidate for LCP */
+          }
 
-        // Google Ads config
-        gtag('config', 'AW-754782155'); 
-    </script>
+          .cookie-ready #cc--main,
+          .cookie-ready #cc--main .cc-window {
+            pointer-events: auto;
+          }
+
+          .cookie-ready #cc--main .cc-window {
+            transform: translate(-50%, 0);
+            visibility: visible;
+            /* show only after idle init */
+          }
+
+          /* Mobile tweak */
+          @media (max-width:480px) {
+            #cc--main .cc-window {
+              max-width: 560px !important;
+              border-radius: 10px;
+            }
+          }
+        </style>
+
+        <% if (typeof slides !=='undefined' && slides.length && slides[0].image) { %>
+          <link rel="preload" as="image" href="<%= slides[0].image %>" fetchpriority="high">
+          <% } %>
+
+        <%
+          // ── Canonical + hreflang ────────────────────────────────────────
+          const _SITE      = 'https://www.drag-lab.de';
+          const _HREFLANG  = { EN: 'en', ES: 'es', DE: 'de', TR: 'tr', FR: 'fr' };
+          // Strip the leading /:lang segment so we can rebuild for each language
+          const _rawPath   = (typeof currentPath !== 'undefined' ? currentPath : '/' + lang) || '/';
+          const _pathNoLang = _rawPath.replace(/^\/(EN|ES|DE|TR|FR)(\/|$)/i, '$2') || '/';
+          const _canonicalUrl = _SITE + '/' + lang + (_pathNoLang === '/' ? '' : ('/' + _pathNoLang).replace('//', '/'));
+        %>
+        <link rel="canonical" href="<%= _canonicalUrl %>">
+        <% Object.entries(_HREFLANG).forEach(([_l, _code]) => { %>
+        <link rel="alternate" hreflang="<%= _code %>" href="<%= _SITE + '/' + _l + (_pathNoLang === '/' ? '' : ('/' + _pathNoLang).replace('//', '/')) %>">
+        <% }); %>
+        <link rel="alternate" hreflang="x-default" href="<%= _SITE + '/EN' + (_pathNoLang === '/' ? '' : ('/' + _pathNoLang).replace('//', '/')) %>"
+        >

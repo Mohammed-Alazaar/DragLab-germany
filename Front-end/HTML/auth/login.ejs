@@ -1,17 +1,20 @@
-<%- include('../../includes/customer/head.ejs') %>
-    <link rel="stylesheet" href="/auth/login.css">
+<link rel="stylesheet" href="/css/auth/login.css">
 
-    <%- include('../../includes/customer/header-end.ejs') %>
-
-
-        <body>
-
-            <!-- nav-bar -->
+<link rel="stylesheet" href="/css/reset-code.css">
 
 
-                <!-- nav-bar -->
-                <section class="left-right-section-container">
-                    <!-- <section class="leftside">
+<body>
+
+    <!-- nav-bar -->
+
+    <body>
+        <!-- nav-bar -->
+        <!-- nav-bar -->
+
+
+        <!-- nav-bar -->
+        <section class="left-right-section-container">
+            <!-- <section class="leftside">
                         <img src="/assets/Imgs/logo/DragLab-Logo.png" alt="">
                         <div class="leftside-content">
                           
@@ -19,54 +22,53 @@
                     </section> -->
 
 
-                    <section class="rightside">
-                        <div class="Signup">
-                            <div class="image-container">
-                                <img src="/assets/Imgs/logo/DragLab-Logo.png" alt="">
-                            </div>
-                            <h1 id="login-h1">Login</h1>
-                            <% if (errorMessage) { %>
-                                <p class="error-message">
-                                    <%= errorMessage %>
-                                </p>
-                                <% } %>
-                                    <form action="/login" method="POST">
-                                        <div class="form-group">
-                                            <label for="email">Email</label>
-                                            <input type="text" name="email" id="email"
-                                                class="form-control <%= validationErrors.find(e => e.path === 'email') ? 'is-invalid' : '' %>"
-                                                value="<%= oldInput.email %>">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="password">Password</label>
-                                            <input type="password" name="password" id="password"
-                                                class="form-control <%= validationErrors.find(e => e.path === 'password') ? 'is-invalid' : '' %>"
-                                                value="<%= oldInput.password %>">
-                                            <div class="login">
-                                                <a href="/reset">Forget Password</a>
-                                            </div>
-                                        </div>
-                                        <div class="form-group">
-                                            <button type="submit" class="Signup-btn btn-primary">login</button>
-                                        </div>
+            <section class="rightside">
+                <div class="Signup">
+                    <div class="image-container">
+                        <img src="/assets/Imgs/logo/DragLab-Logo.png" alt="">
+                    </div>
+                    <h1 id="login-h1">Login</h1>
+                    <% if (errorMessage) { %>
+                        <p class="error-message">
+                            <%= errorMessage %>
+                        </p>
+                        <% } %>
+                            <form action="/login" method="POST">
+                                <div class="form-group">
+                                    <label for="email">Email</label>
+                                    <input type="text" name="email" id="email"
+                                        class="form-control <%= validationErrors.find(e => e.path === 'email') ? 'is-invalid' : '' %>"
+                                        value="<%= oldInput.email %>">
+                                </div>
+                                <div class="form-group">
+                                    <label for="password">Password</label>
+                                    <input type="password" name="password" id="password"
+                                        class="form-control <%= validationErrors.find(e => e.path === 'password') ? 'is-invalid' : '' %>"
+                                        value="<%= oldInput.password %>">
+                                    <div class="login">
+                                        <a href="/reset">Forget Password</a>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <button type="submit" class="Signup-btn btn-primary">login</button>
+                                </div>
 
 
-                                    </form>
-
-
-
-                        </div>
-                    </section>
-                </section>
-
-                <!--    content here -->
+                            </form>
 
 
 
-                <!--    content here -->
-                <%- include('../../includes/customer/footer.ejs') %>
-        </body>
+                </div>
+            </section>
+        </section>
 
-        <%- include('../../includes/customer/script.ejs') %>
+        <!--    content here -->
 
-            </html>
+
+
+        <!--    content here -->
+    </body>
+
+    <%- include('../../includes/customer/script.ejs') %>
+
+        </html>

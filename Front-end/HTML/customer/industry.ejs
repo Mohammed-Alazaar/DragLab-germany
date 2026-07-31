@@ -1,0 +1,267 @@
+<%- include('../../includes/customer/head.ejs') %>
+
+    <%
+const langLc = (lang || 'EN').toLowerCase();
+const pageTitle =
+  lang === 'ES' ? 'Soluciones por Industria | DragLab'
+  : lang === 'DE' ? 'Branchenlösungen | DragLab'
+  : lang === 'TR' ? 'Endüstri Çözümleri | DragLab'
+  : lang === 'FR' ? 'Solutions par Secteur | DragLab'
+  : 'Industry Solutions | DragLab';
+
+const metaDesc =
+  lang === 'ES' ? 'Descubra cómo DragLab ofrece equipos de laboratorio fiables para múltiples industrias, desde investigación hasta producción.'
+  : lang === 'DE' ? 'Entdecken Sie, wie DragLab zuverlässige Laborgeräte für zahlreiche Branchen liefert – von Forschung bis Produktion.'
+  : lang === 'TR' ? 'DragLab\'ın araştırmadan üretime kadar pek çok sektör için güvenilir laboratuvar ekipmanları nasıl sunduğunu keşfedin.'
+  : lang === 'FR' ? 'Découvrez comment DragLab fournit des équipements de laboratoire fiables pour de nombreux secteurs, de la recherche à la production.'
+  : 'Discover how DragLab provides reliable lab equipment solutions for a wide range of industries, from research to production.';
+
+const canonicalUrl = `https://www.drag-lab.de/${lang}/Industry`;
+const ogImage = 'https://www.drag-lab.de/assets/Imgs/thumbnils/industry-thumbnail.webp';
+const ogImageWidth = 1200;
+const ogImageHeight = 630;
+%>
+
+
+        <link rel="stylesheet" href="/css/customer/industry.css">
+        <title>
+            <%= pageTitle %>
+        </title>
+        <meta name="description" content="<%= metaDesc %>">
+        <meta name="robots" content="index, follow">
+        <link rel="canonical" href="<%= canonicalUrl %>">
+
+        <!-- Hreflang cluster (self + alternates) -->
+        <link rel="alternate" hreflang="x-default" href="https://www.drag-lab.de/EN/Industry">
+        <link rel="alternate" hreflang="en" href="https://www.drag-lab.de/EN/Industry">
+        <link rel="alternate" hreflang="es" href="https://www.drag-lab.de/ES/Industry">
+        <link rel="alternate" hreflang="de" href="https://www.drag-lab.de/DE/Industry">
+        <link rel="alternate" hreflang="tr" href="https://www.drag-lab.de/TR/Industry">
+        <link rel="alternate" hreflang="fr" href="https://www.drag-lab.de/FR/Industry">
+
+        <!-- Open Graph -->
+        <meta property="og:type" content="website">
+        <meta property="og:site_name" content="DragLab">
+        <meta property="og:title" content="<%= pageTitle %>">
+        <meta property="og:description" content="<%= metaDesc %>">
+        <meta property="og:url" content="<%= canonicalUrl %>">
+        <meta property="og:locale" content="<%= lang === 'ES' ? 'es_ES' : lang === 'DE' ? 'de_DE' : lang === 'TR' ? 'tr_TR' : lang === 'FR' ? 'fr_FR' : 'en_US' %>">
+        <meta property="og:image" content="<%= ogImage %>">
+        <meta property="og:image:alt" content="DragLab Industry Solutions">
+        <meta property="og:image:width" content="<%= ogImageWidth %>">
+        <meta property="og:image:height" content="<%= ogImageHeight %>">
+
+        <!-- Twitter -->
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:title" content="<%= pageTitle %>">
+        <meta name="twitter:description" content="<%= metaDesc %>">
+        <meta name="twitter:image" content="<%= ogImage %>">
+
+        <!-- Optional performance -->
+        <link rel="preload" as="image" href="<%= ogImage %>">
+
+
+        <!-- JSON-LD: CollectionPage + ItemList of industries -->
+<script type="application/ld+json" nonce="<%= nonce %>">
+<%
+  const industryItems = (industryCards || []).map((ind, idx) => ({
+    "@type": "ListItem",
+    "position": idx + 1,
+    "url": `https://www.drag-lab.de/${lang}/industry/${ind.slug}`,
+    "name": ind.title
+  }));
+%>
+<%= JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "name": pageTitle,
+  "inLanguage": langLc,
+  "url": canonicalUrl,
+  "description": metaDesc,
+  "isPartOf": { "@type": "WebSite", "name": "DragLab", "url": "https://www.drag-lab.de" },
+  "primaryImageOfPage": { "@type": "ImageObject", "url": ogImage, "width": 1200, "height": 630 },
+  "mainEntity": {
+    "@type": "ItemList",
+    "name": (lang === 'ES') ? "Industrias" : (lang === 'DE' ? "Branchen" : "Industries"),
+    "itemListOrder": "http://schema.org/ItemListOrderAscending",
+    "numberOfItems": industryItems.length,
+    "itemListElement": industryItems
+  }
+}, null, 2) %>
+</script>
+
+<!-- JSON-LD: Breadcrumbs -->
+<script type="application/ld+json" nonce="<%= nonce %>">
+<%= JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name":
+      (lang === 'ES') ? 'Inicio' : (lang === 'DE' ? 'Startseite' : 'Home'),
+      "item": `https://www.drag-lab.de/${lang}` },
+    { "@type": "ListItem", "position": 2, "name":
+      (lang === 'ES') ? 'Soluciones por Industria' :
+      (lang === 'DE') ? 'Branchenlösungen' : 'Industry Solutions',
+      "item": canonicalUrl }
+  ]
+}, null, 2) %>
+</script>
+
+        <script type="application/ld+json" nonce="<%= nonce %>">
+<%- JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "name": pageTitle,
+  "description": metaDesc,
+  "url": canonicalUrl,
+  "inLanguage": langLc,
+  "publisher": { "@type": "Organization", "name": "DragLab", "url": "https://www.drag-lab.de/" }
+}) %>
+</script>
+
+        </head>
+
+        <body>
+            <%- include('../../includes/customer/navbar.ejs') %>
+
+
+
+                <div class="slide">
+                    <div class="slide-text">
+                        <!-- <h1>Water Still Series</h1> -->
+                        <div class="slide-text-content">
+                            <h1>
+                                Industry solutions
+
+                            </h1>
+                            <h3>
+
+                            </h3>
+                            <p>
+                                Discover how DragLab provides reliable laboratory equipment solutions for a wide range
+                                of
+                                industries, from research to production. </p>
+
+                        </div>
+                        <a href="#target-section" class="scroll-button">View Industries</a>
+
+                    </div>
+                    <img src="/assets/Imgs/thumbnils/industry-thumbnail.webp" alt="Industry Solutions">
+
+                </div>
+
+
+
+                <section class="introduction-section">
+                    <h2>Introduction</h2>
+                    <div class="introduction-container">
+
+
+                        <div class="introduction-text">
+                            <h3>
+                                Our Goal
+                            </h3>
+                            <p>
+                                At DragLab, our goal is to empower laboratories and industries with cutting-edge
+                                equipment
+                                that enhances precision, efficiency, and safety in scientific research and production
+                                processes. We are committed to innovation, quality, and sustainability, providing
+                                advanced
+                                solutions that support the progress of various fields, from pharmaceuticals and
+                                biotechnology to food and beverage, and environmental science. By understanding the
+                                unique
+                                challenges of our customers, we deliver tailored solutions that meet the highest
+                                standards
+                                of performance and reliability, contributing to advancements in technology, research,
+                                and a
+                                better quality of life.
+
+                            </p>
+                        </div>
+                        <div class="introduction-img">
+                            <img src="/assets/Imgs/thumbnils/Our-Goal.webp" alt="Our Goal">
+                        </div>
+                    </div>
+                </section>
+
+
+
+                <section class="industries-section" id="target-section">
+                    <h2>Industries</h2>
+
+                    <button class="industry-slideshow-btn right-Btn" data-dir="-1"><img
+                            src="/assets/Imgs/Icons/right-products-arrow.png" alt=""></button>
+                    <button class="industry-slideshow-btn left-Btn" data-dir="1"><img
+                            src="/assets/Imgs/Icons/left-products-arrow.png" alt=""></button>
+
+                    <div class="industry-slides-viewport">
+                        <div class="industries-container" id="industrySlidesWrapper">
+                            <% industryCards.forEach(ind=> { %>
+                                <div class="industry-card">
+                                    <a href="/<%= lang %>/industry/<%= ind.slug %>">
+                                        <img loading="lazy" src="<%= ind.introImage %>" alt="<%= ind.title %>" />
+                                        <div class="overlay">
+                                            <h3>
+                                                <%= ind.title %>
+                                            </h3>
+                                        </div>
+                                    </a>
+                                </div>
+                                <% }) %>
+                        </div>
+                    </div>
+                </section>
+
+
+
+
+
+                <section class="introduction-section">
+                    <h2>Introduction</h2>
+                    <div class="introduction-container">
+
+
+                        <div class="introduction-text">
+                            <h3>
+                                Why Industry-Specific Equipment Matters
+                            </h3>
+                            <p>
+                                Different industries face unique challenges in their laboratory processes—whether it’s
+                                precision in chemical synthesis, sterility in pharmaceuticals, or compliance in food
+                                testing. At DragLab, we understand these needs and deliver tailored solutions that
+                                improve
+                                safety, efficiency, and data reliability.
+
+                            </p>
+                        </div>
+                        <div class="introduction-img">
+                            <img src="/assets/Imgs/thumbnils/Industry-Matters.webp"
+                                alt="Why Industry-Specific Equipment Matters">
+                        </div>
+                    </div>
+                </section>
+
+                <section class="download-area">
+                    <div class="left-side">
+                        <h2>
+                            Need help selecting the right solution?
+                        </h2>
+                        <p>
+                            Our team of specialists is ready to guide you toward the best equipment for your specific
+                            application.
+                        </p>
+
+                    </div>
+                    <div class="right-side">
+                        <a href="/<%= lang %>/Contactus" class="contact-button">
+                            Contact Our Experts
+                        </a>
+                    </div>
+                </section>
+
+                <%- include('../../includes/customer/footer.ejs') %>
+                    <script src="/js/industry.js?v=1.0.1"></script>
+
+        </body>
+
+        </html>

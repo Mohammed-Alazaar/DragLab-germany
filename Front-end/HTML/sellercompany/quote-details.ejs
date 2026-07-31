@@ -1,0 +1,164 @@
+<%- include('../../includes/sellercompany/head.ejs') %>
+<link rel="stylesheet" href="/css/sellercompany/all-technical-service.css">
+
+<style nonce="<%= nonce %>">
+  .detail-card { background: #fff; border: 1px solid #dee2e6; border-radius: 8px; padding: 2rem; margin-bottom: 1.5rem; }
+  .detail-card h2 { font-size: 1.1rem; font-weight: 700; color: #0d3b6e; border-bottom: 2px solid #e4e8ef; padding-bottom: 0.5rem; margin-bottom: 1.2rem; }
+  .detail-row { display: flex; gap: 2rem; margin-bottom: 0.8rem; flex-wrap: wrap; }
+  .detail-field { flex: 1; min-width: 180px; }
+  .detail-label { font-size: 0.78rem; font-weight: 700; color: #7f8c8d; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.2rem; }
+  .detail-value { font-size: 0.97rem; color: #2c3e50; }
+  .back-link { display: inline-block; margin-bottom: 1.5rem; color: #0d3b6e; font-weight: 600; text-decoration: none; }
+  .back-link:hover { color: #c9a227; }
+  .status-form { display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap; }
+  .status-select { padding: 0.5rem 1rem; border: 2px solid #dee2e6; border-radius: 6px; font-size: 0.9rem; }
+  .status-btn { padding: 0.5rem 1.5rem; background: #0d3b6e; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; }
+  .status-btn:hover { background: #c9a227; }
+  .status-badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; }
+  .status-new { background: #cfe2ff; color: #084298; }
+  .status-contacted { background: #fff3cd; color: #664d03; }
+  .status-closed { background: #d1e7dd; color: #0f5132; }
+  /* Products table */
+  .items-table { width: 100%; border-collapse: collapse; margin-top: 0.8rem; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 4px rgba(13,59,110,0.08); }
+  .items-table thead tr { background: #0d3b6e; }
+  .items-table th { color: #fff; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.6px; padding: 0.75rem 1rem; text-align: left; font-weight: 700; }
+  .items-table th:last-child { text-align: center; }
+  .items-table tbody tr { transition: background 0.15s; }
+  .items-table tbody tr:nth-child(even) { background: #f7f9fd; }
+  .items-table tbody tr:hover { background: #eef2fb; }
+  .items-table td { padding: 0.7rem 1rem; font-size: 0.93rem; color: #2c3e50; border-bottom: 1px solid #e9edf5; }
+  .items-table tbody tr:last-child td { border-bottom: none; }
+  .items-table .qty-cell { font-weight: 700; color: #fff; text-align: center; }
+  .items-table .qty-badge { display: inline-block; background: #0d3b6e; color: #fff; font-weight: 700; font-size: 0.88rem; min-width: 32px; padding: 3px 10px; border-radius: 20px; text-align: center; }
+  /* Header actions */
+  .page-actions { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+  .page-actions h1 { margin: 0; flex: 1; }
+  .pdf-btn { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.55rem 1.4rem; background: #c9a227; color: #fff; border-radius: 6px; font-weight: 700; font-size: 0.9rem; text-decoration: none; white-space: nowrap; }
+  .pdf-btn:hover { background: #a8821a; color: #fff; }
+</style>
+
+<body>
+  <%- include('../../includes/sellercompany/navbar-dash.ejs') %>
+
+  <section class="sidebar-content-container">
+    <section class="sidebar-container">
+      <%- include('../../includes/sellercompany/sidebar.ejs') %>
+    </section>
+
+    <div class="article-dashboard-container">
+      <a href="/admin/quotes" class="back-link">← Back to Quotes</a>
+
+      <div class="page-actions">
+        <h1>Quote Request Detail <span style="font-family:monospace;font-size:1rem;font-weight:700;color:#293C95;background:#EEF1FB;padding:3px 10px;border-radius:6px;vertical-align:middle">QR-<%= quote._id.toString().slice(-6).toUpperCase() %></span></h1>
+        <a href="/admin/quotes/<%= quote._id %>/pdf" class="pdf-btn">⬇ Export PDF</a>
+      </div>
+
+      <!-- Status -->
+      <div class="detail-card">
+        <h2>Status &nbsp;<span class="status-badge status-<%= quote.status %>"><%= quote.status %></span></h2>
+        <form action="/admin/quotes/<%= quote._id %>/status" method="POST" class="status-form">
+          <select name="status" class="status-select">
+            <option value="new"       <%= quote.status === 'new'       ? 'selected' : '' %>>New</option>
+            <option value="contacted" <%= quote.status === 'contacted' ? 'selected' : '' %>>Contacted</option>
+            <option value="closed"    <%= quote.status === 'closed'    ? 'selected' : '' %>>Closed</option>
+          </select>
+          <button type="submit" class="status-btn">Update Status</button>
+        </form>
+      </div>
+
+      <!-- Customer -->
+      <div class="detail-card">
+        <h2>Customer Information</h2>
+        <div class="detail-row">
+          <div class="detail-field"><div class="detail-label">Company</div><div class="detail-value"><%= quote.companyName %></div></div>
+          <div class="detail-field"><div class="detail-label">Country</div><div class="detail-value"><%= quote.country %></div></div>
+          <div class="detail-field"><div class="detail-label">Industry</div><div class="detail-value"><%= quote.industry || '—' %></div></div>
+        </div>
+        <div class="detail-row">
+          <div class="detail-field"><div class="detail-label">Contact Name</div><div class="detail-value"><%= quote.contactName || '—' %></div></div>
+          <div class="detail-field"><div class="detail-label">Email</div><div class="detail-value"><a href="mailto:<%= quote.email %>"><%= quote.email %></a></div></div>
+          <div class="detail-field"><div class="detail-label">Phone</div><div class="detail-value"><%= quote.phone || '—' %></div></div>
+        </div>
+      </div>
+
+      <!-- Products & Models -->
+      <div class="detail-card">
+        <h2>Products &amp; Models Requested</h2>
+
+        <% if (quote.productCategory) { %>
+        <div class="detail-row" style="margin-bottom:1.2rem">
+          <div class="detail-field">
+            <div class="detail-label">Selected Products</div>
+            <div class="detail-value">
+              <%= quote.productCategory %>
+              <% if (productCategoryEN) { %><span style="color:#7f8c8d;font-size:0.88em;">&nbsp;(<%= productCategoryEN %>)</span><% } %>
+            </div>
+          </div>
+        </div>
+        <% } %>
+
+        <% if (modelLines.length) { %>
+        <table class="items-table">
+          <thead>
+            <tr><th>Model</th><th style="width:120px">Quantity</th></tr>
+          </thead>
+          <tbody>
+            <% modelLines.forEach(function(row) { %>
+            <tr>
+              <td>
+                <%= row.name %>
+                <% if (row.enName) { %><span style="color:#7f8c8d;font-size:0.85em;">&nbsp;(<%= row.enName %>)</span><% } %>
+              </td>
+              <td class="qty-cell"><span class="qty-badge"><%= row.qty %></span></td>
+            </tr>
+            <% }) %>
+          </tbody>
+        </table>
+        <% } else { %>
+          <p style="color:#7f8c8d;font-size:0.9rem">No models selected.</p>
+        <% } %>
+
+        <div class="detail-row" style="margin-top:1.2rem">
+          <div class="detail-field"><div class="detail-label">Delivery Deadline</div><div class="detail-value"><%= quote.deliveryDeadline ? new Date(quote.deliveryDeadline).toLocaleDateString() : '—' %></div></div>
+          <div class="detail-field"><div class="detail-label">Language</div><div class="detail-value"><%= quote.lang %></div></div>
+          <div class="detail-field"><div class="detail-label">Submitted</div><div class="detail-value"><%= new Date(quote.createdAt).toLocaleString() %></div></div>
+        </div>
+
+        <% if (quote.message) { %>
+        <div class="detail-row" style="margin-top:0.8rem">
+          <div class="detail-field" style="flex:1 1 100%">
+            <div class="detail-label">Message / Requirements</div>
+            <div class="detail-value" style="white-space:pre-wrap;background:#f8f9fb;padding:1rem;border-radius:6px;margin-top:0.3rem;"><%= quote.message %></div>
+          </div>
+        </div>
+        <% } %>
+
+        <% if (quote.fileAttachment) { %>
+        <%
+          var attachUrl = quote.fileAttachment;
+          /* Derive filename from URL — last path segment before any query string */
+          var attachName = attachUrl.split('/').pop().split('?')[0] || 'attachment';
+          /* Force Cloudinary to serve as attachment (adds Content-Disposition header) */
+          var attachDownloadUrl = attachUrl.includes('cloudinary.com')
+            ? attachUrl.replace('/upload/', '/upload/fl_attachment/')
+            : attachUrl;
+        %>
+        <div class="detail-row" style="margin-top:0.8rem">
+          <div class="detail-field" style="flex:1 1 100%">
+            <div class="detail-label">Attached Specification File</div>
+            <div class="detail-value" style="margin-top:0.3rem;display:flex;gap:0.6rem;flex-wrap:wrap;align-items:center;">
+              <a href="<%= attachDownloadUrl %>" download="<%= attachName %>"
+                 style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.5rem 1rem;background:#f0f4fb;border:1px solid #c8d4e8;border-radius:6px;color:#0d3b6e;font-weight:600;text-decoration:none;font-size:0.9rem;">
+                ⬇ Download
+              </a>
+              <a href="<%= attachUrl %>" target="_blank" rel="noopener"
+                 style="font-size:0.85rem;color:#7f8c8d;word-break:break-all;"><%= attachName %></a>
+            </div>
+          </div>
+        </div>
+        <% } %>
+      </div>
+
+    </div>
+  </section>
+</body>

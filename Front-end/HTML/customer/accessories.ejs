@@ -1,0 +1,219 @@
+<%- include('../../includes/customer/head.ejs') %>
+<link rel="stylesheet" href="/css/customer/accessories.css">
+<%
+  const BASE    = 'https://www.drag-lab.de';
+  const pageUrl = BASE + '/' + lang + '/accessories';
+%>
+
+<title><%= pageTitle %></title>
+<meta name="description" content="<%= metaDescription %>">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="<%= pageUrl %>">
+<link rel="alternate" hreflang="x-default" href="<%= BASE %>/EN/accessories">
+<link rel="alternate" hreflang="en"         href="<%= BASE %>/EN/accessories">
+<link rel="alternate" hreflang="de"         href="<%= BASE %>/DE/accessories">
+<link rel="alternate" hreflang="es"         href="<%= BASE %>/ES/accessories">
+<link rel="alternate" hreflang="fr"         href="<%= BASE %>/FR/accessories">
+<link rel="alternate" hreflang="tr"         href="<%= BASE %>/TR/accessories">
+
+<meta property="og:type"         content="website">
+<meta property="og:title"        content="<%= pageTitle %>">
+<meta property="og:description"  content="<%= metaDescription %>">
+<meta property="og:url"          content="<%= pageUrl %>">
+<meta property="og:site_name"    content="DragLab">
+<meta name="twitter:card"        content="summary_large_image">
+<meta name="twitter:title"       content="<%= pageTitle %>">
+<meta name="twitter:description" content="<%= metaDescription %>">
+
+<script type="application/ld+json" nonce="<%= nonce %>"><%- JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1,
+      "name": (lang==='DE'?'Startseite':lang==='ES'?'Inicio':lang==='TR'?'Ana Sayfa':lang==='FR'?'Accueil':'Home'),
+      "item": BASE + "/" + lang + "/" },
+    { "@type": "ListItem", "position": 2, "name": ui.hero, "item": pageUrl }
+  ]
+}) %></script>
+</head>
+
+<body>
+<%- include('../../includes/customer/navbar.ejs') %>
+
+<!-- ── Hero ── -->
+<header class="slide">
+  <div class="slide-text">
+    <h1><%= ui.hero %></h1>
+    <p><%= ui.heroCta %></p>
+  </div>
+  <img src="/assets/Imgs/Icons/products/contactus-BC.png"
+       alt="<%= ui.hero %> – DragLab"
+       loading="eager">
+</header>
+
+<!-- ── Filter bar ── -->
+<form id="accFilterForm" class="acc-filter-bar" method="GET" action="/<%= lang %>/accessories">
+  <div class="acc-filter-inner">
+
+    <div class="acc-filter-group">
+      <label for="acc-series"><%= ui.filterSeries %></label>
+      <select id="acc-series" name="series">
+        <option value=""><%= ui.allSeries %></option>
+        <% allSeries.forEach(function(s) { %>
+        <option value="<%= s.productSlug %>" <%= selectedSeries === s.productSlug ? 'selected' : '' %>>
+          <%= s.productName %>
+        </option>
+        <% }); %>
+      </select>
+    </div>
+
+    <div class="acc-filter-group">
+      <label for="acc-model"><%= ui.filterModel %></label>
+      <select id="acc-model" name="model">
+        <option value=""><%= ui.allModels %></option>
+        <% seriesModels.forEach(function(m) { %>
+        <option value="<%= m._id %>" <%= selectedModel === String(m._id) ? 'selected' : '' %>>
+          <%= m.modelName %>
+        </option>
+        <% }); %>
+      </select>
+    </div>
+
+    <div class="acc-filter-btns">
+      <button type="submit" class="acc-btn-apply"><%= ui.apply %></button>
+      <% if (selectedSeries || selectedModel) { %>
+      <a href="/<%= lang %>/accessories" class="acc-btn-reset"><%= ui.reset %></a>
+      <% } %>
+    </div>
+
+  </div>
+</form>
+
+<!-- Series → Models map for instant client-side cascading (no reload until Apply) -->
+<script type="application/json" id="acc-series-data" nonce="<%= nonce %>"><%- JSON.stringify(
+  allSeries.map(function (s) { return { slug: s.productSlug, models: s.models }; })
+).replace(/</g, '\\u003c') %></script>
+
+<!-- ── Accessories list ── -->
+<section class="acc-list-section">
+  <% if (!accessories || accessories.length === 0) { %>
+  <div class="acc-empty">
+    <p><%= ui.noResults %></p>
+  </div>
+  <% } else { %>
+  <div class="acc-list">
+    <!-- Header row -->
+    <div class="acc-list-header">
+      <div class="acc-hdr-img"></div>
+      <div class="acc-hdr-name"><%= lang==='DE'?'Name':lang==='ES'?'Nombre':lang==='TR'?'İsim':lang==='FR'?'Nom':'Name' %></div>
+      <div class="acc-hdr-artnr"><%= lang==='DE'?'Artikelnummer':lang==='ES'?'N.º Artículo':lang==='TR'?'Makale No.':lang==='FR'?'Référence':'Article No.' %></div>
+      <div class="acc-hdr-models"><%= lang==='DE'?'Kompatible Modelle':lang==='ES'?'Modelos compatibles':lang==='TR'?'Uyumlu Modeller':lang==='FR'?'Modèles compatibles':'Compatible Models' %></div>
+      <div class="acc-hdr-action"></div>
+    </div>
+
+    <% accessories.forEach(function(acc) {
+         const relatedParts = [];
+         (acc.applicableProducts || []).forEach(function(ap) {
+           if (ap.models && ap.models.length > 0) {
+             ap.models.forEach(function(m) { relatedParts.push(m.modelName); });
+           } else if (ap.productName) {
+             relatedParts.push(ap.productName);
+           }
+         });
+    %>
+    <article class="acc-item">
+
+      <!-- Image -->
+      <div class="acc-item-img">
+        <% if (acc.image) { %>
+        <img src="<%= acc.image %>" alt="<%= acc.name %>" loading="lazy">
+        <% } %>
+      </div>
+
+      <!-- Name -->
+      <div class="acc-item-info">
+        <p class="acc-item-name"><%= acc.name %></p>
+      </div>
+
+      <!-- Article number -->
+      <div class="acc-item-artnr">
+        <% if (acc.articleNumber) { %>
+        <span><%= acc.articleNumber %></span>
+        <% } else { %>
+        <span class="acc-item-artnr--empty">—</span>
+        <% } %>
+      </div>
+
+      <!-- Related models -->
+      <div class="acc-item-models">
+        <% if (relatedParts.length > 0) { %>
+        <ul>
+          <% relatedParts.forEach(function(part) { %>
+          <li><%= part %></li>
+          <% }); %>
+        </ul>
+        <% } else { %>
+        <span>—</span>
+        <% } %>
+      </div>
+
+      <!-- Action -->
+      <div class="acc-item-action">
+        <a href="/<%= lang %>/accessories/<%= acc.slug %>" class="acc-view-btn"><%= ui.viewBtn %></a>
+      </div>
+
+    </article>
+    <% }); %>
+  </div>
+  <% } %>
+</section>
+
+<%- include('../../includes/customer/footer.ejs') %>
+</body>
+
+<script nonce="<%= nonce %>">
+(function () {
+  var seriesSel = document.getElementById('acc-series');
+  var modelSel  = document.getElementById('acc-model');
+  var dataEl    = document.getElementById('acc-series-data');
+  var allModelsLabel = <%- JSON.stringify(ui.allModels) %>;
+
+  var seriesData = [];
+  try { seriesData = dataEl ? JSON.parse(dataEl.textContent || '[]') : []; }
+  catch (e) { seriesData = []; }
+
+  function findModels(slug) {
+    for (var i = 0; i < seriesData.length; i++) {
+      if (seriesData[i].slug === slug) return seriesData[i].models || [];
+    }
+    return [];
+  }
+
+  // Repopulate the model dropdown to match the chosen series — instantly, no page reload
+  function populateModels(slug) {
+    if (!modelSel) return;
+    modelSel.innerHTML = '';
+
+    var optAll = document.createElement('option');
+    optAll.value = '';
+    optAll.textContent = allModelsLabel;
+    modelSel.appendChild(optAll);
+
+    findModels(slug).forEach(function (m) {
+      var opt = document.createElement('option');
+      opt.value = m._id;
+      opt.textContent = m.modelName;
+      modelSel.appendChild(opt);
+    });
+  }
+
+  // Selecting a series only refreshes the model options — filtering happens on "Apply"
+  if (seriesSel) {
+    seriesSel.addEventListener('change', function () {
+      populateModels(seriesSel.value);
+    });
+  }
+})();
+</script>
+
+<%- include('../../includes/customer/script.ejs') %>

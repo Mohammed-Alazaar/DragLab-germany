@@ -1,0 +1,18 @@
+<% if (faqSchema && faqSchema[lang] && faqSchema[lang].questions) { %>
+  <script type="application/ld+json">
+  <%- JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "@id": faqSchema[lang].url + "#faq",
+    "url": faqSchema[lang].url,
+    "mainEntity": faqSchema[lang].questions.map(item => ({
+      "@type": "Question",
+      "name": item.q,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": item.a
+      }
+    }))
+  }, null, 2) %>
+  </script>
+<% } %>

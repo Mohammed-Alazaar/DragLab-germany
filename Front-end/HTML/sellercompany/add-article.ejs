@@ -1,15 +1,7 @@
 <%- include('../../includes/sellercompany/head.ejs') %>
-    <link rel="stylesheet" href="/sellercompany/add-article.css">
+    <link rel="stylesheet" href="/css/sellercompany/add-article.css">
     <script src="https://cdn.tiny.cloud/1/mtjy6djndp0eitzxztgrpeyb5j51l2d31765itt3gj45jl8c/tinymce/6/tinymce.min.js"
         referrerpolicy="origin"></script>
-    <script>
-        tinymce.init({
-            selector: '#articleBody',
-            plugins: 'image link media table code lists',
-            toolbar: 'undo redo | bold italic underline | alignleft aligncenter alignright | bullist numlist | image media link | code',
-            height: 500
-        });
-    </script>
 
     <body>
         <%- include('../../includes/sellercompany/navbar-dash.ejs') %>
@@ -17,48 +9,113 @@
             <section class="sidebar-container">
                 <%- include('../../includes/sellercompany/sidebar.ejs') %>
             </section>
-        
-            
-           
+
             <div class="form-container">
-                <h1>
-                    <%= editing ? "Edit Article" : "Add New Article" %>
-                </h1>
+                <h1><%= editing ? 'Edit Article' : 'Add New Article' %></h1>
+
                 <form action="<%= editing ? '/admin/articles/edit/' + article._id : '/admin/articles/add' %>"
                     method="POST" enctype="multipart/form-data">
 
-                    <label for="language">Article Language</label>
-                    <select name="language" required>
-                        <option value="EN" <%=article?.language==='EN' ? 'selected' : '' %>>English</option>
-                        <option value="ES" <%=article?.language==='ES' ? 'selected' : '' %>>Spanish</option>
-                        <option value="GR" <%=article?.language==='GR' ? 'selected' : '' %>>Germany</option>
+                    <!-- ── Shared fields ─────────────────────────────────── -->
+                    <label for="author">Author Name</label>
+                    <input type="text" id="author" name="author" value="<%= article?.author || '' %>">
+
+                    <label for="category">Category</label>
+                    <select id="category" name="category">
+                        <% ['News','Products','Industries','Company','Tutorials','Scientific','Other'].forEach(c => { %>
+                        <option value="<%= c %>" <%= (article?.category || 'News') === c ? 'selected' : '' %>><%= c %></option>
+                        <% }) %>
                     </select>
 
-                    <label>Title</label>
-                    <input type="text" name="title" value="<%= article?.title || '' %>" required>
-
-                    <label>Author Name</label>
-                    <input type="text" name="author" value="<%= article?.author || '' %>" required>
-
-                    <label>Thumbnail Image</label>
+                    <label for="thumbnail">Thumbnail Image (shared for all languages)</label>
                     <% if (article?.thumbnail) { %>
-                        <img src="/<%= article.thumbnail %>" width="150" />
-                        <% } %>
-                            <input type="file" name="thumbnail">
+                        <img src="<%= article.thumbnail %>" alt="Current thumbnail">
+                    <% } %>
+                    <input type="file" id="thumbnail" name="thumbnail" accept="image/*">
 
-                            <label>Body</label>
-                            <textarea id="articleBody" name="body"><%= article?.body || '' %></textarea>
+                    <!-- ── Language tabs ─────────────────────────────────── -->
+                    <%
+                      const LANGS = [
+                        { key: 'en', label: 'EN', name: 'English' },
+                        { key: 'es', label: 'ES', name: 'Spanish' },
+                        { key: 'de', label: 'DE', name: 'German' },
+                        { key: 'tr', label: 'TR', name: 'Turkish' },
+                        { key: 'fr', label: 'FR', name: 'French' }
+                      ];
+                    %>
+                    <div class="lang-tabs-header">
+                        <div class="lang-tabs">
+                            <% LANGS.forEach((l, idx) => {
+                               const t = article?.translations?.[l.key];
+                               const st = t?.status || 'none';
+                            %>
+                            <button type="button"
+                                class="lang-tab-btn <%= idx === 0 ? 'active' : '' %>"
+                                data-lang="<%= l.key %>">
+                                <% if (st === 'published') { %><span class="tab-dot dot-published"></span>
+                                <% } else if (st === 'draft') { %><span class="tab-dot dot-draft"></span>
+                                <% } %>
+                                <%= l.label %> <span class="lang-full-name"><%= l.name %></span>
+                            </button>
+                            <% }) %>
+                        </div>
+                    </div>
 
-                            
-                            <div class="form-buttons">
-                                <button type="submit">
-                                    <%= editing ? "Update Article" : "Add Article" %>
+                    <% LANGS.forEach((l, idx) => {
+                       const t = article?.translations?.[l.key] || {};
+                       const currentStatus = t.status || 'none';
+                    %>
+                    <div id="tab-<%= l.key %>" class="lang-tab-content <%= idx === 0 ? 'active' : '' %>">
+                        <input type="hidden" id="status_<%= l.key %>" name="<%= l.key %>_status"
+                               value="<%= currentStatus %>">
+
+                        <label>Title (<%= l.name %>)</label>
+                        <input type="text" name="<%= l.key %>_title" value="<%= t.title || '' %>">
+
+                        <label>Summary / Meta Description (<%= l.name %>)</label>
+                        <textarea name="<%= l.key %>_summary" rows="3" maxlength="300"><%= t.summary || '' %></textarea>
+
+                        <label>Tags — comma-separated (<%= l.name %>)</label>
+                        <input type="text" name="<%= l.key %>_tags"
+                               value="<%= (t.tags || []).join(', ') %>"
+                               placeholder="Water Bath, ISO, Research">
+
+                        <label>Body (<%= l.name %>)</label>
+                        <textarea id="body_<%= l.key %>" name="<%= l.key %>_body"><%= t.body || '' %></textarea>
+
+                        <div class="status-section">
+                            <label>Publication status for <%= l.name %></label>
+                            <div class="status-buttons" id="status-btns-<%= l.key %>">
+                                <button type="button"
+                                    class="status-btn btn-draft <%= currentStatus === 'draft' ? 'active' : '' %>"
+                                    data-lang="<%= l.key %>" data-val="draft">
+                                    Save as Draft
                                 </button>
-                                <a href="/admin/articles" class="cancel-button">Cancel</a>
+                                <button type="button"
+                                    class="status-btn btn-publish <%= currentStatus === 'published' ? 'active' : '' %>"
+                                    data-lang="<%= l.key %>" data-val="published">
+                                    Publish
+                                </button>
                             </div>
-                            
+                            <% if (currentStatus !== 'none' && t.publishedAt) { %>
+                            <p class="status-meta">
+                                Published on <%= new Date(t.publishedAt).toLocaleDateString() %>
+                            </p>
+                            <% } %>
+                        </div>
+                    </div>
+                    <% }) %>
+
+                    <!-- ── Save ──────────────────────────────────────────── -->
+                    <div class="form-buttons">
+                        <button type="submit">
+                            <%= editing ? 'Update Article' : 'Save Article' %>
+                        </button>
+                        <a href="/admin/articles" class="cancel-button">Cancel</a>
+                    </div>
                 </form>
             </div>
         </section>
+
+        <script src="/js/add-article.js" nonce="<%= nonce %>"></script>
     </body>
-    <%- include('../../includes/sellercompany/footer.ejs') %>

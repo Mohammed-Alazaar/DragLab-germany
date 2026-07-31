@@ -1,127 +1,197 @@
 <%- include('../../includes/customer/head.ejs') %>
+  <link rel="stylesheet" href="/css/customer/conact-us.css">
+<%
+  // Build canonical and shared values once
+  const BASE = 'https://www.drag-lab.de';
+  const pageUrl = BASE + '/' + lang + '/contactus';
+
+  // Safe check for state query flags without optional chaining
+  const hasStateParams = (typeof req !== 'undefined') && req && req.query && (req.query.success || req.query.error);
+
+  // Localized pieces
+  const ogLocale = (lang === 'EN' ? 'en_US' : lang === 'ES' ? 'es_ES' : lang === 'TR' ? 'tr_TR' : lang === 'DE' ? 'de_DE' : lang === 'FR' ? 'fr_FR' : 'de_DE');
+%>
+
+<% if (hasStateParams) { %>
+  <!-- Override default indexing for stateful URLs -->
+  <meta name="robots" content="noindex,follow">
+<% } %>
+
+  <!-- SEO Metadata -->
+<title><%= pageTitle %></title>
+<meta name="description" content="<%= metaDescription %>">
+
+<link rel="canonical" href="https://www.drag-lab.de/<%= lang %>/contactus">
+<link rel="alternate" hreflang="x-default" href="https://www.drag-lab.de/EN/contactus">
+<link rel="alternate" hreflang="en" href="https://www.drag-lab.de/EN/contactus">
+<link rel="alternate" hreflang="de" href="https://www.drag-lab.de/DE/contactus">
+<link rel="alternate" hreflang="es" href="https://www.drag-lab.de/ES/contactus">
+<link rel="alternate" hreflang="fr" href="https://www.drag-lab.de/FR/contactus">
+<link rel="alternate" hreflang="tr" href="https://www.drag-lab.de/TR/contactus">
+
+<meta property="og:title" content="<%= ogTitle %>">
+<meta property="og:description" content="<%= ogDescription %>">
+<meta property="og:image" content="<%= ogImage %>">
+<meta property="og:image:alt" content="<%= pageTitle %>">
+<meta property="og:url" content="https://www.drag-lab.de/<%= lang %>/contactus">
+<meta property="og:type" content="website">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="<%= ogTitle %>">
+<meta name="twitter:description" content="<%= ogDescription %>">
+<meta name="twitter:image" content="<%= ogImage %>">
+
+<script src="https://www.google.com/recaptcha/enterprise.js?render=6LemaIMrAAAAABkGmvhvmbRSO5BbXQq7AsLB7NGU" defer></script>
+
+<script type="application/ld+json" nonce="<%= nonce %>"><%- JSON.stringify({
+  "@context":"https://schema.org",
+  "@type":"BreadcrumbList",
+  "itemListElement":[
+    {"@type":"ListItem","position":1,"name":(lang==='EN'?'Home':lang==='ES'?'Inicio': lang==='TR'?'Ana Sayfa':lang==='DE'?'Startseite':lang==='FR'?'Accueil':'Startseite'),"item":"https://www.drag-lab.de/"+lang+"/"},
+    {"@type":"ListItem","position":2,"name":(lang==='EN'?'Contact Us':lang==='ES'?'Contáctanos':lang==='TR'?'İletişim':lang==='DE'?'Kontaktieren Sie uns':lang==='FR'?'Nous Contacter':'Kontaktieren Sie uns'),"item":"https://www.drag-lab.de/"+lang+"/contactus"}
+  ]
+}) %></script>
+
+<script type="application/ld+json" nonce="<%= nonce %>"><%- JSON.stringify({
+  "@context":"https://schema.org",
+  "@type":"ContactPage",
+  "name": pageTitle,
+  "url":"https://www.drag-lab.de/"+lang+"/contactus",
+  "inLanguage":(lang==='EN'?'en':lang==='ES'?'es':lang==='TR'?'tr':lang==='DE'?'de':lang==='FR'?'fr':'de'),
+  "image": ogImage,
+  "about":{
+    "@type":"Organization",
+    "name":"DragLab",
+    "url":"https://www.drag-lab.de/",
+    "logo":"https://www.drag-lab.de/assets/Imgs/logo/logo.png",
+    "contactPoint":[{"@type":"ContactPoint","telephone":"+49 6196 400816","contactType":"customer service","email":"info@drag-lab.de","availableLanguage":["en","de","es","tr","fr"],"areaServed":["DE","ES","GB","US","EU"]}],
+    "address":{"@type":"PostalAddress","streetAddress":"Alfred-Herrhausen-Allee 3-5","postalCode":"65760","addressLocality":"Eschborn","addressCountry":"DE"}
+  }
+}) %></script>
+</head>
+
+  <body>
+    <%- include('../../includes/customer/navbar.ejs') %>
+
+      <!-- Header Thumbnail -->
+      <div class="slide">
+        <div class="slide-text">
+          <h1>
+            <%= sectionHeading %>
+          </h1>
+          <p>
+            <%= sectionSub %>
+          </p>
+        </div>
+        <img src="/assets/Imgs/Icons/products/contactus-BC.png" alt="Contact Us Background">
+      </div>
 
 
-    <link rel="stylesheet" href="/front-end/Css/customer/conact-us.css">
+      <!-- Success / Error Messages -->
+      <% if (req.query.success) { %>
+        <div class="success-message">
+          <p>
+            <%= successMessage %>
+          </p>
+        </div>
+        <% } else if (req.query.error) { %>
+          <div class="error-message">
+            <p>
+              <%= errorMessage %>
+            </p>
+          </div>
+          <% } %>
 
+            <!-- Contact Form Section -->
+            <div class="contact-container">
+              <div class="contact-form">
+                <h2>
+                  <%= labels.contactInfo %>
+                </h2>
+                <form id="contactus-form" action="/submit-contactus" method="POST">
+                  <div class="row">
+                    <div class="field">
+                      <label for="first">
+                        <%= labels.first %>
+                      </label>
+                      <input type="text" id="first" name="firstName" placeholder="<%= labels.first %>"
+                        autocomplete="given-name" required />
+                    </div>
+                    <div class="field">
+                      <label for="last">
+                        <%= labels.last %>
+                      </label>
+                      <input type="text" id="last" name="lastName" placeholder="<%= labels.last %>" required
+                        autocomplete="family-name" />
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="field">
+                      <label for="subject">
+                        <%= labels.subject %>
+                      </label>
+                      <input type="text" id="subject" name="subject" placeholder="<%= labels.subject %>" required
+                        autocomplete="off" />
+                    </div>
+                    <div class="field">
+                      <label for="email">
+                        <%= labels.email %>
+                      </label>
+                      <input type="email" id="email" name="email" placeholder="<%= labels.email %>" required
+                        autocomplete="email" />
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="field" style="flex: 1 1 100%;">
+                      <label for="message">
+                        <%= labels.message %>
+                      </label>
+                      <textarea id="message" name="message" placeholder="<%= labels.message %>" required></textarea>
+                    </div>
+                  </div>
 
+                  <div class="submit-button">
+                    <button class="submit-btn" type="submit">
+                      <%= labels.send %>
+                    </button>
 
+                  </div>
+                  <input type="hidden" name="lang" value="<%= lang %>" />
+                  <input type="hidden" name="g-recaptcha-response" />
 
+                </form>
+              </div>
 
-    <body>
-        <!-- nav-bar -->
-
-        <%- include('../../includes/customer/navbar.ejs') %>
-
-
-            <!-- nav-bar -->
-
-            <!-- contact us thumbnail  -->
-            <div class="slide">
-                <div class="slide-text">
-                    <h1>Contact Us</h1>
-                    <p>Have a question or need help? Reach out! </p>
+              <!-- Contact Info Box -->
+              <div class="contact-info">
+                <div class="info-box">
+                  <img src="/assets/Imgs/Icons/products/bxs_phone-call.png" alt="Phone icon" />
+                  <span><a href="tel:+49 6196 400816">+49 6196 400816</a></span>
                 </div>
-                <img src="/assets/Imgs/Icons/products/contactus-BC.png" alt="Photo 1">
+                <div class="info-box">
+                  <img src="/assets/Imgs/Icons/products/email-vector.png" alt="Email icon">
+                  <span><a href="mailto:info@drag-lab.de">info@drag-lab.de</a></span>
+                </div>
+                <div class="info-box">
+                  <img src="/assets/Imgs/Icons/products/map-Vector.png" alt="Location icon">
+                  <span><a href="https://maps.app.goo.gl/AEP5y3Gwv7ejRwa48" target="_blank">
+                      Alfred-Herrhausen-Allee<br>3-5, D-65760 Eschborn, Germany</a></span>
+                </div>
+              </div>
             </div>
-            <!-- contact us thumbnail  -->
 
-            <!-- contact us form  -->
-            <% if (req.query.success) { %>
-                <div class="success-message">✅ Thank you! We have received your message.</div>
-                <!-- Google Ads Conversion Tracking Script -->
-                <script>
-                    gtag('event', 'conversion', {
-                        'send_to': 'AW-754782155/Km5ZCI6_qIQaEMuf9OcC',
-                        'value': 1.0,
-                        'currency': 'USD',
-                        'transaction_id': ''
-                    });
-                </script>
-                <% } else if (req.query.error) { %>
-                    <div class="error-message">❌ Something went wrong. Please try again later.</div>
-                    <% } %>
+            <!-- Embedded Google Map -->
+            <div style="width: 100%; height: 400px;">
+              <iframe
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1278.7375735863695!2d8.575659556692225!3d50.13354253361766!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x47bd0941bdcfb47d%3A0xda5a70222b134090!2sDragLab%20Technologies%20-%20Nanodrag%20Technology%20GmbH!5e0!3m2!1sen!2sus!4v1743626791829!5m2!1sen!2sus"
+                width="100%" height="450" style="border:0;" allowfullscreen="" loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade"></iframe>
+            </div>
 
-                        <div class="contact-container">
+            <%- include('../../includes/customer/footer.ejs') %>
+              <script src="/js/contact-us.js" nonce="<%= nonce %>"></script>
 
-                            <!-- Contact Form -->
-                            <div class="contact-form">
-                                <h2>Contact Information</h2>
-                                <form action="/submit-contactus" method="POST">
-                                    <div class="row">
-                                        <div class="field">
-                                            <label for="first">First Name</label>
-                                            <input type="text" id="first" name="firstName" placeholder="First Name"
-                                                required />
-                                        </div>
-                                        <div class="field">
-                                            <label for="last">Last Name</label>
-                                            <input type="text" id="last" name="lastName" placeholder="Last Name"
-                                                required />
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="field">
-                                            <label for="subject">Subject</label>
-                                            <input type="text" id="subject" name="subject" placeholder="Subject"
-                                                required />
-                                        </div>
-                                        <div class="field">
-                                            <label for="email">Email</label>
-                                            <input type="email" id="email" name="email" placeholder="Email" required />
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="field" style="flex: 1 1 100%;">
-                                            <label for="message">Message</label>
-                                            <textarea id="message" name="message" placeholder="Write your message.."
-                                                required></textarea>
-                                        </div>
-                                    </div>
-                                    <button type="submit" class="submit-btn">Send Message</button>
-                                </form>
+  </body>
+  <%- include('../../includes/customer/script.ejs') %>
 
-                            </div>
-
-                            <!-- Contact Info -->
-                            <div class="contact-info">
-                                <div class="info-box">
-                                    <!-- Phone -->
-                                    <img src="/assets/Imgs/Icons/products/bxs_phone-call.png" alt="phone number" />
-                                    <span>+1012 3456 789</span>
-                                </div>
-                                <div class="info-box">
-                                    <!-- Email -->
-                                    <img src="/assets/Imgs/Icons/products/email-vector.png" alt="Email Adress">
-                                    <span>demo@draglap.com</span>
-                                </div>
-                                <div class="info-box">
-                                    <!-- Location -->
-                                    <img src="/assets/Imgs/Icons/products/map-Vector.png" alt="our location">
-                                    <span>132 Dartmouth Street Boston,</span>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- contact us form  -->
-
-
-
-                        <!-- Map -->
-
-                        <div style="width: 100%; height: 400px;">
-                            <iframe
-                                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1278.7375735863695!2d8.575659556692225!3d50.13354253361766!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x47bd0941bdcfb47d%3A0xda5a70222b134090!2sDragLab%20Technologies%20-%20Nanodrag%20Technology%20GmbH!5e0!3m2!1sen!2sus!4v1743626791829!5m2!1sen!2sus"
-                                width="100%" height="450" style="border:0;" allowfullscreen="" loading="lazy"
-                                referrerpolicy="no-referrer-when-downgrade"></iframe>
-                        </div>
-                        <!-- Map -->
-
-                        <!-- Footer -->
-
-                        <%- include('../../includes/customer/footer.ejs') %>
-
-
-    </body>
-    <%- include('../../includes/customer/script.ejs') %>
-
-
-        </html>
+    </html>

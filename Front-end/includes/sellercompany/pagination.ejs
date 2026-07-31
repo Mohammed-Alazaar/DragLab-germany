@@ -1,0 +1,38 @@
+<% if (totalPages > 1) { %>
+<nav class="admin-pagination" aria-label="Pagination">
+  <% if (currentPage > 1) { %>
+    <a class="page-btn" href="<%= baseUrl %>?page=<%= currentPage - 1 %>">&#8592; Prev</a>
+  <% } else { %>
+    <span class="page-btn disabled">&#8592; Prev</span>
+  <% } %>
+
+  <%
+    const WINDOW = 2; // pages shown around current
+    let lastPrinted = 0;
+    for (let i = 1; i <= totalPages; i++) {
+      const nearStart  = i <= 2;
+      const nearEnd    = i >= totalPages - 1;
+      const nearCurrent = Math.abs(i - currentPage) <= WINDOW;
+      if (nearStart || nearEnd || nearCurrent) {
+        if (lastPrinted && i - lastPrinted > 1) { %>
+          <span class="page-ellipsis">&hellip;</span>
+        <% }
+        lastPrinted = i;
+        if (i === currentPage) { %>
+          <span class="page-btn active" aria-current="page"><%= i %></span>
+        <% } else { %>
+          <a class="page-btn" href="<%= baseUrl %>?page=<%= i %>"><%= i %></a>
+        <% }
+      }
+    }
+  %>
+
+  <% if (currentPage < totalPages) { %>
+    <a class="page-btn" href="<%= baseUrl %>?page=<%= currentPage + 1 %>">Next &#8594;</a>
+  <% } else { %>
+    <span class="page-btn disabled">Next &#8594;</span>
+  <% } %>
+
+  <span class="page-info">Page <%= currentPage %> of <%= totalPages %>&ensp;&middot;&ensp;<%= totalItems %> total</span>
+</nav>
+<% } %>

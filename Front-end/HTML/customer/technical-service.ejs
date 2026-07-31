@@ -1,166 +1,252 @@
 <%- include('../../includes/customer/head.ejs') %>
 
-    <link rel="stylesheet" href="/front-end/Css/customer/technical-service.css">
-    <script
-        src="https://www.google.com/recaptcha/enterprise.js?render=6LeqowkrAAAAABs84-oXHTj8URMhpExplrlZDwUH"></script>
+    <link rel="stylesheet" href="/css/customer/technical-service.css">
 
+    <% if (recaptchaEnabled) { %>
+      <script
+        src="https://www.google.com/recaptcha/enterprise.js?render=6LemaIMrAAAAABkGmvhvmbRSO5BbXQq7AsLB7NGU"
+        async
+        defer
+      ></script>
+    <% } %>
 
+    <title><%= t.pageTitle %> | DragLab</title>
+    <meta name="description" content="<%= t.metaDescription %>">
+    <meta property="og:title" content="<%= t.ogTitle %>">
+    <meta property="og:description" content="<%= t.ogDescription %>">
+    <meta property="og:url" content="https://www.drag-lab.de/<%= lang %>/technical-service">
+    <meta property="og:type" content="website">
+    <meta name="twitter:title" content="<%= t.ogTitle %>">
+    <meta name="twitter:description" content="<%= t.ogDescription %>">
+    <meta name="twitter:card" content="summary">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://www.drag-lab.de/<%= lang %>/technical-service">
+    <link rel="alternate" hreflang="x-default" href="https://www.drag-lab.de/EN/technical-service">
+    <link rel="alternate" hreflang="en" href="https://www.drag-lab.de/EN/technical-service">
+    <link rel="alternate" hreflang="es" href="https://www.drag-lab.de/ES/technical-service">
+    <link rel="alternate" hreflang="de" href="https://www.drag-lab.de/DE/technical-service">
+    <link rel="alternate" hreflang="tr" href="https://www.drag-lab.de/TR/technical-service">
+    <link rel="alternate" hreflang="fr" href="https://www.drag-lab.de/FR/technical-service">
+<script type="application/ld+json" nonce="<%= nonce %>">
+<%- JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Service",
+  "name": t.pageTitle,
+  "description": t.metaDescription,
+  "provider": { "@type": "Organization", "name": "DragLab", "url": "https://www.drag-lab.de/" },
+  "url": `https://www.drag-lab.de/${lang}/technical-service`,
+  "areaServed": "Worldwide",
+  "serviceType": "Technical Service & Repair"
+}) %>
+</script>
+<script type="application/ld+json" nonce="<%= nonce %>">
+<%- JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": (lang==='DE'?'Startseite':lang==='ES'?'Inicio':lang==='TR'?'Ana Sayfa':lang==='FR'?'Accueil':'Home'), "item": `https://www.drag-lab.de/${lang}` },
+    { "@type": "ListItem", "position": 2, "name": t.pageTitle || 'Technical Service', "item": `https://www.drag-lab.de/${lang}/technical-service` }
+  ]
+}) %>
+</script>
+</head>
 
+<body
+  data-lang="<%= lang %>"
+  data-select-option="<%= translations.selectOption %>"
+  data-recaptcha-enabled="<%= recaptchaEnabled ? 'true' : 'false' %>"
+>
 
-
-    <body>
         <!-- nav-bar -->
-
         <%- include('../../includes/customer/navbar.ejs') %>
 
-
-            <!-- nav-bar -->
-
-            <!-- contact us thumbnail  -->
+            <!-- Thumbnail Section -->
             <div class="slide">
                 <div class="slide-text">
-                    <h1>Technical Support at Your Service.</h1>
-                    <p>Quick and reliable solutions to your technical problems. </p>
+                    <h1>
+                        <%= translations.slideTitle %>
+                    </h1>
+                    <p>
+                        <%= translations.slideSubtitle %>
+                    </p>
                 </div>
                 <img src="/assets/Imgs/Icons/products/contactus-BC.png" alt="Photo 1">
             </div>
-            <!-- contact us thumbnail  -->
 
-            <!-- Technical service form  -->
 
+
+
+
+            <!-- Technical service form -->
             <section class="technical-service-section">
+                <h2>
+                    <%= translations.formTitle %>
+                </h2>
 
-                <h2>Technical Support Form</h2>
                 <% if (req.query.success==='true' ) { %>
                     <div class="success-message">
-                        ✅ Your technical support request has been submitted successfully.
+                        <%= translations.success %>
                     </div>
-                    <!-- Google Ads Conversion Tracking Script -->
-                    <script>
-                        gtag('event', 'conversion', {
-                            'send_to': 'AW-754782155/Km5ZCI6_qIQaEMuf9OcC',
-                            'value': 1.0,
-                            'currency': 'USD',
-                            'transaction_id': ''
-                        });
-                    </script>
+
                     <% } else if (req.query.success==='false' ) { %>
                         <div class="error-message">
-                            ❌ Something went wrong. Please try again.
+                            <%= translations.error %>
                         </div>
                         <% } %>
 
-                            <form id="demo-form" method="POST" action="/technical-service" class="form-container">
+                            <form id="techServiceForm" method="POST" action="/technical-service?lang=<%= lang %>"
+                                class="form-container">
 
+                                <!-- User Info Section -->
                                 <div class="form-section">
-                                    <h3>User Technical Support</h3>
+                                    <h3>
+                                        <%= translations.userSectionTitle %>
+                                    </h3>
+
+
 
                                     <div class="checkbox-group">
-                                        <input type="checkbox" name="privacyPolicy" required>
-                                        <label for="privacyPolicy">I agree to the processing of my personal data in
-                                            accordance with
-                                            the Privacy Policy for the purpose of handling my technical support
-                                            request.*</label>
-                                    </div>
-
-                                    <div class="checkbox-group">
-                                        <label>Information info:</label><br>
-
-                                        <label>
-                                            <input type="radio" name="infoType" value="company" required>
-                                            Company
+                                        <p>
+                                            <%= translations.infoLabel %>
+                                        </p>
+                                        <br>
+                                        <label><input type="radio" name="infoType" value="company" autocomplete="off"
+                                                required>
+                                            <%= translations.company %>
                                         </label><br>
-
-                                        <label>
-                                            <input type="radio" name="infoType" value="private" required>
-                                            Private Citizen
+                                        <label><input type="radio" name="infoType" value="private" autocomplete="off"
+                                                required>
+                                            <%= translations.private %>
                                         </label>
                                     </div>
-
 
                                     <div class="form-row">
                                         <div class="two-form-group">
                                             <div class="form-group">
-                                                <label>Company</label>
-                                                <input type="text" name="company" placeholder="Company" required>
+                                                <label for="company">
+                                                    <%= translations.company %>
+                                                </label>
+                                                <input type="text" id="company" name="company"
+                                                    placeholder="<%= translations.company %>" autocomplete="company"
+                                                    required>
                                             </div>
                                             <div class="form-group">
-                                                <label>Department</label>
-                                                <input type="text" name="department" placeholder="Department">
+                                                <label for="department">Department</label>
+                                                <input type="text" id="department" name="department"
+                                                    placeholder="Department" autocomplete="organization-title">
                                             </div>
                                         </div>
 
                                         <div class="form-group checkbox-group">
-                                            <label>Salutation:</label><br>
-
                                             <label>
-                                                <input type="radio" name="salutation" value="Mrs/Ms" required>
-                                                Mrs/Ms
+                                                <%= translations.salutationLabel %>
                                             </label><br>
-
-                                            <label>
-                                                <input type="radio" name="salutation" value="Mr" required>
-                                                Mr
+                                            <label for="salutationMrsMs"><input type="radio" id="salutationMrsMs"
+                                                    name="salutation" value="Mrs/Ms" autocomplete="off" required>
+                                                <%= translations.mrs %>
+                                            </label><br>
+                                            <label for="salutationMr"><input type="radio" id="salutationMr"
+                                                    name="salutation" value="Mr" autocomplete="off" required>
+                                                <%= translations.mr %>
                                             </label>
                                         </div>
 
-
                                         <div class="three-form-group">
                                             <div class="form-group">
-                                                <label>First Name</label>
-                                                <input type="text" name="firstName" placeholder="First Name" required>
+                                                <label for="firstName">
+                                                    <%= translations.firstName %>
+                                                </label>
+                                                <input type="text" id="firstName" name="firstName"
+                                                    placeholder="<%= translations.firstName %>"
+                                                    autocomplete="given-name" required>
                                             </div>
                                             <div class="form-group">
-                                                <label>Last Name</label>
-                                                <input type="text" name="lastName" placeholder="Last Name" required>
+                                                <label for="lastName">
+                                                    <%= translations.lastName %>
+                                                </label>
+                                                <input type="text" id="lastName" name="lastName"
+                                                    placeholder="<%= translations.lastName %>"
+                                                    autocomplete="family-name" required>
                                             </div>
                                             <div class="form-group">
-                                                <label>Postal/ ZIP code, Town</label>
-                                                <input type="text" name="postalTown"
-                                                    placeholder="Postal/ ZIP code, Town">
+                                                <label for="postalTown">
+                                                    <%= translations.postalTown %>
+                                                </label>
+                                                <input type="text" id="postalTown" name="postalTown"
+                                                    placeholder="<%= translations.postalTown %>"
+                                                    autocomplete="postal-code" required>
                                             </div>
                                         </div>
 
                                         <div class="three-form-group">
                                             <div class="form-group">
-                                                <label>Street</label>
-                                                <input type="text" name="street" placeholder="Street">
+                                                <label for="street">
+                                                    <%= translations.street %>
+                                                </label>
+                                                <input type="text" id="street" name="street"
+                                                    placeholder="<%= translations.street %>"
+                                                    autocomplete="street-address">
                                             </div>
                                             <div class="form-group">
-                                                <label>Country</label>
-                                                <input type="text" name="country" placeholder="Country" required>
+                                                <label for="country">
+                                                    <%= translations.country %>
+                                                </label>
+                                                <input type="text" id="country" name="country"
+                                                    placeholder="<%= translations.country %>"
+                                                    autocomplete="country-name" required>
                                             </div>
                                             <div class="form-group">
-                                                <label>Telephone</label>
-                                                <input type="text" name="telephone" placeholder="Telephone">
+                                                <label for="telephone">
+                                                    <%= translations.telephone %>
+                                                </label>
+                                                <input type="text" id="telephone" name="telephone"
+                                                    placeholder="<%= translations.telephone %>" autocomplete="tel"
+                                                    required>
                                             </div>
                                         </div>
 
                                         <div class="two-form-group">
                                             <div class="form-group">
-                                                <label>Telefax</label>
-                                                <input type="text" name="telefax" placeholder="Telefax">
+                                                <label for="telefax">
+                                                    <%= translations.telefax %>
+                                                </label>
+                                                <input type="text" id="telefax" name="telefax"
+                                                    placeholder="<%= translations.telefax %>" autocomplete="fax">
                                             </div>
                                             <div class="form-group">
-                                                <label>Email</label>
-                                                <input type="email" name="email" placeholder="Email" required>
+                                                <label for="email">
+                                                    <%= translations.email %>
+                                                </label>
+                                                <input type="email" id="email" name="email"
+                                                    placeholder="<%= translations.email %>" autocomplete="email"
+                                                    required>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
+                                <!-- Technical Issue Section -->
                                 <div class="form-section">
-                                    <h3>Technical Question / Failure</h3>
+                                    <h3>
+                                        <%= translations.techSectionTitle %>
+                                    </h3>
                                     <div class="form-row">
                                         <div class="three-form-group">
                                             <div class="form-group">
-                                                <label>Date of Failure</label>
-                                                <input type="date" name="failureDate" required>
+                                                <label for="failureDate">
+                                                    <%= translations.failureDate %>
+                                                </label>
+                                                <input type="date" id="failureDate" name="failureDate"
+                                                    autocomplete="off" required>
                                             </div>
                                             <div class="form-group">
-                                                <label for="deviceCategory">Device category*</label>
+                                                <label for="deviceCategory">
+                                                    <%= translations.deviceCategory %>
+                                                </label>
                                                 <select id="deviceCategory" name="deviceCategory" required>
-                                                    <option value="">Select</option>
+                                                    <option value="">
+                                                        <%= translations.selectOption %>
+                                                    </option>
                                                     <% products.forEach(product=> { %>
                                                         <option value="<%= product._id %>">
                                                             <%= product.Language[lang][0]?.ProductName ||
@@ -170,89 +256,71 @@
                                                 </select>
                                             </div>
                                             <div class="form-group">
-                                                <label for="deviceModel">Device Model*</label>
+                                                <label for="deviceModel">
+                                                    <%= translations.deviceModel %>
+                                                </label>
                                                 <select id="deviceModel" name="deviceModel" required>
-                                                    <option value="">Select</option>
+                                                    <option value="">
+                                                        <%= translations.selectOption %>
+                                                    </option>
                                                 </select>
                                             </div>
                                         </div>
+
                                         <div class="two-form-group">
                                             <div class="form-group">
-                                                <label>Serial No</label>
-                                                <input type="text" name="serialNo" placeholder="Serial No" required>
+                                                <label for="serialNo">
+                                                    <%= translations.serialNo %>
+                                                </label>
+                                                <input type="text" id="serialNo" name="serialNo"
+                                                    placeholder="<%= translations.serialNo %>" required>
                                             </div>
-
                                         </div>
 
                                         <div class="form-group note-container">
-                                            <label>Note</label>
-                                            <textarea name="note" placeholder="Write your Note..."></textarea>
+                                            <label>
+                                                <%= translations.note %>
+                                            </label>
+                                            <textarea name="note"
+                                                placeholder="<%= translations.notePlaceholder %>"></textarea>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div class="recaptcha">
-                                    <div class="g-recaptcha" data-sitekey="6LdBFQkrAAAAALGPy8986JpxndbqzY1_6kEDxH1s">
-                                    </div>
+                                <div class="checkbox-group">
+                                    <input type="checkbox" id="privacyPolicy" name="privacyPolicy" required>
+                                    <label for="privacyPolicy">
+                                        <p>
+                                            <%= translations.dataLabel %> &nbsp; <a id="highlighted-word-primary-color"
+                                                    href="/<%= lang %>/PrivacyPolicy">
+                                                    <%= translations.privacyPolicy %>
+                                                </a> &nbsp;
+                                                <%= translations.dataSuffix %>
+                                        </p>
+                                    </label>
                                 </div>
+
+                                <!-- Submit Button -->
 
                                 <div class="submit-button">
-                                    <button class="g-recaptcha" data-sitekey="6LeqowkrAAAAABs84-oXHTj8URMhpExplrlZDwUH"
-                                        data-callback='onSubmit' data-action='submit' type="submit">
-                                        Send Message
+                                    <button id="techServiceSubmitBtn" type="button">
+                                        <%= translations.sendBtn || 'Submit' %>
                                     </button>
+
+
                                 </div>
 
-                                <script>
-                                    function onSubmit(token) {
-                                        const form = document.getElementById("demo-form");
-                                        if (form.checkValidity()) {
-                                            form.submit();
-                                        } else {
-                                            // Trigger built-in browser validation UI
-                                            form.reportValidity();
-                                        }
-                                    }
-                                </script>
 
                             </form>
 
             </section>
 
-            <!-- Technical service form  -->
-            <script>
-                const lang = '<%= lang %>';
-                document.getElementById('deviceCategory').addEventListener('change', async function () {
-                    const productId = this.value;
-                    const modelSelect = document.getElementById('deviceModel');
-                    modelSelect.innerHTML = '<option value="">Select</option>';
-
-                    if (!productId) return;
-
-                    try {
-                        const res = await fetch(`/api/models/${productId}?lang=${lang}`);
-                        const data = await res.json();
-
-                        data.models.forEach(model => {
-                            const option = document.createElement('option');
-                            option.value = model._id;
-                            option.textContent = model.ModelName;
-                            modelSelect.appendChild(option);
-                        });
-                    } catch (err) {
-                        console.error('Error fetching models:', err);
-                    }
-                });
-            </script>
 
 
             <!-- Footer -->
-
             <%- include('../../includes/customer/footer.ejs') %>
-
+                <script src="/js/technical-service.js" nonce="<%= nonce %>" defer></script>
 
     </body>
-    <%- include('../../includes/customer/script.ejs') %>
 
-
-        </html>
+    </html>

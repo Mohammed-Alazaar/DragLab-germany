@@ -1,0 +1,138 @@
+<%- include('../../includes/sellercompany/head.ejs') %>
+<link rel="stylesheet" href="/css/sellercompany/all-technical-service.css">
+
+<style>
+  .form-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 28px 24px;
+    max-width: 480px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+  .form-card h2 {
+    font-size: 1.1rem;
+    color: #1a1a1a;
+    margin: 0 0 20px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--primary-Color, #1a56db);
+  }
+
+  .form-group { margin-bottom: 16px; }
+  .form-group label {
+    display: block;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 5px;
+  }
+  .form-group input,
+  .form-group select {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 0.93rem;
+    box-sizing: border-box;
+    transition: border-color 0.2s;
+  }
+  .form-group input:focus,
+  .form-group select:focus {
+    outline: none;
+    border-color: var(--primary-Color, #1a56db);
+    box-shadow: 0 0 0 3px rgba(26,86,219,0.1);
+  }
+  .form-group input.is-invalid { border-color: #dc3545; }
+
+  .btn-save {
+    width: 100%;
+    background: var(--primary-Color, #1a56db);
+    color: #fff;
+    border: none;
+    padding: 10px 0;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 4px;
+  }
+  .btn-save:hover { opacity: 0.88; }
+
+  .btn-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #4b5563;
+    text-decoration: none;
+    font-size: 0.9rem;
+    margin-bottom: 20px;
+  }
+  .btn-back:hover { color: #1a1a1a; }
+
+  .alert { padding: 12px 18px; border-radius: 6px; margin-bottom: 18px; font-size: 0.93rem; }
+  .alert-error { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+</style>
+
+</head>
+
+<body>
+  <%- include('../../includes/sellercompany/navbar-dash.ejs') %>
+  <section class="sidebar-content-container">
+    <section class="sidebar-container">
+      <%- include('../../includes/sellercompany/sidebar.ejs') %>
+    </section>
+
+    <section class="content-container">
+      <a href="/admin/users" class="btn-back">&#8592; Back to Users</a>
+      <h1>Add New User</h1>
+
+      <% if (errorMessage) { %>
+        <div class="alert alert-error"><%= errorMessage %></div>
+      <% } %>
+
+      <div class="form-card">
+        <h2>User Details</h2>
+        <form method="POST" action="/admin/users/add">
+          <div class="form-group">
+            <label for="name">Full Name</label>
+            <input type="text" name="name" id="name"
+                   class="<%= validationErrors.find(e => e.path === 'name') ? 'is-invalid' : '' %>"
+                   value="<%= oldInput.name %>" required>
+          </div>
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" name="email" id="email"
+                   class="<%= validationErrors.find(e => e.path === 'email') ? 'is-invalid' : '' %>"
+                   value="<%= oldInput.email %>" required>
+          </div>
+          <div class="form-group">
+            <label for="phoneNumber">Phone Number</label>
+            <input type="tel" name="phoneNumber" id="phoneNumber"
+                   class="<%= validationErrors.find(e => e.path === 'phoneNumber') ? 'is-invalid' : '' %>"
+                   value="<%= oldInput.phoneNumber %>" placeholder="e.g. +49 123 456789" required>
+          </div>
+          <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" name="password" id="password"
+                   class="<%= validationErrors.find(e => e.path === 'password') ? 'is-invalid' : '' %>"
+                   placeholder="Min. 8 characters" required minlength="8">
+          </div>
+          <div class="form-group">
+            <label for="confirmPassword">Confirm Password</label>
+            <input type="password" name="confirmPassword" id="confirmPassword"
+                   placeholder="Repeat password" required minlength="8">
+          </div>
+          <div class="form-group">
+            <label for="role">Role</label>
+            <select name="role" id="role">
+              <option value="subAdmin" <%= oldInput.role === 'subAdmin' ? 'selected' : '' %>>Sub Admin</option>
+              <option value="admin" <%= oldInput.role === 'admin' ? 'selected' : '' %>>Admin</option>
+            </select>
+          </div>
+          <button type="submit" class="btn-save">Create User</button>
+        </form>
+      </div>
+    </section>
+  </section>
+</body>
+</html>

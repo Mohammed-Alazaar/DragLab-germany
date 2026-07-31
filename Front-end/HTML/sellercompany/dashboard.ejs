@@ -1,6 +1,6 @@
 <%- include('../../includes/sellercompany/head.ejs') %>
 
-  <link rel="stylesheet" href="/Css/sellercompany/dashboard.css">
+  <link rel="stylesheet" href="/css/sellercompany/dashboard.css">
   <%- include('../../includes/sellercompany/head-end.ejs') %>
 
     <body>
@@ -52,13 +52,48 @@
                 <img src="/assets/Imgs/Icons/contactUs-Messages.png" alt="contact messages">
                 <p>contact messages</p>
               </a>
-
-         
-
-              <a href="/admin/adduser" class="dashboard-card">
-                <img src="/assets/Imgs/Icons/addUser.png" alt="Users">
-                <p>Add Admin / Seller</p>
+              <a href="/admin/industry-pages" class="dashboard-card">
+                <img src="/assets/Imgs/Icons/QUALITY-ASSURANCE-AND-TESTING.svg" alt="industries">
+                <p>industries</p>
               </a>
+              <a href="/admin/newsletter" class="dashboard-card">
+                <img src="/assets/Imgs/Icons/articles.png" alt="newsletters">
+                <p>newsletters</p>
+              </a>
+
+              <a href="/admin/quotes" class="dashboard-card">
+                <img src="/assets/Imgs/Icons/Technical-Support.png" alt="Quotes">
+                <p>Quote Requests</p>
+              </a>
+
+              <a href="/admin/distributor-applications" class="dashboard-card">
+                <img src="/assets/Imgs/Icons/QUALITY-ASSURANCE-AND-TESTING.svg" alt="Distributors">
+                <p>Distributor Applications</p>
+              </a>
+
+              <a href="/admin/faqs" class="dashboard-card">
+                <img src="/assets/Imgs/Icons/articles.png" alt="FAQ">
+                <p>FAQ / Knowledge Base</p>
+              </a>
+
+              <a href="/admin/testimonials" class="dashboard-card">
+                <img src="/assets/Imgs/Icons/articles.png" alt="Testimonials">
+                <p>Testimonials</p>
+              </a>
+
+              <a href="/admin/accessories" class="dashboard-card">
+                <img src="/assets/Imgs/Icons/basket.png" alt="Accessories">
+                <p>Accessories</p>
+              </a>
+
+
+              <% if (typeof isAdmin !=='undefined' && isAdmin) { %>
+                <a class="<%= path === '/admin/users' ? 'selected' : '' %> dashboard-card" href="/admin/users">
+                  <img src="/assets/Imgs/Icons/addUser.png" alt="Users">
+                  <p>User Management</p>
+                </a>
+                <% } %>
+
             </div>
             <h2 id="External">External Links</h2>
 
@@ -75,8 +110,8 @@
                 <img src="/assets/Imgs/Icons/tawk-sitelogo1.png" alt="tawk">
                 <p>tawk costomers chats</p>
               </a>
-            
-              
+
+
             </div>
           </section>
         </section>
@@ -86,6 +121,5 @@
         </section>
         </section>
     </body>
-
 
     </html>

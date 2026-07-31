@@ -1,0 +1,109 @@
+<%- include('../../includes/customer/head.ejs') %>
+<link rel="stylesheet" href="/css/customer/accessories.css">
+<%
+  const BASE = 'https://www.drag-lab.de';
+  const detailUrl = BASE + '/' + lang + '/accessories/' + accessory.slug;
+  const absImage = accessory.image
+    ? (accessory.image.startsWith('http') ? accessory.image : BASE + accessory.image)
+    : '';
+%>
+
+<title><%= pageTitle %></title>
+<meta name="description" content="<%= metaDescription || (accessory.name + ' - DragLab') %>">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="<%= detailUrl %>">
+<link rel="alternate" hreflang="x-default" href="<%= detailUrl %>">
+<link rel="alternate" hreflang="en" href="<%= BASE %>/EN/accessories/<%= accessory.slug %>">
+<link rel="alternate" hreflang="de" href="<%= BASE %>/DE/accessories/<%= accessory.slug %>">
+<link rel="alternate" hreflang="es" href="<%= BASE %>/ES/accessories/<%= accessory.slug %>">
+<link rel="alternate" hreflang="fr" href="<%= BASE %>/FR/accessories/<%= accessory.slug %>">
+<link rel="alternate" hreflang="tr" href="<%= BASE %>/TR/accessories/<%= accessory.slug %>">
+
+<meta property="og:type" content="product">
+<meta property="og:title" content="<%= pageTitle %>">
+<meta property="og:url" content="<%= detailUrl %>">
+<meta property="og:site_name" content="DragLab">
+<% if (absImage) { %><meta property="og:image" content="<%= absImage %>"><% } %>
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="<%= pageTitle %>">
+<% if (absImage) { %><meta name="twitter:image" content="<%= absImage %>"><% } %>
+
+<script type="application/ld+json" nonce="<%= nonce %>"><%- JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type":"ListItem","position":1,"name":(lang==='DE'?'Startseite':lang==='ES'?'Inicio':lang==='TR'?'Ana Sayfa':lang==='FR'?'Accueil':'Home'),"item": BASE + "/" + lang + "/"},
+    {"@type":"ListItem","position":2,"name":(lang==='DE'?'Zubehör':lang==='ES'?'Accesorios':lang==='TR'?'Aksesuarlar':lang==='FR'?'Accessoires':'Accessories'),"item": BASE + "/" + lang + "/accessories"},
+    {"@type":"ListItem","position":3,"name":accessory.name,"item":detailUrl}
+  ]
+}) %></script>
+
+<% if (absImage) { %>
+<script type="application/ld+json" nonce="<%= nonce %>"><%- JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Product",
+  "name": accessory.name,
+  "url": detailUrl,
+  "image": absImage,
+  "sku": accessory.articleNumber || undefined,
+  "description": description || undefined,
+  "brand": {"@type":"Brand","name":"DragLab"}
+}) %></script>
+<% } %>
+</head>
+
+<body>
+<%- include('../../includes/customer/navbar.ejs') %>
+
+<div class="acc-detail-wrapper">
+  <a href="/<%= lang %>/accessories" class="acc-back-link"><%= ui.back %></a>
+
+  <div class="acc-detail-layout">
+    <!-- Image -->
+    <% if (accessory.image) { %>
+    <div class="acc-detail-img-wrap">
+      <img src="<%= accessory.image %>" alt="<%= accessory.name %>" class="acc-detail-img">
+    </div>
+    <% } %>
+
+    <!-- Info -->
+    <div class="acc-detail-info">
+      <% if (accessory.articleNumber) { %>
+      <p class="acc-detail-article"><span><%= ui.articleNum %></span> <%= accessory.articleNumber %></p>
+      <% } %>
+      <h1 class="acc-detail-title"><%= accessory.name %></h1>
+
+      <% if (accessory.applicableProducts && accessory.applicableProducts.length > 0) { %>
+      <div class="acc-detail-applicable">
+        <h2><%= ui.applicableFor %></h2>
+        <ul class="acc-applicable-list">
+          <% accessory.applicableProducts.forEach(function(ap) { %>
+          <li>
+            <a href="/<%= lang %>/products/<%= ap.productSlug %>"><%= ap.productName %></a>
+            <% if (ap.models && ap.models.length > 0) { %>
+            <ul class="acc-model-sub-list">
+              <% ap.models.forEach(function(m) { %>
+              <li><a href="/<%= lang %>/products/<%= ap.productSlug %>/<%= m.modelSlug %>"><%= m.modelName %></a></li>
+              <% }); %>
+            </ul>
+            <% } %>
+          </li>
+          <% }); %>
+        </ul>
+      </div>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- Description -->
+  <% if (description && description.trim()) { %>
+  <div class="acc-detail-desc">
+    <h2><%= ui.descTitle %></h2>
+    <div class="acc-detail-desc-body"><%- description %></div>
+  </div>
+  <% } %>
+</div>
+
+<%- include('../../includes/customer/footer.ejs') %>
+</body>
+<%- include('../../includes/customer/script.ejs') %>

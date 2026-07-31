@@ -3,14 +3,10 @@ const path = require('path'); // Add this line to import the path module
 const User = require('../models/user');
 const bcrypt = require('bcryptjs');
 const nodemailer = require('nodemailer');
-const sendgridTransport = require('nodemailer-sendgrid-transport');
+const userCache = require('../util/userCache');
 const { validationResult } = require('express-validator');
 
-// const transporter = nodemailer.createTransport(sendgridTransport({
-//     auth: {
-//         api_key:'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'
-//     }
-// }));
+
 
 
 
@@ -21,7 +17,7 @@ exports.getLogin = ((req, res, next) => {
     } else {
         message = null;
     }
-    res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'auth', 'login'), {
+    res.render('auth/login', {
         path: '/login',
         pageTitle: 'Login',
         isAuthenticated: false,
@@ -41,7 +37,7 @@ exports.postLogin = (req, res, next) => {
     const password = req.body.password;
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        return res.status(422).render(path.join(__dirname, '..', 'front-end', 'HTML', 'auth', 'login'), {
+        return res.status(422).render('auth/login', {
             path: '/admin/login',
             pageTitle: 'Login',
             isAuthenticated: false,
@@ -56,7 +52,7 @@ exports.postLogin = (req, res, next) => {
     User.findOne({ email: email })
         .then(user => {
             if (!user) {
-                return res.status(422).render(path.join(__dirname, '..', 'front-end', 'HTML', 'auth', 'login'), {
+                return res.status(422).render('auth/login', {
                     path: '/admin/login',
                     pageTitle: 'Login',
                     isAuthenticated: false,
@@ -78,14 +74,14 @@ exports.postLogin = (req, res, next) => {
                             if (err) {
                                 console.log(err);
                             }
-                            if (user.role === 'admin' || user.role === 'seller') {
+                            if (user.role === 'admin' || user.role === 'subAdmin') {
                                 res.redirect('/admin/dashboard');
                             } else {
                                 res.redirect('/EN');
                             }
                         });
                     }
-                    return res.status(422).render(path.join(__dirname, '..', 'front-end', 'HTML', 'auth', 'login'), {
+                    return res.status(422).render('auth/login', {
                         path: '/admin/login',
                         pageTitle: 'Login',
                         isAuthenticated: false,
@@ -110,8 +106,10 @@ exports.postLogin = (req, res, next) => {
 
 
 exports.postLogOut = ((req, res, next) => {
+    const userId = req.session?.user?._id;
+    if (userId) userCache.invalidate(userId);
     req.session.destroy(err => {
-        console.log(err);
+        if (err) console.log(err);
         res.redirect('/EN');
     });
 });
@@ -147,7 +145,7 @@ exports.getAdduser = ((req, res, next) => {
     } else {
         message = null;
     }
-    res.render(path.join(__dirname, '..', 'front-end', 'HTML', 'sellercompany', 'adduser'), {
+    res.render('sellercompany/adduser', {
         path: '/admin/adduser',
         pageTitle: 'add user',
         isAuthenticated: true,
@@ -176,7 +174,7 @@ exports.postSignup = (req, res, next) => {
 
     if (!errors.isEmpty()) {
         const errorMessage = '<ul class="sign-up-error-message">' + errors.array().map(error => `<li>${error.msg}</li>`).join('') + '</ul>';
-        return res.status(422).render(path.join(__dirname, '..', 'front-end', 'HTML', 'sellercompany', 'adduser'), {
+        return res.status(422).render('sellercompany/adduser', {
             path: '/signup',
             pageTitle: 'adduser',
             isAuthenticated: false,
@@ -210,11 +208,12 @@ exports.postSignup = (req, res, next) => {
     })
     
     .then(() => {
-        if (role === 'admin' || role === 'seller') {
+        if (role === 'admin' || role === 'subAdmin') {
             res.redirect('/admin/dashboard');
         } else {
             res.redirect('/admin/adduser');
         }
+        console.log('User created successfully!');
     })
     .catch(err => {
         console.log(err);

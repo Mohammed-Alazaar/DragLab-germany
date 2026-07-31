@@ -1,0 +1,143 @@
+<%- include('../../includes/customer/head.ejs') %>
+<link rel="stylesheet" href="/css/customer/PrivacyPolicy.css">
+
+<% const baseUrl = 'https://www.drag-lab.de'; %>
+<% const meta = {
+  EN: {
+    title: "Legal Notice (Imprint) – DragLab",
+    desc: "View DragLab’s legal disclosure, registration details, and contact information for Germany.",
+    hero: "Legal Notice (Imprint)",
+    heading: "Company Legal Information"
+  },
+  ES: {
+    title: "Aviso Legal – DragLab",
+    desc: "Consulta la divulgación legal, detalles de registro e información de contacto de DragLab en Alemania.",
+    hero: "Aviso Legal",
+    heading: "Información Legal de la Empresa"
+  },
+  DE: {
+    title: "Impressum – DragLab",
+    desc: "Rechtliche Hinweise, Handelsregistereintrag und Kontaktdaten von DragLab in Deutschland.",
+    hero: "Impressum",
+    heading: "Rechtliche Unternehmensinformationen"
+  }
+}; %>
+
+<title><%= meta[lang]?.title || meta.EN.title %></title>
+<meta name="description" content="<%= meta[lang]?.desc || meta.EN.desc %>">
+<meta name="robots" content="index, follow">
+<meta property="og:title" content="<%= meta[lang]?.title || meta.EN.title %>">
+<meta property="og:description" content="<%= meta[lang]?.desc || meta.EN.desc %>">
+<meta property="og:url" content="<%= baseUrl %>/<%= lang %>/imprint">
+<meta property="og:image" content="<%= baseUrl %>/assets/Imgs/logo/logo.png">
+<meta property="og:locale" content="<%= lang === 'EN' ? 'en_US' : lang === 'ES' ? 'es_ES' : 'de_DE' %>">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="<%= meta[lang]?.title || meta.EN.title %>">
+<meta name="twitter:description" content="<%= meta[lang]?.desc || meta.EN.desc %>">
+<meta name="twitter:image" content="<%= baseUrl %>/assets/Imgs/logo/logo.png">
+
+<link rel="canonical" href="<%= baseUrl %>/<%= lang %>/imprint">
+<link rel="alternate" hreflang="x-default" href="<%= baseUrl %>/EN/imprint">
+<link rel="alternate" hreflang="en" href="<%= baseUrl %>/EN/imprint">
+<link rel="alternate" hreflang="es" href="<%= baseUrl %>/ES/imprint">
+<link rel="alternate" hreflang="de" href="<%= baseUrl %>/DE/imprint">
+<link rel="alternate" hreflang="tr" href="<%= baseUrl %>/TR/imprint">
+<link rel="alternate" hreflang="fr" href="<%= baseUrl %>/FR/imprint">
+<script type="application/ld+json" nonce="<%= nonce %>">
+<%- JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": (meta[lang]?.title || meta.EN.title),
+  "url": `${baseUrl}/${lang}/imprint`,
+  "inLanguage": (lang || 'EN').toLowerCase(),
+  "publisher": { "@type": "Organization", "name": "DragLab", "url": "https://www.drag-lab.de/" }
+}) %>
+</script>
+
+</head>
+
+
+    <body>
+        <!-- nav-bar -->
+
+        <%- include('../../includes/customer/navbar.ejs') %>
+
+
+            <!-- nav-bar -->
+
+            <!-- Hero section -->
+  <div class="slide">
+    <div class="slide-text">
+      <h1><%= t.heroTitle %></h1>
+    </div>
+    <img src="/assets/Imgs/Icons/products/contactus-BC.png" alt="Legal Notice Background">
+  </div>
+
+  <!-- Legal Info Section -->
+  <div class="PrivacyPolicycontainer">
+    <h1><%= t.pageHeading %></h1>
+
+    <div class="section">
+      <div class="contact">
+        <strong><%= t.companyName %>:</strong><br>
+        Nanodrag Technology GmbH<br><br>
+
+        <strong><%= t.location %>:</strong><br>
+        Alfred-Herrhausen-Allee 3-5<br>
+        D-65760 Eschborn<br>
+        Germany<br><br>
+
+        <strong><%= t.representedBy %>:</strong> Rassan Habbouch<br><br>
+
+        <strong><%= t.emailGeneral %>:</strong><br>
+        <span class="highlighted">
+          <a href="mailto:info@drag-lab.de">info@drag-lab.de</a>
+        </span><br>
+
+        <strong><%= t.website %>:</strong><br>
+        <span class="highlighted">
+          <a href="https://www.drag-lab.de" target="_blank">www.drag-lab.de</a>
+        </span><br><br>
+
+        <strong><%= t.TrademarkOwnershipTitle %>:</strong>
+        <strong><%= t.TrademarkOwnership %></strong><br><br>
+
+        <strong><%= t.registrationCourt %>:</strong> Amtsgericht Frankfurt<br>
+        <strong><%= t.registrationNumber %>:</strong> HRB 97258<br>
+        <strong><%= t.legalForm %>:</strong> Gesellschaft mit Beschränkter Haftung (GmbH)<br>
+        <strong><%= t.registrationPlace %>:</strong> Eschborn<br>
+        <strong>DUNS Nummer:</strong> 312895198<br><br>
+
+        <strong><%= t.vatHeading %>:</strong><br>
+        DE815459894<br>
+        <strong><%= t.taxNumber %>:</strong><br>
+        040/240/00861<br><br>
+
+        <strong><%= t.contactDetails %>:</strong><br>
+        <%= t.tel %>: +49 6196 400816<br>
+        <%= t.fax %>: +49 6196 400910<br>
+        <%= t.emailGeneral %>: <span class="highlighted">
+          <a href="mailto:info@drag-lab.de">info@drag-lab.de</a>
+        </span><br>
+        <%= t.website %>: <span class="highlighted">
+          <a href="https://www.drag-lab.de" target="_blank">www.drag-lab.de</a>
+        </span><br><br>
+        <strong><%- t.Responsible %></strong><br>
+      </div>
+    </div>
+  </div>
+
+
+
+
+            <!-- Footer -->
+
+            <%- include('../../includes/customer/footer.ejs') %>
+
+
+    </body>
+    <%- include('../../includes/customer/script.ejs') %>
+
+
+        </html>

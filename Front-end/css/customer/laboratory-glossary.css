@@ -1,0 +1,281 @@
+/* ── laboratory-glossary.css ── */
+
+/* ── Search ──────────────────────────────────────────── */
+.gloss-search-wrap {
+    max-width: 700px;
+    margin: 2.5rem auto 0;
+    padding: 0 1rem;
+}
+
+.gloss-search-input {
+    width: 100%;
+    padding: 1rem 1.5rem;
+    font-size: 1rem;
+    border: 2px solid #d1d8e0;
+    border-radius: 50px;
+    outline: none;
+    box-sizing: border-box;
+    font-family: inherit;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.gloss-search-input:focus {
+    border-color: var(--primary-Color);
+    box-shadow: 0 0 0 3px rgba(41,60,149,0.1);
+}
+
+/* ── Category Filter ─────────────────────────────────── */
+.gloss-category-nav {
+    max-width: 1100px;
+    margin: 2rem auto 0;
+    padding: 0 2rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: center;
+}
+
+.gloss-cat-btn {
+    padding: 0.45rem 1.1rem;
+    border: 2px solid #d1d8e0;
+    border-radius: 50px;
+    background: #fff;
+    color: #2c3e50;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+
+.gloss-cat-btn:hover {
+    border-color: var(--primary-Color);
+    color: var(--primary-Color);
+}
+
+.gloss-cat-btn.active {
+    background: var(--primary-Color);
+    border-color: var(--primary-Color);
+    color: #fff;
+}
+
+@media (max-width: 768px) {
+    .gloss-category-nav { padding: 0 1rem; }
+}
+
+/* ── Alphabet Nav ────────────────────────────────────── */
+.gloss-alphabet-nav {
+    max-width: 1100px;
+    margin: 2rem auto 0;
+    padding: 0 2rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    justify-content: center;
+}
+
+.gloss-alpha-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border: 2px solid #d1d8e0;
+    border-radius: 6px;
+    background: #fff;
+    color: #2c3e50;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.gloss-alpha-btn:hover,
+.gloss-alpha-btn.has-terms {
+    border-color: var(--primary-Color);
+    color: var(--primary-Color);
+}
+
+.gloss-alpha-btn.disabled {
+    opacity: 0.35;
+    cursor: default;
+    pointer-events: none;
+}
+
+.gloss-alpha-btn.active {
+    background: var(--primary-Color);
+    border-color: var(--primary-Color);
+    color: #fff;
+}
+
+/* ── Content ─────────────────────────────────────────── */
+.gloss-content {
+    max-width: 1100px;
+    margin: 2.5rem auto 5rem;
+    padding: 0 2rem;
+}
+
+.gloss-letter-group { margin-bottom: 2.5rem; }
+
+.gloss-letter-heading {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--primary-Color);
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 3px solid #c9a227;
+    display: inline-block;
+    min-width: 2.5rem;
+}
+
+.gloss-term-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+@media (max-width: 768px) {
+    .gloss-term-grid { grid-template-columns: 1fr; }
+    .gloss-content { padding: 0 1rem; }
+    .gloss-alphabet-nav { padding: 0 1rem; }
+}
+
+.gloss-term-card {
+    background: #fff;
+    border: 1px solid #e4e8ef;
+    border-radius: 8px;
+    padding: 1.2rem 1.5rem;
+    transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.gloss-term-card:hover {
+    box-shadow: 0 6px 20px rgba(41,60,149,0.1);
+    transform: translateY(-2px);
+}
+
+.gloss-term-name {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--primary-Color);
+    margin-bottom: 0.4rem;
+}
+
+.gloss-term-name a { color: inherit; text-decoration: none; }
+.gloss-term-name a:hover { color: #c9a227; }
+
+.gloss-term-def {
+    font-size: 0.9rem;
+    color: #4a5568;
+    line-height: 1.6;
+}
+
+.gloss-empty {
+    text-align: center;
+    padding: 5rem 2rem;
+    color: #7f8c8d;
+    font-size: 1.1rem;
+}
+
+.gloss-term-card.hidden-by-search { display: none; }
+
+/* ── Glossary Term Detail ────────────────────────────── */
+.gloss-letter-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 60px;
+    background: #c9a227;
+    border-radius: 50%;
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 0.5rem;
+}
+
+.gloss-detail-wrapper {
+    max-width: 900px;
+    margin: 3rem auto 5rem;
+    padding: 0 2rem;
+}
+
+.gloss-back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--primary-Color);
+    font-weight: 600;
+    text-decoration: none;
+    margin-bottom: 2rem;
+    font-size: 0.9rem;
+}
+
+.gloss-back-link:hover { color: #c9a227; }
+.gloss-back-link::before { content: '←'; }
+
+.gloss-definition-box {
+    background: #f0f4fa;
+    border-left: 4px solid var(--primary-Color);
+    border-radius: 0 8px 8px 0;
+    padding: 1.5rem 2rem;
+    margin-bottom: 2rem;
+    font-size: 1.05rem;
+    color: #2c3e50;
+    line-height: 1.7;
+}
+
+.gloss-detail-section { margin-bottom: 2rem; }
+
+.gloss-detail-section h2 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--primary-Color);
+    margin-bottom: 0.8rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 2px solid #e4e8ef;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.gloss-detail-section h2::before {
+    content: '';
+    display: inline-block;
+    width: 4px;
+    height: 1.2rem;
+    background: #c9a227;
+    border-radius: 2px;
+}
+
+.gloss-detail-section p {
+    font-size: 1rem;
+    color: #4a5568;
+    line-height: 1.8;
+}
+
+.gloss-related-products {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+}
+
+.gloss-product-tag {
+    padding: 0.4rem 1rem;
+    background: #e8f0fa;
+    color: var(--primary-Color);
+    border-radius: 50px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 0.2s;
+}
+
+.gloss-product-tag:hover {
+    background: var(--primary-Color);
+    color: #fff;
+}
+
+@media (max-width: 768px) {
+    .gloss-detail-wrapper { padding: 0 1rem; }
+}

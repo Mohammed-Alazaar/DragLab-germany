@@ -23,7 +23,8 @@ const technicalServiceSchema = new Schema({
 
     lang: { type: String, default: 'EN' },
     dateSubmitted: { type: Date, default: Date.now },
-    status: { type: String, default: 'pending', enum: ['pending', 'done'] }
+    status: { type: String, default: 'pending', enum: ['pending', 'done'] },
+    isSpam: { type: Boolean, default: false }
 
 }, { timestamps: true });
 

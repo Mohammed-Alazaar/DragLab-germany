@@ -7,6 +7,7 @@ const isAuth = require('../middleware/is-auth');
 const { check, body } = require('express-validator');
 const { uploadProductImages } = require('../middleware/multer-config');
 const isAdminOrSeller = require('../middleware/isAdminOrSeller');
+const isAdmin = require('../middleware/isAdmin');
 
 
 
@@ -41,7 +42,7 @@ router.post('/delete-model', isAuth, isAdminOrSeller, adminController.postDelete
 
 
 // Add Model => GET
-router.get('/add-model/:productId',isAuth, isAdminOrSeller, adminController.getAddModel);
+router.get('/add-model/:productId', isAuth, isAdminOrSeller, adminController.getAddModel);
 
 // Add Model => POST
 router.post('/add-model/:productId', uploadProductImages,
@@ -96,12 +97,12 @@ router.post('/slideshow/delete/:id', isAuth, isAdminOrSeller, adminController.de
 
 
 // Article Routes
-router.get('/articles', isAuth, isAdminOrSeller,adminController.getAllArticles);
-router.get('/articles/add', isAuth, isAdminOrSeller,adminController.getAddArticle);
-router.post('/articles/add', isAuth, isAdminOrSeller,uploadProductImages, adminController.postAddArticle);
-router.get('/articles/edit/:articleId',isAuth, isAdminOrSeller, adminController.getEditArticle);
-router.post('/articles/edit/:articleId',isAuth, isAdminOrSeller, uploadProductImages, adminController.postEditArticle);
-router.post('/articles/delete/:articleId',isAuth, isAdminOrSeller, adminController.postDeleteArticle);
+router.get('/articles', isAuth, isAdminOrSeller, adminController.getAllArticles);
+router.get('/articles/add', isAuth, isAdminOrSeller, adminController.getAddArticle);
+router.post('/articles/add', isAuth, isAdminOrSeller, uploadProductImages, adminController.postAddArticle);
+router.get('/articles/edit/:articleId', isAuth, isAdminOrSeller, adminController.getEditArticle);
+router.post('/articles/edit/:articleId', isAuth, isAdminOrSeller, uploadProductImages, adminController.postEditArticle);
+router.post('/articles/delete/:articleId', isAuth, isAdminOrSeller, adminController.postDeleteArticle);
 
 
 
@@ -121,21 +122,132 @@ router.get('/TechnicalRequests', isAuth, isAdminOrSeller, adminController.getAll
 router.get('/technical-requests/:id', isAuth, isAdminOrSeller, adminController.getTechnicalRequestById);
 router.post('/technical-requests/:id/done', isAuth, isAdminOrSeller, adminController.markTechnicalRequestDone);
 router.get('/technical-requests/:id/pdf', isAuth, isAdminOrSeller, adminController.exportTechnicalRequestPDF);
+// Admin-only actions
+router.post('/technical-requests/:id/spam', isAuth, isAdmin, adminController.postMarkTechnicalSpam);
+router.post('/technical-requests/:id/delete', isAuth, isAdmin, adminController.deleteTechnicalRequest);
 
 
 
 
 
-router.get('/warranty-registrations',isAuth, isAdminOrSeller, adminController.getAllWarrantyRegistrations);
-router.get('/warranty-registrations/:id',isAuth, isAdminOrSeller, adminController.getWarrantyRegistrationById);
-router.post('/warranty-registrations/:id/done', isAuth, isAdminOrSeller,adminController.markWarrantyAsDone);
-router.get('/warranty-registrations/:id/pdf',isAuth, isAdminOrSeller, adminController.exportWarrantyToPDF);
+router.get('/warranty-registrations', isAuth, isAdminOrSeller, adminController.getAllWarrantyRegistrations);
+router.get('/warranty-registrations/:id', isAuth, isAdminOrSeller, adminController.getWarrantyRegistrationById);
+router.post('/warranty-registrations/:id/done', isAuth, isAdminOrSeller, adminController.markWarrantyAsDone);
+router.get('/warranty-registrations/:id/pdf', isAuth, isAdminOrSeller, adminController.exportWarrantyToPDF);
+// Admin-only actions
+router.post('/warranty-registrations/:id/spam', isAuth, isAdmin, adminController.postMarkWarrantySpam);
+router.post('/warranty-registrations/:id/delete', isAuth, isAdmin, adminController.deleteWarrantyRegistration);
 
 
 
-router.get('/contact-messages', isAuth, isAdminOrSeller,adminController.getAllContactUs);
-router.get('/contact-message/:id', isAuth, isAdminOrSeller,adminController.getContactUsDetail);
-router.post('/mark-contactus-done', isAuth, isAdminOrSeller,adminController.postMarkContactUsDone);
-router.get('/contactus-pdf/:id',isAuth, isAdminOrSeller, adminController.exportContactUsToPDF);
+router.get('/contact-messages', isAuth, isAdminOrSeller, adminController.getAllContactUs);
+router.get('/contact-message/:id', isAuth, isAdminOrSeller, adminController.getContactUsDetail);
+router.post('/mark-contactus-done', isAuth, isAdminOrSeller, adminController.postMarkContactUsDone);
+router.get('/contactus-pdf/:id', isAuth, isAdminOrSeller, adminController.exportContactUsToPDF);
+// Admin-only actions
+router.post('/contactus-spam/:id', isAuth, isAdmin, adminController.postMarkContactUsSpam);
+router.post('/contactus-delete/:id', isAuth, isAdmin, adminController.deleteContactUs);
+
+
+
+router.get('/add-industry', isAuth, isAdminOrSeller, adminController.getAddIndustry);
+router.post('/add-industry', uploadProductImages, isAuth, isAdminOrSeller, adminController.postAddIndustry);
+
+router.get('/edit-industry/:slug', isAuth, isAdminOrSeller, adminController.getEditIndustryPage);
+router.post('/edit-industry', uploadProductImages, isAuth, isAdminOrSeller, adminController.postEditIndustryPage);
+router.get('/industry-pages', isAuth, isAdminOrSeller, adminController.getMyIndustriesPage);
+router.post('/delete-industry', isAuth, isAdminOrSeller, adminController.postDeleteIndustry);
+
+
+
+router.get('/newsletter', isAuth, isAdminOrSeller, adminController.getNewsletterList);
+router.post('/newsletter/export/all', adminController.exportAllSubscribers);
+router.post('/newsletter/export/new', adminController.exportNewSubscribers);
+
+
+// ─── User Management (admin only) ────────────────────────────────────────────
+
+router.get('/users', isAuth, isAdmin, adminController.getUsersList);
+
+router.get('/users/add', isAuth, isAdmin, adminController.getAddUserForm);
+router.post('/users/add', isAuth, isAdmin,
+    [
+        check('email').isEmail().withMessage('Please enter a valid email.').normalizeEmail(),
+        body('password').isLength({ min: 8 }).withMessage('Password must be at least 8 characters.').trim(),
+        body('name').trim().notEmpty().withMessage('Name is required.'),
+        body('phoneNumber').trim().notEmpty().withMessage('Phone number is required.')
+    ],
+    adminController.postAddUser
+);
+
+router.get('/users/edit/:id', isAuth, isAdmin, adminController.getEditUser);
+router.post('/users/edit/:id', isAuth, isAdmin, adminController.postEditUser);
+router.post('/users/delete/:id', isAuth, isAdmin, adminController.postDeleteUser);
+router.post('/users/change-password/:id', isAuth, isAdmin, adminController.postChangeUserPassword);
+
+
+// ── PAGE 1: Quotes ────────────────────────────────────────────────────────────
+router.get('/quotes', isAuth, isAdminOrSeller, adminController.getAllQuotes);
+router.get('/quotes/:id/pdf', isAuth, isAdminOrSeller, adminController.getQuotePdf);
+router.get('/quotes/:id', isAuth, isAdminOrSeller, adminController.getQuoteDetail);
+router.post('/quotes/:id/status', isAuth, isAdminOrSeller, adminController.postUpdateQuoteStatus);
+router.post('/quotes/:id/spam', isAuth, isAdmin, adminController.postMarkQuoteSpam);
+router.post('/quotes/:id/delete', isAuth, isAdmin, adminController.deleteQuote);
+
+// ── PAGE 2: Distributor Applications ─────────────────────────────────────────
+router.get('/distributor-applications', isAuth, isAdminOrSeller, adminController.getAllDistributorApplications);
+router.get('/distributor-applications/:id/pdf', isAuth, isAdminOrSeller, adminController.getDistributorApplicationPdf);
+router.get('/distributor-applications/:id', isAuth, isAdminOrSeller, adminController.getDistributorApplicationDetail);
+router.post('/distributor-applications/:id/status', isAuth, isAdminOrSeller, adminController.postUpdateDistributorStatus);
+router.post('/distributor-applications/:id/spam', isAuth, isAdmin, adminController.postMarkDistributorSpam);
+router.post('/distributor-applications/:id/delete', isAuth, isAdmin, adminController.deleteDistributorApplication);
+
+// ── PAGE 3: FAQs ──────────────────────────────────────────────────────────────
+router.get('/faqs', isAuth, isAdminOrSeller, adminController.getAllFaqs);
+router.get('/faqs/add', isAuth, isAdminOrSeller, adminController.getAddFaq);
+router.post('/faqs/add', isAuth, isAdminOrSeller, adminController.postAddFaq);
+router.get('/faqs/edit/:id', isAuth, isAdminOrSeller, adminController.getEditFaq);
+router.post('/faqs/edit/:id', isAuth, isAdminOrSeller, adminController.postEditFaq);
+router.post('/faqs/delete/:id', isAuth, isAdminOrSeller, adminController.postDeleteFaq);
+
+// ── PAGE 4: Case Studies ──────────────────────────────────────────────────────
+router.get('/case-studies', isAuth, isAdminOrSeller, adminController.getAllCaseStudies);
+router.get('/case-studies/add', isAuth, isAdminOrSeller, adminController.getAddCaseStudy);
+router.post('/case-studies/add', isAuth, isAdminOrSeller, adminController.postAddCaseStudy);
+router.get('/case-studies/edit/:id', isAuth, isAdminOrSeller, adminController.getEditCaseStudy);
+router.post('/case-studies/edit/:id', isAuth, isAdminOrSeller, adminController.postEditCaseStudy);
+router.post('/case-studies/delete/:id', isAuth, isAdminOrSeller, adminController.postDeleteCaseStudy);
+
+// ── PAGE 5: Glossary ──────────────────────────────────────────────────────────
+router.get('/glossary', isAuth, isAdminOrSeller, adminController.getAllGlossary);
+router.get('/glossary/add', isAuth, isAdminOrSeller, adminController.getAddGlossary);
+router.post('/glossary/add', isAuth, isAdminOrSeller, adminController.postAddGlossary);
+router.get('/glossary/edit/:id', isAuth, isAdminOrSeller, adminController.getEditGlossary);
+router.post('/glossary/edit/:id', isAuth, isAdminOrSeller, adminController.postEditGlossary);
+router.post('/glossary/delete/:id', isAuth, isAdminOrSeller, adminController.postDeleteGlossary);
+
+// ── Glossary Categories ───────────────────────────────────────────────────────
+router.get('/glossary/categories', isAuth, isAdminOrSeller, adminController.getGlossaryCategories);
+router.post('/glossary/categories/add', isAuth, isAdminOrSeller, adminController.postAddGlossaryCategory);
+router.post('/glossary/categories/delete/:id', isAuth, isAdminOrSeller, adminController.postDeleteGlossaryCategory);
+
+
+
+// ── Accessories ───────────────────────────────────────────────────────────────
+router.get('/accessories', isAuth, isAdminOrSeller, adminController.getAllAccessories);
+router.get('/accessories/add', isAuth, isAdminOrSeller, adminController.getAddAccessory);
+router.post('/accessories/add', isAuth, isAdminOrSeller, uploadProductImages, adminController.postAddAccessory);
+router.get('/accessories/get-models/:productId', isAuth, isAdminOrSeller, adminController.getAccessoryModels);
+router.get('/accessories/edit/:id', isAuth, isAdminOrSeller, adminController.getEditAccessory);
+router.post('/accessories/edit/:id', isAuth, isAdminOrSeller, uploadProductImages, adminController.postEditAccessory);
+router.post('/accessories/delete/:id', isAuth, isAdminOrSeller, adminController.postDeleteAccessory);
+
+// ── Testimonials ──────────────────────────────────────────────────────────────
+router.get("/testimonials", isAuth, isAdminOrSeller, adminController.getAllTestimonials);
+router.get("/testimonials/add", isAuth, isAdminOrSeller, adminController.getAddTestimonial);
+router.post("/testimonials/add", isAuth, isAdminOrSeller, uploadProductImages, adminController.postAddTestimonial);
+router.get("/testimonials/edit/:id", isAuth, isAdminOrSeller, adminController.getEditTestimonial);
+router.post("/testimonials/edit/:id", isAuth, isAdminOrSeller, uploadProductImages, adminController.postEditTestimonial);
+router.post("/testimonials/delete/:id", isAuth, isAdminOrSeller, adminController.postDeleteTestimonial);
 
 module.exports = router;

@@ -1,13 +1,29 @@
 const path = require('path');
 const express = require('express');
 const shopController = require('../controllers/shop');
+const validateLang = require('../middleware/validate-lang');
 const router = express.Router();
+const multer = require('multer');
+
+// Validate :lang param on every route in this router
+router.param('lang', validateLang);
+const uploadQuoteAttachment = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 }
+}).single('quoteAttachment');
+
+const uploadDistributorBrochure = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 }
+}).single('companyBrochure');
 const isAuth = require('../middleware/is-auth');
 const WarrantyRegistration = require('../models/warrantyRegistration'); // Add at the top
 const Product = require('../models/product');
+const NewsletterSubscriber = require('../models/newsletter');
+const mongoose = require('mongoose');
 
-//shop/getting home page => GET
-router.get('/:lang', shopController.getHomePage);
+const geoip = require('geoip-lite');
+
 //shop/getting all products => GET
 router.get('/Products', shopController.getProducts);
 //shop/getting product details by product id => GET
@@ -15,52 +31,156 @@ router.get('/Products/:productId', shopController.getProduct);
 
 
 
-router.get('/search', shopController.getSearchResults);
+router.get('/search', shopController.search);
 
 
-router.get('/product/:productId/:lang', shopController.getProductDetails);
-router.get('/model/:productId/:modelId/:lang', shopController.getModelDetailsPage);
+router.get('/:lang/products/:productSlug', shopController.getProductDetails);
+router.get('/:lang/products/:productSlug/:modelSlug', shopController.getModelDetailsPage);
 
 
 
-router.get('/technical-service/:lang', shopController.geTechnicalservice);
+router.get('/:lang/technical-service', shopController.geTechnicalservice);
 router.post('/technical-service', shopController.postTechnicalService);
 
-router.get('/Contactus/:lang', shopController.getContactus);
+router.get('/:lang/Contactus', shopController.getContactus);
 router.post('/submit-contactus', shopController.postContactUs);
 
-router.get('/support/:lang', shopController.getSupport);
-router.get('/aboutus/:lang', shopController.getaboutus);
-router.get('/Articles/:lang', shopController.getArticles);
-router.get('/article/:id/:lang', shopController.getArticleDetails);
-router.get('/Downloads/:lang', shopController.getDownloads);
-router.get('/TermCondition/:lang', shopController.getTearmCondition);
-router.get('/PrivacyPolicy/:lang', shopController.getPrivacyPolicy);
-router.get('/Qualitypolicy/:lang', shopController.getQualitypolicy);
-router.get('/WarrantyRegistration/:lang', shopController.getWarrantyRegistration);
+router.get('/:lang/support', shopController.getSupport);
+router.get('/:lang/Articles', shopController.getArticles);
+router.get('/:lang/articles/:slug', shopController.getArticleDetails);
+router.get('/:lang/Downloads', shopController.getDownloads);
+router.get('/:lang/WarrantyRegistration', shopController.getWarrantyRegistration);
 router.post('/submit-warranty', shopController.postWarrantyRegistration);
+router.get('/:lang/Industry', shopController.getIndustryPage);
+router.get('/:lang/industry/:slug', shopController.getIndustryDetails);
+
+router.post('/subscribe', async (req, res) => {
+  try {
+    const { email, language } = req.body;
+
+    const ip =
+      req.headers['x-forwarded-for']?.split(',')[0] || req.connection.remoteAddress;
+
+    const geo = geoip.lookup(ip); // e.g., { country: 'US', region: 'CA', city: 'San Francisco', ... }
+
+    await NewsletterSubscriber.findOneAndUpdate(
+      { email },
+      {
+        email,
+        language: language || 'EN',
+        ipAddress: ip,
+        geoLocation: {
+          country: geo?.country || null,
+          region: geo?.region || null,
+          city: geo?.city || null,
+          isp: geo?.org || null
+        }
+      },
+      { upsert: true, new: true }
+    );
+
+    return res.status(200).json({ message: 'Subscribed successfully' });
+  } catch (err) {
+    console.error('❌ Newsletter Subscription Error:', err);
+    return res.status(500).json({ message: 'Server error' });
+  }
+});
+
+
 
 router.get('/api/models/:productId', async (req, res) => {
-    const lang = req.query.lang || 'EN';
-  
-    try {
-      const product = await Product.findById(req.params.productId);
-      if (!product) return res.status(404).json({ error: 'Product not found' });
-  
-      const models = product.Models.map(m => ({
-        _id: m._id,
-        ModelName: m.Language[lang]?.[0]?.ModelName || m.Language['EN']?.[0]?.ModelName || 'Unnamed Model'
-      }));
-  
-      res.json({ models });
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ error: 'Server error' });
+  const lang = (req.query.lang || 'EN').toUpperCase();
+  const { productId } = req.params;
+
+  // 🔒 Validate productId before hitting MongoDB
+  if (!mongoose.isValidObjectId(productId)) {
+    console.error('❌ Invalid productId in /api/models:', productId);
+    return res.status(400).json({ models: [] });
+  }
+
+  try {
+    const product = await Product.findById(productId)
+      .select([
+        'Models._id',              // ✅ ensure subdocument _id is present
+        'Models.isPublished',
+        `Models.Language.${lang}`,
+        'Models.Language.EN'
+      ])
+      .lean();
+
+    if (!product) {
+      return res.status(404).json({ models: [] });
     }
-  });
+
+    const models = (product.Models || [])
+      .filter((m) => {
+        const langBlock = m?.Language?.[lang]?.[0];
+        const enBlock   = m?.Language?.EN?.[0];
+        return m?.isPublished === true ||
+               langBlock?.publish === true ||
+               enBlock?.publish === true;
+      })
+      .map((m) => {
+        const block = m.Language?.[lang]?.[0] || m.Language?.EN?.[0] || {};
+        return {
+          _id: m._id,                                  // ✅ valid ObjectId
+          ModelName: block.ModelName || 'Unnamed Model'
+        };
+      });
+
+    return res.json({ models });
+  } catch (err) {
+    console.error('❌ /api/models error:', err);
+    return res.status(500).json({ models: [] });
+  }
+});
 
 
 
+router.get('/', (req, res) => {
+  const acceptLang = req.headers['accept-language'] || '';
+  const browserLang = acceptLang.slice(0, 2).toLowerCase();
 
+  let redirectLang = 'en'; // default (lowercase canonical)
+
+  if (browserLang === 'es') redirectLang = 'es';
+  else if (browserLang === 'de') redirectLang = 'de';
+
+  res.redirect(`/${redirectLang}`);
+});
+
+
+
+//shop/getting home page => GET
+router.get('/:lang', shopController.getHomePage);
+
+
+// ── PAGE 1: Request a Quote ──────────────────────────────────────────────────
+router.get('/:lang/request-a-quote', shopController.getRequestQuote);
+router.post('/submit-quote', uploadQuoteAttachment, shopController.postRequestQuote);
+
+// ── PAGE 2: Become a Distributor ─────────────────────────────────────────────
+router.get('/:lang/become-a-distributor', shopController.getBecomDistributor);
+router.post('/submit-distributor-application', uploadDistributorBrochure, shopController.postDistributorApplication);
+
+// ── PAGE 3: Knowledge Base / FAQ ─────────────────────────────────────────────
+router.get('/:lang/knowledge-base', shopController.getKnowledgeBase);
+router.get('/:lang/knowledge-base/:category', shopController.getKnowledgeBaseCategory);
+
+// ── PAGE 4: Case Studies ─────────────────────────────────────────────────────
+router.get('/:lang/case-studies', shopController.getCaseStudies);
+router.get('/:lang/case-studies/:slug', shopController.getCaseStudyDetail);
+
+// ── PAGE 5: Laboratory Glossary ──────────────────────────────────────────────
+router.get('/:lang/laboratory-glossary', shopController.getLaboratoryGlossary);
+router.get('/:lang/laboratory-glossary/:slug', shopController.getGlossaryTerm);
+
+
+// ── Accessories ──────────────────────────────────────────────────────────────
+router.get('/:lang/accessories', shopController.getAccessories);
+router.get('/:lang/accessories/:slug', shopController.getAccessoryDetails);
+
+// ── Testimonials ─────────────────────────────────────────────────────────────
+router.get('/:lang/testimonials', shopController.getTestimonials);
 
 module.exports = router;
