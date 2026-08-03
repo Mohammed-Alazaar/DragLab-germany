@@ -6,7 +6,10 @@
   "permissions": {
     "allow": [
       "Bash(git log *)",
-      "Bash(git config *)"
+      "Bash(git config *)",
+      "Skill(update-config)",
+      "Bash(echo \"---exit $?---\")",
+      "Bash(MSYS_NO_PATHCONV=1 git show *)"
     ]
   }
 }
