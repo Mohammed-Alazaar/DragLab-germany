@@ -1,4 +1,10 @@
 {
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  }
+}
+{
   "permissions": {
     "allow": [
       "Bash(find '/c/draglab marketıng mohammed/GitHub/DragLab-germany/Front-end/css' -name *.css -exec ls -lh {})",
