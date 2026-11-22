@@ -1,4 +1,8 @@
 require('dotenv').config();
+const dns = require('dns');
+if (process.env.MONGODB_DNS_SERVERS) {
+    dns.setServers(process.env.MONGODB_DNS_SERVERS.split(',').map(server => server.trim()).filter(Boolean));
+}
 const path = require('path');
 const http = require('http');
 const express = require('express');
@@ -198,12 +202,11 @@ app.use(
 
 
 
-//mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@cluster0.bpgw617.mongodb.net/?appName=Cluster0
-const MONGODB_URI = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@cluster0.bpgw617.mongodb.net/${process.env.MONGO_DATABASE}?retryWrites=true&w=majority&ssl=true`;
+//mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@cluster0.yrit4.mongodb.net/?appName=Cluster0
+const MONGODB_URI = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@cluster0.yrit4.mongodb.net/${process.env.MONGO_DATABASE}?retryWrites=true&w=majority&ssl=true`;
 
 
 
-//const MONGODB_URI = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@cluster0.yrit4.mongodb.net/${process.env.MONGO_DATABASE}?retryWrites=true&w=majority&ssl=true`;
 
 const store = new MongoDBStore({
     uri: MONGODB_URI,
